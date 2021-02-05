@@ -1,0 +1,42 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Player.qml</file>
+        <file>PlayerLine.qml</file>
+        <file>PlayerControls.qml</file>
+        <file>PlayerLineSlider.qml</file>
+        <file>Icon.qml</file>
+        <file>resources/player/dislike.svg</file>
+        <file>resources/player/send-to-device.svg</file>
+        <file>resources/player/download.svg</file>
+        <file>resources/player/shuffle.svg</file>
+        <file>resources/player/loop-playlist.svg</file>
+        <file>resources/player/vol.svg</file>
+        <file>resources/player/loop-track.svg</file>
+        <file>resources/player/next.svg</file>
+        <file>resources/player/pause.svg</file>
+        <file>resources/player/play.svg</file>
+        <file>resources/player/prev.svg</file>
+        <file>PlayerTrack.qml</file>
+        <file>PlayerTrackIcon.qml</file>
+        <file>PlayerTrackInfo.qml</file>
+        <file>RoundedImage.qml</file>
+        <file>DText.qml</file>
+        <file>Title.qml</file>
+        <file>TitleManualButton.qml</file>
+        <file>PlayerControlsButton.qml</file>
+        <file>resources/application.ico</file>
+        <file>resources/application.png</file>
+        <file>resources/application.svg</file>
+        <file>resources/logo.svg</file>
+        <file>resources/title/back.svg</file>
+        <file>resources/title/close.svg</file>
+        <file>resources/title/favotite.svg</file>
+        <file>resources/title/maximize.svg</file>
+        <file>resources/title/minimize.svg</file>
+        <file>resources/title/playlists.svg</file>
+        <file>resources/title/radio.svg</file>
+        <file>resources/title/recommendation.svg</file>
+        <file>resources/title/subscriptions.svg</file>
+    </qresource>
+</RCC>
