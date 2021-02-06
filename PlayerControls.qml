@@ -44,7 +44,7 @@ Item {
 
     icon: isLoopingPlaylist_notTrack? "resources/player/loop-playlist.svg" : "resources/player/loop-track.svg"
     color: isLooping? "#FCE165" : "#C1C1C1"
-    hoverColor: isLooping? "#DAAF5A" : "#FFFFFF"
+    hoverColor: isLooping? "#CDB64E" : "#FFFFFF"
     onClick: {
       if (isLooping) {
         if (isLoopingPlaylist_notTrack) {
@@ -67,7 +67,7 @@ Item {
 
     icon: "resources/player/shuffle.svg"
     color: isShuffling? "#FCE165" : "#C1C1C1"
-    hoverColor: isShuffling? "#DAAF5A" : "#FFFFFF"
+    hoverColor: isShuffling? "#CDB64E" : "#FFFFFF"
     onClick: isShuffling = !isShuffling
   }
 }
