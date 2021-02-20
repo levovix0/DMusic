@@ -17,4 +17,8 @@ public:
 
 signals:
 
+private:
+  py::object ym; // yandex_music module
+
+  py::object me; // client
 };

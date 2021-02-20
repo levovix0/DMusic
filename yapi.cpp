@@ -1,6 +1,8 @@
 #include "yapi.hpp"
 #include<QDebug>
 
+using namespace py;
+
 QTextStream& qStdOut()
 {
     static QTextStream ts(stdout);
@@ -10,8 +12,7 @@ QTextStream& qStdOut()
 Yapi::Yapi(QObject *parent) : QObject(parent)
 {
 	Py_Initialize();
-//	PyRun_SimpleString("from yandex_music import *\n"
-//										 "me = Client('AgAAAAAwR49zAAG8XvNMwDoyKUj6lw3xFFjPS_Y')\n");
+  ym = module("yandex_music");
 }
 
 Yapi::~Yapi()
@@ -21,13 +22,14 @@ Yapi::~Yapi()
 
 void Yapi::download(QString id)
 {
-//	QString r("track = me.tracks(["); r += id; r += "])[0]\n"
-//			 "track.download('a.mp3')\n";
-  //	PyRun_SimpleString(r.toUtf8().data());
+  me = ym.call("Client", "AgAAAAAwR49zAAG8XvNMwDoyKUj6lw3xFFjPS_Y");
+  object track = me.call("tracks", std::vector<object>{id.toInt()})[0];
+  track.call("download", "a.mp3");
 }
 
 QString Yapi::test(QString a)
 {
   py::object str = a;
-  return str.to<QString>();
+  py::object str2 = str.call("upper").copy();
+  return str2.to<QString>();
 }

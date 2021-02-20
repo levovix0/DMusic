@@ -106,8 +106,8 @@ Window {
         id: _mouse
         anchors.fill: parent
         onClicked: {
-//          _yapi.download(_input.text)
-          _message.show(_yapi.test(_input.text))
+          _yapi.download(_input.text)
+//          _message.show(_yapi.test(_input.text))
         }
       }
     }
