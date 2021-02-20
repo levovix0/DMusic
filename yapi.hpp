@@ -12,7 +12,8 @@ public:
 //	Q_INVOKABLE QString* token(QString login, QString password);
 //	Q_INVOKABLE void login(QString token);
 
-	Q_INVOKABLE void download(QString id);
+  Q_INVOKABLE void download(QString id);
+  Q_INVOKABLE QString test(QString a);
 
 signals:
 

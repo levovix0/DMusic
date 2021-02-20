@@ -3,7 +3,7 @@
 
 QTextStream& qStdOut()
 {
-    static QTextStream ts( stdout );
+    static QTextStream ts(stdout);
     return ts;
 }
 
@@ -21,9 +21,13 @@ Yapi::~Yapi()
 
 void Yapi::download(QString id)
 {
-  py::object str = "Привет, мир!";
-  qStdOut() << str.to<QString>() << '\n';
 //	QString r("track = me.tracks(["); r += id; r += "])[0]\n"
 //			 "track.download('a.mp3')\n";
-//	PyRun_SimpleString(r.toUtf8().data());
+  //	PyRun_SimpleString(r.toUtf8().data());
+}
+
+QString Yapi::test(QString a)
+{
+  py::object str = a;
+  return str.to<QString>();
 }

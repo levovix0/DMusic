@@ -1,5 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Window 2.12
+import QtQuick.Dialogs 1.2
 import yapi 1.0
 
 Window {
@@ -75,6 +76,16 @@ Window {
       }
     }
 
+    Dialog {
+        id: _message
+        title: "O_o"
+
+        function show(str) {
+          title = str
+          visible = true
+        }
+    }
+
     Rectangle {
       id: _download
       anchors.centerIn: root
@@ -95,7 +106,8 @@ Window {
         id: _mouse
         anchors.fill: parent
         onClicked: {
-          _yapi.download(_input.text)
+//          _yapi.download(_input.text)
+          _message.show(_yapi.test(_input.text))
         }
       }
     }
