@@ -4,6 +4,7 @@
 #include <QString>
 #include <string>
 #include <vector>
+#include <map>
 
 namespace py
 {
@@ -21,23 +22,29 @@ namespace py
     object(T const& o);
 
     template<typename T>
-    T to();
+    T to() const;
 
-    object attr(object name);
-    object get(object name) { return attr(name); }
+    object attr(object name) const;
+    object get(object name) const { return attr(name); }
 
-    object operator()(std::initializer_list<object> args);
-    object operator()();
-    object operator()(object arg);
+    object operator()(std::initializer_list<object> const& args) const;
+    object operator()(object arg) const;
+    object operator()() const;
+    object operator()(std::initializer_list<object> const& args, std::map<std::string, object> const& kwargs) const;
+    object operator()(object arg, std::map<std::string, object> const& kwargs) const;
 
-    object call(object name, std::initializer_list<object> args);
-    object call(object name);
-    object call(object name, object arg);
+    object call(object name, std::initializer_list<object> const& args) const;
+    object call(object name, object arg) const;
+    object call(object name) const;
+    object call(object name, std::initializer_list<object> const& args, std::map<std::string, object> const& kwargs) const;
+    object call(object name, object arg, std::map<std::string, object> const& kwargs) const;
 
-    object operator[](size_t i);
+    object operator[](size_t i) const;
 
-    object copy();
-    object deepcopy();
+    object copy() const;
+    object deepcopy() const;
+
+    object operator<(object const& a) const;
 
     PyObject* raw;
   };
@@ -55,7 +62,10 @@ namespace py
 
   inline PyObject* toPyObject(PyObject* o)
   {
-    if (o == nullptr) throw std::runtime_error("got null python object");
+    if (o == nullptr) {
+//      PyErr_Print();
+      throw std::runtime_error("got null python object");
+    }
     return o;
   }
 
@@ -71,11 +81,12 @@ namespace py
   {
     return PyUnicode_FromString(s.toUtf8().data());
   }
-  inline PyObject* toPyObject(std::initializer_list<object> tuple)
+  inline PyObject* toPyObject(std::initializer_list<object> const& tuple)
   {
     PyObject* ty = PyTuple_New(tuple.size());
     int i = 0;
     for (auto& e : tuple) {
+      Py_INCREF(e.raw);
       PyTuple_SetItem(ty, i, e.raw);
       ++i;
     }
@@ -83,15 +94,33 @@ namespace py
   }
   inline PyObject* toPyObject(long long v)
   {
-    return PyLong_FromLong(v);
+    return PyLong_FromLongLong(v);
   }
-  inline PyObject* toPyObject(std::vector<object> v)
+  inline PyObject* toPyObject(bool v)
+  {
+    return PyBool_FromLong(v);
+  }
+  inline PyObject* toPyObject(std::nullptr_t)
+  {
+    return Py_None;
+  }
+  inline PyObject* toPyObject(std::vector<object> const& v)
   {
     PyObject* res = PyList_New(v.size());
     int i = 0;
     for (auto& e : v) {
+      Py_INCREF(e.raw);
       PyList_SetItem(res, i, e.raw);
       ++i;
+    }
+    return res;
+  }
+  inline PyObject* toPyObject(std::map<std::string, object> const& v)
+  {
+    PyObject* res = PyDict_New();
+    for (auto& e : v) {
+      Py_INCREF(e.second.raw);
+      PyDict_SetItem(res, object(e.first).raw, e.second.raw);
     }
     return res;
   }
@@ -140,11 +169,11 @@ namespace py
   }
 
   template<typename T>
-  T object::to() {}
+  T object::to() const {}
 
 
   template<>
-  inline std::string object::to<std::string>()
+  inline std::string object::to<std::string>() const
   {
     auto repr = PyObject_Str(raw);
     if (!repr) repr = PyObject_Repr(raw);
@@ -155,7 +184,7 @@ namespace py
     return res;
   }
   template<>
-  inline QString object::to<QString>()
+  inline QString object::to<QString>() const
   {
     auto repr = PyObject_Str(raw);
     if (!repr) repr = PyObject_Repr(raw);
@@ -165,58 +194,88 @@ namespace py
     Py_DECREF(repr);
     return res;
   }
+  template<>
+  inline bool object::to<bool>() const
+  {
+    return PyObject_IsTrue(raw);
+  }
 
 
-  inline object object::attr(object name)
+  inline object object::attr(object name) const
   {
     return PyObject_GetAttr(raw, name.raw);
   }
 
 
-  inline object object::operator()(std::initializer_list<object> args)
+  inline object object::operator()(std::initializer_list<object> const& args) const
   {
     return PyObject_Call(raw, object(args).raw, nullptr);
   }
 
-  inline object object::operator()()
-  {
-    return PyObject_CallNoArgs(raw);
-  }
-
-  inline object object::operator()(object arg)
+  inline object object::operator()(object arg) const
   {
     return PyObject_CallOneArg(raw, arg.raw);
   }
 
+  inline object object::operator()() const
+  {
+    return PyObject_CallNoArgs(raw);
+  }
 
-  inline object object::call(object name, std::initializer_list<object> args)
+  inline object object::operator()(std::initializer_list<object> const& args, std::map<std::string, object> const& kwargs) const
+  {
+    return PyObject_Call(raw, object(args).raw, object(kwargs).raw);
+  }
+
+  inline object object::operator()(object arg, std::map<std::string, object> const& kwargs) const
+  {
+    return PyObject_Call(raw, object(std::initializer_list<object>{arg}).raw, object(kwargs).raw);
+  }
+
+
+  inline object object::call(object name, std::initializer_list<object> const& args) const
   {
     return attr(name)(args);
   }
 
-  inline object object::call(object name)
-  {
-    return attr(name)();
-  }
-
-  inline object object::call(object name, object arg)
+  inline object object::call(object name, object arg) const
   {
     return attr(name)(arg);
   }
 
-  inline object object::operator[](size_t i)
+  inline object object::call(object name) const
+  {
+    return attr(name)();
+  }
+
+  inline object object::call(object name, std::initializer_list<object> const& args, std::map<std::string, object> const& kwargs) const
+  {
+    return attr(name)(args, kwargs);
+  }
+
+  inline object object::call(object name, object arg, std::map<std::string, object> const& kwargs) const
+  {
+    return attr(name)(arg, kwargs);
+  }
+
+  inline object object::operator[](size_t i) const
   {
     return PySequence_GetItem(raw, i);
   }
 
-  inline object object::copy()
+  inline object object::copy() const
   {
     return module("copy").call("copy", *this);
   }
 
-  inline object object::deepcopy()
+  inline object object::deepcopy() const
   {
     return module("copy").call("deepcopy", *this);
+  }
+
+  inline object object::operator<(const object& a) const
+  {
+    return this->call("__lt__", a);
   }
 
 

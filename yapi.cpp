@@ -13,6 +13,14 @@ Yapi::Yapi(QObject *parent) : QObject(parent)
 {
 	Py_Initialize();
   ym = module("yandex_music");
+//  ym_request = ym.get("utils").get("request");
+//  std::map<std::string, object> kwargs;
+//  kwargs["proxy_url"] = "socks4://194.135.97.126:4145";
+//  object req = ym_request.call("Request", std::initializer_list<object>{}, kwargs);
+//  kwargs.clear();
+//  kwargs["request"] = req;
+//  me = ym.call("Client", "AgAAAAAwR49zAAG8XvNMwDoyKUj6lw3xFFjPS_Y", kwargs);
+  me = ym.call("Client", "AgAAAAAwR49zAAG8XvNMwDoyKUj6lw3xFFjPS_Y");
 }
 
 Yapi::~Yapi()
@@ -22,8 +30,7 @@ Yapi::~Yapi()
 
 void Yapi::download(QString id)
 {
-  me = ym.call("Client", "AgAAAAAwR49zAAG8XvNMwDoyKUj6lw3xFFjPS_Y");
-  object track = me.call("tracks", std::vector<object>{id.toInt()})[0];
+  object track = me.call("tracks", std::vector<object>{id})[0];
   track.call("download", "a.mp3");
 }
 

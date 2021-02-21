@@ -19,6 +19,7 @@ signals:
 
 private:
   py::object ym; // yandex_music module
+//  py::object ym_request;
 
   py::object me; // client
 };
