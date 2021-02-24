@@ -38,5 +38,7 @@
         <file>resources/title/radio.svg</file>
         <file>resources/title/recommendation.svg</file>
         <file>resources/title/subscriptions.svg</file>
+        <file>DButton.qml</file>
+        <file>DTextBox.qml</file>
     </qresource>
 </RCC>

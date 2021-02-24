@@ -36,8 +36,69 @@ Window {
 
     color: "#181818"
 
+    DText {
+      id: _yapi_state
+      x: 5
+      y: 50
+
+      text: "-"
+    }
+
+    DText {
+      id: _track_state
+      x: 5
+      y: 70
+
+      text: "-"
+    }
+
+    DText {
+      id: _track_info_state
+      x: 5
+      y: 90
+
+      text: "-"
+    }
+
     Yapi {
       id: _yapi
+
+      property int tries: 5
+
+      Component.onCompleted: {
+//        autologin()
+      }
+      function autologin() {
+        tries = 5
+        _yapi_state.text = "loggining"
+        if (_proxy_input.text == "") {
+          login(_token_input.text)
+        } else {
+          login(_token_input.text, _proxy_input.text)
+        }
+      }
+
+      onLoggedIn: {
+        _yapi_state.text = success? "OK" : "Err"
+        if (!success) {
+          --tries
+          if (tries > 0) {
+            _yapi_state.text = "loggining"
+            if (_proxy_input.text == "") {
+              login(_token_input.text)
+            } else {
+              login(_token_input.text, _proxy_input.text)
+            }
+          }
+        }
+      }
+      onDownloaded: {
+        _track_state.text = success? "OK" : "Err"
+
+      }
+      onDownloadedInfo: {
+        _track_info_state.text = success? "OK" : "Err"
+      }
     }
 
     Player {
@@ -56,59 +117,55 @@ Window {
       manual: _root.manualTitle
     }
 
-    Rectangle {
-      id: _input_r
+    DTextBox {
+      id: _id_input
       anchors.centerIn: root
-      height: 20
-      width: root.width * 0.7
-      radius: 3
-
-      color: "#303030"
-
-      TextInput {
-        id: _input
-        anchors.verticalCenter: _input_r
-        width: _input_r.width - x * 2
-        x: 5
-
-        color: "#FFFFFF"
-        font.pixelSize: _title.height * 0.4
-      }
+      width: root.width / 3 * 2
     }
 
-    Dialog {
-        id: _message
-        title: "O_o"
-
-        function show(str) {
-          title = str
-          visible = true
-        }
+    DTextBox {
+      id: _token_input
+      y: 50
+      x: 149
+      width: root.width / 3
     }
 
-    Rectangle {
+    DTextBox {
+      id: _proxy_input
+      anchors.left: _token_input.right
+      anchors.top: _token_input.top
+      anchors.leftMargin: 20
+      width: root.width / 3
+
+      text: "socks4://193.106.58.51:4153"
+    }
+
+    DButton {
       id: _download
       anchors.centerIn: root
       anchors.verticalCenterOffset: 40
-      height: 20
-      width: 100
-      radius: 3
 
-      color: _mouse.containsPress? "#404040" : "#303030"
+      text: "Скачать"
 
-      DText {
-        anchors.centerIn: parent
-
-        text: "Скачать"
+      onClick: {
+        if (!_yapi.isLoggined()) return
+        _track_state.text = "downloading"
+//        _track_info_state.text = "downloading"
+        _yapi.download(parseInt(_id_input.text), "./yandex/")
+//        _yapi.downloadInfo(parseInt(_id_input.text), "./yandex/")
       }
+    }
 
-      MouseArea {
-        id: _mouse
-        anchors.fill: parent
-        onClicked: {
-          _yapi.download(_input.text)
-//          _message.show(_yapi.test(_input.text))
-        }
+    DButton {
+      id: _login
+      anchors.left: _proxy_input.right
+      anchors.top: _proxy_input.top
+      anchors.leftMargin: 20
+
+      text: "Войти"
+
+      onClick: {
+        _yapi.autologin()
       }
     }
   }

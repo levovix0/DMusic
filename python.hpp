@@ -49,6 +49,14 @@ namespace py
     PyObject* raw;
   };
 
+  struct py_error : std::exception
+  {
+    std::string type;
+    py_error(object type, object value, object traceback);
+
+    char const* what() const throw() override;
+  };
+
   struct module : object
   {
     module(char const* name);
@@ -64,7 +72,8 @@ namespace py
   {
     if (o == nullptr) {
 //      PyErr_Print();
-      throw std::runtime_error("got null python object");
+//      throw std::runtime_error("got null python object");
+      return Py_None;
     }
     return o;
   }
@@ -96,6 +105,10 @@ namespace py
   {
     return PyLong_FromLongLong(v);
   }
+  inline PyObject* toPyObject(int v)
+  {
+    return PyLong_FromLong(v);
+  }
   inline PyObject* toPyObject(bool v)
   {
     return PyBool_FromLong(v);
@@ -126,7 +139,7 @@ namespace py
   }
 
 
-  inline object::object() : raw(nullptr) {}
+  inline object::object() : raw(Py_None) {}
 
   inline object::object(object&& move) : raw(move.raw)
   {
@@ -143,7 +156,6 @@ namespace py
   inline object::~object()
   {
     if (raw != nullptr) {
-
       Py_DecRef(raw);
     }
   }
@@ -167,6 +179,23 @@ namespace py
   {
     raw = toPyObject(o);
   }
+
+
+  inline void fetchException() {
+    PyObject *type, *value, *traceback;
+    PyErr_Fetch(&type, &value, &traceback);
+    if (type == nullptr) return;
+    PyErr_Clear();
+    throw py_error(type, value? value : nullptr, traceback? traceback : nullptr);
+  }
+
+  inline PyObject* maybe_exception(PyObject* a) {
+    if (a == nullptr) {
+       fetchException();
+    }
+    return a;
+  }
+
 
   template<typename T>
   T object::to() const {}
@@ -199,37 +228,42 @@ namespace py
   {
     return PyObject_IsTrue(raw);
   }
+  template<>
+  inline int object::to<int>() const
+  {
+    return PyLong_AsLong(raw);
+  }
 
 
   inline object object::attr(object name) const
   {
-    return PyObject_GetAttr(raw, name.raw);
+    return maybe_exception(PyObject_GetAttr(raw, name.raw));
   }
 
 
   inline object object::operator()(std::initializer_list<object> const& args) const
   {
-    return PyObject_Call(raw, object(args).raw, nullptr);
+    return maybe_exception(PyObject_Call(raw, object(args).raw, nullptr));
   }
 
   inline object object::operator()(object arg) const
   {
-    return PyObject_CallOneArg(raw, arg.raw);
+    return maybe_exception(PyObject_CallOneArg(raw, arg.raw));
   }
 
   inline object object::operator()() const
   {
-    return PyObject_CallNoArgs(raw);
+    return maybe_exception(PyObject_CallNoArgs(raw));
   }
 
   inline object object::operator()(std::initializer_list<object> const& args, std::map<std::string, object> const& kwargs) const
   {
-    return PyObject_Call(raw, object(args).raw, object(kwargs).raw);
+    return maybe_exception(PyObject_Call(raw, object(args).raw, object(kwargs).raw));
   }
 
   inline object object::operator()(object arg, std::map<std::string, object> const& kwargs) const
   {
-    return PyObject_Call(raw, object(std::initializer_list<object>{arg}).raw, object(kwargs).raw);
+    return maybe_exception(PyObject_Call(raw, object(std::initializer_list<object>{arg}).raw, object(kwargs).raw));
   }
 
 
@@ -260,7 +294,7 @@ namespace py
 
   inline object object::operator[](size_t i) const
   {
-    return PySequence_GetItem(raw, i);
+    return maybe_exception(PySequence_GetItem(raw, i));
   }
 
   inline object object::copy() const
@@ -293,4 +327,18 @@ namespace py
   {
     return PyImport_AddModule("__main__");
   }
+
+
+  inline py_error::py_error(object type, object value, object traceback)
+  {
+    (void)value;
+    (void)traceback;
+    this->type = type.to<std::string>();
+  }
+
+  inline const char* py_error::what() const throw()
+  {
+    return type.c_str();
+  }
+
 }
