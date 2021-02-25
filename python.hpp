@@ -2,6 +2,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <QString>
+#include <QVector>
+#include <QList>
 #include <string>
 #include <vector>
 #include <map>
@@ -71,10 +73,9 @@ namespace py
   inline PyObject* toPyObject(PyObject* o)
   {
     if (o == nullptr) {
-//      PyErr_Print();
-//      throw std::runtime_error("got null python object");
       return Py_None;
     }
+    Py_INCREF(o);
     return o;
   }
 
@@ -155,8 +156,8 @@ namespace py
 
   inline object::~object()
   {
-    if (raw != nullptr) {
-      Py_DecRef(raw);
+    if (raw != nullptr && raw != Py_None) {
+      Py_DECREF(raw);
     }
   }
 
@@ -198,40 +199,73 @@ namespace py
 
 
   template<typename T>
-  T object::to() const {}
-
-
-  template<>
-  inline std::string object::to<std::string>() const
-  {
-    auto repr = PyObject_Str(raw);
-    if (!repr) repr = PyObject_Repr(raw);
-    auto enc = PyUnicode_AsEncodedString(repr, "utf-8", "~E~");
-    std::string res(PyBytes_AS_STRING(enc));
-    Py_DECREF(enc);
-    Py_DECREF(repr);
+  T object::to() const {
+    T res;
+    fromPyObject(*this, res);
     return res;
   }
-  template<>
-  inline QString object::to<QString>() const
+
+
+  inline void fromPyObject(object const& a, std::string& res)
   {
-    auto repr = PyObject_Str(raw);
-    if (!repr) repr = PyObject_Repr(raw);
+    auto repr = PyObject_Str(a.raw);
+    if (!repr) repr = PyObject_Repr(a.raw);
     auto enc = PyUnicode_AsEncodedString(repr, "utf-8", "~E~");
-    QString res(PyBytes_AS_STRING(enc));
+    res = std::string(PyBytes_AS_STRING(enc));
     Py_DECREF(enc);
     Py_DECREF(repr);
-    return res;
   }
-  template<>
-  inline bool object::to<bool>() const
+  inline void fromPyObject(object const& a, QString& res)
   {
-    return PyObject_IsTrue(raw);
+    auto repr = PyObject_Str(a.raw);
+    if (!repr) repr = PyObject_Repr(a.raw);
+    auto enc = PyUnicode_AsEncodedString(repr, "utf-8", "~E~");
+    res = QString(PyBytes_AS_STRING(enc));
+    Py_DECREF(enc);
+    Py_DECREF(repr);
   }
-  template<>
-  inline int object::to<int>() const
+  inline void fromPyObject(object const& a, bool& res)
   {
-    return PyLong_AsLong(raw);
+    res = PyObject_IsTrue(a.raw);
+  }
+  inline void fromPyObject(object const& a, int& res)
+  {
+    if (PyLong_Check(a.raw)) {
+      res = PyLong_AsLong(a.raw);
+    } else if (PyUnicode_Check(a.raw)) {
+      res = PyLong_AsLong(PyLong_FromUnicodeObject(a.raw, 10));
+    } else {
+      throw std::runtime_error("unimplemented");
+    }
+  }
+
+  template<class T>
+  inline void fromPyObject(object const& a, QVector<T>& res)
+  {
+    if (!PyList_Check(a.raw)) {
+      res.resize(0);
+      return;
+    }
+    res.resize(PyList_Size(a.raw));
+    size_t i = 0;
+    for (auto&& r : res) {
+      fromPyObject(PyList_GetItem(a.raw, i), r);
+      ++i;
+    }
+  }
+
+  template<class T>
+  inline void fromPyObject(object const& a, QList<T>& res)
+  {
+    res = QList<T>();
+    if (!PyList_Check(a.raw)) return;
+
+    size_t n = PyList_Size(a.raw);
+    for (size_t i = 0; i < n; ++i) {
+      T o;
+      fromPyObject(PyList_GetItem(a.raw, i), o);
+      res.append(o);
+    }
   }
 
 
@@ -333,7 +367,7 @@ namespace py
   {
     (void)value;
     (void)traceback;
-    this->type = type.to<std::string>();
+    this->type = type.get("__name__").to<std::string>();
   }
 
   inline const char* py_error::what() const throw()

@@ -35,6 +35,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
   file.hpp \
   python.hpp \
+  settings.hpp \
   yapi.hpp
 
 

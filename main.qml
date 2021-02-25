@@ -60,7 +60,7 @@ Window {
       text: "-"
     }
 
-    Yapi {
+    YClient {
       id: _yapi
 
       property int tries: 5
@@ -69,7 +69,6 @@ Window {
 //        autologin()
       }
       function autologin() {
-        tries = 5
         _yapi_state.text = "loggining"
         if (_proxy_input.text == "") {
           login(_token_input.text)
@@ -80,24 +79,6 @@ Window {
 
       onLoggedIn: {
         _yapi_state.text = success? "OK" : "Err"
-        if (!success) {
-          --tries
-          if (tries > 0) {
-            _yapi_state.text = "loggining"
-            if (_proxy_input.text == "") {
-              login(_token_input.text)
-            } else {
-              login(_token_input.text, _proxy_input.text)
-            }
-          }
-        }
-      }
-      onDownloaded: {
-        _track_state.text = success? "OK" : "Err"
-
-      }
-      onDownloadedInfo: {
-        _track_info_state.text = success? "OK" : "Err"
       }
     }
 
@@ -149,10 +130,22 @@ Window {
 
       onClick: {
         if (!_yapi.isLoggined()) return
-        _track_state.text = "downloading"
-//        _track_info_state.text = "downloading"
-        _yapi.download(parseInt(_id_input.text), "./yandex/")
-//        _yapi.downloadInfo(parseInt(_id_input.text), "./yandex/")
+        _yapi.fetchedTrack.connect(function(track) {
+          console.log("track ", track.id());
+          track.downloaded.connect(function(success) {
+            _track_state.text = success? "OK" : "Err"
+          })
+          track.savedCover.connect(function(success) {
+            _track_info_state.text = success? "OK" : "Err"
+            _track_state.text = "downloading"
+            track.download()
+          })
+          track.saveMetadata()
+          _track_info_state.text = "downloading"
+          track.saveCover()
+        })
+        console.log("fetching tracks by id ", _id_input.text);
+        _yapi.fetchTracks(parseInt(_id_input.text))
       }
     }
 
