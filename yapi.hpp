@@ -39,7 +39,7 @@ signals:
 
 private:
   py::object impl;
-//  int _id;
+  int _id;
 };
 inline PyObject* toPyObject(YTrack a) { Py_INCREF(a.raw()); return a.raw(); }
 inline void fromPyObject(py::object const& o, YTrack& res) { res = YTrack(o.raw); }
@@ -98,8 +98,8 @@ signals:
   void fetchedTrack(YTrack* track);
 
 private:
-  py::object ym; // yandex_music module
-  py::object ym_request;
+  py::module ym; // yandex_music module
+  py::module ym_request;
 
   py::object me; // client
 

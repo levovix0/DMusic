@@ -15,7 +15,7 @@ namespace py
   struct object
   {
     object();
-    ~object();
+    virtual ~object();
     object(object const& copy);
     object(object&& move);
     object& operator=(object const& copy);
@@ -62,10 +62,17 @@ namespace py
 
   struct module : object
   {
+    ~module() override;
+    module(module const& copy);
     module(char const* name);
     module(object name);
     module(PyObject* raw);
 
+    module& operator=(module const& copy);
+
+
+    module submodule(object name);
+    module operator/(object name) { return submodule(name); }
     static module main();
   };
 
@@ -348,6 +355,17 @@ namespace py
   }
 
 
+  inline module::~module()
+  {
+    raw = nullptr; // утечка памяти?
+  }
+
+  inline module::module(const module& copy) : object()
+  {
+    raw = copy.raw;
+    Py_INCREF(raw);
+  }
+
   inline module::module(char const* name)
   {
     raw = PyImport_ImportModule(name);
@@ -357,6 +375,17 @@ namespace py
   inline module::module(object name) : module(name.to<std::string>().c_str()) {}
 
   inline module::module(PyObject* raw) : object(raw) {}
+
+  inline module& module::operator=(const module& copy)
+  {
+    raw = copy.raw;
+    return *this;
+  }
+
+  inline module module::submodule(object name)
+  {
+    return module(get(name).raw);
+  }
 
   inline module module::main()
   {

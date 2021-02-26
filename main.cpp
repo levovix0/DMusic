@@ -9,10 +9,6 @@ int main(int argc, char *argv[])
   qmlRegisterType<YClient>("yapi", 1, 0, "YClient");
   qmlRegisterType<YTrack>("yapi", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("yapi", 1, 0, "YArtist");
-  qRegisterMetaType<QVector<YTrack>>("QVector<YTrack>");
-  qRegisterMetaType<QVector<YArtist>>("QVector<YArtist>");
-  qRegisterMetaType<YTrack>("YTrack");
-  qRegisterMetaType<YArtist>("YArtist");
 
   QQmlApplicationEngine engine;
   const QUrl url(QStringLiteral("qrc:/main.qml"));

@@ -22,7 +22,7 @@ object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "N
     while (true) {
       try {
         return f();
-      }  catch (py_error e) {
+      }  catch (py_error& e) {
         --n;
         if (n <= 0) throw std::move(e);
       }
@@ -31,7 +31,7 @@ object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "N
     while (true) {
       try {
         return f();
-      }  catch (py_error e) {
+      }  catch (py_error& e) {
         if (e.type != s) throw std::move(e);
         --n;
         if (n <= 0) throw std::move(e);
@@ -39,6 +39,43 @@ object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "N
     }
   }
   return nullptr;
+}
+
+void repeat_if_error(std::function<void()> f, std::function<void(bool success)> r, int n = 10, std::string s = "NetworkError") {
+  int tries = n;
+  if (s == "") {
+    while (true) {
+      try {
+        f();
+        r(true);
+        return;
+      }  catch (py_error& e) {
+        --tries;
+        if (tries <= 0) {
+          r(false);
+          return;
+        }
+      }
+    }
+  } else {
+    while (true) {
+      try {
+        f();
+        r(true);
+        return;
+      }  catch (py_error& e) {
+        if (e.type != s) {
+          r(false);
+          return;
+        }
+        --tries;
+        if (tries <= 0) {
+          r(false);
+          return;
+        }
+      }
+    }
+  }
 }
 
 void do_async(std::function<void()> f) {
@@ -54,7 +91,7 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
           f();
           r(true);
           return;
-        }  catch (py_error e) {
+        }  catch (py_error& e) {
           --tries;
           if (tries <= 0) {
             r(false);
@@ -68,7 +105,7 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
           f();
           r(true);
           return;
-        }  catch (py_error e) {
+        }  catch (py_error& e) {
           if (e.type != s) {
             r(false);
             return;
@@ -85,10 +122,9 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
 }
 
 
-YClient::YClient(QObject *parent) : QObject(parent)
+YClient::YClient(QObject *parent) : QObject(parent), ym("yandex_music"), ym_request(ym/"utils"/"request")
 {
-  ym = module("yandex_music");
-  ym_request = ym.get("utils").get("request");
+
 }
 
 YClient::YClient(const YClient& copy) : QObject(nullptr), ym(copy.ym), ym_request(copy.ym_request), me(copy.me), loggined((bool)copy.loggined)
@@ -122,7 +158,7 @@ QString YClient::token(QString login, QString password)
 void YClient::login(QString token)
 {
   loggined = false;
-  repeat_if_error_async([this, token]() {
+  repeat_if_error([this, token]() {
     me = ym.call("Client", token);
   }, [this](bool success) {
     emit loggedIn(success);
@@ -133,7 +169,7 @@ void YClient::login(QString token)
 void YClient::login(QString token, QString proxy)
 {
   loggined = false;
-  repeat_if_error_async([this, token, proxy]() {
+  repeat_if_error([this, token, proxy]() {
     std::map<std::string, object> kwargs;
     kwargs["proxy_url"] = proxy;
     object req = ym_request.call("Request", std::initializer_list<object>{}, kwargs);
@@ -148,8 +184,8 @@ void YClient::login(QString token, QString proxy)
 
 void YClient::fetchTracks(int id)
 {
-  QVector<YTrack*> tracks;
-  repeat_if_error_async([this, id, &tracks]() {
+  QVector<YTrack*> tracks; // утечка памяти?
+  repeat_if_error([this, id, &tracks]() {
     tracks = me.call("tracks", std::vector<object>{id}).to<QVector<YTrack*>>();
   }, [this, &tracks](bool success) {
     if (!success) return;
@@ -163,8 +199,7 @@ void YClient::fetchTracks(int id)
 YTrack::YTrack(object track, QObject* parent) : QObject(parent)
 {
   this->impl = track;
-//  throw std::runtime_error(impl.to<std::string>());
-//  this->_id = track.get("id").to<int>();
+  this->_id = track.get("id").to<int>();
 }
 
 YTrack::YTrack()
@@ -172,7 +207,7 @@ YTrack::YTrack()
 
 }
 
-YTrack::YTrack(const YTrack& copy) : QObject(nullptr), impl(copy.impl)//, _id(copy._id)
+YTrack::YTrack(const YTrack& copy) : QObject(nullptr), impl(copy.impl), _id(copy._id)
 {
 
 }
@@ -180,14 +215,14 @@ YTrack::YTrack(const YTrack& copy) : QObject(nullptr), impl(copy.impl)//, _id(co
 YTrack& YTrack::operator=(const YTrack& copy)
 {
   impl = copy.impl;
-//  _id = copy._id;
+  _id = copy._id;
   return *this;
 }
 
 int YTrack::id()
 {
-//  return _id;
-  return impl.get("id").to<int>();
+  return _id;
+//  return impl.get("id").to<int>();
 }
 
 QString YTrack::title()
@@ -254,7 +289,7 @@ void YTrack::saveMetadata()
 void YTrack::saveCover(int quality)
 {
   QString size = QString::number(quality) + "x" + QString::number(quality);
-  repeat_if_error_async([this, size]() {
+  repeat_if_error([this, size]() {
     impl.call("download_cover", std::initializer_list<object>{coverPath(), size});
   }, [this](bool success) {
     emit savedCover(success);
@@ -263,7 +298,7 @@ void YTrack::saveCover(int quality)
 
 void YTrack::download()
 {
-  repeat_if_error_async([this]() {
+  repeat_if_error([this]() {
     impl.call("download", soundPath());
   }, [this](bool success) {
     emit downloaded(success);
@@ -337,7 +372,7 @@ void YArtist::saveMetadata()
 void YArtist::saveCover(int quality)
 {
   QString size = QString::number(quality) + "x" + QString::number(quality);
-  repeat_if_error_async([this, size]() {
+  repeat_if_error([this, size]() {
     impl.call("download_og_image", std::initializer_list<object>{coverPath(), size});
   }, [this](bool success) {
     emit savedCover(success);
