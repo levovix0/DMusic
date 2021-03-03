@@ -36,6 +36,7 @@ HEADERS += \
   file.hpp \
   python.hpp \
   settings.hpp \
+  utils.hpp \
   yapi.hpp
 
 

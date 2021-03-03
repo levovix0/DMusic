@@ -63,22 +63,18 @@ Window {
     YClient {
       id: _yapi
 
-      property int tries: 5
-
-      Component.onCompleted: {
-//        autologin()
-      }
       function autologin() {
         _yapi_state.text = "loggining"
-        if (_proxy_input.text == "") {
-          login(_token_input.text)
-        } else {
-          login(_token_input.text, _proxy_input.text)
-        }
-      }
 
-      onLoggedIn: {
-        _yapi_state.text = success? "OK" : "Err"
+        function updateUI(success) {
+          _yapi_state.text = success? "OK" : "Err"
+        }
+
+        if (_proxy_input.text == "") {
+          login(_token_input.text, updateUI)
+        } else {
+          loginViaProxy(_token_input.text, _proxy_input.text, updateUI)
+        }
       }
     }
 
@@ -130,22 +126,54 @@ Window {
 
       onClick: {
         if (!_yapi.isLoggined()) return
-        _yapi.fetchedTrack.connect(function(track) {
-          console.log("track ", track.id());
-          track.downloaded.connect(function(success) {
+
+        function download(track) {
+          _track_state.text = "скачивается"
+          track.download(function(success) {
             _track_state.text = success? "OK" : "Err"
           })
-          track.savedCover.connect(function(success) {
-            _track_info_state.text = success? "OK" : "Err"
-            _track_state.text = "downloading"
-            track.download()
-          })
+        }
+
+        function downloadAll(track) {
+          _track_info_state.text = "скачивается"
           track.saveMetadata()
-          _track_info_state.text = "downloading"
-          track.saveCover()
-        })
-        console.log("fetching tracks by id ", _id_input.text);
-        _yapi.fetchTracks(parseInt(_id_input.text))
+
+          function donwloaded(success) {
+            _track_info_state.text = success? "OK" : "Err"
+            download(track)
+          }
+          track.saveCover(1000, donwloaded)
+        }
+
+        function fetched(success, tracks) {
+          if (success) {
+            tracks.forEach(function(track) {
+              downloadAll(track);
+            });
+          } else {
+            _track_state.text = "Err (нет трека)"
+            _track_info_state.text = "Err (нет трека)"
+          }
+        }
+
+        _yapi.fetchTracks(parseInt(_id_input.text), fetched)
+
+//        _yapi.fetchedTrack.connect(function(track) {
+//          console.log("track ", track.id());
+//          track.downloaded.connect(function(success) {
+//            _track_state.text = success? "OK" : "Err"
+//          })
+//          track.savedCover.connect(function(success) {
+//            _track_info_state.text = success? "OK" : "Err"
+//            _track_state.text = "downloading"
+//            track.download()
+//          })
+//          track.saveMetadata()
+//          _track_info_state.text = "downloading"
+//          track.saveCover()
+//        })
+//        console.log("fetching tracks by id ", _id_input.text);
+//        _yapi.fetchTracks(parseInt(_id_input.text))
       }
     }
 

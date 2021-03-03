@@ -1,10 +1,12 @@
 #include "yapi.hpp"
 #include "file.hpp"
 #include "settings.hpp"
-#include<QDebug>
-#include<QJsonObject>
-#include<QJsonArray>
-#include<QJsonDocument>
+#include "utils.hpp"
+#include <QDebug>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QGuiApplication>
 #include <thread>
 #include <functional>
 
@@ -155,18 +157,23 @@ QString YClient::token(QString login, QString password)
   return ym.call("generate_token_by_username_and_password", {login, password}).to<QString>();
 }
 
-void YClient::login(QString token)
+bool YClient::login(QString token)
 {
   loggined = false;
   repeat_if_error([this, token]() {
     me = ym.call("Client", token);
   }, [this](bool success) {
-    emit loggedIn(success);
     loggined = success;
   }, ym_repeats_if_error());
+  return loggined;
 }
 
-void YClient::login(QString token, QString proxy)
+void YClient::login(QString token, const QJSValue& callback)
+{
+  do_async<bool>(this, callback, &YClient::login, token);
+}
+
+bool YClient::loginViaProxy(QString token, QString proxy)
 {
   loggined = false;
   repeat_if_error([this, token, proxy]() {
@@ -177,22 +184,32 @@ void YClient::login(QString token, QString proxy)
     kwargs["request"] = req;
     me = ym.call("Client", token, kwargs);
   }, [this](bool success) {
-    emit loggedIn(success);
     loggined = success;
   }, ym_repeats_if_error());
+  return loggined;
 }
 
-void YClient::fetchTracks(int id)
+void YClient::loginViaProxy(QString token, QString proxy, const QJSValue& callback)
 {
-  QVector<YTrack*> tracks; // утечка памяти?
+  do_async<bool>(this, callback, &YClient::loginViaProxy, token, proxy);
+}
+
+std::pair<bool, QList<YTrack*>> YClient::fetchTracks(int id)
+{
+  QList<YTrack*> tracks;
+  bool successed;
   repeat_if_error([this, id, &tracks]() {
-    tracks = me.call("tracks", std::vector<object>{id}).to<QVector<YTrack*>>();
-  }, [this, &tracks](bool success) {
-    if (!success) return;
-    for (auto&& track : tracks) {
-      emit fetchedTrack(track);
-    }
+    tracks = me.call("tracks", std::vector<object>{id}).to<QList<YTrack*>>(); // утечка памяти?
+  }, [&successed](bool success) {
+    successed = success;
   }, ym_repeats_if_error());
+  move_to_thread(tracks, QGuiApplication::instance()->thread());
+  return {successed, tracks};
+}
+
+void YClient::fetchTracks(int id, const QJSValue& callback)
+{
+  do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchTracks, id);
 }
 
 
@@ -286,23 +303,37 @@ void YTrack::saveMetadata()
   File(metadataPath(), fmWrite) << stringMetadata();
 }
 
-void YTrack::saveCover(int quality)
+bool YTrack::saveCover(int quality)
 {
+  bool successed;
   QString size = QString::number(quality) + "x" + QString::number(quality);
   repeat_if_error([this, size]() {
     impl.call("download_cover", std::initializer_list<object>{coverPath(), size});
-  }, [this](bool success) {
-    emit savedCover(success);
+  }, [&successed](bool success) {
+    successed = success;
   }, ym_repeats_if_error());
+  return successed;
 }
 
-void YTrack::download()
+void YTrack::saveCover(int quality, const QJSValue& callback)
 {
+  do_async<bool>(this, callback, &YTrack::saveCover, quality);
+}
+
+bool YTrack::download()
+{
+  bool successed;
   repeat_if_error([this]() {
     impl.call("download", soundPath());
-  }, [this](bool success) {
-    emit downloaded(success);
+  }, [&successed](bool success) {
+    successed = success;
   }, ym_repeats_if_error());
+  return successed;
+}
+
+void YTrack::download(const QJSValue& callback)
+{
+  do_async<bool>(this, callback, &YTrack::download);
 }
 
 
@@ -369,12 +400,19 @@ void YArtist::saveMetadata()
   File(metadataPath(), fmWrite) << stringMetadata();
 }
 
-void YArtist::saveCover(int quality)
+bool YArtist::saveCover(int quality)
 {
+  bool successed;
   QString size = QString::number(quality) + "x" + QString::number(quality);
   repeat_if_error([this, size]() {
     impl.call("download_og_image", std::initializer_list<object>{coverPath(), size});
-  }, [this](bool success) {
-    emit savedCover(success);
+  }, [&successed](bool success) {
+    successed = success;
   }, ym_repeats_if_error());
+  return successed;
+}
+
+void YArtist::saveCover(int quality, const QJSValue& callback)
+{
+  do_async<bool>(this, callback, &YArtist::saveCover, quality);
 }

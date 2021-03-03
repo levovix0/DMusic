@@ -242,8 +242,10 @@ namespace py
       res = PyLong_AsLong(a.raw);
     } else if (PyUnicode_Check(a.raw)) {
       res = PyLong_AsLong(PyLong_FromUnicodeObject(a.raw, 10));
+    } else if (a.raw == Py_None || a.raw == nullptr) {
+      res = 0;
     } else {
-      throw std::runtime_error("unimplemented");
+      throw std::runtime_error("unimplemented cast to int (" + a.to<std::string>() + ")");
     }
   }
 

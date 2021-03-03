@@ -3,6 +3,7 @@
 #include <QObject>
 #include <atomic>
 #include <QVariantList>
+#include <QJSValue>
 
 struct YArtist;
 struct YTrack;
@@ -29,13 +30,11 @@ public:
   QJsonObject jsonMetadata();
   Q_INVOKABLE QString stringMetadata();
   Q_INVOKABLE void saveMetadata();
-  Q_INVOKABLE void saveCover(int quality = 1000);
+  Q_INVOKABLE bool saveCover(int quality = 1000);
+  Q_INVOKABLE void saveCover(int quality, QJSValue const& callback);
 
-  Q_INVOKABLE void download();
-
-signals:
-  void savedCover(bool success);
-  void downloaded(bool success);
+  Q_INVOKABLE bool download();
+  Q_INVOKABLE void download(QJSValue const& callback);
 
 private:
   py::object impl;
@@ -63,10 +62,8 @@ public:
   QJsonObject jsonMetadata();
   Q_INVOKABLE QString stringMetadata();
   Q_INVOKABLE void saveMetadata();
-  Q_INVOKABLE void saveCover(int quality = 1000);
-
-signals:
-  void savedCover(bool success);
+  Q_INVOKABLE bool saveCover(int quality = 1000);
+  Q_INVOKABLE void saveCover(int quality, QJSValue const& callback);
 
 private:
   py::object impl;
@@ -88,14 +85,13 @@ public:
   Q_INVOKABLE bool isLoggined();
 
   Q_INVOKABLE QString token(QString login, QString password);
-  Q_INVOKABLE void login(QString token);
-  Q_INVOKABLE void login(QString token, QString proxy);
+  Q_INVOKABLE bool login(QString token);
+  Q_INVOKABLE void login(QString token, QJSValue const& callback);
+  Q_INVOKABLE bool loginViaProxy(QString token, QString proxy);
+  Q_INVOKABLE void loginViaProxy(QString token, QString proxy, QJSValue const& callback);
 
-  Q_INVOKABLE void fetchTracks(int id);
-
-signals:
-  void loggedIn(bool success);
-  void fetchedTrack(YTrack* track);
+  Q_INVOKABLE std::pair<bool, QList<YTrack*>> fetchTracks(int id);
+  Q_INVOKABLE void fetchTracks(int id, QJSValue const& callback);
 
 private:
   py::module ym; // yandex_music module
