@@ -40,5 +40,6 @@
         <file>resources/title/subscriptions.svg</file>
         <file>DButton.qml</file>
         <file>DTextBox.qml</file>
+        <file>ResizeArea.qml</file>
     </qresource>
 </RCC>

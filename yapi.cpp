@@ -216,8 +216,8 @@ void YClient::fetchTracks(int id, const QJSValue& callback)
 void YClient::play(int id)
 {
   auto player = new QMediaPlayer;
-  player->setMedia(QUrl::fromLocalFile((ym_save_path() / (QString::number(id) + ".mp3")).string().c_str()));
-  player->setVolume(50);
+  player->setMedia(QUrl::fromLocalFile(ym_track_path(id)));
+  player->setVolume(20);
   player->play();
 }
 
@@ -248,7 +248,6 @@ YTrack& YTrack::operator=(const YTrack& copy)
 int YTrack::id()
 {
   return _id;
-//  return impl.get("id").to<int>();
 }
 
 QString YTrack::title()
@@ -273,17 +272,17 @@ QVector<YArtist> YTrack::artists()
 
 QString YTrack::coverPath()
 {
-  return QString((ym_save_path() / (QString::number(id()) + ".png")).string().c_str());
+  return ym_cover_path(id());
 }
 
 QString YTrack::metadataPath()
 {
-  return QString((ym_save_path() / (QString::number(id()) + ".json")).string().c_str());
+  return ym_metadata_path(id());
 }
 
 QString YTrack::soundPath()
 {
-  return QString((ym_save_path() / (QString::number(id()) + ".mp3")).string().c_str());
+  return ym_track_path(id());
 }
 
 QJsonObject YTrack::jsonMetadata()
@@ -381,12 +380,12 @@ QString YArtist::name()
 
 QString YArtist::coverPath()
 {
-  return QString((ym_save_path() / ("artist-" + QString::number(id()) + ".png")).string().c_str());
+  return ym_artist_cover_path(id());
 }
 
 QString YArtist::metadataPath()
 {
-  return QString((ym_save_path() / ("artist-" + QString::number(id()) + ".json")).string().c_str());
+  return ym_artist_metadata_path(id());
 }
 
 QJsonObject YArtist::jsonMetadata()

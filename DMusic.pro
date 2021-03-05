@@ -13,6 +13,7 @@ unix { HOME = $$system(echo $HOME) }
 
 SOURCES += \
         main.cpp \
+        mediaplayer.cpp \
         yapi.cpp
 
 RESOURCES += qml.qrc
@@ -33,7 +34,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+  api.hpp \
   file.hpp \
+  mediaplayer.hpp \
   python.hpp \
   settings.hpp \
   utils.hpp \

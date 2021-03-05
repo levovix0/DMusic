@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.15
 
 Rectangle {
   id: root
@@ -19,27 +19,10 @@ Rectangle {
     image.height: 16
   }
 
-  MouseArea {
-    id: _mouse
-    anchors.fill: root
+  DragHandler {
     enabled: root.manual
-
-    property variant clickPos: "1, 1"
-
-    onPressed: {
-      clickPos = Qt.point(mouse.x, mouse.y)
-    }
-
-    onDoubleClicked: {
-      window.visibility = window.visibility == 2 ? 4 : 2
-    }
-
-    onPositionChanged: {
-      if (window.visibility == 4) { window.visibility = 2 }
-      var delta = Qt.point(mouse.x - clickPos.x, mouse.y - clickPos.y)
-      window.x += delta.x
-      window.y += delta.y
-    }
+    onActiveChanged: if (active) window.startSystemMove();
+    target: null
   }
 
   TitleManualButton {
@@ -73,101 +56,102 @@ Rectangle {
     onClick: root.window.minimize()
   }
 
-  MouseArea {
+  ResizeArea {
     id: _lg
     width: 6
-    height: window.height
+    height: window.height - 12
+    y: 6
     enabled: root.manual
 
-    cursorShape: if (manual) cursorShape = Qt.SizeHorCursor
-
-    property variant clickPos: "1, 1"
-
-    onPressed: {
-      clickPos = Qt.point(mouse.x, mouse.y)
-    }
-
-    onPositionChanged: {
-      var delta = mouse.x - clickPos.x
-      var distance = window.width - delta - window.minimumWidth
-      if (distance < 0) delta += distance
-      window.x += delta
-      window.width -= delta
-    }
+    window: root.window
+    cursor: Qt.SizeHorCursor
+    edge: Qt.LeftEdge
   }
 
-  MouseArea {
+  ResizeArea {
     id: _rg
     anchors.right: root.right
     width: 6
-    height: window.height
+    height: window.height - 12
+    y: 6
     enabled: root.manual
 
-    cursorShape: if (manual) cursorShape = Qt.SizeHorCursor
-
-    property variant clickPos: "1, 1"
-
-    onPressed: {
-      clickPos = Qt.point(mouse.x, mouse.y)
-    }
-
-    onPositionChanged: {
-      var delta = mouse.x - clickPos.x
-      var distance = window.width + delta - window.minimumWidth
-      if (distance < 0) delta -= distance
-      window.width += delta
-    }
+    window: root.window
+    cursor: Qt.SizeHorCursor
+    edge: Qt.RightEdge
   }
 
-  MouseArea {
+  ResizeArea {
     id: _tg
-    width: window.width
+    width: window.width - 12
+    x: 6
     height: 6
     enabled: root.manual
 
-    cursorShape: if (manual) cursorShape = Qt.SizeVerCursor
-
-    property variant clickPos: "1, 1"
-
-    onPressed: {
-      clickPos = Qt.point(mouse.x, mouse.y)
-    }
-
-    onPositionChanged: {
-      var delta = mouse.y - clickPos.y
-      var distance = window.height - delta - window.minimumHeight
-      if (distance < 0) delta += distance
-      window.y += delta
-      window.height -= delta
-    }
+    window: root.window
+    cursor: Qt.SizeVerCursor
+    edge: Qt.TopEdge
   }
 
-  MouseArea {
+  ResizeArea {
     id: _bg
     y: window.height - height
-    width: window.width
+    width: window.width - 12
+    x: 6
     height: 6
     enabled: root.manual
 
-    cursorShape: if (manual) cursorShape = Qt.SizeVerCursor
+    window: root.window
+    cursor: Qt.SizeVerCursor
+    edge: Qt.BottomEdge
+  }
 
-    property variant clickPos: "1, 1"
 
-    onPressed: {
-      clickPos = Qt.point(mouse.x, mouse.y)
-    }
+  ResizeArea {
+    id: _ltg
+    width: 6
+    height: 6
+    enabled: root.manual
 
-    onPositionChanged: {
-      var delta = mouse.y - clickPos.y
-      var distance = window.height + delta - window.minimumHeight
-      if (distance < 0) delta -= distance
-      window.height += delta
-    }
+    window: root.window
+    cursor: Qt.SizeFDiagCursor
+    edge: Qt.LeftEdge | Qt.TopEdge
+  }
+
+  ResizeArea {
+    id: _rtg
+    anchors.right: root.right
+    width: 6
+    height: 6
+    enabled: root.manual
+
+    window: root.window
+    cursor: Qt.SizeBDiagCursor
+    edge: Qt.RightEdge | Qt.TopEdge
+  }
+
+  ResizeArea {
+    id: _lbg
+    y: window.height - height
+    width: 6
+    height: 6
+    enabled: root.manual
+
+    window: root.window
+    cursor: Qt.SizeBDiagCursor
+    edge: Qt.LeftEdge | Qt.BottomEdge
+  }
+
+  ResizeArea {
+    id: _rbg
+    anchors.right: root.right
+    y: window.height - height
+    width: 6
+    height: 6
+    enabled: root.manual
+
+    window: root.window
+    cursor: Qt.SizeFDiagCursor
+    edge: Qt.RightEdge | Qt.BottomEdge
   }
 }
-
-/*##^##
-Designer {
-    D{i:0;formeditorZoom:8}
-}
-##^##*/

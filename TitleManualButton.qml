@@ -6,6 +6,7 @@ Rectangle {
   property string icon: ""
   property string hoverColor: "#303030"
   signal click()
+  signal pressed()
 
   width: 50
   height: 40
@@ -27,5 +28,6 @@ Rectangle {
     onExited: root.color = "transparent"
 
     onClicked: root.click()
+    onPressed: root.pressed()
   }
 }
