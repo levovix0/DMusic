@@ -25,6 +25,14 @@ Rectangle {
     target: null
   }
 
+  MouseArea {
+    id: _mouse
+    anchors.fill: root
+    enabled: root.manual
+
+    onDoubleClicked: window.visibility = window.visibility == 2 ? 4 : 2
+  }
+
   TitleManualButton {
     id: _close
     anchors.right: root.right
