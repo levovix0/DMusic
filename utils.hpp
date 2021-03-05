@@ -40,7 +40,7 @@ void move_to_current_thread(T& a) {
 
 template<class T, class C, class... Args>
 void do_async(C* obj, QJSValue const& callback, T(C::* f)(Args...), Args... args) {
-  auto *watcher = new QFutureWatcher<T>();
+  auto *watcher = new QFutureWatcher<T>;
   QObject::connect(watcher, &QFutureWatcher<T>::finished, obj,
                    [obj, watcher, callback]() {
     T res = watcher->result();
@@ -54,7 +54,7 @@ void do_async(C* obj, QJSValue const& callback, T(C::* f)(Args...), Args... args
 
 template<class T, class B, class C, class... Args>
 void do_async(C* obj, QJSValue const& callback, std::pair<T, B>(C::* f)(Args...), Args... args) {
-  auto *watcher = new QFutureWatcher<std::pair<T, B>>();
+  auto *watcher = new QFutureWatcher<std::pair<T, B>>;
   QObject::connect(watcher, &QFutureWatcher<std::pair<T, B>>::finished, obj,
                    [obj, watcher, callback]() {
     std::pair<T, B> res = watcher->result();

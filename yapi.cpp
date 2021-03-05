@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QGuiApplication>
+#include <QMediaPlayer>
 #include <thread>
 #include <functional>
 
@@ -210,6 +211,14 @@ std::pair<bool, QList<YTrack*>> YClient::fetchTracks(int id)
 void YClient::fetchTracks(int id, const QJSValue& callback)
 {
   do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchTracks, id);
+}
+
+void YClient::play(int id)
+{
+  auto player = new QMediaPlayer;
+  player->setMedia(QUrl::fromLocalFile((ym_save_path() / (QString::number(id) + ".mp3")).string().c_str()));
+  player->setVolume(50);
+  player->play();
 }
 
 

@@ -93,6 +93,8 @@ public:
   Q_INVOKABLE std::pair<bool, QList<YTrack*>> fetchTracks(int id);
   Q_INVOKABLE void fetchTracks(int id, QJSValue const& callback);
 
+  Q_INVOKABLE void play(int id);
+
 private:
   py::module ym; // yandex_music module
   py::module ym_request;

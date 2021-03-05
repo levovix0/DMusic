@@ -157,23 +157,18 @@ Window {
         }
 
         _yapi.fetchTracks(parseInt(_id_input.text), fetched)
+      }
+    }
 
-//        _yapi.fetchedTrack.connect(function(track) {
-//          console.log("track ", track.id());
-//          track.downloaded.connect(function(success) {
-//            _track_state.text = success? "OK" : "Err"
-//          })
-//          track.savedCover.connect(function(success) {
-//            _track_info_state.text = success? "OK" : "Err"
-//            _track_state.text = "downloading"
-//            track.download()
-//          })
-//          track.saveMetadata()
-//          _track_info_state.text = "downloading"
-//          track.saveCover()
-//        })
-//        console.log("fetching tracks by id ", _id_input.text);
-//        _yapi.fetchTracks(parseInt(_id_input.text))
+    DButton {
+      id: _play
+      anchors.centerIn: root
+      anchors.verticalCenterOffset: 80
+
+      text: "Прослушать"
+
+      onClick: {
+        _yapi.play(parseInt(_id_input.text))
       }
     }
 
