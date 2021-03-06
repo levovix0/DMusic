@@ -4,8 +4,10 @@ Rectangle {
   id: root
   height: 4
 
-  property var progress: 0.3
+  property real progress: 0.3
   property bool sellected: _mouse.containsMouse | _mouse.pressed
+
+  signal seek(real progress)
 
   color: "#404040"
   radius: 2
@@ -45,7 +47,7 @@ Rectangle {
       if (pressed) {
         var progress = (mouseX - root.x - _point.width / 2) / root.width
         progress = Math.max(0, Math.min(1, progress))
-        root.progress = progress
+        root.seek(progress)
       }
     }
   }

@@ -8,6 +8,9 @@ Item {
   property bool isLoopingPlaylist_notTrack: true
   property bool isShuffling: false
 
+  signal play()
+  signal pause()
+
   PlayerControlsButton {
     id: _play_pause
     anchors.centerIn: root
@@ -15,7 +18,10 @@ Item {
     height: 30
 
     icon: playing? "resources/player/pause.svg" : "resources/player/play.svg"
-    onClick: playing = !playing
+    onClick: {
+      if (playing) pause()
+      else play()
+    }
   }
 
   PlayerControlsButton {

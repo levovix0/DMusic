@@ -41,5 +41,6 @@
         <file>DButton.qml</file>
         <file>DTextBox.qml</file>
         <file>ResizeArea.qml</file>
+        <file>resources/player/no-cover.svg</file>
     </qresource>
 </RCC>

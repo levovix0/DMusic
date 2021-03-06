@@ -3,14 +3,18 @@ import QtQuick 2.0
 Item {
   id: root
 
-  property var progress: 0.3
+  property real progress: 0.3
   property string timeProgressText: "0:00"
   property string timeEndText: "1:30"
+
+  signal seek(real progress)
 
   PlayerLineSlider {
     progress: root.progress
     anchors.centerIn: root
     width: root.width
+
+    onSeek: root.seek(progress)
   }
 
   DText {

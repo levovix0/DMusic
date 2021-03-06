@@ -213,14 +213,6 @@ void YClient::fetchTracks(int id, const QJSValue& callback)
   do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchTracks, id);
 }
 
-void YClient::play(int id)
-{
-  auto player = new QMediaPlayer;
-  player->setMedia(QUrl::fromLocalFile(ym_track_path(id)));
-  player->setVolume(20);
-  player->play();
-}
-
 
 YTrack::YTrack(object track, QObject* parent) : QObject(parent)
 {

@@ -2,6 +2,7 @@ import QtQuick 2.12
 import QtQuick.Window 2.12
 import QtQuick.Dialogs 1.2
 import yapi 1.0
+import api 1.0
 
 Window {
   id: _root
@@ -168,7 +169,7 @@ Window {
       text: "Прослушать"
 
       onClick: {
-        _yapi.play(parseInt(_id_input.text))
+        _player.player.playYandex(parseInt(_id_input.text))
       }
     }
 
@@ -180,9 +181,7 @@ Window {
 
       text: "Войти"
 
-      onClick: {
-        _yapi.autologin()
-      }
+      onClick: _yapi.autologin()
     }
   }
 }

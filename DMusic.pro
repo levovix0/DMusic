@@ -12,6 +12,7 @@ unix { HOME = $$system(echo $HOME) }
 
 
 SOURCES += \
+        api.cpp \
         main.cpp \
         mediaplayer.cpp \
         yapi.cpp
