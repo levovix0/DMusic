@@ -30,6 +30,7 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
         m_isPaused = false;
         emit pausedChanged();
       }
+      emit coverChanged();
     } else if (state == QMediaPlayer::PausedState) {
       if (m_isPlaying) {
         m_isPlaying = false;
@@ -93,7 +94,7 @@ QString MediaPlayer::getCover()
 {
   if (isPlaying()) {
     auto cover = currentTrack->coverFile();
-    return cover != ""? "file://" + cover : "resources/player/no-cover.svg";
+    return cover != ""? "file:" + cover : "resources/player/no-cover.svg";
   }
   return "resources/player/no-cover.svg";
 }

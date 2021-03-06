@@ -7,7 +7,7 @@ Rectangle {
   property var window
   property bool manual: true
 
-  color: "#151515"
+  color: "#131313"
 
   Icon {
     anchors.verticalCenter: root.verticalCenter
