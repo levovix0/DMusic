@@ -84,6 +84,7 @@ public:
 
   Q_INVOKABLE bool isLoggined();
 
+  Q_INVOKABLE QString token();
   Q_INVOKABLE QString token(QString login, QString password);
   Q_INVOKABLE bool login(QString token);
   Q_INVOKABLE void login(QString token, QJSValue const& callback);

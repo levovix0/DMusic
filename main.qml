@@ -105,6 +105,8 @@ Window {
       y: 50
       x: 149
       width: root.width / 3
+
+      text: _yapi.token()
     }
 
     DTextBox {

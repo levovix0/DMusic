@@ -153,6 +153,16 @@ bool YClient::isLoggined()
   return loggined;
 }
 
+QString YClient::token()
+{
+  if (fs::exists("token.txt")) {
+    std::string tok;
+    File("token.txt") >> tok;
+    return tok.c_str();
+  }
+  return "";
+}
+
 QString YClient::token(QString login, QString password)
 {
   return ym.call("generate_token_by_username_and_password", {login, password}).to<QString>();
