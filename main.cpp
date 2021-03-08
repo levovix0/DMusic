@@ -2,6 +2,7 @@
 #include <mediaplayer.hpp>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <QIcon>
 
 int main(int argc, char *argv[])
 {
@@ -12,12 +13,12 @@ int main(int argc, char *argv[])
   qmlRegisterType<YArtist>("yapi", 1, 0, "YArtist");
   qmlRegisterType<YTrack>("api", 1, 0, "YTrack");
   qmlRegisterType<MediaPlayer>("api", 1, 0, "MediaPlayer");
-  qRegisterMetaType<YTrack>("YTrack");
-  qRegisterMetaType<YArtist>("YArtist");
+
+//  QGuiApplication::setWindowIcon(QIcon("../resources/application.svg"));
+  app.setApplicationName("DMusic");
 
   QQmlApplicationEngine engine;
-  const QUrl url(QStringLiteral("qrc:/main.qml"));
-  engine.load(url);
+  engine.load(QUrl("qrc:/main.qml"));
 
   auto r = app.exec();
   Py_Finalize();

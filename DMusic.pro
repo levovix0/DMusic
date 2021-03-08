@@ -18,6 +18,7 @@ SOURCES += \
         yapi.cpp
 
 RESOURCES += qml.qrc
+win32:RC_ICONS += resources/application.ico
 
 TRANSLATIONS += \
     DMusic_ru_RU.ts

@@ -6,7 +6,6 @@ import api 1.0
 
 Window {
   id: _root
-  // Component.onCompleted: visible = true
   visible: true
   flags: {
     if (manualTitle) {
@@ -65,7 +64,7 @@ Window {
       id: _yapi
 
       function autologin() {
-        _yapi_state.text = "loggining"
+        _yapi_state.text = "вход..."
 
         function updateUI(success) {
           _yapi_state.text = success? "OK" : "Err"
