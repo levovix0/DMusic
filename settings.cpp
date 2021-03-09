@@ -17,7 +17,7 @@ Settings::Settings()
 
 Settings::~Settings()
 {
-
+  saveToJson();
 }
 
 

@@ -1,4 +1,4 @@
-import QtQuick 2.12
+import QtQuick 2.15
 import QtQuick.Window 2.12
 import QtQuick.Dialogs 1.2
 import yapi 1.0
@@ -35,6 +35,12 @@ Window {
     height: _root.height
 
     color: "#181818"
+    focus: true
+
+    MouseArea {
+      anchors.fill: parent
+      onClicked: root.focus = true
+    }
 
     DText {
       id: _yapi_state
@@ -73,10 +79,10 @@ Window {
 
       function autologin() {
         if (_settings.ym_token == "") return
-        _yapi_state.text = "вход..."
+        _yapi_state.text = "Вход..."
 
         function updateUI(success) {
-          _yapi_state.text = success? "OK" : "Err"
+          _yapi_state.text = success? "Ок" : "Ошибка"
         }
 
         if (_settings.ym_proxyServer == "") {
@@ -120,18 +126,18 @@ Window {
         if (!_yapi.isLoggined()) return
 
         function download(track) {
-          _track_state.text = "скачивается"
+          _track_state.text = "Скачивается"
           track.download(function(success) {
-            _track_state.text = success? "OK" : "Err"
+            _track_state.text = success? "Ок" : "Ошибка"
           })
         }
 
         function downloadAll(track) {
-          _track_info_state.text = "скачивается"
+          _track_info_state.text = "Скачивается"
           track.saveMetadata()
 
           function donwloaded(success) {
-            _track_info_state.text = success? "OK" : "Err"
+            _track_info_state.text = success? "Ок" : "Ошибка"
             download(track)
           }
           track.saveCover(1000, donwloaded)
@@ -143,8 +149,8 @@ Window {
               downloadAll(track);
             });
           } else {
-            _track_state.text = "Err (нет трека)"
-            _track_info_state.text = "Err (нет трека)"
+            _track_state.text = "Ошибка (нет трека)"
+            _track_info_state.text = "Ошибка (нет трека)"
           }
         }
 
@@ -163,5 +169,6 @@ Window {
         _player.player.playYandex(parseInt(_id_input.text))
       }
     }
+    Keys.onSpacePressed: _player.player.pause_or_play()
   }
 }
