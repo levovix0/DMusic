@@ -18,7 +18,7 @@ Window {
   minimumWidth: 1040
   minimumHeight: 600
 
-  property bool manualTitle: true
+  property bool manualTitle: _settings.isClientSideDecorations
 
   title: "DMusic"
 
@@ -60,20 +60,29 @@ Window {
       text: "-"
     }
 
+    Settings {
+      id: _settings
+
+      Component.onCompleted: {
+        _yapi.autologin()
+      }
+    }
+
     YClient {
       id: _yapi
 
       function autologin() {
+        if (_settings.ym_token == "") return
         _yapi_state.text = "вход..."
 
         function updateUI(success) {
           _yapi_state.text = success? "OK" : "Err"
         }
 
-        if (_proxy_input.text == "") {
-          login(_token_input.text, updateUI)
+        if (_settings.ym_proxyServer == "") {
+          login(_settings.ym_token, updateUI)
         } else {
-          loginViaProxy(_token_input.text, _proxy_input.text, updateUI)
+          loginViaProxy(_settings.ym_token, _settings.ym_proxyServer, updateUI)
         }
       }
     }
@@ -98,25 +107,6 @@ Window {
       id: _id_input
       anchors.centerIn: root
       width: root.width / 3 * 2
-    }
-
-    DTextBox {
-      id: _token_input
-      y: 50
-      x: 149
-      width: root.width / 3
-
-      text: _yapi.token()
-    }
-
-    DTextBox {
-      id: _proxy_input
-      anchors.left: _token_input.right
-      anchors.top: _token_input.top
-      anchors.leftMargin: 20
-      width: root.width / 3
-
-      text: "socks4://193.106.58.51:4153"
     }
 
     DButton {
@@ -172,17 +162,6 @@ Window {
       onClick: {
         _player.player.playYandex(parseInt(_id_input.text))
       }
-    }
-
-    DButton {
-      id: _login
-      anchors.left: _proxy_input.right
-      anchors.top: _proxy_input.top
-      anchors.leftMargin: 20
-
-      text: "Войти"
-
-      onClick: _yapi.autologin()
     }
   }
 }

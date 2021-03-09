@@ -15,6 +15,7 @@ SOURCES += \
         api.cpp \
         main.cpp \
         mediaplayer.cpp \
+        settings.cpp \
         yapi.cpp
 
 RESOURCES += qml.qrc

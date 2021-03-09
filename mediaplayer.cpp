@@ -77,7 +77,7 @@ void MediaPlayer::play(YTrack* track)
 
 void MediaPlayer::playYandex(int id)
 {
-  play(new Track(ym_track_path(id), ym_cover_path(id), ym_metadata_path(id)));
+  play(new Track(Settings::ym_trackPath(id), Settings::ym_coverPath(id), Settings::ym_metadataPath(id)));
 }
 
 bool MediaPlayer::isPlaying()

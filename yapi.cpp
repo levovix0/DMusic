@@ -153,16 +153,6 @@ bool YClient::isLoggined()
   return loggined;
 }
 
-QString YClient::token()
-{
-  if (fs::exists("token.txt")) {
-    std::string tok;
-    File("token.txt") >> tok;
-    return tok.c_str();
-  }
-  return "";
-}
-
 QString YClient::token(QString login, QString password)
 {
   return ym.call("generate_token_by_username_and_password", {login, password}).to<QString>();
@@ -175,7 +165,7 @@ bool YClient::login(QString token)
     me = ym.call("Client", token);
   }, [this](bool success) {
     loggined = success;
-  }, ym_repeats_if_error());
+  }, Settings::ym_repeatsIfError());
   return loggined;
 }
 
@@ -196,7 +186,7 @@ bool YClient::loginViaProxy(QString token, QString proxy)
     me = ym.call("Client", token, kwargs);
   }, [this](bool success) {
     loggined = success;
-  }, ym_repeats_if_error());
+  }, Settings::ym_repeatsIfError());
   return loggined;
 }
 
@@ -213,7 +203,7 @@ std::pair<bool, QList<YTrack*>> YClient::fetchTracks(int id)
     tracks = me.call("tracks", std::vector<object>{id}).to<QList<YTrack*>>(); // утечка памяти?
   }, [&successed](bool success) {
     successed = success;
-  }, ym_repeats_if_error());
+  }, Settings::ym_repeatsIfError());
   move_to_thread(tracks, QGuiApplication::instance()->thread());
   return {successed, tracks};
 }
@@ -274,17 +264,17 @@ QVector<YArtist> YTrack::artists()
 
 QString YTrack::coverPath()
 {
-  return ym_cover_path(id());
+  return Settings::ym_coverPath(id());
 }
 
 QString YTrack::metadataPath()
 {
-  return ym_metadata_path(id());
+  return Settings::ym_metadataPath(id());
 }
 
 QString YTrack::soundPath()
 {
-  return ym_track_path(id());
+  return Settings::ym_trackPath(id());
 }
 
 QJsonObject YTrack::jsonMetadata()
@@ -321,7 +311,7 @@ bool YTrack::saveCover(int quality)
     impl.call("download_cover", std::initializer_list<object>{coverPath(), size});
   }, [&successed](bool success) {
     successed = success;
-  }, ym_repeats_if_error());
+  }, Settings::ym_repeatsIfError());
   return successed;
 }
 
@@ -337,7 +327,7 @@ bool YTrack::download()
     impl.call("download", soundPath());
   }, [&successed](bool success) {
     successed = success;
-  }, ym_repeats_if_error());
+  }, Settings::ym_repeatsIfError());
   return successed;
 }
 
@@ -382,12 +372,12 @@ QString YArtist::name()
 
 QString YArtist::coverPath()
 {
-  return ym_artist_cover_path(id());
+  return Settings::ym_artistCoverPath(id());
 }
 
 QString YArtist::metadataPath()
 {
-  return ym_artist_metadata_path(id());
+  return Settings::ym_artistMetadataPath(id());
 }
 
 QJsonObject YArtist::jsonMetadata()
@@ -418,7 +408,7 @@ bool YArtist::saveCover(int quality)
     impl.call("download_og_image", std::initializer_list<object>{coverPath(), size});
   }, [&successed](bool success) {
     successed = success;
-  }, ym_repeats_if_error());
+  }, Settings::ym_repeatsIfError());
   return successed;
 }
 

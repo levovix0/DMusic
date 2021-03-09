@@ -1,5 +1,6 @@
 #include <yapi.hpp>
 #include <file.hpp>
+#include <settings.hpp>
 #include <mediaplayer.hpp>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -14,6 +15,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<YArtist>("yapi", 1, 0, "YArtist");
   qmlRegisterType<YTrack>("api", 1, 0, "YTrack");
   qmlRegisterType<MediaPlayer>("api", 1, 0, "MediaPlayer");
+  qmlRegisterType<Settings>("api", 1, 0, "Settings");
 
   QGuiApplication::setWindowIcon(QIcon("application.svg"));
   app.setApplicationName("DMusic");
