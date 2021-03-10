@@ -217,6 +217,10 @@ namespace py
 
   inline void fromPyObject(object const& a, std::string& res)
   {
+    if (a.raw == Py_None) {
+      res = "";
+      return;
+    }
     auto repr = PyObject_Str(a.raw);
     if (!repr) repr = PyObject_Repr(a.raw);
     auto enc = PyUnicode_AsEncodedString(repr, "utf-8", "~E~");
@@ -226,6 +230,10 @@ namespace py
   }
   inline void fromPyObject(object const& a, QString& res)
   {
+    if (a.raw == Py_None) {
+      res = "";
+      return;
+    }
     auto repr = PyObject_Str(a.raw);
     if (!repr) repr = PyObject_Repr(a.raw);
     auto enc = PyUnicode_AsEncodedString(repr, "utf-8", "~E~");
