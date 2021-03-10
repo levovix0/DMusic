@@ -4,9 +4,9 @@ Item {
   id: root
 
   property string icon: ""
-  property string name: ""
+  property string title: ""
   property string author: ""
-  property string additional: ""
+  property string extra: ""
 
   PlayerTrackIcon {
     id: _icon
@@ -20,8 +20,8 @@ Item {
     anchors.left: _icon.right
     anchors.leftMargin: 11
 
-    name: root.name
+    title: root.title
     author: root.author
-    additional: root.additional
+    extra: root.extra
   }
 }

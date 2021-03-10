@@ -6,10 +6,11 @@ MediaPlayer::~MediaPlayer()
   delete player;
 }
 
-MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer), currentTrack(nullptr), m_isPaused(false), m_isPlaying(false)
+MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer), _currentTrack(nullptr), m_isPaused(false), m_isPlaying(false)
 {
   player->setNotifyInterval(50);
   player->setVolume(25);
+  _currentTrack = &noneTrack;
 
   QObject::connect(player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
     if (state == QMediaPlayer::PlayingState) {
@@ -31,6 +32,10 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
         emit pausedChanged();
       }
       emit coverChanged();
+      if (_currentTrack != &noneTrack) delete _currentTrack;
+      _currentTrack = &noneTrack;
+      emit currentTrackChanged();
+      setProgress(0);
     } else if (state == QMediaPlayer::PausedState) {
       if (m_isPlaying) {
         m_isPlaying = false;
@@ -57,7 +62,7 @@ void MediaPlayer::play(Track* track)
     m_isPlaying = false;
     emit playingChanged();
   }
-  currentTrack = track;
+  _currentTrack = track;
   m_isPaused = false;
   emit pausedChanged();
   auto media = track->mediaFile();
@@ -68,6 +73,7 @@ void MediaPlayer::play(Track* track)
     player->play();
   }
   emit coverChanged();
+  emit currentTrackChanged();
 }
 
 void MediaPlayer::play(YTrack* track)
@@ -82,7 +88,7 @@ void MediaPlayer::playYandex(int id)
 
 bool MediaPlayer::isPlaying()
 {
-  return currentTrack != nullptr && m_isPlaying;
+  return _currentTrack != nullptr && m_isPlaying;
 }
 
 bool MediaPlayer::isPaused()
@@ -93,7 +99,7 @@ bool MediaPlayer::isPaused()
 QString MediaPlayer::getCover()
 {
   if (isPlaying()) {
-    auto cover = currentTrack->coverFile();
+    auto cover = _currentTrack->coverFile();
     return cover != ""? "file:" + cover : "resources/player/no-cover.svg";
   }
   return "resources/player/no-cover.svg";
@@ -104,9 +110,19 @@ float MediaPlayer::getProgress()
   return m_progress;
 }
 
+int MediaPlayer::getProgress_ms()
+{
+  return player->position();
+}
+
+Track* MediaPlayer::currentTrack()
+{
+  return _currentTrack;
+}
+
 void MediaPlayer::pause_or_play()
 {
-  if (currentTrack == nullptr) return;
+  if (_currentTrack == nullptr) return;
   if (m_isPaused) {
     m_isPaused = false;
     m_isPlaying = true;
@@ -135,15 +151,26 @@ void MediaPlayer::stop()
   if (isPlaying()) {
     player->stop();
   }
-  currentTrack = nullptr;
+  _currentTrack = nullptr;
   m_isPaused = false;
   emit pausedChanged();
   m_isPlaying = false;
   emit playingChanged();
 }
 
+void MediaPlayer::setCurrentTrack(Track* v)
+{
+  play(v);
+}
+
 void MediaPlayer::setProgress(float progress)
 {
   player->setPosition(player->duration() * progress);
+  emit progressChanged();
+}
+
+void MediaPlayer::setProgress_ms(int progress)
+{
+  player->setPosition(progress);
   emit progressChanged();
 }

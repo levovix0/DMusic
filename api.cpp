@@ -1,4 +1,9 @@
 #include "api.hpp"
+#include "file.hpp"
+#include <QFile>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 
 Track::~Track()
 {
@@ -22,6 +27,48 @@ Track::Track(YTrack* a, QObject* parent) : QObject(parent), backend(TrackBackend
 Track::Track(QString media, QString cover, QString metadata, QObject* parent) : QObject(parent), backend(TrackBackend::system)
 {
   impl.system = new SysTrack{media, cover, metadata};
+}
+
+QString Track::title()
+{
+  if (backend != TrackBackend::system) return "";
+  if (!fs::exists(impl.system->metadata.toUtf8().data())) return "";
+
+  QString val;
+  QFile file(impl.system->metadata);
+  file.open(QIODevice::ReadOnly | QIODevice::Text);
+  val = file.readAll();
+  file.close();
+  QJsonObject doc = QJsonDocument::fromJson(val.toUtf8()).object();
+  return doc["title"].toString("");
+}
+
+QString Track::author()
+{
+  if (backend != TrackBackend::system) return "";
+  if (!fs::exists(impl.system->metadata.toUtf8().data())) return "";
+
+  QString val;
+  QFile file(impl.system->metadata);
+  file.open(QIODevice::ReadOnly | QIODevice::Text);
+  val = file.readAll();
+  file.close();
+  QJsonObject doc = QJsonDocument::fromJson(val.toUtf8()).object();
+  return doc["artistName"].toString("");
+}
+
+QString Track::extra()
+{
+  if (backend != TrackBackend::system) return "";
+  if (!fs::exists(impl.system->metadata.toUtf8().data())) return "";
+
+  QString val;
+  QFile file(impl.system->metadata);
+  file.open(QIODevice::ReadOnly | QIODevice::Text);
+  val = file.readAll();
+  file.close();
+  QJsonObject doc = QJsonDocument::fromJson(val.toUtf8()).object();
+  return doc["extra"].toString("");
 }
 
 QString Track::mediaFile()

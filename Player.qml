@@ -7,6 +7,7 @@ Rectangle {
   color: "#262626"
 
   property alias player: _player
+  property alias track: _track
 
   PlayerControls {
     anchors.horizontalCenter: root.horizontalCenter
@@ -32,11 +33,12 @@ Rectangle {
   }
 
   PlayerTrack {
+    id: _track
     x: 8
     anchors.verticalCenter: root.verticalCenter
     icon: _player.cover
-    name: "Nothing"
-    author: "LightFly"
-    additional: "Original Mix"
+    title: _player.currentTrack.title
+    author: _player.currentTrack.author
+    extra: _player.currentTrack.extra
   }
 }

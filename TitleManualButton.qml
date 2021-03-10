@@ -8,7 +8,9 @@ Rectangle {
   signal click()
   signal pressed()
 
-  width: 50
+  enabled: true
+  visible: enabled
+  width: enabled? 50 : 0
   height: 40
 
   color: "transparent"
@@ -27,7 +29,7 @@ Rectangle {
     onEntered: root.color = root.hoverColor
     onExited: root.color = "transparent"
 
-    onClicked: root.click()
-    onPressed: root.pressed()
+    onClicked: if (enabled) root.click()
+    onPressed: if (enabled) root.pressed()
   }
 }

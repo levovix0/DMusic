@@ -3,16 +3,16 @@ import QtQuick 2.0
 Item {
   id: root
 
-  property string name: ""
+  property string title: ""
   property string author: ""
-  property string additional: ""
+  property string extra: ""
 
   DText {
     id: _name
     anchors.bottom: root.verticalCenter
     anchors.bottomMargin: 3
 
-    text: name
+    text: title
     font.pixelSize: 14
     font.bold: true
   }
@@ -34,7 +34,7 @@ Item {
     anchors.left: _name.right
     anchors.leftMargin: 5
 
-    text: additional
+    text: extra
     font.pixelSize: 14
     color: "#999999"
   }

@@ -17,6 +17,7 @@ Rectangle {
     color: "#FFFFFF"
     image.width: 13
     image.height: 16
+    visible: root.manual
   }
 
   DragHandler {
@@ -30,13 +31,14 @@ Rectangle {
     anchors.fill: root
     enabled: root.manual
 
-    onDoubleClicked: window.visibility = window.visibility == 2 ? 4 : 2
+    onDoubleClicked: root.window.maximize()
   }
 
   TitleManualButton {
     id: _close
     anchors.right: root.right
     anchors.verticalCenter: root.verticalCenter
+    enabled: root.manual
 
     icon: "resources/title/close.svg"
     hoverColor: "#E03649"
@@ -48,6 +50,7 @@ Rectangle {
     id: _maximize
     anchors.right: _close.left
     anchors.verticalCenter: root.verticalCenter
+    enabled: root.manual
 
     icon: "resources/title/maximize.svg"
 
@@ -58,6 +61,7 @@ Rectangle {
     id: _minimize
     anchors.right: _maximize.left
     anchors.verticalCenter: root.verticalCenter
+    enabled: root.manual
 
     icon: "resources/title/minimize.svg"
 

@@ -218,6 +218,7 @@ YTrack::YTrack(object track, QObject* parent) : QObject(parent)
 {
   this->impl = track;
   this->_id = track.get("id").to<int>();
+  extra();
 }
 
 YTrack::YTrack()
@@ -245,6 +246,11 @@ int YTrack::id()
 QString YTrack::title()
 {
   return impl.get("title").to<QString>();
+}
+
+QString YTrack::extra()
+{
+  return impl.get("version").to<QString>();
 }
 
 int YTrack::duration()
@@ -282,6 +288,8 @@ QJsonObject YTrack::jsonMetadata()
   QJsonObject info;
   info["id"] = id();
   info["title"] = title();
+  info["extra"] = extra();
+  info["artistName"] = this->artists().size() > 0? this->artists()[0].name() : "";
   info["duration"] = duration();
   info["cover"] = coverPath();
   QJsonArray artists;

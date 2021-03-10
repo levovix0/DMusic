@@ -20,6 +20,7 @@ public:
 
   Q_INVOKABLE int id();
   Q_INVOKABLE QString title();
+  Q_INVOKABLE QString extra();
   Q_INVOKABLE int duration();
   Q_INVOKABLE bool available();
   Q_INVOKABLE QVector<YArtist> artists();
