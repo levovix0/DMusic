@@ -289,14 +289,17 @@ QJsonObject YTrack::jsonMetadata()
   info["id"] = id();
   info["title"] = title();
   info["extra"] = extra();
-  info["artistName"] = this->artists().size() > 0? this->artists()[0].name() : "";
   info["duration"] = duration();
   info["cover"] = coverPath();
   QJsonArray artists;
+  QString artistsNames;
   for (auto&& artist : this->artists()) {
     artists.append(artist.id());
+    if (artistsNames != "") artistsNames += ", ";
+    artistsNames += artist.name();
   }
   info["artists"] = artists;
+  info["artistsNames"] = artistsNames;
   return info;
 }
 

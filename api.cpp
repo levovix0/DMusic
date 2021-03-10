@@ -54,7 +54,7 @@ QString Track::author()
   val = file.readAll();
   file.close();
   QJsonObject doc = QJsonDocument::fromJson(val.toUtf8()).object();
-  return doc["artistName"].toString("");
+  return doc["artistsNames"].toString("");
 }
 
 QString Track::extra()

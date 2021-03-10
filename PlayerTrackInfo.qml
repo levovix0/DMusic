@@ -10,7 +10,7 @@ Item {
   DText {
     id: _title
     anchors.bottom: root.verticalCenter
-    anchors.bottomMargin: 3
+    anchors.bottomMargin: 2
 
     text: title
     font.pixelSize: 14
@@ -19,7 +19,7 @@ Item {
   DText {
     id: _author
     anchors.top: root.verticalCenter
-    anchors.topMargin: 3
+    anchors.topMargin: 2
 
     text: author
     font.pixelSize: 12

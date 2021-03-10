@@ -4,6 +4,8 @@
 #include <QString>
 #include <QVector>
 #include <QList>
+#include <QMutex>
+#include <QMutexLocker>
 #include <string>
 #include <vector>
 #include <map>
@@ -12,6 +14,7 @@
 //TODO: mutex
 namespace py
 {
+  inline QMutex mutex(QMutex::Recursive);
 
   struct object
   {
@@ -165,6 +168,7 @@ namespace py
 
   inline object::~object()
   {
+    QMutexLocker locker(&mutex);
     if (raw != nullptr && raw != Py_None) {
       Py_DECREF(raw);
     }
@@ -172,12 +176,14 @@ namespace py
 
   inline object::object(object const& copy)
   {
+    QMutexLocker locker(&mutex);
     raw = copy.raw;
     Py_INCREF(raw);
   }
 
   inline object& object::operator=(object const& copy)
   {
+    QMutexLocker locker(&mutex);
     raw = copy.raw;
     Py_INCREF(raw);
     return *this;
@@ -187,6 +193,7 @@ namespace py
   template<typename T>
   object::object(T const& o)
   {
+    QMutexLocker locker(&mutex);
     raw = toPyObject(o);
   }
 
@@ -209,6 +216,7 @@ namespace py
 
   template<typename T>
   T object::to() const {
+    QMutexLocker locker(&mutex);
     T res;
     fromPyObject(*this, res);
     return res;
@@ -290,32 +298,38 @@ namespace py
 
   inline object object::attr(object name) const
   {
+    QMutexLocker locker(&mutex);
     return maybe_exception(PyObject_GetAttr(raw, name.raw));
   }
 
 
   inline object object::operator()(std::initializer_list<object> const& args) const
   {
+    QMutexLocker locker(&mutex);
     return maybe_exception(PyObject_Call(raw, object(args).raw, nullptr));
   }
 
   inline object object::operator()(object arg) const
   {
+    QMutexLocker locker(&mutex);
     return maybe_exception(PyObject_CallOneArg(raw, arg.raw));
   }
 
   inline object object::operator()() const
   {
+    QMutexLocker locker(&mutex);
     return maybe_exception(PyObject_CallNoArgs(raw));
   }
 
   inline object object::operator()(std::initializer_list<object> const& args, std::map<std::string, object> const& kwargs) const
   {
+    QMutexLocker locker(&mutex);
     return maybe_exception(PyObject_Call(raw, object(args).raw, object(kwargs).raw));
   }
 
   inline object object::operator()(object arg, std::map<std::string, object> const& kwargs) const
   {
+    QMutexLocker locker(&mutex);
     return maybe_exception(PyObject_Call(raw, object(std::initializer_list<object>{arg}).raw, object(kwargs).raw));
   }
 
@@ -347,6 +361,7 @@ namespace py
 
   inline object object::operator[](size_t i) const
   {
+    QMutexLocker locker(&mutex);
     return maybe_exception(PySequence_GetItem(raw, i));
   }
 
@@ -373,12 +388,14 @@ namespace py
 
   inline module::module(const module& copy) : object()
   {
+    QMutexLocker locker(&mutex);
     raw = copy.raw;
     Py_INCREF(raw);
   }
 
   inline module::module(char const* name)
   {
+    QMutexLocker locker(&mutex);
     raw = PyImport_ImportModule(name);
     if (raw == nullptr) throw std::runtime_error("can't import module");
   }
@@ -400,6 +417,7 @@ namespace py
 
   inline module module::main()
   {
+    QMutexLocker locker(&mutex);
     return PyImport_AddModule("__main__");
   }
 
