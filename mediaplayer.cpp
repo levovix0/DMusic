@@ -1,5 +1,6 @@
 #include "mediaplayer.hpp"
 #include "settings.hpp"
+#include "QDateTime"
 
 MediaPlayer::~MediaPlayer()
 {
@@ -53,6 +54,7 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
     m_progress = duration != 0? ((float)milli / (float)duration) : 0;
     emit progressChanged();
   });
+  QObject::connect(player, &QMediaPlayer::positionChanged, this, &MediaPlayer::durationChanged);
 }
 
 void MediaPlayer::play(Track* track)
@@ -120,6 +122,16 @@ Track* MediaPlayer::currentTrack()
   return _currentTrack;
 }
 
+QString MediaPlayer::formatProgress()
+{
+  return formatTime(getProgress_ms() / 1000);
+}
+
+QString MediaPlayer::formatEnd()
+{
+  return formatTime(player->duration() / 1000);
+}
+
 void MediaPlayer::pause_or_play()
 {
   if (_currentTrack == nullptr) return;
@@ -173,4 +185,16 @@ void MediaPlayer::setProgress_ms(int progress)
 {
   player->setPosition(progress);
   emit progressChanged();
+}
+
+QString MediaPlayer::formatTime(int t)
+{
+  if (t / 60 < 10)
+    return QDateTime::fromTime_t(t).toUTC().toString("m:ss");
+  else if (t / 60 >= 10)
+    return QDateTime::fromTime_t(t).toUTC().toString("mm:ss");
+  else if (t / 60 / 60 >= 1)
+    return QDateTime::fromTime_t(t).toUTC().toString("h:mm:ss");
+  else
+    return QDateTime::fromTime_t(t).toUTC().toString("hh:mm:ss");
 }

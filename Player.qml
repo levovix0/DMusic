@@ -26,6 +26,9 @@ Rectangle {
 
     progress: _player.progress
     onSeek: _player.progress = progress
+
+    timeProgressText: _player.formatProgress
+    timeEndText: _player.formatEnd
   }
 
   MediaPlayer {

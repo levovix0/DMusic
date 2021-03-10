@@ -5,7 +5,7 @@ Item {
 
   property real progress: 0.3
   property string timeProgressText: "0:00"
-  property string timeEndText: "1:30"
+  property string timeEndText: "0:00"
 
   signal seek(real progress)
 

@@ -16,6 +16,8 @@ public:
   Q_PROPERTY(float progress READ getProgress WRITE setProgress NOTIFY progressChanged)
   Q_PROPERTY(float progress_ms READ getProgress_ms WRITE setProgress_ms NOTIFY progressChanged)
   Q_PROPERTY(Track* currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
+  Q_PROPERTY(QString formatProgress READ formatProgress NOTIFY progressChanged)
+  Q_PROPERTY(QString formatEnd READ formatEnd NOTIFY durationChanged)
 
   Q_INVOKABLE bool isPlaying();
   Q_INVOKABLE bool isPaused();
@@ -24,6 +26,8 @@ public:
   Q_INVOKABLE int getProgress_ms();
 
   Track* currentTrack();
+  QString formatProgress();
+  QString formatEnd();
 
 public slots:
   void play(Track* track);
@@ -45,9 +49,12 @@ signals:
   void coverChanged();
   void progressChanged();
   void currentTrackChanged();
+  void durationChanged();
 
 private:
   inline static Track noneTrack{};
+
+  QString formatTime(int t);
 
   QMediaPlayer* player;
   Track* _currentTrack;
