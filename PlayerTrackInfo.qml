@@ -8,13 +8,12 @@ Item {
   property string extra: ""
 
   DText {
-    id: _name
+    id: _title
     anchors.bottom: root.verticalCenter
     anchors.bottomMargin: 3
 
     text: title
     font.pixelSize: 14
-    font.bold: true
   }
 
   DText {
@@ -28,10 +27,10 @@ Item {
   }
 
   DText {
-    id: _additional
+    id: _extra
     anchors.bottom: root.verticalCenter
     anchors.bottomMargin: 3
-    anchors.left: _name.right
+    anchors.left: _title.right
     anchors.leftMargin: 5
 
     text: extra
