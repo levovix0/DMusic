@@ -25,8 +25,9 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
       emit playingChanged();
       m_isPaused = false;
       emit pausedChanged();
+      player->setMedia(QMediaContent());
       
-      setProgress_ms(0);
+//      setProgress_ms(0);
       if (_currentTrack != &noneTrack) delete _currentTrack;
       _currentTrack = &noneTrack;
       emit currentTrackChanged();
@@ -58,6 +59,8 @@ void MediaPlayer::play(Track* track)
   if (media != "") {
     player->setMedia(QUrl::fromLocalFile(media));
     player->play();
+  } else {
+    player->setMedia(QMediaContent());
   }
 }
 
@@ -102,7 +105,7 @@ QString MediaPlayer::formatProgress()
   return formatTime(progress_ms() / 1000);
 }
 
-QString MediaPlayer::formatEnd()
+QString MediaPlayer::formatDuration()
 {
   return formatTime(player->duration() / 1000);
 }
@@ -150,9 +153,9 @@ QString MediaPlayer::formatTime(int t)
 {
   if (t / 60 < 10)
     return QDateTime::fromTime_t(t).toUTC().toString("m:ss");
-  else if (t / 60 >= 10)
+  else if (t / 60 < 60)
     return QDateTime::fromTime_t(t).toUTC().toString("mm:ss");
-  else if (t / 60 / 60 >= 1)
+  else if (t / 60 / 60 < 10)
     return QDateTime::fromTime_t(t).toUTC().toString("h:mm:ss");
   else
     return QDateTime::fromTime_t(t).toUTC().toString("hh:mm:ss");

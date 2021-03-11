@@ -17,7 +17,7 @@ public:
   Q_PROPERTY(float progress_ms READ progress_ms WRITE setProgress_ms NOTIFY progressChanged)
   Q_PROPERTY(Track* currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
   Q_PROPERTY(QString formatProgress READ formatProgress NOTIFY progressChanged)
-  Q_PROPERTY(QString formatEnd READ formatEnd NOTIFY durationChanged)
+  Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged)
 
   bool playing();
   bool paused();
@@ -26,7 +26,7 @@ public:
 
   Track* currentTrack();
   QString formatProgress();
-  QString formatEnd();
+  QString formatDuration();
 
 public slots:
   void play(Track* track);

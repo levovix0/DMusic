@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <QFileInfo>
 
 namespace fs = std::filesystem;
 
@@ -56,3 +57,18 @@ inline fs::path operator/(fs::path a, QString b) {
 inline fs::path operator/(QString a, fs::path b) {
   return std::string(a.toUtf8().data()) / b;
 }
+
+inline QString qstr(fs::path a)
+{
+  return a.string().c_str();
+}
+
+bool fileExists(QString path) {
+  QFileInfo check_file(path);
+  return check_file.exists() && check_file.isFile();
+}
+bool exists(QString path) {
+  QFileInfo check_file(path);
+  return check_file.exists();
+}
+

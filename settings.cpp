@@ -4,11 +4,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-QString qstr(fs::path a)
-{
-  return a.string().c_str();
-}
-
 Settings::Settings()
 {
   connect(this, SIGNAL(reload), this, SLOT(saveToJson));

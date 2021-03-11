@@ -1,5 +1,6 @@
 #pragma once
 #include "python.hpp"
+#include <api.hpp>
 #include <QObject>
 #include <atomic>
 #include <QVariantList>
@@ -8,19 +9,23 @@
 struct YArtist;
 struct YTrack;
 
-struct YTrack : QObject
+struct YTrack : Track
 {
   Q_OBJECT
 public:
   explicit YTrack(py::object track, QObject *parent = nullptr);
+  ~YTrack();
   YTrack();
-  YTrack(YTrack const& copy);
-  YTrack& operator=(YTrack const& copy);
+
   PyObject* raw() { return impl.raw; }
 
+  QString title() override;
+  QString author() override;
+  QString extra() override;
+  QString cover() override;
+  QString media() override;
+
   Q_INVOKABLE int id();
-  Q_INVOKABLE QString title();
-  Q_INVOKABLE QString extra();
   Q_INVOKABLE int duration();
   Q_INVOKABLE bool available();
   Q_INVOKABLE QVector<YArtist> artists();
@@ -38,11 +43,15 @@ public:
   Q_INVOKABLE void download(QJSValue const& callback);
 
 private:
+  bool loadFromDisk();
+  bool loadFromPython();
+
   py::object impl;
   int _id;
+  QString _title, _author, _extra, _cover, _media;
+//  bool _noTitle, _noAuthor, _noExtra, _noCover, _noMedia;
 };
 inline PyObject* toPyObject(YTrack a) { Py_INCREF(a.raw()); return a.raw(); }
-inline void fromPyObject(py::object const& o, YTrack& res) { res = YTrack(o.raw); }
 inline void fromPyObject(py::object const& o, YTrack*& res) { res = new YTrack(o.raw); }
 
 struct YArtist : QObject

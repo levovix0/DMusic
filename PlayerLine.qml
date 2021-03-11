@@ -4,8 +4,8 @@ Item {
   id: root
 
   property real progress: 0.3
-  property string timeProgressText: "0:00"
-  property string timeEndText: "0:00"
+  property string progressText: "0:00"
+  property string durationText: "0:00"
 
   signal seek(real progress)
 
@@ -24,7 +24,7 @@ Item {
 
     font.pixelSize: 12
     color: "#A8A8A8"
-    text: timeProgressText
+    text: progressText
   }
 
   DText {
@@ -34,6 +34,6 @@ Item {
 
     font.pixelSize: 12
     color: "#A8A8A8"
-    text: timeEndText
+    text: durationText
   }
 }

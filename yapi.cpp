@@ -2,14 +2,14 @@
 #include "file.hpp"
 #include "settings.hpp"
 #include "utils.hpp"
+#include <thread>
+#include <functional>
 #include <QDebug>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QGuiApplication>
 #include <QMediaPlayer>
-#include <thread>
-#include <functional>
 
 using namespace py;
 namespace fs = std::filesystem;
@@ -214,11 +214,16 @@ void YClient::fetchTracks(int id, const QJSValue& callback)
 }
 
 
-YTrack::YTrack(object track, QObject* parent) : QObject(parent)
+YTrack::YTrack(object track, QObject* parent) : Track(parent)
 {
   this->impl = track;
   this->_id = track.get("id").to<int>();
   extra();
+}
+
+YTrack::~YTrack()
+{
+
 }
 
 YTrack::YTrack()
@@ -226,16 +231,29 @@ YTrack::YTrack()
 
 }
 
-YTrack::YTrack(const YTrack& copy) : QObject(nullptr), impl(copy.impl), _id(copy._id)
+QString YTrack::title()
 {
-
+  return _title;
 }
 
-YTrack& YTrack::operator=(const YTrack& copy)
+QString YTrack::author()
 {
-  impl = copy.impl;
-  _id = copy._id;
-  return *this;
+  return _author;
+}
+
+QString YTrack::extra()
+{
+  return _extra;
+}
+
+QString YTrack::cover()
+{
+  return _cover.startsWith("/")? "file:" + _cover : "file:" + qstr(Settings::ym_savePath_() / _cover);
+}
+
+QString YTrack::media()
+{
+  return _media;
 }
 
 int YTrack::id()
@@ -243,15 +261,15 @@ int YTrack::id()
   return _id;
 }
 
-QString YTrack::title()
-{
-  return impl.get("title").to<QString>();
-}
+//QString YTrack::title()
+//{
+//  return impl.get("title").to<QString>();
+//}
 
-QString YTrack::extra()
-{
-  return impl.get("version").to<QString>();
-}
+//QString YTrack::extra()
+//{
+//  return impl.get("version").to<QString>();
+//}
 
 int YTrack::duration()
 {
@@ -345,6 +363,23 @@ bool YTrack::download()
 void YTrack::download(const QJSValue& callback)
 {
   do_async<bool>(this, callback, &YTrack::download);
+}
+
+bool YTrack::loadFromDisk()
+{
+  if (_id == 0) return false;
+  auto metadataPath = Settings::ym_metadataPath(_id);
+  if (!fileExists(metadataPath)) return false;
+
+  QString val;
+  File(metadataPath) >> val;
+
+  QJsonObject doc = QJsonDocument::fromJson(val.toUtf8()).object();
+  _title = doc["title"].toString("");
+  _author = doc["artistsNames"].toString("");
+  _extra = doc["extra"].toString("");
+  _cover = doc["cover"].toString("");
+  return true;
 }
 
 

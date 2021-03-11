@@ -62,4 +62,3 @@ private:
   inline static fs::path _ym_savePath = "yandex/";
   inline static int _ym_repeatsIfError = 1;
 };
-
