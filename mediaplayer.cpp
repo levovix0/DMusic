@@ -15,67 +15,50 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
 
   QObject::connect(player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
     if (state == QMediaPlayer::PlayingState) {
-      if (!m_isPlaying) {
-        m_isPlaying = true;
-        emit playingChanged();
-      }
-      if (m_isPaused) {
-        m_isPaused = false;
-        emit pausedChanged();
-      }
-    } else if (state == QMediaPlayer::StoppedState) {
-      if (m_isPlaying) {
-        m_isPlaying = false;
-        emit playingChanged();
-      }
-      if (m_isPaused) {
-        m_isPaused = false;
-        emit pausedChanged();
-      }
-      emit coverChanged();
+      m_isPlaying = true;
+      emit playingChanged();
+      m_isPaused = false;
+      emit pausedChanged();
+    }
+    else if (state == QMediaPlayer::StoppedState) {
+      m_isPlaying = false;
+      emit playingChanged();
+      m_isPaused = false;
+      emit pausedChanged();
+      
+      setProgress_ms(0);
       if (_currentTrack != &noneTrack) delete _currentTrack;
       _currentTrack = &noneTrack;
       emit currentTrackChanged();
-      setProgress(0);
-    } else if (state == QMediaPlayer::PausedState) {
-      if (m_isPlaying) {
-        m_isPlaying = false;
-        emit playingChanged();
-      }
-      if (!m_isPaused) {
-        m_isPaused = true;
-        emit pausedChanged();
-      }
+    }
+    else if (state == QMediaPlayer::PausedState) {
+      m_isPlaying = false;
+      emit playingChanged();
+      m_isPaused = true;
+      emit pausedChanged();
     }
   });
 
-  QObject::connect(player, &QMediaPlayer::positionChanged, [this](qint64 milli) {
-    auto duration = player->duration();
-    m_progress = duration != 0? ((float)milli / (float)duration) : 0;
-    emit progressChanged();
-  });
-  QObject::connect(player, &QMediaPlayer::positionChanged, this, &MediaPlayer::durationChanged);
+  QObject::connect(player, &QMediaPlayer::positionChanged, this, &MediaPlayer::progressChanged);
+  QObject::connect(player, &QMediaPlayer::durationChanged, this, &MediaPlayer::durationChanged);
 }
 
 void MediaPlayer::play(Track* track)
 {
-  if (isPlaying()) {
+  if (track == nullptr) return play(&noneTrack);
+  if (playing()) {
     player->stop();
-    m_isPlaying = false;
-    emit playingChanged();
   }
+  if (_currentTrack != &noneTrack) delete _currentTrack;
   _currentTrack = track;
-  m_isPaused = false;
-  emit pausedChanged();
-  auto media = track->mediaFile();
+  emit currentTrackChanged();
+  
+  //TODO: подгрузка на лету
+  auto media = track->media();
   if (media != "") {
     player->setMedia(QUrl::fromLocalFile(media));
-    m_isPlaying = true;
-    emit playingChanged();
     player->play();
   }
-  emit coverChanged();
-  emit currentTrackChanged();
 }
 
 void MediaPlayer::play(YTrack* track)
@@ -88,31 +71,23 @@ void MediaPlayer::playYandex(int id)
   play(new Track(Settings::ym_trackPath(id), Settings::ym_coverPath(id), Settings::ym_metadataPath(id)));
 }
 
-bool MediaPlayer::isPlaying()
+bool MediaPlayer::playing()
 {
-  return _currentTrack != nullptr && m_isPlaying;
+  return m_isPlaying;
 }
 
-bool MediaPlayer::isPaused()
+bool MediaPlayer::paused()
 {
-  return m_isPaused;
+  return player->state() == QMediaPlayer::PausedState;
 }
 
-QString MediaPlayer::getCover()
+float MediaPlayer::progress()
 {
-  if (isPlaying()) {
-    auto cover = _currentTrack->coverFile();
-    return cover != ""? "file:" + cover : "resources/player/no-cover.svg";
-  }
-  return "resources/player/no-cover.svg";
+  auto duration = player->duration();
+  return duration != 0? ((float)player->position() / (float)duration) : 0;
 }
 
-float MediaPlayer::getProgress()
-{
-  return m_progress;
-}
-
-int MediaPlayer::getProgress_ms()
+int MediaPlayer::progress_ms()
 {
   return player->position();
 }
@@ -124,7 +99,7 @@ Track* MediaPlayer::currentTrack()
 
 QString MediaPlayer::formatProgress()
 {
-  return formatTime(getProgress_ms() / 1000);
+  return formatTime(progress_ms() / 1000);
 }
 
 QString MediaPlayer::formatEnd()
@@ -134,40 +109,26 @@ QString MediaPlayer::formatEnd()
 
 void MediaPlayer::pause_or_play()
 {
-  if (_currentTrack == nullptr) return;
-  if (m_isPaused) {
-    m_isPaused = false;
-    m_isPlaying = true;
-    player->play();
-  } else {
-    m_isPaused = true;
-    m_isPlaying = false;
+  if (playing()) {
     player->pause();
+  } else {
+    player->play();
   }
-  emit playingChanged();
-  emit pausedChanged();
 }
 
 void MediaPlayer::pause()
 {
-  if (!m_isPaused) pause_or_play();
+  player->pause();
 }
 
 void MediaPlayer::unpause()
 {
-  if (m_isPaused) pause_or_play();
+  player->play();
 }
 
 void MediaPlayer::stop()
 {
-  if (isPlaying()) {
-    player->stop();
-  }
-  _currentTrack = nullptr;
-  m_isPaused = false;
-  emit pausedChanged();
-  m_isPlaying = false;
-  emit playingChanged();
+  play(&noneTrack);
 }
 
 void MediaPlayer::setCurrentTrack(Track* v)
@@ -178,13 +139,11 @@ void MediaPlayer::setCurrentTrack(Track* v)
 void MediaPlayer::setProgress(float progress)
 {
   player->setPosition(player->duration() * progress);
-  emit progressChanged();
 }
 
 void MediaPlayer::setProgress_ms(int progress)
 {
   player->setPosition(progress);
-  emit progressChanged();
 }
 
 QString MediaPlayer::formatTime(int t)

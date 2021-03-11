@@ -39,7 +39,7 @@ Rectangle {
     id: _track
     x: 8
     anchors.verticalCenter: root.verticalCenter
-    icon: _player.cover
+    icon: _player.currentTrack.cover
     title: _player.currentTrack.title
     author: _player.currentTrack.author
     extra: _player.currentTrack.extra

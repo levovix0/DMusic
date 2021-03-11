@@ -10,20 +10,19 @@ class MediaPlayer : public QObject
 public:
   ~MediaPlayer();
   explicit MediaPlayer(QObject *parent = nullptr);
-  Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
-  Q_PROPERTY(bool paused READ isPaused NOTIFY pausedChanged)
-  Q_PROPERTY(QString cover READ getCover NOTIFY coverChanged)
-  Q_PROPERTY(float progress READ getProgress WRITE setProgress NOTIFY progressChanged)
-  Q_PROPERTY(float progress_ms READ getProgress_ms WRITE setProgress_ms NOTIFY progressChanged)
+  
+  Q_PROPERTY(bool playing READ playing NOTIFY playingChanged)
+  Q_PROPERTY(bool paused READ paused NOTIFY pausedChanged)
+  Q_PROPERTY(float progress READ progress WRITE setProgress NOTIFY progressChanged)
+  Q_PROPERTY(float progress_ms READ progress_ms WRITE setProgress_ms NOTIFY progressChanged)
   Q_PROPERTY(Track* currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
   Q_PROPERTY(QString formatProgress READ formatProgress NOTIFY progressChanged)
   Q_PROPERTY(QString formatEnd READ formatEnd NOTIFY durationChanged)
 
-  Q_INVOKABLE bool isPlaying();
-  Q_INVOKABLE bool isPaused();
-  Q_INVOKABLE QString getCover();
-  Q_INVOKABLE float getProgress();
-  Q_INVOKABLE int getProgress_ms();
+  bool playing();
+  bool paused();
+  float progress();
+  int progress_ms();
 
   Track* currentTrack();
   QString formatProgress();
@@ -46,7 +45,6 @@ public slots:
 signals:
   void playingChanged();
   void pausedChanged();
-  void coverChanged();
   void progressChanged();
   void currentTrackChanged();
   void durationChanged();
@@ -60,6 +58,5 @@ private:
   Track* _currentTrack;
   bool m_isPaused;
   bool m_isPlaying;
-  float m_progress;
 };
 

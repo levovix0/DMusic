@@ -71,22 +71,22 @@ QString Track::extra()
   return doc["extra"].toString("");
 }
 
-QString Track::mediaFile()
+QString Track::cover()
+{
+  switch (backend) {
+  case TrackBackend::none: return "qrc:resources/player/no-cover.svg";
+  case TrackBackend::system: return "file:" + impl.system->cover;
+  case TrackBackend::yandex: return impl.yandex->coverPath();
+  }
+  return "qrc:resources/player/no-cover.svg";
+}
+
+QString Track::media()
 {
   switch (backend) {
   case TrackBackend::none: return "";
   case TrackBackend::system: return impl.system->media;
   case TrackBackend::yandex: return impl.yandex->soundPath();
-  }
-  return "";
-}
-
-QString Track::coverFile()
-{
-  switch (backend) {
-  case TrackBackend::none: return "";
-  case TrackBackend::system: return impl.system->cover;
-  case TrackBackend::yandex: return impl.yandex->coverPath();
   }
   return "";
 }
