@@ -27,7 +27,7 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
       emit pausedChanged();
       
       if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
-      if (_currentTrack != &noneTrack) delete _currentTrack;
+//      if (_currentTrack != &noneTrack) delete _currentTrack;
 
       _currentTrack = &noneTrack;
       emit currentTrackChanged();
@@ -57,7 +57,7 @@ void MediaPlayer::play(Track* track)
     player->stop();
   }
   if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
-  if (_currentTrack != &noneTrack) delete _currentTrack;
+//  if (_currentTrack != &noneTrack) delete _currentTrack;
   _currentTrack = track;
 
   if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);

@@ -130,7 +130,7 @@ YClient::YClient(QObject *parent) : QObject(parent), ym("yandex_music"), ym_requ
 
 }
 
-YClient::YClient(const YClient& copy) : QObject(nullptr), ym(copy.ym), ym_request(copy.ym_request), me(copy.me), loggined((bool)copy.loggined)
+YClient::YClient(const YClient& copy) : QObject(copy.parent()), ym(copy.ym), ym_request(copy.ym_request), me(copy.me), loggined((bool)copy.loggined)
 {
 
 }
@@ -211,7 +211,10 @@ std::pair<bool, QList<YTrack*>> YClient::fetchYTracks(int id)
   bool successed;
   repeat_if_error([this, id, &tracks]() {
     tracks = me.call("tracks", std::vector<object>{id}).to<QList<YTrack*>>(); // утечка памяти?
-    for (auto&& track : tracks) track->_client = this;
+    for (auto&& track : tracks) {
+      track->_client = this;
+      track->setParent(this);
+    }
   }, [&successed](bool success) {
     successed = success;
   }, Settings::ym_repeatsIfError());
@@ -230,14 +233,14 @@ YTrack* YClient::track(int id)
 }
 
 
-YTrack::YTrack(int id, YClient* client, QObject* parent) : Track(parent)
+YTrack::YTrack(int id, YClient* client) : Track((QObject*)client)
 {
   _id = id;
   _client = client;
   _loadFromDisk();
 }
 
-YTrack::YTrack(object obj, YClient* client, QObject* parent) : Track(parent)
+YTrack::YTrack(object obj, YClient* client) : Track((QObject*)client)
 {
   _id = obj.get("id").to<int>();
   _client = client;
@@ -249,7 +252,7 @@ YTrack::~YTrack()
 
 }
 
-YTrack::YTrack()
+YTrack::YTrack(QObject* parent) : Track(parent)
 {
 
 }

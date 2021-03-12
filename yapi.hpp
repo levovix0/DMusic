@@ -13,10 +13,10 @@ struct YTrack : Track
 {
   Q_OBJECT
 public:
-  YTrack(int id, YClient* client, QObject *parent = nullptr);
-  YTrack(py::object obj, YClient* client, QObject *parent = nullptr);
+  YTrack(int id, YClient* client);
+  YTrack(py::object obj, YClient* client);
   ~YTrack();
-  YTrack();
+  YTrack(QObject* parent = nullptr);
 
   PyObject* raw() { return _py.raw; }
 
