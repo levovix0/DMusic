@@ -16,6 +16,9 @@ namespace py
 {
   inline QMutex mutex(QMutex::Recursive);
 
+  struct none_t {};
+  inline static const none_t none;
+
   struct object
   {
     object();
@@ -52,6 +55,10 @@ namespace py
     object deepcopy() const;
 
     object operator<(object const& a) const;
+    bool operator==(none_t) const;
+    bool operator==(std::nullptr_t) const;
+    bool operator!=(none_t) const;
+    bool operator!=(std::nullptr_t) const;
 
     PyObject* raw;
   };
@@ -127,6 +134,10 @@ namespace py
     return PyBool_FromLong(v);
   }
   inline PyObject* toPyObject(std::nullptr_t)
+  {
+    return Py_None; // TODO: nullptr
+  }
+  inline PyObject* toPyObject(none_t)
   {
     return Py_None;
   }
@@ -223,9 +234,14 @@ namespace py
   }
 
 
+  inline void fromPyObject(object const& a, object& res)
+  {
+    Py_INCREF(a.raw);
+    res.raw = a.raw;
+  }
   inline void fromPyObject(object const& a, std::string& res)
   {
-    if (a.raw == Py_None) {
+    if (a == none) {
       res = "";
       return;
     }
@@ -238,7 +254,7 @@ namespace py
   }
   inline void fromPyObject(object const& a, QString& res)
   {
-    if (a.raw == Py_None) {
+    if (a == none) {
       res = "";
       return;
     }
@@ -259,7 +275,7 @@ namespace py
       res = PyLong_AsLong(a.raw);
     } else if (PyUnicode_Check(a.raw)) {
       res = PyLong_AsLong(PyLong_FromUnicodeObject(a.raw, 10));
-    } else if (a.raw == Py_None || a.raw == nullptr) {
+    } else if (a == none || a == nullptr) {
       res = 0;
     } else {
       throw std::runtime_error("unimplemented cast to int (" + a.to<std::string>() + ")");
@@ -378,6 +394,23 @@ namespace py
   inline object object::operator<(const object& a) const
   {
     return this->call("__lt__", a);
+  }
+
+  inline bool object::operator==(none_t) const
+  {
+    return raw == Py_None;
+  }
+  inline bool object::operator==(std::nullptr_t) const
+  {
+    return raw == nullptr;
+  }
+  inline bool object::operator!=(none_t) const
+  {
+    return raw != Py_None;
+  }
+  inline bool object::operator!=(std::nullptr_t) const
+  {
+    return raw != nullptr;
   }
 
 

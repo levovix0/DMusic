@@ -42,30 +42,6 @@ Window {
       onClicked: root.focus = true
     }
 
-    DText {
-      id: _yapi_state
-      x: 5
-      y: 50
-
-      text: "-"
-    }
-
-    DText {
-      id: _track_state
-      x: 5
-      y: 70
-
-      text: "-"
-    }
-
-    DText {
-      id: _track_info_state
-      x: 5
-      y: 90
-
-      text: "-"
-    }
-
     Settings {
       id: _settings
 
@@ -79,16 +55,10 @@ Window {
 
       function autologin() {
         if (_settings.ym_token == "") return
-        _yapi_state.text = "Вход..."
-
-        function updateUI(success) {
-          _yapi_state.text = success? "Ок" : "Ошибка"
-        }
-
         if (_settings.ym_proxyServer == "") {
-          login(_settings.ym_token, updateUI)
+          login(_settings.ym_token, function(_){})
         } else {
-          loginViaProxy(_settings.ym_token, _settings.ym_proxyServer, updateUI)
+          loginViaProxy(_settings.ym_token, _settings.ym_proxyServer, function(_){})
         }
       }
     }
@@ -116,57 +86,14 @@ Window {
     }
 
     DButton {
-      id: _download
-      anchors.centerIn: root
-      anchors.verticalCenterOffset: 40
-
-      text: "Скачать"
-
-      onClick: {
-        if (!_yapi.isLoggined()) return
-
-        function download(track) {
-          _track_state.text = "Скачивается"
-          track.download(function(success) {
-            _track_state.text = success? "Ок" : "Ошибка"
-          })
-        }
-
-        function downloadAll(track) {
-          _track_info_state.text = "Скачивается"
-          track.saveMetadata()
-
-          function donwloaded(success) {
-            _track_info_state.text = success? "Ок" : "Ошибка"
-            download(track)
-          }
-          track.saveCover(1000, donwloaded)
-        }
-
-        function fetched(success, tracks) {
-          if (success) {
-            tracks.forEach(function(track) {
-              downloadAll(track);
-            });
-          } else {
-            _track_state.text = "Ошибка (нет трека)"
-            _track_info_state.text = "Ошибка (нет трека)"
-          }
-        }
-
-        _yapi.fetchTracks(parseInt(_id_input.text), fetched)
-      }
-    }
-
-    DButton {
       id: _play
       anchors.centerIn: root
-      anchors.verticalCenterOffset: 80
+      anchors.verticalCenterOffset: 40
 
       text: "Прослушать"
 
       onClick: {
-        _player.player.playYandex(parseInt(_id_input.text))
+        _player.player.play(_yapi.track(parseInt(_id_input.text)))
       }
     }
     Keys.onSpacePressed: _player.player.pause_or_play()

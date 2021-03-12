@@ -49,7 +49,7 @@ int Settings::ym_repeatsIfError()
   return _ym_repeatsIfError;
 }
 
-QString Settings::ym_trackPath(int id)
+QString Settings::ym_mediaPath(int id)
 {
   return (ym_savePath_() / (std::to_string(id) + ".mp3")).string().c_str();
 }

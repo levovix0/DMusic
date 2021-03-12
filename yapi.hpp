@@ -7,23 +7,24 @@
 #include <QJSValue>
 
 struct YArtist;
-struct YTrack;
+struct YClient;
 
 struct YTrack : Track
 {
   Q_OBJECT
 public:
-  explicit YTrack(py::object track, QObject *parent = nullptr);
+  YTrack(int id, YClient* client, QObject *parent = nullptr);
+  YTrack(py::object obj, YClient* client, QObject *parent = nullptr);
   ~YTrack();
   YTrack();
 
-  PyObject* raw() { return impl.raw; }
+  PyObject* raw() { return _py.raw; }
 
   QString title() override;
   QString author() override;
   QString extra() override;
   QString cover() override;
-  QString media() override;
+  QMediaContent media() override;
 
   Q_INVOKABLE int id();
   Q_INVOKABLE int duration();
@@ -31,7 +32,7 @@ public:
   Q_INVOKABLE QVector<YArtist> artists();
   Q_INVOKABLE QString coverPath();
   Q_INVOKABLE QString metadataPath();
-  Q_INVOKABLE QString soundPath();
+  Q_INVOKABLE QString mediaPath();
 
   QJsonObject jsonMetadata();
   Q_INVOKABLE QString stringMetadata();
@@ -42,17 +43,24 @@ public:
   Q_INVOKABLE bool download();
   Q_INVOKABLE void download(QJSValue const& callback);
 
-private:
-  bool loadFromDisk();
-  bool loadFromPython();
+  YClient* _client;
 
-  py::object impl;
+private:
+  bool _loadFromDisk();
+  
+  void _fetchYandex();
+  void _fetchYandex(py::object _pys);
+  void _downloadCover();
+  void _downloadMedia();
+
+  py::object _py;
+  QMutex _mtx = QMutex(QMutex::Recursive);
   int _id;
   QString _title, _author, _extra, _cover, _media;
-//  bool _noTitle, _noAuthor, _noExtra, _noCover, _noMedia;
+  bool _noTitle = false, _noAuthor = false, _noExtra = false, _noCover = false, _noMedia = false;
 };
 inline PyObject* toPyObject(YTrack a) { Py_INCREF(a.raw()); return a.raw(); }
-inline void fromPyObject(py::object const& o, YTrack*& res) { res = new YTrack(o.raw); }
+inline void fromPyObject(py::object const& o, YTrack*& res) { res = new YTrack(o, nullptr); }
 
 struct YArtist : QObject
 {
@@ -83,7 +91,7 @@ inline PyObject* toPyObject(YArtist a) { Py_INCREF(a.raw()); return a.raw(); }
 inline void fromPyObject(py::object const& o, YArtist& res) { res = YArtist(o.raw); }
 inline void fromPyObject(py::object const& o, YArtist*& res) { res = new YArtist(o.raw); }
 
-class YClient : public QObject
+struct YClient : QObject
 {
 	Q_OBJECT
 public:
@@ -100,8 +108,12 @@ public:
   Q_INVOKABLE bool loginViaProxy(QString token, QString proxy);
   Q_INVOKABLE void loginViaProxy(QString token, QString proxy, QJSValue const& callback);
 
-  Q_INVOKABLE std::pair<bool, QList<YTrack*>> fetchTracks(int id);
-  Q_INVOKABLE void fetchTracks(int id, QJSValue const& callback);
+  QVector<py::object> fetchTracks(int id);
+  Q_INVOKABLE std::pair<bool, QList<YTrack*>> fetchYTracks(int id);
+  Q_INVOKABLE void fetchYTracks(int id, QJSValue const& callback);
+
+public slots:
+  YTrack* track(int id);
 
 private:
   py::module ym; // yandex_music module

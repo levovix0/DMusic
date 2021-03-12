@@ -14,7 +14,8 @@ public:
   Q_PROPERTY(bool playing READ playing NOTIFY playingChanged)
   Q_PROPERTY(bool paused READ paused NOTIFY pausedChanged)
   Q_PROPERTY(float progress READ progress WRITE setProgress NOTIFY progressChanged)
-  Q_PROPERTY(float progress_ms READ progress_ms WRITE setProgress_ms NOTIFY progressChanged)
+  Q_PROPERTY(qint64 progress_ms READ progress_ms WRITE setProgress_ms NOTIFY progressChanged)
+  Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
   Q_PROPERTY(Track* currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
   Q_PROPERTY(QString formatProgress READ formatProgress NOTIFY progressChanged)
   Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged)
@@ -22,16 +23,18 @@ public:
   bool playing();
   bool paused();
   float progress();
-  int progress_ms();
+  qint64 progress_ms();
 
   Track* currentTrack();
   QString formatProgress();
   QString formatDuration();
+  qint64 duration();
+
+private slots:
+  void setMedia(QMediaContent media);
 
 public slots:
   void play(Track* track);
-  void play(YTrack* track);
-  void playYandex(int id);
 
   void pause_or_play();
   void pause();
@@ -47,7 +50,7 @@ signals:
   void pausedChanged();
   void progressChanged();
   void currentTrackChanged();
-  void durationChanged();
+  void durationChanged(qint64 duration);
 
 private:
   inline static Track noneTrack{};

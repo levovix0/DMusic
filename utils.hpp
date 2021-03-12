@@ -65,3 +65,15 @@ void do_async(C* obj, QJSValue const& callback, std::pair<T, B>(C::* f)(Args...)
   });
   watcher->setFuture(QtConcurrent::run(obj, f, args...));
 }
+
+inline QString join(QVector<QString> const& a, QString const& sep = " ") {
+  if (a.isEmpty()) return "";
+  QString res;
+  res.reserve((a.length() - 1) * sep.length());
+  res.append(a[0]);
+  for (int i = 1; i < a.length(); ++i) {
+    res.append(sep);
+    res.append(a[i]);
+  }
+  return res;
+}

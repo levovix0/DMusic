@@ -195,12 +195,23 @@ void YClient::loginViaProxy(QString token, QString proxy, const QJSValue& callba
   do_async<bool>(this, callback, &YClient::loginViaProxy, token, proxy);
 }
 
-std::pair<bool, QList<YTrack*>> YClient::fetchTracks(int id)
+QVector<object> YClient::fetchTracks(int id)
+{
+  QVector<py::object> tracks;
+  repeat_if_error([this, id, &tracks]() {
+    tracks = me.call("tracks", std::vector<object>{id}).to<QVector<py::object>>();
+  }, [](bool) {
+  }, Settings::ym_repeatsIfError());
+  return tracks;
+}
+
+std::pair<bool, QList<YTrack*>> YClient::fetchYTracks(int id)
 {
   QList<YTrack*> tracks;
   bool successed;
   repeat_if_error([this, id, &tracks]() {
     tracks = me.call("tracks", std::vector<object>{id}).to<QList<YTrack*>>(); // утечка памяти?
+    for (auto&& track : tracks) track->_client = this;
   }, [&successed](bool success) {
     successed = success;
   }, Settings::ym_repeatsIfError());
@@ -208,17 +219,29 @@ std::pair<bool, QList<YTrack*>> YClient::fetchTracks(int id)
   return {successed, tracks};
 }
 
-void YClient::fetchTracks(int id, const QJSValue& callback)
+void YClient::fetchYTracks(int id, const QJSValue& callback)
 {
-  do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchTracks, id);
+  do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchYTracks, id);
+}
+
+YTrack* YClient::track(int id)
+{
+  return new YTrack(id, this);
 }
 
 
-YTrack::YTrack(object track, QObject* parent) : Track(parent)
+YTrack::YTrack(int id, YClient* client, QObject* parent) : Track(parent)
 {
-  this->impl = track;
-  this->_id = track.get("id").to<int>();
-  extra();
+  _id = id;
+  _client = client;
+  _loadFromDisk();
+}
+
+YTrack::YTrack(object obj, YClient* client, QObject* parent) : Track(parent)
+{
+  _id = obj.get("id").to<int>();
+  _client = client;
+  _loadFromDisk();
 }
 
 YTrack::~YTrack()
@@ -233,27 +256,46 @@ YTrack::YTrack()
 
 QString YTrack::title()
 {
+  if (_title.isEmpty() && !_noTitle) {
+    do_async([this](){ _fetchYandex(); saveMetadata(); });
+  }
   return _title;
 }
 
 QString YTrack::author()
 {
+  if (_author.isEmpty() && !_noAuthor) {
+    do_async([this](){ _fetchYandex(); saveMetadata(); });
+  }
   return _author;
 }
 
 QString YTrack::extra()
 {
+  if (_extra.isEmpty() && !_noExtra) {
+    do_async([this](){ _fetchYandex(); saveMetadata(); });
+  }
   return _extra;
 }
 
 QString YTrack::cover()
 {
+  if (_cover.isEmpty()) {
+    if (!_noCover) _downloadCover(); // async
+    else emit coverAborted();
+    return "qrc:resources/player/no-cover.svg";
+  }
   return _cover.startsWith("/")? "file:" + _cover : "file:" + qstr(Settings::ym_savePath_() / _cover);
 }
 
-QString YTrack::media()
+QMediaContent YTrack::media()
 {
-  return _media;
+  if (_media.isEmpty()) {
+    if (!_noMedia) _downloadMedia(); // async
+    else emit mediaAborted();
+    return {};
+  }
+  return QMediaContent("file:" + qstr(Settings::ym_savePath_() / _media));
 }
 
 int YTrack::id()
@@ -261,29 +303,19 @@ int YTrack::id()
   return _id;
 }
 
-//QString YTrack::title()
-//{
-//  return impl.get("title").to<QString>();
-//}
-
-//QString YTrack::extra()
-//{
-//  return impl.get("version").to<QString>();
-//}
-
 int YTrack::duration()
 {
-  return impl.get("duration_ms").to<int>();
+  return _py.get("duration_ms").to<int>();
 }
 
 bool YTrack::available()
 {
-  return impl.get("available").to<bool>();
+  return _py.get("available").to<bool>();
 }
 
 QVector<YArtist> YTrack::artists()
 {
-  return impl.get("artists").to<QVector<YArtist>>();
+  return _py.get("artists").to<QVector<YArtist>>();
 }
 
 QString YTrack::coverPath()
@@ -296,19 +328,22 @@ QString YTrack::metadataPath()
   return Settings::ym_metadataPath(id());
 }
 
-QString YTrack::soundPath()
+QString YTrack::mediaPath()
 {
-  return Settings::ym_trackPath(id());
+  return Settings::ym_mediaPath(id());
 }
 
 QJsonObject YTrack::jsonMetadata()
 {
   QJsonObject info;
-  info["id"] = id();
-  info["title"] = title();
-  info["extra"] = extra();
-  info["duration"] = duration();
-  info["cover"] = coverPath();
+  info["hasTitle"] = !_noTitle;
+  info["hasAuthor"] = !_noAuthor;
+  info["hasExtra"] = !_noExtra;
+  info["hasCover"] = !_noCover;
+  info["hasMedia"] = !_noMedia;
+  info["title"] = _title;
+  info["extra"] = _extra;
+  info["cover"] = _cover;
   QJsonArray artists;
   QString artistsNames;
   for (auto&& artist : this->artists()) {
@@ -337,7 +372,7 @@ bool YTrack::saveCover(int quality)
   bool successed;
   QString size = QString::number(quality) + "x" + QString::number(quality);
   repeat_if_error([this, size]() {
-    impl.call("download_cover", std::initializer_list<object>{coverPath(), size});
+    _py.call("download_cover", std::initializer_list<object>{coverPath(), size});
   }, [&successed](bool success) {
     successed = success;
   }, Settings::ym_repeatsIfError());
@@ -353,7 +388,7 @@ bool YTrack::download()
 {
   bool successed;
   repeat_if_error([this]() {
-    impl.call("download", soundPath());
+    _py.call("download", mediaPath());
   }, [&successed](bool success) {
     successed = success;
   }, Settings::ym_repeatsIfError());
@@ -365,21 +400,122 @@ void YTrack::download(const QJSValue& callback)
   do_async<bool>(this, callback, &YTrack::download);
 }
 
-bool YTrack::loadFromDisk()
+bool YTrack::_loadFromDisk()
 {
   if (_id == 0) return false;
   auto metadataPath = Settings::ym_metadataPath(_id);
   if (!fileExists(metadataPath)) return false;
 
-  QString val;
-  File(metadataPath) >> val;
-
+  QString val = File(metadataPath).readAll();
   QJsonObject doc = QJsonDocument::fromJson(val.toUtf8()).object();
+
+  _noTitle = !doc["hasTitle"].toBool(true);
+  _noAuthor = !doc["hasAuthor"].toBool(true);
+  _noExtra = !doc["hasExtra"].toBool(true);
+  _noCover = !doc["hasCover"].toBool(true);
+  _noMedia = !doc["hasMedia"].toBool(true);
+
   _title = doc["title"].toString("");
   _author = doc["artistsNames"].toString("");
   _extra = doc["extra"].toString("");
   _cover = doc["cover"].toString("");
+  _media = _noMedia? "" : QString::number(_id) + ".mp3";
+
   return true;
+}
+
+void YTrack::_fetchYandex()
+{
+  QMutexLocker lock(&_mtx);
+  if (_py != py::none) return;
+  auto _pys = _client->fetchTracks(_id);
+  if (_pys.empty()) {
+    _fetchYandex(none);
+  } else {
+    _fetchYandex(_pys[0]);
+  }
+}
+
+void YTrack::_fetchYandex(object _pys)
+{
+  if (_pys == none) {
+    _title = "";
+    _author = "";
+    _extra = "";
+    _cover = "";
+    _media = "";
+    _noTitle = true;
+    _noAuthor = true;
+    _noExtra = true;
+    _noCover = true;
+    _noMedia = true;
+  } else {
+    _py = _pys;
+
+    _title = _py.get("title").to<QString>();
+    _noTitle = _title.isEmpty();
+    emit titleChanged(_title);
+
+    auto artists_py = _py.get("artists").to<QVector<py::object>>();
+    QVector<QString> artists_str;
+    artists_str.reserve(artists_py.length());
+    for (auto&& e : artists_py) {
+      artists_str.append(e.get("name").to<QString>());
+    }
+    _author = join(artists_str, ", ");
+    _noAuthor = _author.isEmpty();
+    emit authorChanged(_author);
+
+    _extra = _py.get("version").to<QString>();
+    _noExtra = _extra.isEmpty();
+    emit extraChanged(_extra);
+  }
+}
+
+void YTrack::_downloadCover()
+{
+  do_async([this](){
+    QMutexLocker lock(&_mtx);
+    _fetchYandex();
+    if (_noCover) {
+      emit coverAborted();
+      return;
+    }
+    repeat_if_error([this]() {
+      _py.call("download_cover", std::initializer_list<object>{coverPath(), Settings::ym_coverQuality()});
+      _cover = QString::number(_id) + ".png";
+    }, [this](bool success) {
+      if (success) emit coverChanged(cover());
+      else {
+        _noCover = true;
+        emit coverAborted();
+      }
+    }, Settings::ym_repeatsIfError());
+    saveMetadata();
+  });
+}
+
+void YTrack::_downloadMedia()
+{
+  do_async([this](){
+    QMutexLocker lock(&_mtx);
+    _fetchYandex();
+    if (_noMedia) {
+      emit mediaAborted();
+      return;
+    }
+    repeat_if_error([this]() {
+      _py.call("download", mediaPath());
+      _media = QString::number(_id) + ".mp3";
+    }, [this](bool success) {
+      if (success) emit mediaChanged(media());
+      else {
+        _noCover = true;
+        emit mediaAborted();
+      }
+    }, Settings::ym_repeatsIfError());
+    saveMetadata();
+  });
 }
 
 

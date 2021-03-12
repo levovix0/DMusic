@@ -20,11 +20,13 @@ public:
   static QString ym_savePath();
   static int ym_repeatsIfError();
 
-  static QString ym_trackPath(int id);
+  static QString ym_mediaPath(int id);
   static QString ym_coverPath(int id);
   static QString ym_metadataPath(int id);
   static QString ym_artistCoverPath(int id);
   static QString ym_artistMetadataPath(int id);
+
+  static QString ym_coverQuality() { return "1000x1000"; };
 
   Q_PROPERTY(bool isClientSideDecorations READ get_isClientSideDecorations WRITE set_isClientSideDecorations NOTIFY reload)
 

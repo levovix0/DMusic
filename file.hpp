@@ -23,6 +23,8 @@ struct File
   ~File();
 
   std::fstream fs;
+
+  QString readAll();
 };
 
 template<class T>
@@ -47,6 +49,16 @@ inline File::~File()
   fs.close();
 }
 
+inline QString File::readAll()
+{
+  QString res;
+  char c;
+  while (fs.get(c)) {
+    res.append(c);
+  }
+  return res;
+}
+
 inline std::ostream& operator<<(std::ostream& o, QString const& s) {
   return o << s.toUtf8().data();
 }
@@ -63,11 +75,11 @@ inline QString qstr(fs::path a)
   return a.string().c_str();
 }
 
-bool fileExists(QString path) {
+inline bool fileExists(QString path) {
   QFileInfo check_file(path);
   return check_file.exists() && check_file.isFile();
 }
-bool exists(QString path) {
+inline bool exists(QString path) {
   QFileInfo check_file(path);
   return check_file.exists();
 }

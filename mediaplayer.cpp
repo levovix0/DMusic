@@ -25,12 +25,15 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
       emit playingChanged();
       m_isPaused = false;
       emit pausedChanged();
-      player->setMedia(QMediaContent());
       
-//      setProgress_ms(0);
+      if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
       if (_currentTrack != &noneTrack) delete _currentTrack;
+
       _currentTrack = &noneTrack;
       emit currentTrackChanged();
+
+      player->setMedia(QMediaContent());
+      player->setPosition(0);
     }
     else if (state == QMediaPlayer::PausedState) {
       m_isPlaying = false;
@@ -38,6 +41,9 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
       m_isPaused = true;
       emit pausedChanged();
     }
+  });
+  QObject::connect(player, &QMediaPlayer::mediaChanged, [this](QMediaContent const& media) {
+    if (media.isNull()) emit durationChanged(0);
   });
 
   QObject::connect(player, &QMediaPlayer::positionChanged, this, &MediaPlayer::progressChanged);
@@ -50,28 +56,18 @@ void MediaPlayer::play(Track* track)
   if (playing()) {
     player->stop();
   }
+  if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
   if (_currentTrack != &noneTrack) delete _currentTrack;
   _currentTrack = track;
+
+  if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+  //TODO: mediaAborted -> nextTrack_andShowWarning;
+
   emit currentTrackChanged();
-  
-  //TODO: подгрузка на лету
-  auto media = track->media();
-  if (media != "") {
-    player->setMedia(QUrl::fromLocalFile(media));
-    player->play();
-  } else {
-    player->setMedia(QMediaContent());
-  }
-}
 
-void MediaPlayer::play(YTrack* track)
-{
-  play(new Track(track));
-}
-
-void MediaPlayer::playYandex(int id)
-{
-  play(new Track(Settings::ym_trackPath(id), Settings::ym_coverPath(id), Settings::ym_metadataPath(id)));
+  player->setMedia(track->media());
+  player->setPosition(0);
+  player->play();
 }
 
 bool MediaPlayer::playing()
@@ -86,11 +82,11 @@ bool MediaPlayer::paused()
 
 float MediaPlayer::progress()
 {
-  auto duration = player->duration();
-  return duration != 0? ((float)player->position() / (float)duration) : 0;
+  auto duration = this->duration();
+  return duration != 0? ((float)progress_ms() / (float)duration) : 0;
 }
 
-int MediaPlayer::progress_ms()
+qint64 MediaPlayer::progress_ms()
 {
   return player->position();
 }
@@ -107,7 +103,19 @@ QString MediaPlayer::formatProgress()
 
 QString MediaPlayer::formatDuration()
 {
-  return formatTime(player->duration() / 1000);
+  return formatTime(duration() / 1000);
+}
+
+qint64 MediaPlayer::duration()
+{
+  return player->media().isNull()? 0 : player->duration();
+}
+
+void MediaPlayer::setMedia(QMediaContent media)
+{
+  player->setMedia(media);
+  player->setPosition(0);
+  player->play();
 }
 
 void MediaPlayer::pause_or_play()

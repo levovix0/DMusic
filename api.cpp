@@ -31,7 +31,7 @@ QString Track::cover()
   return "qrc:resources/player/no-cover.svg";
 }
 
-QString Track::media()
+QMediaContent Track::media()
 {
-  return "";
+  return {};
 }
