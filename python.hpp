@@ -11,7 +11,6 @@
 #include <map>
 #include <stdexcept>
 
-//TODO: mutex
 namespace py
 {
   inline QMutex mutex(QMutex::Recursive);
@@ -279,6 +278,18 @@ namespace py
       res = 0;
     } else {
       throw std::runtime_error("unimplemented cast to int (" + a.to<std::string>() + ")");
+    }
+  }
+  inline void fromPyObject(object const& a, qint64& res)
+  {
+    if (PyLong_Check(a.raw)) {
+      res = PyLong_AsLong(a.raw);
+    } else if (PyUnicode_Check(a.raw)) {
+      res = PyLong_AsLong(PyLong_FromUnicodeObject(a.raw, 10));
+    } else if (a == none || a == nullptr) {
+      res = 0;
+    } else {
+      throw std::runtime_error("unimplemented cast to long (" + a.to<std::string>() + ")");
     }
   }
 

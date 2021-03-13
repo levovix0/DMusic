@@ -9,6 +9,14 @@ Rectangle {
 
   color: "#131313"
 
+  Rectangle {
+    width: root.width
+    height: 1
+    visible: false
+
+    color: "#404040"
+  }
+
   Icon {
     anchors.verticalCenter: root.verticalCenter
     anchors.leftMargin: 25

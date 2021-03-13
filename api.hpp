@@ -18,12 +18,14 @@ public:
   Q_PROPERTY(QString extra READ extra NOTIFY extraChanged)
   Q_PROPERTY(QString cover READ cover NOTIFY coverChanged)
   Q_PROPERTY(QMediaContent media READ media NOTIFY mediaChanged)
+  Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
 
   virtual QString title();
   virtual QString author();
   virtual QString extra();
   virtual QString cover();
   virtual QMediaContent media();
+  virtual qint64 duration();
 
 public slots:
 
@@ -33,6 +35,7 @@ signals:
   void extraChanged(QString extra);
   void coverChanged(QString cover);
   void mediaChanged(QMediaContent media);
+  void durationChanged(qint64 duration);
   
   void coverAborted();
   void mediaAborted();

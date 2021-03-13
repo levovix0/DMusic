@@ -4,17 +4,18 @@
 #include <fstream>
 #include <filesystem>
 #include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace fs = std::filesystem;
 
 enum FileMode {
-  fmRead = std::ios::in,
-  fmOut = std::ios::out,
-  fmBinary = std::ios::binary,
-  fmAppend = std::ios::app,
-  fmReplace = std::ios::trunc,
-
-  fmWrite = std::ios::out | std::ios::trunc,
+  fmRead = QFile::ReadOnly,
+  fmWrite = QFile::WriteOnly | QFile::Truncate,
+  fmReadWrite = QFile::ReadWrite,
+  fmText = QFile::Text,
+  fmAppend = QFile::Append,
+  fmReplace = QFile::Truncate,
 };
 
 struct File
@@ -22,41 +23,109 @@ struct File
   File(QString filename, int mode = fmRead);
   ~File();
 
-  std::fstream fs;
+  QFile fs;
 
-  QString readAll();
+  QString all();
+  QJsonDocument allJson();
+
+  void writeAll(QByteArray const& data);
+  void writeAll(QString const& data);
+  void writeAll(QJsonDocument const& data, QJsonDocument::JsonFormat format = QJsonDocument::Compact);
+  void writeAll(QJsonObject const& data, QJsonDocument::JsonFormat format = QJsonDocument::Compact);
+  void writeAll(QJsonArray const& data, QJsonDocument::JsonFormat format = QJsonDocument::Compact);
+
+  void close();
+  void needOpen();
+  void needOpen(QFile::OpenMode om);
+
+  bool openned = false;
+  QFile::OpenMode mode;
 };
 
 template<class T>
 File& operator<<(File&& o, T const& v) {
-  o.fs << v;
+  o.fs.write(v);
   return o;
 }
 
-template<class T>
-File& operator>>(File&& o, T& v) {
-  o.fs >> v;
-  return o;
-}
-
-inline File::File(QString filename, int mode)
-{
-  fs.open(filename.toUtf8().data(), std::ios_base::openmode(mode));
-}
+inline File::File(QString filename, int mode) : fs(filename), mode(mode)
+{}
 
 inline File::~File()
 {
-  fs.close();
+  if (openned) fs.close();
 }
 
-inline QString File::readAll()
+inline QString File::all()
 {
-  QString res;
-  char c;
-  while (fs.get(c)) {
-    res.append(c);
-  }
+  needOpen(QFile::ReadOnly | QFile::Text);
+  auto res = fs.readAll();
+  close();
   return res;
+}
+
+inline QJsonDocument File::allJson()
+{
+  needOpen(QFile::ReadOnly | QFile::Text);
+  auto res = QJsonDocument::fromJson(fs.readAll());
+  close();
+  return res;
+}
+
+inline void File::writeAll(QByteArray const& data)
+{
+  needOpen(QFile::WriteOnly | QFile::Truncate);
+  fs.write(data);
+  close();
+}
+
+inline void File::writeAll(const QString& data)
+{
+  needOpen(QFile::WriteOnly | QFile::Truncate | QFile::Text);
+  fs.write(data.toUtf8());
+  close();
+}
+
+inline void File::writeAll(const QJsonDocument& data, QJsonDocument::JsonFormat format)
+{
+  needOpen(QFile::WriteOnly | QFile::Truncate | QFile::Text);
+  fs.write(data.toJson(format));
+  close();
+}
+
+inline void File::writeAll(const QJsonObject& data, QJsonDocument::JsonFormat format)
+{
+  writeAll(QJsonDocument(data), format);
+}
+
+inline void File::writeAll(const QJsonArray& data, QJsonDocument::JsonFormat format)
+{
+  writeAll(QJsonDocument(data), format);
+}
+
+inline void File::close()
+{
+  if (openned) fs.close();
+  openned = false;
+}
+
+inline void File::needOpen()
+{
+  if (!openned) fs.open(mode);
+  openned = true;
+}
+
+inline void File::needOpen(QIODevice::OpenMode om)
+{
+  if (mode != om) {
+    if (openned) fs.close();
+    fs.open(om);
+    mode = om;
+    openned = true;
+  } else if (!openned) {
+    fs.open(om);
+    openned = true;
+  }
 }
 
 inline std::ostream& operator<<(std::ostream& o, QString const& s) {
@@ -83,4 +152,3 @@ inline bool exists(QString path) {
   QFileInfo check_file(path);
   return check_file.exists();
 }
-

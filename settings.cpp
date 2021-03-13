@@ -134,14 +134,7 @@ void Settings::set_ym_repeatsIfError(int v)
 void Settings::reloadFromJson()
 {
   if (!fs::exists("settings.json")) return;
-
-  QString val;
-  QFile file;
-  file.setFileName("settings.json");
-  file.open(QIODevice::ReadOnly | QIODevice::Text);
-  val = file.readAll();
-  file.close();
-  QJsonObject doc = QJsonDocument::fromJson(val.toUtf8()).object();
+  QJsonObject doc = File("settings.json").allJson().object();
 
   _isClientSideDecorations = doc["isClientSideDecorations"].toBool(true);
 
@@ -171,6 +164,5 @@ void Settings::saveToJson()
   ym["repeatsIfError"] = _ym_repeatsIfError;
   doc["yandexMusic"] = ym;
 
-  auto json = QJsonDocument(doc).toJson(QJsonDocument::Indented);
-  File("settings.json", fmWrite) << json.data();
+  File("settings.json").writeAll(doc, QJsonDocument::Indented);
 }

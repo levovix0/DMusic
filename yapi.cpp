@@ -288,7 +288,13 @@ QString YTrack::cover()
     else emit coverAborted();
     return "qrc:resources/player/no-cover.svg";
   }
-  return _cover.startsWith("/")? "file:" + _cover : "file:" + qstr(Settings::ym_savePath_() / _cover);
+  auto s = _relativePathToCover? qstr(Settings::ym_savePath_() / _cover) : _cover;
+  if (!fileExists(s)) {
+    if (_relativePathToCover)
+      _downloadCover(); // async
+    return "qrc:resources/player/no-cover.svg";
+  }
+  return "file:" + s;
 }
 
 QMediaContent YTrack::media()
@@ -301,14 +307,18 @@ QMediaContent YTrack::media()
   return QMediaContent("file:" + qstr(Settings::ym_savePath_() / _media));
 }
 
+qint64 YTrack::duration()
+{
+  if (_py == none) {
+    _fetchYandex();
+    return 0;
+  }
+  return _py.get("duration_ms").to<qint64>();
+}
+
 int YTrack::id()
 {
   return _id;
-}
-
-int YTrack::duration()
-{
-  return _py.get("duration_ms").to<int>();
 }
 
 bool YTrack::available()
@@ -344,18 +354,13 @@ QJsonObject YTrack::jsonMetadata()
   info["hasExtra"] = !_noExtra;
   info["hasCover"] = !_noCover;
   info["hasMedia"] = !_noMedia;
+
   info["title"] = _title;
   info["extra"] = _extra;
+  info["artistsNames"] = _author;
+  info["artists"] = toQJsonArray(_artists);
   info["cover"] = _cover;
-  QJsonArray artists;
-  QString artistsNames;
-  for (auto&& artist : this->artists()) {
-    artists.append(artist.id());
-    if (artistsNames != "") artistsNames += ", ";
-    artistsNames += artist.name();
-  }
-  info["artists"] = artists;
-  info["artistsNames"] = artistsNames;
+  info["relativePathToCover"] = _relativePathToCover;
   return info;
 }
 
@@ -367,40 +372,7 @@ QString YTrack::stringMetadata()
 
 void YTrack::saveMetadata()
 {
-  File(metadataPath(), fmWrite) << stringMetadata();
-}
-
-bool YTrack::saveCover(int quality)
-{
-  bool successed;
-  QString size = QString::number(quality) + "x" + QString::number(quality);
-  repeat_if_error([this, size]() {
-    _py.call("download_cover", std::initializer_list<object>{coverPath(), size});
-  }, [&successed](bool success) {
-    successed = success;
-  }, Settings::ym_repeatsIfError());
-  return successed;
-}
-
-void YTrack::saveCover(int quality, const QJSValue& callback)
-{
-  do_async<bool>(this, callback, &YTrack::saveCover, quality);
-}
-
-bool YTrack::download()
-{
-  bool successed;
-  repeat_if_error([this]() {
-    _py.call("download", mediaPath());
-  }, [&successed](bool success) {
-    successed = success;
-  }, Settings::ym_repeatsIfError());
-  return successed;
-}
-
-void YTrack::download(const QJSValue& callback)
-{
-  do_async<bool>(this, callback, &YTrack::download);
+  File(metadataPath()).writeAll(jsonMetadata());
 }
 
 bool YTrack::_loadFromDisk()
@@ -409,8 +381,7 @@ bool YTrack::_loadFromDisk()
   auto metadataPath = Settings::ym_metadataPath(_id);
   if (!fileExists(metadataPath)) return false;
 
-  QString val = File(metadataPath).readAll();
-  QJsonObject doc = QJsonDocument::fromJson(val.toUtf8()).object();
+  QJsonObject doc = File(metadataPath).allJson().object();
 
   _noTitle = !doc["hasTitle"].toBool(true);
   _noAuthor = !doc["hasAuthor"].toBool(true);
@@ -422,6 +393,7 @@ bool YTrack::_loadFromDisk()
   _author = doc["artistsNames"].toString("");
   _extra = doc["extra"].toString("");
   _cover = doc["cover"].toString("");
+  _relativePathToCover = doc["relativePathToCover"].toBool(true);
   _media = _noMedia? "" : QString::number(_id) + ".mp3";
 
   return true;
@@ -441,6 +413,7 @@ void YTrack::_fetchYandex()
 
 void YTrack::_fetchYandex(object _pys)
 {
+  QMutexLocker lock(&_mtx);
   if (_pys == none) {
     _title = "";
     _author = "";
@@ -464,6 +437,7 @@ void YTrack::_fetchYandex(object _pys)
     artists_str.reserve(artists_py.length());
     for (auto&& e : artists_py) {
       artists_str.append(e.get("name").to<QString>());
+      _artists.append(e.get("id").to<qint64>());
     }
     _author = join(artists_str, ", ");
     _noAuthor = _author.isEmpty();
@@ -472,6 +446,8 @@ void YTrack::_fetchYandex(object _pys)
     _extra = _py.get("version").to<QString>();
     _noExtra = _extra.isEmpty();
     emit extraChanged(_extra);
+
+    emit durationChanged(_py.get("duration_ms").to<qint64>());
   }
 }
 
@@ -481,6 +457,7 @@ void YTrack::_downloadCover()
     QMutexLocker lock(&_mtx);
     _fetchYandex();
     if (_noCover) {
+      _cover = "";
       emit coverAborted();
       return;
     }
@@ -582,7 +559,7 @@ QString YArtist::stringMetadata()
 
 void YArtist::saveMetadata()
 {
-  File(metadataPath(), fmWrite) << stringMetadata();
+  File(metadataPath()).writeAll(jsonMetadata());
 }
 
 bool YArtist::saveCover(int quality)

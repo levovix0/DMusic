@@ -18,16 +18,16 @@ public:
   ~YTrack();
   YTrack(QObject* parent = nullptr);
 
-  PyObject* raw() { return _py.raw; }
+  PyObject* raw() const { return _py.raw; }
 
   QString title() override;
   QString author() override;
   QString extra() override;
   QString cover() override;
   QMediaContent media() override;
+  qint64 duration() override;
 
   Q_INVOKABLE int id();
-  Q_INVOKABLE int duration();
   Q_INVOKABLE bool available();
   Q_INVOKABLE QVector<YArtist> artists();
   Q_INVOKABLE QString coverPath();
@@ -37,11 +37,6 @@ public:
   QJsonObject jsonMetadata();
   Q_INVOKABLE QString stringMetadata();
   Q_INVOKABLE void saveMetadata();
-  Q_INVOKABLE bool saveCover(int quality = 1000);
-  Q_INVOKABLE void saveCover(int quality, QJSValue const& callback);
-
-  Q_INVOKABLE bool download();
-  Q_INVOKABLE void download(QJSValue const& callback);
 
   YClient* _client;
 
@@ -57,9 +52,11 @@ private:
   QMutex _mtx = QMutex(QMutex::Recursive);
   int _id;
   QString _title, _author, _extra, _cover, _media;
+  QVector<qint64> _artists;
   bool _noTitle = false, _noAuthor = false, _noExtra = false, _noCover = false, _noMedia = false;
+  bool _relativePathToCover = true;
 };
-inline PyObject* toPyObject(YTrack a) { Py_INCREF(a.raw()); return a.raw(); }
+inline PyObject* toPyObject(YTrack const& a) { Py_INCREF(a.raw()); return a.raw(); }
 inline void fromPyObject(py::object const& o, YTrack*& res) { res = new YTrack(o, nullptr); }
 
 struct YArtist : QObject

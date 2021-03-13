@@ -77,3 +77,11 @@ inline QString join(QVector<QString> const& a, QString const& sep = " ") {
   }
   return res;
 }
+
+template<class T>
+inline QJsonArray toQJsonArray(QVector<T> const& a) {
+  QJsonArray res;
+  for (auto&& e : a)
+    res.append(e);
+  return res;
+}

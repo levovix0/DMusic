@@ -35,3 +35,8 @@ QMediaContent Track::media()
 {
   return {};
 }
+
+qint64 Track::duration()
+{
+  return 0;
+}
