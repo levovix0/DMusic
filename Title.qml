@@ -1,10 +1,11 @@
 import QtQuick 2.15
+import QtQuick.Window 2.15
 
 Rectangle {
   id: root
   height: 40
 
-  property var window
+  property Window window
   property bool manual: true
 
   color: "#131313"
@@ -35,11 +36,17 @@ Rectangle {
   }
 
   MouseArea {
-    id: _mouse
     anchors.fill: root
     enabled: root.manual
 
     onDoubleClicked: root.window.maximize()
+  }
+  MouseArea {
+    anchors.fill: root
+    enabled: root.manual
+    acceptedButtons: Qt.MiddleButton
+
+    onClicked: root.window.close()
   }
 
   TitleManualButton {

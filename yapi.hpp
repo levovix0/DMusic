@@ -13,7 +13,7 @@ struct YTrack : Track
 {
   Q_OBJECT
 public:
-  YTrack(int id, YClient* client);
+  YTrack(qint64 id, YClient* client);
   YTrack(py::object obj, YClient* client);
   ~YTrack();
   YTrack(QObject* parent = nullptr);
@@ -27,7 +27,7 @@ public:
   QMediaContent media() override;
   qint64 duration() override;
 
-  Q_INVOKABLE int id();
+  Q_INVOKABLE qint64 id();
   Q_INVOKABLE bool available();
   Q_INVOKABLE QVector<YArtist> artists();
   Q_INVOKABLE QString coverPath();
@@ -50,7 +50,7 @@ private:
 
   py::object _py;
   QMutex _mtx = QMutex(QMutex::Recursive);
-  int _id;
+  qint64 _id;
   QString _title, _author, _extra, _cover, _media;
   QVector<qint64> _artists;
   bool _noTitle = false, _noAuthor = false, _noExtra = false, _noCover = false, _noMedia = false;
@@ -105,12 +105,12 @@ public:
   Q_INVOKABLE bool loginViaProxy(QString token, QString proxy);
   Q_INVOKABLE void loginViaProxy(QString token, QString proxy, QJSValue const& callback);
 
-  QVector<py::object> fetchTracks(int id);
-  Q_INVOKABLE std::pair<bool, QList<YTrack*>> fetchYTracks(int id);
-  Q_INVOKABLE void fetchYTracks(int id, QJSValue const& callback);
+  QVector<py::object> fetchTracks(qint64 id);
+  Q_INVOKABLE std::pair<bool, QList<YTrack*>> fetchYTracks(qint64 id);
+  Q_INVOKABLE void fetchYTracks(qint64 id, QJSValue const& callback);
 
 public slots:
-  YTrack* track(int id);
+  YTrack* track(qint64 id);
 
 private:
   py::module ym; // yandex_music module

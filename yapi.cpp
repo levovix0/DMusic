@@ -195,7 +195,7 @@ void YClient::loginViaProxy(QString token, QString proxy, const QJSValue& callba
   do_async<bool>(this, callback, &YClient::loginViaProxy, token, proxy);
 }
 
-QVector<object> YClient::fetchTracks(int id)
+QVector<object> YClient::fetchTracks(qint64 id)
 {
   QVector<py::object> tracks;
   repeat_if_error([this, id, &tracks]() {
@@ -205,7 +205,7 @@ QVector<object> YClient::fetchTracks(int id)
   return tracks;
 }
 
-std::pair<bool, QList<YTrack*>> YClient::fetchYTracks(int id)
+std::pair<bool, QList<YTrack*>> YClient::fetchYTracks(qint64 id)
 {
   QList<YTrack*> tracks;
   bool successed;
@@ -222,18 +222,18 @@ std::pair<bool, QList<YTrack*>> YClient::fetchYTracks(int id)
   return {successed, tracks};
 }
 
-void YClient::fetchYTracks(int id, const QJSValue& callback)
+void YClient::fetchYTracks(qint64 id, const QJSValue& callback)
 {
   do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchYTracks, id);
 }
 
-YTrack* YClient::track(int id)
+YTrack* YClient::track(qint64 id)
 {
   return new YTrack(id, this);
 }
 
 
-YTrack::YTrack(int id, YClient* client) : Track((QObject*)client)
+YTrack::YTrack(qint64 id, YClient* client) : Track((QObject*)client)
 {
   _id = id;
   _client = client;
@@ -242,7 +242,7 @@ YTrack::YTrack(int id, YClient* client) : Track((QObject*)client)
 
 YTrack::YTrack(object obj, YClient* client) : Track((QObject*)client)
 {
-  _id = obj.get("id").to<int>();
+  _id = obj.get("id").to<qint64>();
   _client = client;
   _loadFromDisk();
 }
@@ -316,7 +316,7 @@ qint64 YTrack::duration()
   return _py.get("duration_ms").to<qint64>();
 }
 
-int YTrack::id()
+qint64 YTrack::id()
 {
   return _id;
 }

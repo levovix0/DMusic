@@ -1,7 +1,8 @@
-#include <yapi.hpp>
-#include <file.hpp>
-#include <settings.hpp>
-#include <mediaplayer.hpp>
+#include "yapi.hpp"
+#include "file.hpp"
+#include "settings.hpp"
+#include "mediaplayer.hpp"
+#include "remotecontroller.hpp"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>
@@ -16,6 +17,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<YTrack>("api", 1, 0, "Track");
   qmlRegisterType<MediaPlayer>("api", 1, 0, "MediaPlayer");
   qmlRegisterType<Settings>("api", 1, 0, "Settings");
+  qmlRegisterType<RemoteController>("api", 1, 0, "RemoteController");
 
   QGuiApplication::setWindowIcon(QIcon("application.svg"));
   app.setApplicationName("DMusic");

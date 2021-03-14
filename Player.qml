@@ -35,6 +35,10 @@ Rectangle {
     id: _player
   }
 
+  RemoteController {
+
+  }
+
   PlayerTrack {
     id: _track
     x: 8

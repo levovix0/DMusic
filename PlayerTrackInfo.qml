@@ -29,7 +29,7 @@ Item {
   DText {
     id: _extra
     anchors.bottom: root.verticalCenter
-    anchors.bottomMargin: 3
+    anchors.bottomMargin: 2
     anchors.left: _title.right
     anchors.leftMargin: 5
 

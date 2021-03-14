@@ -1,4 +1,4 @@
-QT += quick multimedia
+QT += quick multimedia dbus
 
 CONFIG += c++17
 
@@ -15,6 +15,7 @@ SOURCES += \
         api.cpp \
         main.cpp \
         mediaplayer.cpp \
+        remotecontroller.cpp \
         settings.cpp \
         yapi.cpp
 
@@ -41,6 +42,7 @@ HEADERS += \
   file.hpp \
   mediaplayer.hpp \
   python.hpp \
+  remotecontroller.hpp \
   settings.hpp \
   utils.hpp \
   yapi.hpp

@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtQuick.Window 2.12
+import QtQuick.Window 2.15
 import QtQuick.Dialogs 1.2
 import yapi 1.0
 import api 1.0
@@ -28,6 +28,7 @@ Window {
   function minimize() {
     _root.showMinimized()
   }
+  color: "#181818"
 
   Rectangle {
     id: root
@@ -68,7 +69,6 @@ Window {
       width: root.width
       height: 66
       anchors.bottom: parent.bottom
-      anchors.bottomMargin: 0
     }
 
     Title {
