@@ -52,6 +52,7 @@ private:
   QMutex _mtx = QMutex(QMutex::Recursive);
   qint64 _id;
   QString _title, _author, _extra, _cover, _media;
+  qint64 _duration;
   QVector<qint64> _artists;
   bool _noTitle = false, _noAuthor = false, _noExtra = false, _noCover = false, _noMedia = false;
   bool _relativePathToCover = true;

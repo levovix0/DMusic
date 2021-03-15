@@ -35,8 +35,8 @@ Rectangle {
     id: _player
   }
 
-  RemoteController {
-
+  RemoteMediaController {
+    target: _player
   }
 
   PlayerTrack {

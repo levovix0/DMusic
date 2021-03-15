@@ -1,5 +1,5 @@
 #pragma once
-#include "api.hpp"
+#include "mediaplayer.hpp"
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusReply>
@@ -44,7 +44,7 @@ class Mpris2Player : public QDBusAbstractAdaptor
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.mpris.MediaPlayer2.Player")
 public:
-    explicit Mpris2Player(QObject* parent = nullptr);
+    explicit Mpris2Player(MediaPlayer* player, QObject* parent = nullptr);
 
     Q_PROPERTY(QVariantMap Metadata READ metadata)
     Q_PROPERTY(bool CanControl READ canControl)
@@ -54,7 +54,7 @@ public:
     Q_PROPERTY(bool CanStope READ canStop)
     Q_PROPERTY(bool CanGoPrevious READ canGoPrevious)
     Q_PROPERTY(bool CanGoNext READ canGoNext)
-    Q_PROPERTY(qlonglong Position READ position)
+    Q_PROPERTY(qlonglong Position READ position NOTIFY Seeked)
     Q_PROPERTY(int MinimuRate READ minimumRate)
     Q_PROPERTY(int MaximuRate READ maximumRate)
     Q_PROPERTY(double Rate READ rate WRITE setRate)
@@ -75,7 +75,7 @@ public:
     double maximumRate();
     double rate();
     void setRate(float value);
-    qint64 position();
+    qlonglong position();
     bool canGoNext();
     bool canGoPrevious();
     bool canPlay();
@@ -95,52 +95,52 @@ public slots:
     void SetPosition(const QDBusObjectPath& trackId, qlonglong position);
 
 signals:
-    void Seeked(qint64 position);
+    void Seeked(qlonglong position);
 
 private slots:
-    void onPlaybackStatusChanged();
-    void onSongChanged(Track* track);
+    void onStateChanged(QMediaPlayer::State state);
+    void onTrackChanged(Track* track);
     void onFavoriteChanged();
-    void onArtUrlChanged();
-    void onPositionChanged();
-    void onDurationChanged();
+    void onProgressChanged(qint64 ms);
+
+    void onTitleChanged(QString title);
+    void onAuthorChanged(QString author);
+    void onCoverChanged(QString cover);
+    void onDurationChanged(qint64 duration);
+
     void onCanSeekChanged();
     void onCanGoPreviousChanged();
     void onCanGoNextChanged();
     void onVolumeChanged();
 
 private:
+    static QMap<QString, QVariant> toXesam(Track& track);
+
     void signalPlayerUpdate(const QVariantMap& map);
     void signalUpdate(const QVariantMap& map, const QString& interfaceName);
 
     QString qMapToString(const QMap<QString, QVariant>& map);
+    QString stateToString(QMediaPlayer::State state);
+    MediaPlayer* _player;
+    QMap<QString, QVariant> _currentTrackMetadata;
 };
 
-class RemoteController : public QObject
+class RemoteMediaController : public QObject
 {
   Q_OBJECT
 public:
-  ~RemoteController();
-  explicit RemoteController(QObject *parent = nullptr);
+  ~RemoteMediaController();
+  explicit RemoteMediaController(QObject* parent = nullptr);
 
   inline static const QString serviceName = "org.mpris.MediaPlayer2.DTeam.DMusic";
 
-  static QMap<QString, QVariant> toXesam(Track& track);
+  Q_PROPERTY(MediaPlayer* target WRITE setTarget)
 
 public slots:
-
-signals:
-  void play();
-  void pause();
-  void playPause();
-  void stop();
-  void next();
-  void previous();
-  void seek(qint64 position);
+  void setTarget(MediaPlayer* player);
 
 private:
-
-  inline static bool _isDBusServiceCreated = false;
+  bool _isDBusServiceCreated = false;
   Mpris2Root* _mpris2Root;
   Mpris2Player* _mpris2Player;
 };

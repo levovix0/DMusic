@@ -12,10 +12,10 @@ unix { HOME = $$system(echo $HOME) }
 
 
 SOURCES += \
+        RemoteMediaController.cpp \
         api.cpp \
         main.cpp \
         mediaplayer.cpp \
-        remotecontroller.cpp \
         settings.cpp \
         yapi.cpp
 
@@ -38,11 +38,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+  RemoteMediaController.hpp \
   api.hpp \
   file.hpp \
   mediaplayer.hpp \
   python.hpp \
-  remotecontroller.hpp \
   settings.hpp \
   utils.hpp \
   yapi.hpp

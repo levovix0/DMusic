@@ -309,11 +309,10 @@ QMediaContent YTrack::media()
 
 qint64 YTrack::duration()
 {
-  if (_py == none) {
-    _fetchYandex();
-    return 0;
+  if (_duration == 0 && !_noMedia) {
+    do_async([this](){ _fetchYandex(); saveMetadata(); });
   }
-  return _py.get("duration_ms").to<qint64>();
+  return _duration;
 }
 
 qint64 YTrack::id()
@@ -361,6 +360,7 @@ QJsonObject YTrack::jsonMetadata()
   info["artists"] = toQJsonArray(_artists);
   info["cover"] = _cover;
   info["relativePathToCover"] = _relativePathToCover;
+  info["duration"] = _duration;
   return info;
 }
 
@@ -396,6 +396,14 @@ bool YTrack::_loadFromDisk()
   _relativePathToCover = doc["relativePathToCover"].toBool(true);
   _media = _noMedia? "" : QString::number(_id) + ".mp3";
 
+  if (doc["duration"].type() != QJsonValue::Double && !_noMedia) {
+    //TODO: load duration from media and save data to file. use taglib
+    _duration = 0;
+    do_async([this](){ _fetchYandex(); saveMetadata(); });
+  } else {
+    _duration = doc["duration"].toInt();
+  }
+
   return true;
 }
 
@@ -420,6 +428,7 @@ void YTrack::_fetchYandex(object _pys)
     _extra = "";
     _cover = "";
     _media = "";
+    _duration = 0;
     _noTitle = true;
     _noAuthor = true;
     _noExtra = true;
@@ -447,7 +456,8 @@ void YTrack::_fetchYandex(object _pys)
     _noExtra = _extra.isEmpty();
     emit extraChanged(_extra);
 
-    emit durationChanged(_py.get("duration_ms").to<qint64>());
+    _duration = _py.get("duration_ms").to<qint64>();
+    emit durationChanged(_duration);
   }
 }
 

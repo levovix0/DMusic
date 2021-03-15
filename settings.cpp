@@ -145,9 +145,9 @@ void Settings::reloadFromJson()
   _ym_savePath = ym["savePath"].toString("yandex/").toUtf8().data();
   _ym_repeatsIfError = ym["repeatsIfError"].toInt(1);
 
-  disconnect(SIGNAL(reload));
+  disconnect(SIGNAL(reload()));
   emit reload();
-  connect(this, SIGNAL(reload), this, SLOT(saveToJson));
+  connect(this, SIGNAL(reload()), this, SLOT(saveToJson()));
 }
 
 void Settings::saveToJson()

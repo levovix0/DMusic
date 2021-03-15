@@ -14,6 +14,7 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
   _currentTrack = &noneTrack;
 
   QObject::connect(player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
+    emit stateChanged(state);
     if (state == QMediaPlayer::PlayingState) {
       m_isPlaying = true;
       emit playingChanged();
@@ -30,7 +31,7 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
 //      if (_currentTrack != &noneTrack) delete _currentTrack;
 
       _currentTrack = &noneTrack;
-      emit currentTrackChanged();
+      emit currentTrackChanged(_currentTrack);
 
       player->setMedia(QMediaContent());
       player->setPosition(0);
@@ -63,7 +64,7 @@ void MediaPlayer::play(Track* track)
   if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
   //TODO: mediaAborted -> nextTrack_andShowWarning;
 
-  emit currentTrackChanged();
+  emit currentTrackChanged(_currentTrack);
 
   player->setMedia(track->media());
   player->setPosition(0);
@@ -109,6 +110,11 @@ QString MediaPlayer::formatDuration()
 qint64 MediaPlayer::duration()
 {
   return player->media().isNull()? 0 : player->duration();
+}
+
+QMediaPlayer::State MediaPlayer::state()
+{
+  return player->state();
 }
 
 void MediaPlayer::setMedia(QMediaContent media)

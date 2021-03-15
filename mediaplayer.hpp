@@ -13,6 +13,7 @@ public:
   
   Q_PROPERTY(bool playing READ playing NOTIFY playingChanged)
   Q_PROPERTY(bool paused READ paused NOTIFY pausedChanged)
+  Q_PROPERTY(QMediaPlayer::State state READ state NOTIFY stateChanged)
   Q_PROPERTY(float progress READ progress WRITE setProgress NOTIFY progressChanged)
   Q_PROPERTY(qint64 progress_ms READ progress_ms WRITE setProgress_ms NOTIFY progressChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
@@ -29,6 +30,9 @@ public:
   QString formatProgress();
   QString formatDuration();
   qint64 duration();
+  QMediaPlayer::State state();
+
+  inline static Track noneTrack{};
 
 private slots:
   void setMedia(QMediaContent media);
@@ -48,12 +52,12 @@ public slots:
 signals:
   void playingChanged();
   void pausedChanged();
-  void progressChanged();
-  void currentTrackChanged();
+  void progressChanged(qint64 ms);
+  void currentTrackChanged(Track* track);
   void durationChanged(qint64 duration);
+  void stateChanged(QMediaPlayer::State state);
 
 private:
-  inline static Track noneTrack{};
 
   QString formatTime(int t);
 
