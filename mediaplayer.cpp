@@ -119,7 +119,7 @@ QMediaPlayer::State MediaPlayer::state()
 
 double MediaPlayer::volume()
 {
-  return player->volume() / 100;
+  return (double)player->volume() / 100;
 }
 
 void MediaPlayer::setMedia(QMediaContent media)

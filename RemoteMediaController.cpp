@@ -75,10 +75,6 @@ Mpris2Player::Mpris2Player(MediaPlayer* player, QObject* parent) : QDBusAbstract
   connect(_player, &MediaPlayer::stateChanged, this, &Mpris2Player::onStateChanged);
   connect(_player, &MediaPlayer::progressChanged, this, &Mpris2Player::onProgressChanged);
   connect(_player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
-
-  QVariantMap map;
-  map["Volume"] = _player->volume();
-  signalUpdate(map, "org.mpris.MediaPlayer2.Player");
 }
 
 QString Mpris2Player::playbackStatus()
