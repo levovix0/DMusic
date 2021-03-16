@@ -59,15 +59,15 @@ public:
     Q_PROPERTY(int MaximuRate READ maximumRate)
     Q_PROPERTY(double Rate READ rate WRITE setRate)
     Q_PROPERTY(double Volume READ volume WRITE setVolume)
-    Q_PROPERTY(bool Shuffle READ shuffle WRITE setShuffle)
-    Q_PROPERTY(QString LoopStatus READ loopStatus WRITE setLoopStatus)
+//    Q_PROPERTY(bool Shuffle READ shuffle WRITE setShuffle)
+//    Q_PROPERTY(QString LoopStatus READ loopStatus WRITE setLoopStatus)
     Q_PROPERTY(QString PlaybackStatus READ playbackStatus)
 
     QString playbackStatus();
-    QString loopStatus();
-    void setLoopStatus(const QString& status);
-    bool shuffle();
-    void setShuffle(bool value);
+//    bool shuffle();
+//    void setShuffle(bool value);
+//    QString loopStatus();
+//    void setLoopStatus(const QString& status);
     double volume();
     void setVolume(double value);
     QVariantMap metadata();
@@ -100,18 +100,13 @@ signals:
 private slots:
     void onStateChanged(QMediaPlayer::State state);
     void onTrackChanged(Track* track);
-    void onFavoriteChanged();
     void onProgressChanged(qint64 ms);
+    void onVolumeChanged(double volume);
 
     void onTitleChanged(QString title);
     void onAuthorChanged(QString author);
     void onCoverChanged(QString cover);
     void onDurationChanged(qint64 duration);
-
-    void onCanSeekChanged();
-    void onCanGoPreviousChanged();
-    void onCanGoNextChanged();
-    void onVolumeChanged();
 
 private:
     static QMap<QString, QVariant> toXesam(Track& track);
@@ -122,6 +117,7 @@ private:
     QString qMapToString(const QMap<QString, QVariant>& map);
     QString stateToString(QMediaPlayer::State state);
     MediaPlayer* _player;
+    qint64 _prevPosition = 0;
     QMap<QString, QVariant> _currentTrackMetadata;
 };
 

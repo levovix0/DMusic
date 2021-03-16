@@ -74,12 +74,7 @@ Mpris2Player::Mpris2Player(MediaPlayer* player, QObject* parent) : QDBusAbstract
   connect(_player, &MediaPlayer::currentTrackChanged, this, &Mpris2Player::onTrackChanged);
   connect(_player, &MediaPlayer::stateChanged, this, &Mpris2Player::onStateChanged);
   connect(_player, &MediaPlayer::progressChanged, this, &Mpris2Player::onProgressChanged);
-  //    connect(&player, &IPlayer::canSeekChanged, this, &Mpris2Player::onCanSeekChanged);
-  //    connect(&player, &IPlayer::canGoNextChanged, this, &Mpris2Player::onCanGoNextChanged);
-  //    connect(&player, &IPlayer::canGoPreviousChanged, this, &Mpris2Player::onCanGoPreviousChanged);
 //  connect(&player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
-
-  //    connect(&localAlbumArt, &ILocalAlbumArt::urlChanged, this, &Mpris2Player::onArtUrlChanged);
 }
 
 QString Mpris2Player::playbackStatus()
@@ -91,23 +86,23 @@ QString Mpris2Player::playbackStatus()
   }
 }
 
-QString Mpris2Player::loopStatus()
-{
-  return "None";
-}
+//bool Mpris2Player::shuffle()
+//{
+//  return false;
+//}
 
-void Mpris2Player::setLoopStatus(const QString&)
-{
-}
+//void Mpris2Player::setShuffle(bool)
+//{
+//}
 
-bool Mpris2Player::shuffle()
-{
-  return false;
-}
+//QString Mpris2Player::loopStatus()
+//{
+//  return "None";
+//}
 
-void Mpris2Player::setShuffle(bool)
-{
-}
+//void Mpris2Player::setLoopStatus(const QString&)
+//{
+//}
 
 double Mpris2Player::volume()
 {
@@ -160,25 +155,21 @@ bool Mpris2Player::canGoPrevious()
 
 bool Mpris2Player::canPlay()
 {
-  return true;
   return _player->paused();
 }
 
 bool Mpris2Player::canStop()
 {
-  return true;
   return _player->playing() | _player->paused();
 }
 
 bool Mpris2Player::canPause()
 {
-  return true;
   return _player->playing();
 }
 
 bool Mpris2Player::canSeek()
 {
-  return true;
   return _player->playing() | _player->paused();
 }
 
@@ -229,6 +220,28 @@ void Mpris2Player::onStateChanged(QMediaPlayer::State state)
 {
   QVariantMap map;
   map["PlaybackStatus"] = stateToString(state);
+
+  switch (_player->state()) {
+  case QMediaPlayer::PlayingState:
+    map["CanPlay"] = false;
+    map["CanStop"] = true;
+    map["CanPause"] = true;
+    map["CanSeek"] = true;
+    break;
+  case QMediaPlayer::PausedState:
+    map["CanPlay"] = true;
+    map["CanStop"] = true;
+    map["CanPause"] = false;
+    map["CanSeek"] = true;
+    break;
+  default:
+    map["CanPlay"] = false;
+    map["CanStop"] = false;
+    map["CanPause"] = false;
+    map["CanSeek"] = false;
+    break;
+  }
+
   signalPlayerUpdate(map);
 }
 
@@ -242,13 +255,11 @@ void Mpris2Player::onTrackChanged(Track* track)
   connect(track, &Track::durationChanged, this, &Mpris2Player::onDurationChanged);
 }
 
-void Mpris2Player::onFavoriteChanged()
-{
-}
-
 void Mpris2Player::onProgressChanged(qint64 ms)
 {
-  emit Seeked(ms * 1000);
+  if (labs(ms - _prevPosition) > 100 || ms == 0 || _prevPosition == 0) //TODO: seek minimum by Settings
+    emit Seeked(ms * 1000);
+  _prevPosition = ms;
 }
 
 void Mpris2Player::onTitleChanged(QString title)
@@ -278,19 +289,7 @@ void Mpris2Player::onDurationChanged(qint64 duration)
   signalPlayerUpdate({});
 }
 
-void Mpris2Player::onCanSeekChanged()
-{
-}
-
-void Mpris2Player::onCanGoPreviousChanged()
-{
-}
-
-void Mpris2Player::onCanGoNextChanged()
-{
-}
-
-void Mpris2Player::onVolumeChanged()
+void Mpris2Player::onVolumeChanged(double volume)
 {
 }
 
@@ -308,9 +307,9 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
   res["xesam:userRating"] = 0; //TODO
   auto duration = track.duration();
   res["mpris:length"] = duration > 0? duration * 1000 : 1; // in microseconds
-  QString trackId = QString("/org/mpris/MediaPlayer2/MellowPlayer/Track/") + QString::number(0); //TODO
+  QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/Track/") + QString::number(0); //TODO
   res["mpris:trackid"] = QVariant(QDBusObjectPath(trackId).path());
-  res["mpris:artUrl"] = track.cover(); //TODO: coverFile();
+  res["mpris:artUrl"] = track.cover();
   return res;
 }
 
@@ -335,10 +334,8 @@ void Mpris2Player::signalUpdate(const QVariantMap& map, const QString& interface
 QString Mpris2Player::qMapToString(const QMap<QString, QVariant>& map)
 {
   QString output;
-  for (auto it = map.begin(); it != map.end(); ++it)
-  {
-    // Format output here.
-    output += QString("\n\t%1=%2,").arg(it.key()).arg(it.value().toString());
+  for (auto it = map.begin(); it != map.end(); ++it) {
+    output += QString("\n\t%1=%2,").arg(it.key(), it.value().toString());
   }
   return output;
 }
