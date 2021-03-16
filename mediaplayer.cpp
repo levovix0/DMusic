@@ -49,6 +49,7 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
 
   QObject::connect(player, &QMediaPlayer::positionChanged, this, &MediaPlayer::progressChanged);
   QObject::connect(player, &QMediaPlayer::durationChanged, this, &MediaPlayer::durationChanged);
+  QObject::connect(player, &QMediaPlayer::mutedChanged, this, &MediaPlayer::mutedChanged);
 }
 
 void MediaPlayer::play(Track* track)
@@ -122,6 +123,11 @@ double MediaPlayer::volume()
   return (double)player->volume() / 100;
 }
 
+bool MediaPlayer::muted()
+{
+  return player->isMuted();
+}
+
 void MediaPlayer::setMedia(QMediaContent media)
 {
   player->setMedia(media);
@@ -172,6 +178,11 @@ void MediaPlayer::setVolume(double volume)
 {
   player->setVolume(qRound(volume * 100));
   emit volumeChanged(volume);
+}
+
+void MediaPlayer::setMuted(bool muted)
+{
+  player->setMuted(muted);
 }
 
 QString MediaPlayer::formatTime(int t)

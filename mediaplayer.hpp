@@ -21,6 +21,7 @@ public:
   Q_PROPERTY(QString formatProgress READ formatProgress NOTIFY progressChanged)
   Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged)
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
+  Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
 
   bool playing();
   bool paused();
@@ -33,6 +34,7 @@ public:
   qint64 duration();
   QMediaPlayer::State state();
   double volume();
+  bool muted();
 
   inline static Track noneTrack{};
 
@@ -51,6 +53,7 @@ public slots:
   void setProgress(float progress);
   void setProgress_ms(int progress);
   void setVolume(double volume);
+  void setMuted(bool muted);
 
 signals:
   void playingChanged();
@@ -60,6 +63,7 @@ signals:
   void durationChanged(qint64 duration);
   void stateChanged(QMediaPlayer::State state);
   void volumeChanged(double volume);
+  void mutedChanged(bool muted);
 
 private:
 

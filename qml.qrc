@@ -42,5 +42,15 @@
         <file>DTextBox.qml</file>
         <file>ResizeArea.qml</file>
         <file>resources/player/no-cover.svg</file>
+        <file>VolumeControl.qml</file>
+        <file>resources/player/vol-muted.svg</file>
+        <file>resources/player/vol-quiet.svg</file>
+        <file>resources/player/eq/default.svg</file>
+        <file>resources/player/eq/eq.svg</file>
+        <file>resources/player/eq/high-pass.svg</file>
+        <file>resources/player/eq/hight-boost.svg</file>
+        <file>resources/player/eq/low-boost.svg</file>
+        <file>resources/player/eq/low-pass.svg</file>
+        <file>resources/player/eq/mid-pass.svg</file>
     </qresource>
 </RCC>

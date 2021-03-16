@@ -39,6 +39,13 @@ Rectangle {
     target: _player
   }
 
+  VolumeControl {
+    target: _player
+    anchors.right: root.right
+    anchors.verticalCenter: root.verticalCenter
+    anchors.rightMargin: 36
+  }
+
   PlayerTrack {
     id: _track
     x: 8

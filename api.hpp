@@ -2,10 +2,6 @@
 #include <QObject>
 #include <QMediaContent>
 
-struct SysTrack {
-  QString media, cover, metadata;
-};
-
 struct Track : QObject
 {
   Q_OBJECT
@@ -39,6 +35,14 @@ signals:
   
   void coverAborted();
   void mediaAborted();
+
+private:
+};
+
+struct Client : QObject
+{
+  Q_OBJECT
+public:
 
 private:
 };

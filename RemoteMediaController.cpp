@@ -1,5 +1,6 @@
 #include "RemoteMediaController.hpp"
 #include <QGuiApplication>
+#include <stdexcept>
 
 Mpris2Root::Mpris2Root(QObject* parent) : QDBusAbstractAdaptor(parent)
 {
