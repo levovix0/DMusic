@@ -20,6 +20,7 @@ public:
   Q_PROPERTY(Track* currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
   Q_PROPERTY(QString formatProgress READ formatProgress NOTIFY progressChanged)
   Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged)
+  Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
 
   bool playing();
   bool paused();
@@ -31,6 +32,7 @@ public:
   QString formatDuration();
   qint64 duration();
   QMediaPlayer::State state();
+  double volume();
 
   inline static Track noneTrack{};
 
@@ -48,6 +50,7 @@ public slots:
   void setCurrentTrack(Track* v);
   void setProgress(float progress);
   void setProgress_ms(int progress);
+  void setVolume(double volume);
 
 signals:
   void playingChanged();
@@ -56,6 +59,7 @@ signals:
   void currentTrackChanged(Track* track);
   void durationChanged(qint64 duration);
   void stateChanged(QMediaPlayer::State state);
+  void volumeChanged(double volume);
 
 private:
 

@@ -117,6 +117,11 @@ QMediaPlayer::State MediaPlayer::state()
   return player->state();
 }
 
+double MediaPlayer::volume()
+{
+  return player->volume() / 100;
+}
+
 void MediaPlayer::setMedia(QMediaContent media)
 {
   player->setMedia(media);
@@ -161,6 +166,12 @@ void MediaPlayer::setProgress(float progress)
 void MediaPlayer::setProgress_ms(int progress)
 {
   player->setPosition(progress);
+}
+
+void MediaPlayer::setVolume(double volume)
+{
+  player->setVolume(qRound(volume * 100));
+  emit volumeChanged(volume);
 }
 
 QString MediaPlayer::formatTime(int t)

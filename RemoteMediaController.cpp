@@ -74,7 +74,11 @@ Mpris2Player::Mpris2Player(MediaPlayer* player, QObject* parent) : QDBusAbstract
   connect(_player, &MediaPlayer::currentTrackChanged, this, &Mpris2Player::onTrackChanged);
   connect(_player, &MediaPlayer::stateChanged, this, &Mpris2Player::onStateChanged);
   connect(_player, &MediaPlayer::progressChanged, this, &Mpris2Player::onProgressChanged);
-//  connect(&player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
+  connect(_player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
+
+  QVariantMap map;
+  map["Volume"] = _player->volume();
+  signalUpdate(map, "org.mpris.MediaPlayer2.Player");
 }
 
 QString Mpris2Player::playbackStatus()
@@ -106,12 +110,14 @@ QString Mpris2Player::playbackStatus()
 
 double Mpris2Player::volume()
 {
-  return 0.2;
+  return _player->volume();
 }
 
 void Mpris2Player::setVolume(double value)
 {
-  Q_UNUSED(value)
+  disconnect(_player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
+  _player->setVolume(value);
+  connect(_player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
 }
 
 QVariantMap Mpris2Player::metadata()
@@ -291,6 +297,9 @@ void Mpris2Player::onDurationChanged(qint64 duration)
 
 void Mpris2Player::onVolumeChanged(double volume)
 {
+  QVariantMap map;
+  map["Volume"] = volume;
+  signalUpdate(map, "org.mpris.MediaPlayer2.Player");
 }
 
 QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
