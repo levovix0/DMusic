@@ -73,5 +73,6 @@ private:
   Track* _currentTrack;
   bool m_isPaused;
   bool m_isPlaying;
+  double _volume;
 };
 

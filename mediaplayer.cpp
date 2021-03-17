@@ -10,7 +10,8 @@ MediaPlayer::~MediaPlayer()
 MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer), _currentTrack(nullptr), m_isPaused(false), m_isPlaying(false)
 {
   player->setNotifyInterval(50);
-  player->setVolume(25);
+  player->setVolume(50);
+  _volume = 0.5;
   _currentTrack = &noneTrack;
 
   QObject::connect(player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
@@ -120,7 +121,7 @@ QMediaPlayer::State MediaPlayer::state()
 
 double MediaPlayer::volume()
 {
-  return (double)player->volume() / 100;
+  return _volume;
 }
 
 bool MediaPlayer::muted()
@@ -176,7 +177,9 @@ void MediaPlayer::setProgress_ms(int progress)
 
 void MediaPlayer::setVolume(double volume)
 {
+  volume = qMin(1.0, qMax(0.0, volume));
   player->setVolume(qRound(volume * 100));
+  _volume = volume;
   emit volumeChanged(volume);
 }
 

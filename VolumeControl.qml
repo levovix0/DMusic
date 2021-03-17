@@ -5,6 +5,8 @@ Item {
   id: root
 
   property MediaPlayer target
+  width: 0
+  height: 0
 
   Icon {
     id: _icon
@@ -24,5 +26,14 @@ Item {
 
     onPressed: target.muted = !target.muted
     onWheel: target.volume += 0.05 * wheel.angleDelta.y / 120
+  }
+
+  VolumeControlPanel {
+    anchors.horizontalCenter: root.horizontalCenter
+    anchors.bottom: root.bottom
+    anchors.bottomMargin: 48
+    anchors.horizontalCenterOffset: -5
+
+    target: root.target
   }
 }

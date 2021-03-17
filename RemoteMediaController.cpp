@@ -370,7 +370,13 @@ RemoteMediaController::RemoteMediaController(QObject *parent) : QObject(parent)
   auto&& bus = QDBusConnection::sessionBus();
 
   if (!bus.isConnected()) return;
-  if (!bus.registerService(serviceName) || !bus.registerObject("/org/mpris/MediaPlayer2", this))
+  while (!bus.registerService(serviceName + (_serviceDuplicateCount == 1? "" : QString::number(_serviceDuplicateCount)))) {
+    if (_serviceDuplicateCount > 20)
+      throw std::runtime_error(qPrintable(QDBusConnection::sessionBus().lastError().message()));
+    ++_serviceDuplicateCount;
+  }
+
+  if (!bus.registerObject("/org/mpris/MediaPlayer2", this))
     throw std::runtime_error(qPrintable(QDBusConnection::sessionBus().lastError().message()));
 
   _mpris2Root = new Mpris2Root(this);

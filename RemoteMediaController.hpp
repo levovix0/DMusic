@@ -139,5 +139,6 @@ private:
   bool _isDBusServiceCreated = false;
   Mpris2Root* _mpris2Root;
   Mpris2Player* _mpris2Player;
+  inline static qint64 _serviceDuplicateCount = 1;
 };
 

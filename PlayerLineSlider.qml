@@ -10,7 +10,7 @@ Rectangle {
   signal seek(real progress)
 
   color: "#404040"
-  radius: 2
+  radius: height / 2
 
   Rectangle {
     id: _progress
@@ -30,7 +30,7 @@ Rectangle {
     radius: height / 2
 
     anchors.verticalCenter: root.verticalCenter
-    x: root.width * progress - width / 2
+    anchors.horizontalCenter: _progress.right
 
     color: "#FFFFFF"
   }
@@ -39,13 +39,13 @@ Rectangle {
     id: _mouse
     anchors.centerIn: root
     width: root.width + _point.width
-    height: root.height + _point.height
+    height: Math.max(root.height, _point.height)
 
     hoverEnabled: true
 
     onMouseXChanged: {
       if (pressed) {
-        var progress = (mouseX - root.x - _point.width / 2) / root.width
+        var progress = (mouseX - _point.width / 2) / root.width
         progress = Math.max(0, Math.min(1, progress))
         root.seek(progress)
       }

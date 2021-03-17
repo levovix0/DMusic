@@ -52,5 +52,9 @@
         <file>resources/player/eq/low-boost.svg</file>
         <file>resources/player/eq/low-pass.svg</file>
         <file>resources/player/eq/mid-pass.svg</file>
+        <file>VolumeControlPanel.qml</file>
+        <file>resources/tri.svg</file>
+        <file>Triangle.qml</file>
+        <file>VolumeSlider.qml</file>
     </qresource>
 </RCC>
