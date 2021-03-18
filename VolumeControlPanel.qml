@@ -1,15 +1,26 @@
 import QtQuick 2.0
-import api 1.0;
+import QtGraphicalEffects 1.15
+import api 1.0
 
-Rectangle {
+Item {
   id: root
-  width: 38
-  height: 210
 
   property MediaPlayer target
 
-  radius: 8
-  color: "#262626"
+  Rectangle {
+    id: _background
+    anchors.fill: root
+    radius: 8
+    color: "#262626"
+  }
+
+  DropShadow {
+    anchors.fill: root
+    radius: 16.0
+    samples: 25
+    color: "#40000000"
+    source: _background
+  }
 
   Triangle {
     anchors.top: root.bottom
@@ -20,7 +31,7 @@ Rectangle {
 
   VolumeSlider {
     id: _volume
-    height: 141
+    height: root.height - 69
     anchors.horizontalCenter: root.horizontalCenter
     anchors.bottom: root.bottom
     anchors.bottomMargin: 20
