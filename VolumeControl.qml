@@ -18,49 +18,49 @@ Item {
     id: _bg_mouse
     anchors.horizontalCenter: root.horizontalCenter
     anchors.bottom: root.bottom
-    anchors.bottomMargin: -_mouse.height / 2 - 12
+    anchors.bottomMargin: -38
     anchors.horizontalCenterOffset: -5
     width: 50
-    height: 32 + 210 + 32 + 24 + shift
+    height: 32 + 210 + 38 + 24 + shift
 
-    enabled: false
     hoverEnabled: true
 
-    onExited: hide()
+    onExited: opeened = false
 
-    function show() {
-      enabled = true
-      _panel.visible = true
+    property bool opeened: false
 
-      _panel_anim_opacity.from = 0
-      _panel_anim_opacity.to = 1
+    onOpeenedChanged: {
+      if (opeened) {
+        _panel.visible = true
 
-      _panel_anim_pos.from = -20
-      _panel_anim_pos.to = 0
+        _panel_anim_opacity.from = 0
+        _panel_anim_opacity.to = 1
 
-      _panel_anim_opacity.restart()
-      _panel_anim_pos.restart()
+        _panel_anim_pos.from = -20
+        _panel_anim_pos.to = 0
 
-      _panel_anim_opacity.finished.connect(function() {
-        _panel.opacity = 1
-      }, Qt.UniqueConnection)
-    }
-    function hide() {
-      _panel_anim_opacity.from = 1
-      _panel_anim_opacity.to = 0
+        _panel_anim_opacity.restart()
+        _panel_anim_pos.restart()
+
+        _panel_anim_opacity.finished.connect(function() {
+          _panel.opacity = 1
+        }, Qt.UniqueConnection)
+      } else {
+        _panel_anim_opacity.from = 1
+        _panel_anim_opacity.to = 0
 
 
-      _panel_anim_pos.from = 0
-      _panel_anim_pos.to = -20
+        _panel_anim_pos.from = 0
+        _panel_anim_pos.to = -20
 
-      _panel_anim_opacity.restart()
-      _panel_anim_pos.restart()
+        _panel_anim_opacity.restart()
+        _panel_anim_pos.restart()
 
-      _panel_anim_opacity.finished.connect(function() {
-        _panel.visible = false
-        enabled = false
-        _panel.opacity = 0
-      }, Qt.UniqueConnection)
+        _panel_anim_opacity.finished.connect(function() {
+          _panel.visible = false
+          _panel.opacity = 0
+        }, Qt.UniqueConnection)
+      }
     }
 
     VolumeControlPanel {
@@ -92,18 +92,20 @@ Item {
       running: false
       easing.type: Easing.OutCubic
     }
-  }
 
-  MouseArea {
-    id: _mouse
-    anchors.centerIn: root
-    width: 32
-    height: 32
+    MouseArea {
+      id: _mouse
+      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.verticalCenter: parent.bottom
+      anchors.verticalCenterOffset: -38
+      width: 32
+      height: 32
 
-    hoverEnabled: true
+      hoverEnabled: true
 
-    onPressed: target.muted = !target.muted
-    onWheel: target.volume += 0.05 * wheel.angleDelta.y / 120
-    onEntered: _bg_mouse.show()
+      onPressed: target.muted = !target.muted
+      onWheel: target.volume += 0.05 * wheel.angleDelta.y / 120
+      onEntered: _bg_mouse.opeened = true
+    }
   }
 }
