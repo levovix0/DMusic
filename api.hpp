@@ -1,6 +1,9 @@
 #pragma once
 #include <QObject>
 #include <QMediaContent>
+#include <functional>
+
+struct Playlist;
 
 enum class NextMode {
   Sequence, Shuffle, RandomAccess
@@ -43,12 +46,31 @@ signals:
 private:
 };
 
-struct Client : QObject
+struct refTrack
 {
-  Q_OBJECT
-public:
+  ~refTrack();
+  refTrack(Track* a);
+  refTrack(Track* a, Playlist* playlist);
+  refTrack(refTrack const& copy);
+  refTrack(refTrack const& copy, Playlist* playlist);
+  refTrack operator=(refTrack const& copy);
+  operator Track*();
+
+  QString title();
+  QString author();
+  QString extra();
+  QString cover();
+  QMediaContent media();
+  qint64 duration();
+
+  bool isNone();
+
+  Track* ref();
+  Playlist* attachedPlaylist();
 
 private:
+  Track* _ref;
+  Playlist* _attachedPlaylist = nullptr;
 };
 
 struct Playlist : QObject
@@ -56,8 +78,58 @@ struct Playlist : QObject
   Q_OBJECT
 public:
   Q_ENUM(NextMode)
+  using Generator = std::pair<std::function<refTrack()>, std::function<refTrack()>>;
+
+  virtual ~Playlist();
+  Playlist(QObject* parent = nullptr);
+
+  static Playlist none;
+
+  refTrack operator[](int index);
 
   virtual QVector<NextMode> modesSupported() { return {}; }
+  virtual refTrack get(int index);
+  virtual Generator sequenceGenerator(int index = -1);
+  virtual Generator shuffleGenerator(int index = -1);
+  virtual Generator randomAccessGenerator(int index = -1);
+  virtual Generator generator(int index = -1, NextMode prefered = NextMode::Sequence); // auto-detect
+
+  virtual int size(); // -1 means infinity or not determined
+
+private:
+};
+
+struct DPlaylist : Playlist
+{
+  Q_OBJECT
+public:
+  ~DPlaylist();
+  DPlaylist(QObject* parent = nullptr);
+
+//  QVector<NextMode> modesSupported() override { return { NextMode::Sequence, NextMode::Shuffle, NextMode::RandomAccess }; }
+  QVector<NextMode> modesSupported() override { return { NextMode::Sequence, NextMode::RandomAccess }; }
+  refTrack get(int index) override;
+  Generator sequenceGenerator(int index = -1) override;
+  Generator shuffleGenerator(int index = -1) override;
+  Generator randomAccessGenerator(int index = -1) override;
+
+  int size() override;
+
+public slots:
+
+  void add(Track* a);
+  void remove(Track* a);
+
+private:
+  QVector<refTrack> _tracks;
+  QVector<refTrack> _history;
+  int _lastIndex = 0;
+};
+
+struct Client : QObject
+{
+  Q_OBJECT
+public:
 
 private:
 };

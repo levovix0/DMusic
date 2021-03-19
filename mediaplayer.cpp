@@ -25,6 +25,21 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
       
       if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
 
+      if (_currentPlaylist != nullptr && player->mediaStatus() == QMediaPlayer::EndOfMedia) {
+        _currentTrack = _gen.first(); // next
+        if (_currentTrack == nullptr) goto stop_;
+
+        if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+
+        emit currentTrackChanged(_currentTrack);
+
+        player->setMedia(_currentTrack->media());
+        player->setPosition(0);
+        player->play();
+        return;
+      }
+
+stop_:
       _currentTrack = &noneTrack;
       emit currentTrackChanged(_currentTrack);
 
@@ -47,6 +62,8 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
 void MediaPlayer::play(Track* track)
 {
   if (track == nullptr) return play(&noneTrack);
+  _currentPlaylist = nullptr;
+
   if (state() != QMediaPlayer::PausedState) {
     player->stop();
   }
@@ -59,6 +76,29 @@ void MediaPlayer::play(Track* track)
   emit currentTrackChanged(_currentTrack);
 
   player->setMedia(track->media());
+  player->setPosition(0);
+  player->play();
+}
+
+void MediaPlayer::play(Playlist* playlist)
+{
+  if (playlist == nullptr) return play(&noneTrack);
+
+  if (state() != QMediaPlayer::PausedState) {
+    player->stop();
+  }
+
+  _currentPlaylist = playlist;
+  updatePlaylistGenerator();
+  if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+  _currentTrack = _gen.first(); // next
+  if (_currentTrack == nullptr) return play(&noneTrack);
+
+  if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+
+  emit currentTrackChanged(_currentTrack);
+
+  player->setMedia(_currentTrack->media());
   player->setPosition(0);
   player->play();
 }
@@ -114,11 +154,21 @@ MediaPlayer::LoopMode MediaPlayer::loopMode()
   return _loopMode;
 }
 
+NextMode MediaPlayer::nextMode()
+{
+  return _nextMode;
+}
+
 void MediaPlayer::setMedia(QMediaContent media)
 {
   player->setMedia(media);
   player->setPosition(0);
   player->play();
+}
+
+void MediaPlayer::updatePlaylistGenerator()
+{
+  _gen = _currentPlaylist->generator(-1, nextMode());
 }
 
 void MediaPlayer::pause_or_play()
@@ -177,6 +227,12 @@ void MediaPlayer::setLoopMode(MediaPlayer::LoopMode loopMode)
 {
   _loopMode = loopMode;
   emit loopModeChanged(loopMode);
+}
+
+void MediaPlayer::setNextMode(NextMode nextMode)
+{
+  _nextMode = nextMode;
+  emit nextModeChanged(nextMode);
 }
 
 QString MediaPlayer::formatTime(int t)

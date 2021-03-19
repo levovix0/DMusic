@@ -15,6 +15,8 @@ int main(int argc, char *argv[])
   qmlRegisterType<YTrack>("DMisic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMisic", 1, 0, "YArtist");
   qmlRegisterType<YTrack>("DMisic", 1, 0, "Track");
+  qmlRegisterType<Playlist>("DMisic", 1, 0, "Playlist");
+  qmlRegisterType<DPlaylist>("DMisic", 1, 0, "DPlaylist");
   qmlRegisterType<MediaPlayer>("DMisic", 1, 0, "MediaPlayer");
   qmlRegisterType<Settings>("DMisic", 1, 0, "Settings");
   qmlRegisterType<RemoteMediaController>("DMisic", 1, 0, "RemoteMediaController");

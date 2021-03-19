@@ -232,6 +232,19 @@ YTrack* YClient::track(qint64 id)
   return new YTrack(id, this);
 }
 
+Playlist* YClient::downloadsPlaylist()
+{
+  DPlaylist* res = new DPlaylist(this);
+  QDir recoredDir(Settings::ym_savePath());
+  QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
+  for (auto s : allFiles) {
+    if (!s.endsWith(".json")) continue;
+    s.chop(5);
+    res->add(new YTrack(s.toInt(), this));
+  }
+  return res;
+}
+
 
 YTrack::YTrack(qint64 id, YClient* client) : Track((QObject*)client)
 {

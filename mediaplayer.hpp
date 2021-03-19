@@ -28,6 +28,7 @@ public:
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
   Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
+  Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
 
   float progress();
   qint64 progress_ms();
@@ -40,14 +41,17 @@ public:
   double volume();
   bool muted();
   LoopMode loopMode();
+  NextMode nextMode();
 
   inline static Track noneTrack{};
 
 private slots:
   void setMedia(QMediaContent media);
+  void updatePlaylistGenerator();
 
 public slots:
   void play(Track* track);
+  void play(Playlist* playlist);
   void play();
   void pause();
   void pause_or_play();
@@ -59,6 +63,7 @@ public slots:
   void setVolume(double volume);
   void setMuted(bool muted);
   void setLoopMode(LoopMode loopMode);
+  void setNextMode(NextMode nextMode);
 
 signals:
   void progressChanged(qint64 ms);
@@ -68,6 +73,7 @@ signals:
   void volumeChanged(double volume);
   void mutedChanged(bool muted);
   void loopModeChanged(LoopMode loopMode);
+  void nextModeChanged(NextMode nextMode);
 
 private:
 
@@ -75,7 +81,10 @@ private:
 
   QMediaPlayer* player;
   Track* _currentTrack;
+  Playlist* _currentPlaylist;
+  Playlist::Generator _gen;
   double _volume;
   LoopMode _loopMode;
+  NextMode _nextMode;
 };
 

@@ -112,6 +112,7 @@ public:
 
 public slots:
   YTrack* track(qint64 id);
+  Playlist* downloadsPlaylist();
 
 private:
   py::module ym; // yandex_music module

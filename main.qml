@@ -86,13 +86,29 @@ Window {
 
     DButton {
       id: _play
-      anchors.centerIn: root
+      anchors.verticalCenter: root.verticalCenter
       anchors.verticalCenterOffset: 40
+      anchors.right: root.horizontalCenter
+      anchors.rightMargin: 10
 
       text: "Прослушать"
 
       onClick: {
         _player.player.play(_yapi.track(parseInt(_id_input.text)))
+      }
+    }
+
+    DButton {
+      id: _play_downloads
+      anchors.verticalCenter: root.verticalCenter
+      anchors.verticalCenterOffset: 40
+      anchors.left: root.horizontalCenter
+      anchors.leftMargin: 10
+
+      text: "Прослушать скачанное"
+
+      onClick: {
+        _player.player.play(_yapi.downloadsPlaylist())
       }
     }
     Keys.onSpacePressed: _player.player.pause_or_play()

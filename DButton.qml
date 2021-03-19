@@ -3,7 +3,7 @@ import QtQuick 2.0
 Rectangle {
   id: root
   height: 20
-  width: 100
+  width: _text.width + 20
   radius: 3
 
   property alias text: _text.text
