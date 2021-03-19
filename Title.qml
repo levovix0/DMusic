@@ -88,7 +88,7 @@ Rectangle {
     width: 6
     height: window.height - 12
     y: 6
-    enabled: root.manual
+    enabled: root.manual && window.visibility != 4
 
     window: root.window
     cursor: Qt.SizeHorCursor
@@ -101,7 +101,7 @@ Rectangle {
     width: 6
     height: window.height - 12
     y: 6
-    enabled: root.manual
+    enabled: root.manual && window.visibility != 4
 
     window: root.window
     cursor: Qt.SizeHorCursor
@@ -113,7 +113,7 @@ Rectangle {
     width: window.width - 12
     x: 6
     height: 6
-    enabled: root.manual
+    enabled: root.manual && window.visibility != 4
 
     window: root.window
     cursor: Qt.SizeVerCursor
@@ -126,7 +126,7 @@ Rectangle {
     width: window.width - 12
     x: 6
     height: 6
-    enabled: root.manual
+    enabled: root.manual && window.visibility != 4
 
     window: root.window
     cursor: Qt.SizeVerCursor
@@ -138,7 +138,7 @@ Rectangle {
     id: _ltg
     width: 6
     height: 6
-    enabled: root.manual
+    enabled: root.manual && window.visibility != 4
 
     window: root.window
     cursor: Qt.SizeFDiagCursor
@@ -150,7 +150,7 @@ Rectangle {
     anchors.right: root.right
     width: 6
     height: 6
-    enabled: root.manual
+    enabled: root.manual && window.visibility != 4
 
     window: root.window
     cursor: Qt.SizeBDiagCursor
@@ -162,7 +162,7 @@ Rectangle {
     y: window.height - height
     width: 6
     height: 6
-    enabled: root.manual
+    enabled: root.manual && window.visibility != 4
 
     window: root.window
     cursor: Qt.SizeBDiagCursor
@@ -175,7 +175,7 @@ Rectangle {
     y: window.height - height
     width: 6
     height: 6
-    enabled: root.manual
+    enabled: root.manual && window.visibility != 4
 
     window: root.window
     cursor: Qt.SizeFDiagCursor

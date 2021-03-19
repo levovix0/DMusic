@@ -52,7 +52,7 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
         f();
         r(true);
         return;
-      }  catch (py_error& e) {
+      }  catch (py_error) {
         --tries;
         if (tries <= 0) {
           r(false);
@@ -94,7 +94,7 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
           f();
           r(true);
           return;
-        }  catch (py_error& e) {
+        }  catch (py_error) {
           --tries;
           if (tries <= 0) {
             r(false);
