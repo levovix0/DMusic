@@ -57,7 +57,7 @@ struct Playlist : QObject
 public:
   Q_ENUM(NextMode)
 
-  virtual QVector<NextMode> modesSupported() { return { NextMode::Sequence, NextMode::Shuffle, NextMode::RandomAccess }; }
+  virtual QVector<NextMode> modesSupported() { return {}; }
 
 private:
 };

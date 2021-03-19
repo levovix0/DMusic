@@ -15,10 +15,9 @@ Rectangle {
     anchors.horizontalCenter: root.horizontalCenter
     y: 21
 
-    playing: _player.playing
+    playing: _player.state === MediaPlayer.PlayingState
 
-    onPause: _player.pause()
-    onPlay: _player.unpause()
+    onPause_or_play: _player.pause_or_play()
   }
 
   PlayerLine {

@@ -7,7 +7,7 @@ MediaPlayer::~MediaPlayer()
   delete player;
 }
 
-MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer), _currentTrack(nullptr), m_isPaused(false), m_isPlaying(false)
+MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer), _currentTrack(nullptr)
 {
   player->setNotifyInterval(50);
   player->setVolume(50);
@@ -15,22 +15,13 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
   _currentTrack = &noneTrack;
 
   QObject::connect(player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
-    emit stateChanged(state);
     if (state == QMediaPlayer::PlayingState) {
-      m_isPlaying = true;
-      emit playingChanged();
-      m_isPaused = false;
-      emit pausedChanged();
     }
     else if (state == QMediaPlayer::StoppedState) {
       if (_loopMode == LoopMode::LoopTrack && player->mediaStatus() == QMediaPlayer::EndOfMedia) {
         player->play();
         return;
       }
-      m_isPlaying = false;
-      emit playingChanged();
-      m_isPaused = false;
-      emit pausedChanged();
       
       if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
 
@@ -41,11 +32,8 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
       player->setPosition(0);
     }
     else if (state == QMediaPlayer::PausedState) {
-      m_isPlaying = false;
-      emit playingChanged();
-      m_isPaused = true;
-      emit pausedChanged();
     }
+    emit stateChanged(state);
   });
   QObject::connect(player, &QMediaPlayer::mediaChanged, [this](QMediaContent const& media) {
     if (media.isNull()) emit durationChanged(0);
@@ -59,7 +47,7 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
 void MediaPlayer::play(Track* track)
 {
   if (track == nullptr) return play(&noneTrack);
-  if (playing()) {
+  if (state() != QMediaPlayer::PausedState) {
     player->stop();
   }
   if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
@@ -73,16 +61,6 @@ void MediaPlayer::play(Track* track)
   player->setMedia(track->media());
   player->setPosition(0);
   player->play();
-}
-
-bool MediaPlayer::playing()
-{
-  return m_isPlaying;
-}
-
-bool MediaPlayer::paused()
-{
-  return player->state() == QMediaPlayer::PausedState;
 }
 
 float MediaPlayer::progress()
@@ -145,7 +123,7 @@ void MediaPlayer::setMedia(QMediaContent media)
 
 void MediaPlayer::pause_or_play()
 {
-  if (playing()) {
+  if (state() == QMediaPlayer::PlayingState) {
     player->pause();
   } else {
     player->play();
@@ -157,7 +135,7 @@ void MediaPlayer::pause()
   player->pause();
 }
 
-void MediaPlayer::unpause()
+void MediaPlayer::play()
 {
   player->play();
 }

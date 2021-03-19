@@ -158,22 +158,22 @@ bool Mpris2Player::canGoPrevious()
 
 bool Mpris2Player::canPlay()
 {
-  return _player->paused();
+  return _player->state() == QMediaPlayer::PausedState;
 }
 
 bool Mpris2Player::canStop()
 {
-  return _player->playing() | _player->paused();
+  return _player->state() != QMediaPlayer::StoppedState;
 }
 
 bool Mpris2Player::canPause()
 {
-  return _player->playing();
+  return _player->state() == QMediaPlayer::PlayingState;
 }
 
 bool Mpris2Player::canSeek()
 {
-  return _player->playing() | _player->paused();
+  return _player->state() != QMediaPlayer::StoppedState;
 }
 
 bool Mpris2Player::canControl()
@@ -188,7 +188,7 @@ void Mpris2Player::PlayPause()
 
 void Mpris2Player::Play()
 {
-  _player->unpause();
+  _player->play();
 }
 
 void Mpris2Player::Pause()

@@ -15,9 +15,9 @@ public:
     LoopNone, LoopTrack, LoopPlaylist
   };
   Q_ENUM(LoopMode)
-  
-  Q_PROPERTY(bool playing READ playing NOTIFY playingChanged)
-  Q_PROPERTY(bool paused READ paused NOTIFY pausedChanged)
+
+  Q_ENUM(QMediaPlayer::State)
+
   Q_PROPERTY(QMediaPlayer::State state READ state NOTIFY stateChanged)
   Q_PROPERTY(float progress READ progress WRITE setProgress NOTIFY progressChanged)
   Q_PROPERTY(qint64 progress_ms READ progress_ms WRITE setProgress_ms NOTIFY progressChanged)
@@ -29,8 +29,6 @@ public:
   Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
   Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
 
-  bool playing();
-  bool paused();
   float progress();
   qint64 progress_ms();
 
@@ -50,10 +48,9 @@ private slots:
 
 public slots:
   void play(Track* track);
-
-  void pause_or_play();
+  void play();
   void pause();
-  void unpause();
+  void pause_or_play();
   void stop();
 
   void setCurrentTrack(Track* v);
@@ -64,8 +61,6 @@ public slots:
   void setLoopMode(LoopMode loopMode);
 
 signals:
-  void playingChanged();
-  void pausedChanged();
   void progressChanged(qint64 ms);
   void currentTrackChanged(Track* track);
   void durationChanged(qint64 duration);
@@ -80,8 +75,6 @@ private:
 
   QMediaPlayer* player;
   Track* _currentTrack;
-  bool m_isPaused;
-  bool m_isPlaying;
   double _volume;
   LoopMode _loopMode;
 };
