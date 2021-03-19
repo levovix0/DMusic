@@ -23,13 +23,16 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
       emit pausedChanged();
     }
     else if (state == QMediaPlayer::StoppedState) {
+      if (_loopMode == LoopMode::LoopTrack && player->mediaStatus() == QMediaPlayer::EndOfMedia) {
+        player->play();
+        return;
+      }
       m_isPlaying = false;
       emit playingChanged();
       m_isPaused = false;
       emit pausedChanged();
       
       if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
-//      if (_currentTrack != &noneTrack) delete _currentTrack;
 
       _currentTrack = &noneTrack;
       emit currentTrackChanged(_currentTrack);
@@ -60,7 +63,6 @@ void MediaPlayer::play(Track* track)
     player->stop();
   }
   if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
-//  if (_currentTrack != &noneTrack) delete _currentTrack;
   _currentTrack = track;
 
   if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
@@ -129,6 +131,11 @@ bool MediaPlayer::muted()
   return player->isMuted();
 }
 
+MediaPlayer::LoopMode MediaPlayer::loopMode()
+{
+  return _loopMode;
+}
+
 void MediaPlayer::setMedia(QMediaContent media)
 {
   player->setMedia(media);
@@ -186,6 +193,12 @@ void MediaPlayer::setVolume(double volume)
 void MediaPlayer::setMuted(bool muted)
 {
   player->setMuted(muted);
+}
+
+void MediaPlayer::setLoopMode(MediaPlayer::LoopMode loopMode)
+{
+  _loopMode = loopMode;
+  emit loopModeChanged(loopMode);
 }
 
 QString MediaPlayer::formatTime(int t)

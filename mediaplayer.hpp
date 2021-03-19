@@ -10,6 +10,11 @@ class MediaPlayer : public QObject
 public:
   ~MediaPlayer();
   explicit MediaPlayer(QObject *parent = nullptr);
+
+  enum class LoopMode {
+    LoopNone, LoopTrack, LoopPlaylist
+  };
+  Q_ENUM(LoopMode)
   
   Q_PROPERTY(bool playing READ playing NOTIFY playingChanged)
   Q_PROPERTY(bool paused READ paused NOTIFY pausedChanged)
@@ -22,6 +27,7 @@ public:
   Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged)
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
+  Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
 
   bool playing();
   bool paused();
@@ -35,6 +41,7 @@ public:
   QMediaPlayer::State state();
   double volume();
   bool muted();
+  LoopMode loopMode();
 
   inline static Track noneTrack{};
 
@@ -54,6 +61,7 @@ public slots:
   void setProgress_ms(int progress);
   void setVolume(double volume);
   void setMuted(bool muted);
+  void setLoopMode(LoopMode loopMode);
 
 signals:
   void playingChanged();
@@ -64,6 +72,7 @@ signals:
   void stateChanged(QMediaPlayer::State state);
   void volumeChanged(double volume);
   void mutedChanged(bool muted);
+  void loopModeChanged(LoopMode loopMode);
 
 private:
 
@@ -74,5 +83,6 @@ private:
   bool m_isPaused;
   bool m_isPlaying;
   double _volume;
+  LoopMode _loopMode;
 };
 

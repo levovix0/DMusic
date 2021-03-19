@@ -2,6 +2,10 @@
 #include <QObject>
 #include <QMediaContent>
 
+enum class NextMode {
+  Sequence, Shuffle, RandomAccess
+};
+
 struct Track : QObject
 {
   Q_OBJECT
@@ -43,6 +47,17 @@ struct Client : QObject
 {
   Q_OBJECT
 public:
+
+private:
+};
+
+struct Playlist : QObject
+{
+  Q_OBJECT
+public:
+  Q_ENUM(NextMode)
+
+  virtual QVector<NextMode> modesSupported() { return { NextMode::Sequence, NextMode::Shuffle, NextMode::RandomAccess }; }
 
 private:
 };

@@ -384,8 +384,14 @@ RemoteMediaController::RemoteMediaController(QObject *parent) : QObject(parent)
   _isDBusServiceCreated = true;
 }
 
+MediaPlayer* RemoteMediaController::target()
+{
+  return _target;
+}
+
 void RemoteMediaController::setTarget(MediaPlayer* player)
 {
   if (!_isDBusServiceCreated) return;
   _mpris2Player = new Mpris2Player(player, this);
+  _target = player;
 }

@@ -1,8 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Dialogs 1.2
-import yapi 1.0
-import api 1.0
+import DMisic 1.0
 
 Window {
   id: _root

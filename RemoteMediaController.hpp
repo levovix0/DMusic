@@ -130,7 +130,9 @@ public:
 
   inline static const QString serviceName = "org.mpris.MediaPlayer2.DTeam.DMusic";
 
-  Q_PROPERTY(MediaPlayer* target WRITE setTarget)
+  Q_PROPERTY(MediaPlayer* target READ target WRITE setTarget)
+
+  MediaPlayer* target();
 
 public slots:
   void setTarget(MediaPlayer* player);
@@ -139,6 +141,7 @@ private:
   bool _isDBusServiceCreated = false;
   Mpris2Root* _mpris2Root;
   Mpris2Player* _mpris2Player;
+  MediaPlayer* _target;
   inline static qint64 _serviceDuplicateCount = 1;
 };
 

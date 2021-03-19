@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import api 1.0
+import DMisic 1.0
 
 Item {
   id: root

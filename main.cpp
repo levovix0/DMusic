@@ -11,13 +11,13 @@ int main(int argc, char *argv[])
 {
   Py_Initialize();
   QGuiApplication app(argc, argv);
-  qmlRegisterType<YClient>("yapi", 1, 0, "YClient");
-  qmlRegisterType<YTrack>("yapi", 1, 0, "YTrack");
-  qmlRegisterType<YArtist>("yapi", 1, 0, "YArtist");
-  qmlRegisterType<YTrack>("api", 1, 0, "Track");
-  qmlRegisterType<MediaPlayer>("api", 1, 0, "MediaPlayer");
-  qmlRegisterType<Settings>("api", 1, 0, "Settings");
-  qmlRegisterType<RemoteMediaController>("api", 1, 0, "RemoteMediaController");
+  qmlRegisterType<YClient>("DMisic", 1, 0, "YClient");
+  qmlRegisterType<YTrack>("DMisic", 1, 0, "YTrack");
+  qmlRegisterType<YArtist>("DMisic", 1, 0, "YArtist");
+  qmlRegisterType<YTrack>("DMisic", 1, 0, "Track");
+  qmlRegisterType<MediaPlayer>("DMisic", 1, 0, "MediaPlayer");
+  qmlRegisterType<Settings>("DMisic", 1, 0, "Settings");
+  qmlRegisterType<RemoteMediaController>("DMisic", 1, 0, "RemoteMediaController");
 
   QGuiApplication::setWindowIcon(QIcon("application.svg"));
   app.setApplicationName("DMusic");

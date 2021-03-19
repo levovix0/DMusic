@@ -56,5 +56,6 @@
         <file>resources/tri.svg</file>
         <file>Triangle.qml</file>
         <file>VolumeSlider.qml</file>
+        <file>DropDownPanel.qml</file>
     </qresource>
 </RCC>

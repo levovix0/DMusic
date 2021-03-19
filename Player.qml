@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import api 1.0
+import DMisic 1.0
 
 Rectangle {
   id: root
@@ -10,6 +10,8 @@ Rectangle {
   property alias track: _track
 
   PlayerControls {
+    id: _controls
+
     anchors.horizontalCenter: root.horizontalCenter
     y: 21
 
@@ -33,6 +35,8 @@ Rectangle {
 
   MediaPlayer {
     id: _player
+
+    loopMode: _controls.isLooping? (_controls.isLoopingPlaylist_notTrack? MediaPlayer.LoopPlaylist : MediaPlayer.LoopTrack) : MediaPlayer.LoopNone
   }
 
   RemoteMediaController {
