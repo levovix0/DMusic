@@ -1,14 +1,18 @@
 import QtQuick 2.0
+import DMusic 1.0
 
 Item {
   id: root
 
   property bool playing: false
-  property bool isLooping: false
-  property bool isLoopingPlaylist_notTrack: true
-  property bool isShuffling: false
+  property var nextMode: Settings.NextSequence
+  property var loopMode: Settings.LoopNone
 
   signal pause_or_play()
+  signal next()
+  signal prev()
+  signal changeLoopMode(var mode)
+  signal changeNextMode(var mode)
 
   PlayerControlsButton {
     id: _play_pause
@@ -27,6 +31,8 @@ Item {
     anchors.horizontalCenterOffset: 50
 
     icon: "resources/player/next.svg"
+
+    onClick: next()
   }
 
   PlayerControlsButton {
@@ -36,6 +42,8 @@ Item {
     anchors.horizontalCenterOffset: -50
 
     icon: "resources/player/prev.svg"
+
+    onClick: prev()
   }
 
   PlayerControlsButton {
@@ -44,20 +52,13 @@ Item {
     anchors.horizontalCenter: root.horizontalCenter
     anchors.horizontalCenterOffset: 50 + 50
 
-    icon: isLoopingPlaylist_notTrack? "resources/player/loop-playlist.svg" : "resources/player/loop-track.svg"
-    color: isLooping? "#FCE165" : "#C1C1C1"
-    hoverColor: isLooping? "#CDB64E" : "#FFFFFF"
+    icon: loopMode == Settings.LoopTrack? "resources/player/loop-track.svg" : "resources/player/loop-playlist.svg"
+    color: loopMode != Settings.LoopNone? "#FCE165" : "#C1C1C1"
+    hoverColor: loopMode != Settings.LoopNone? "#CDB64E" : "#FFFFFF"
     onClick: {
-      if (isLooping) {
-        if (isLoopingPlaylist_notTrack) {
-          isLoopingPlaylist_notTrack = false
-        }
-        else {
-          isLooping = false
-          isLoopingPlaylist_notTrack = true
-        }
-      }
-      else isLooping = true
+      if (loopMode == Settings.LoopNone) changeLoopMode(Settings.LoopPlaylist)
+      else if (loopMode == Settings.LoopPlaylist) changeLoopMode(Settings.LoopTrack)
+      else changeLoopMode(Settings.LoopNone)
     }
   }
 
@@ -68,8 +69,8 @@ Item {
     anchors.horizontalCenterOffset: -50 - 50
 
     icon: "resources/player/shuffle.svg"
-    color: isShuffling? "#FCE165" : "#C1C1C1"
-    hoverColor: isShuffling? "#CDB64E" : "#FFFFFF"
-    onClick: isShuffling = !isShuffling
+    color: nextMode != Settings.NextSequence? "#FCE165" : "#C1C1C1"
+    hoverColor: nextMode != Settings.NextSequence? "#CDB64E" : "#FFFFFF"
+    onClick: changeNextMode(nextMode == Settings.NextSequence? Settings.NextShuffle : Settings.NextSequence)
   }
 }

@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import QtGraphicalEffects 1.15
-import DMisic 1.0
+import DMusic 1.0
 
 FloatingPanel {
   id: root

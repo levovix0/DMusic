@@ -111,7 +111,7 @@ public:
   Q_INVOKABLE void fetchYTracks(qint64 id, QJSValue const& callback);
 
 public slots:
-  YTrack* track(qint64 id);
+  Playlist* track(qint64 id);
   Playlist* downloadsPlaylist();
 
 private:

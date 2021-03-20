@@ -2,12 +2,9 @@
 #include <QObject>
 #include <QMediaContent>
 #include <functional>
+#include <settings.hpp>
 
 struct Playlist;
-
-enum class NextMode {
-  Sequence, Shuffle, RandomAccess
-};
 
 struct Track : QObject
 {
@@ -77,7 +74,6 @@ struct Playlist : QObject
 {
   Q_OBJECT
 public:
-  Q_ENUM(NextMode)
   using Generator = std::pair<std::function<refTrack()>, std::function<refTrack()>>;
 
   virtual ~Playlist();
@@ -87,12 +83,12 @@ public:
 
   refTrack operator[](int index);
 
-  virtual QVector<NextMode> modesSupported() { return {}; }
+  virtual QVector<Settings::NextMode> modesSupported() { return {}; }
   virtual refTrack get(int index);
   virtual Generator sequenceGenerator(int index = -1);
   virtual Generator shuffleGenerator(int index = -1);
   virtual Generator randomAccessGenerator(int index = -1);
-  virtual Generator generator(int index = -1, NextMode prefered = NextMode::Sequence); // auto-detect
+  virtual Generator generator(int index = -1, Settings::NextMode prefered = Settings::NextSequence); // auto-detect
 
   virtual int size(); // -1 means infinity or not determined
 
@@ -107,7 +103,7 @@ public:
   DPlaylist(QObject* parent = nullptr);
 
 //  QVector<NextMode> modesSupported() override { return { NextMode::Sequence, NextMode::Shuffle, NextMode::RandomAccess }; }
-  QVector<NextMode> modesSupported() override { return { NextMode::Sequence, NextMode::RandomAccess }; }
+  QVector<Settings::NextMode> modesSupported() override { return { Settings::NextSequence, Settings::NextRandomAccess }; }
   refTrack get(int index) override;
   Generator sequenceGenerator(int index = -1) override;
   Generator shuffleGenerator(int index = -1) override;

@@ -76,6 +76,8 @@ Mpris2Player::Mpris2Player(MediaPlayer* player, QObject* parent) : QDBusAbstract
   connect(_player, &MediaPlayer::stateChanged, this, &Mpris2Player::onStateChanged);
   connect(_player, &MediaPlayer::progressChanged, this, &Mpris2Player::onProgressChanged);
   connect(_player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
+  connect(_player, &MediaPlayer::nextModeChanged, this, &Mpris2Player::onNextModeChanged);
+  connect(_player, &MediaPlayer::loopModeChanged, this, &Mpris2Player::onLoopModeChanged);
 }
 
 QString Mpris2Player::playbackStatus()
@@ -87,23 +89,31 @@ QString Mpris2Player::playbackStatus()
   }
 }
 
-//bool Mpris2Player::shuffle()
-//{
-//  return false;
-//}
+bool Mpris2Player::shuffle()
+{
+  return _player->nextMode() != Settings::NextSequence;
+}
 
-//void Mpris2Player::setShuffle(bool)
-//{
-//}
+void Mpris2Player::setShuffle(bool value)
+{
+  _player->setNextMode(value? Settings::NextShuffle : Settings::NextSequence);
+}
 
-//QString Mpris2Player::loopStatus()
-//{
-//  return "None";
-//}
+QString Mpris2Player::loopStatus()
+{
+  switch (_player->loopMode()) {
+  case Settings::LoopPlaylist: return "Playlist";
+  case Settings::LoopTrack: return "Track";
+  default: return "None";
+  }
+}
 
-//void Mpris2Player::setLoopStatus(const QString&)
-//{
-//}
+void Mpris2Player::setLoopStatus(const QString& value)
+{
+  if (value == "Playlist") _player->setLoopMode(Settings::LoopPlaylist);
+  else if (value == "Track") _player->setLoopMode(Settings::LoopTrack);
+  else _player->setLoopMode(Settings::LoopNone);
+}
 
 double Mpris2Player::volume()
 {
@@ -148,12 +158,12 @@ qlonglong Mpris2Player::position()
 
 bool Mpris2Player::canGoNext()
 {
-  return false;
+  return _player->state() != QMediaPlayer::StoppedState;
 }
 
 bool Mpris2Player::canGoPrevious()
 {
-  return false;
+  return _player->state() != QMediaPlayer::StoppedState;
 }
 
 bool Mpris2Player::canPlay()
@@ -203,10 +213,12 @@ void Mpris2Player::Stop()
 
 void Mpris2Player::Next()
 {
+  _player->next();
 }
 
 void Mpris2Player::Previous()
 {
+  _player->prev();
 }
 
 void Mpris2Player::Seek(qint64 position)
@@ -230,18 +242,24 @@ void Mpris2Player::onStateChanged(QMediaPlayer::State state)
     map["CanStop"] = true;
     map["CanPause"] = true;
     map["CanSeek"] = true;
+    map["CanGoNext"] = true;
+    map["CanGoPrevious"] = true;
     break;
   case QMediaPlayer::PausedState:
     map["CanPlay"] = true;
     map["CanStop"] = true;
     map["CanPause"] = false;
     map["CanSeek"] = true;
+    map["CanGoNext"] = true;
+    map["CanGoPrevious"] = true;
     break;
   default:
     map["CanPlay"] = false;
     map["CanStop"] = false;
     map["CanPause"] = false;
     map["CanSeek"] = false;
+    map["CanGoNext"] = false;
+    map["CanGoPrevious"] = false;
     break;
   }
 
@@ -296,6 +314,20 @@ void Mpris2Player::onVolumeChanged(double volume)
 {
   QVariantMap map;
   map["Volume"] = volume;
+  signalUpdate(map, "org.mpris.MediaPlayer2.Player");
+}
+
+void Mpris2Player::onLoopModeChanged(Settings::LoopMode)
+{
+  QVariantMap map;
+  map["LoopStatus"] = loopStatus();
+  signalUpdate(map, "org.mpris.MediaPlayer2.Player");
+}
+
+void Mpris2Player::onNextModeChanged(Settings::NextMode)
+{
+  QVariantMap map;
+  map["Shuffle"] = shuffle();
   signalUpdate(map, "org.mpris.MediaPlayer2.Player");
 }
 

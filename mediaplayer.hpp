@@ -11,11 +11,6 @@ public:
   ~MediaPlayer();
   explicit MediaPlayer(QObject *parent = nullptr);
 
-  enum class LoopMode {
-    LoopNone, LoopTrack, LoopPlaylist
-  };
-  Q_ENUM(LoopMode)
-
   Q_ENUM(QMediaPlayer::State)
 
   Q_PROPERTY(QMediaPlayer::State state READ state NOTIFY stateChanged)
@@ -27,8 +22,8 @@ public:
   Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged)
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
-  Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
-  Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
+  Q_PROPERTY(Settings::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
+  Q_PROPERTY(Settings::NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
 
   float progress();
   qint64 progress_ms();
@@ -40,8 +35,8 @@ public:
   QMediaPlayer::State state();
   double volume();
   bool muted();
-  LoopMode loopMode();
-  NextMode nextMode();
+  Settings::LoopMode loopMode();
+  Settings::NextMode nextMode();
 
   inline static Track noneTrack{};
 
@@ -57,13 +52,16 @@ public slots:
   void pause_or_play();
   void stop();
 
+  bool next();
+  bool prev();
+
   void setCurrentTrack(Track* v);
   void setProgress(float progress);
   void setProgress_ms(int progress);
   void setVolume(double volume);
   void setMuted(bool muted);
-  void setLoopMode(LoopMode loopMode);
-  void setNextMode(NextMode nextMode);
+  void setLoopMode(Settings::LoopMode loopMode);
+  void setNextMode(Settings::NextMode nextMode);
 
 signals:
   void progressChanged(qint64 ms);
@@ -72,8 +70,8 @@ signals:
   void stateChanged(QMediaPlayer::State state);
   void volumeChanged(double volume);
   void mutedChanged(bool muted);
-  void loopModeChanged(LoopMode loopMode);
-  void nextModeChanged(NextMode nextMode);
+  void loopModeChanged(Settings::LoopMode loopMode);
+  void nextModeChanged(Settings::NextMode nextMode);
 
 private:
 
@@ -84,7 +82,7 @@ private:
   Playlist* _currentPlaylist;
   Playlist::Generator _gen;
   double _volume;
-  LoopMode _loopMode;
-  NextMode _nextMode;
+  Settings::LoopMode _loopMode;
+  Settings::NextMode _nextMode;
 };
 

@@ -1,11 +1,12 @@
 import QtQuick 2.0
-import DMisic 1.0
+import DMusic 1.0
 
 Rectangle {
   id: root
 
   color: "#262626"
 
+  property Settings settings
   property alias player: _player
   property alias track: _track
 
@@ -16,8 +17,14 @@ Rectangle {
     y: 21
 
     playing: _player.state === MediaPlayer.PlayingState
+    loopMode: _player.loopMode
+    nextMode: _player.nextMode
 
     onPause_or_play: _player.pause_or_play()
+    onNext: _player.next()
+    onPrev: _player.prev()
+    onChangeLoopMode: _player.loopMode = mode
+    onChangeNextMode: _player.nextMode = mode
   }
 
   PlayerLine {
@@ -34,8 +41,15 @@ Rectangle {
 
   MediaPlayer {
     id: _player
+    Component.onCompleted: {
+      volume = settings.volume
+      nextMode = settings.nextMode
+      loopMode = settings.loopMode
+    }
 
-    loopMode: _controls.isLooping? (_controls.isLoopingPlaylist_notTrack? MediaPlayer.LoopPlaylist : MediaPlayer.LoopTrack) : MediaPlayer.LoopNone
+    onVolumeChanged: settings.volume = volume
+    onNextModeChanged: settings.nextMode = nextMode
+    onLoopModeChanged: settings.loopMode = loopMode
   }
 
   RemoteMediaController {

@@ -59,15 +59,15 @@ public:
     Q_PROPERTY(int MaximuRate READ maximumRate)
     Q_PROPERTY(double Rate READ rate WRITE setRate)
     Q_PROPERTY(double Volume READ volume WRITE setVolume)
-//    Q_PROPERTY(bool Shuffle READ shuffle WRITE setShuffle)
-//    Q_PROPERTY(QString LoopStatus READ loopStatus WRITE setLoopStatus)
+    Q_PROPERTY(bool Shuffle READ shuffle WRITE setShuffle)
+    Q_PROPERTY(QString LoopStatus READ loopStatus WRITE setLoopStatus)
     Q_PROPERTY(QString PlaybackStatus READ playbackStatus)
 
     QString playbackStatus();
-//    bool shuffle();
-//    void setShuffle(bool value);
-//    QString loopStatus();
-//    void setLoopStatus(const QString& status);
+    bool shuffle();
+    void setShuffle(bool value);
+    QString loopStatus();
+    void setLoopStatus(const QString& status);
     double volume();
     void setVolume(double value);
     QVariantMap metadata();
@@ -102,6 +102,8 @@ private slots:
     void onTrackChanged(Track* track);
     void onProgressChanged(qint64 ms);
     void onVolumeChanged(double volume);
+    void onLoopModeChanged(Settings::LoopMode mode);
+    void onNextModeChanged(Settings::NextMode mode);
 
     void onTitleChanged(QString title);
     void onAuthorChanged(QString author);

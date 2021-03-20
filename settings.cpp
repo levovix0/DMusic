@@ -21,6 +21,21 @@ bool Settings::isClientSideDecorations()
   return _isClientSideDecorations;
 }
 
+double Settings::volume()
+{
+  return _volume;
+}
+
+Settings::NextMode Settings::nextMode()
+{
+  return _nextMode;
+}
+
+Settings::LoopMode Settings::loopMode()
+{
+  return _loopMode;
+}
+
 QString Settings::ym_token()
 {
   return _ym_token;
@@ -74,21 +89,28 @@ QString Settings::ym_artistMetadataPath(int id)
   return (ym_savePath_() / ("artist-" + std::to_string(id) + ".json")).string().c_str();
 }
 
-
-bool Settings::get_isClientSideDecorations()
-{
-  return isClientSideDecorations();
-}
-
 void Settings::set_isClientSideDecorations(bool v)
 {
   _isClientSideDecorations = v;
   emit reload();
 }
 
-QString Settings::get_ym_token()
+void Settings::setVolume(double v)
 {
-  return ym_token();
+  _volume = v;
+  emit volumeChanged(v);
+}
+
+void Settings::setNextMode(Settings::NextMode v)
+{
+  _nextMode = v;
+  emit nextModeChanged(v);
+}
+
+void Settings::setLoopMode(Settings::LoopMode v)
+{
+  _loopMode = v;
+  emit loopModeChanged(v);
 }
 
 void Settings::set_ym_token(QString v)
@@ -97,31 +119,16 @@ void Settings::set_ym_token(QString v)
   emit reload();
 }
 
-QString Settings::get_ym_proxyServer()
-{
-  return ym_proxyServer();
-}
-
 void Settings::set_ym_proxyServer(QString v)
 {
   _ym_proxyServer = v;
   emit reload();
 }
 
-QString Settings::get_ym_savePath()
-{
-  return ym_savePath();
-}
-
 void Settings::set_ym_savePath(QString v)
 {
   _ym_savePath = v.toUtf8().data();
   emit reload();
-}
-
-int Settings::get_ym_repeatsIfError()
-{
-  return _ym_repeatsIfError;
 }
 
 void Settings::set_ym_repeatsIfError(int v)
@@ -137,6 +144,10 @@ void Settings::reloadFromJson()
   QJsonObject doc = File("settings.json").allJson().object();
 
   _isClientSideDecorations = doc["isClientSideDecorations"].toBool(true);
+
+  setVolume(doc["volume"].toDouble(0.5));
+  setNextMode((NextMode)doc["nextMode"].toInt(NextSequence));
+  setLoopMode((LoopMode)doc["loopMode"].toInt(LoopNone));
 
   QJsonObject ym = doc["yandexMusic"].toObject();
   _ym_token = ym["token"].toString("");
@@ -155,6 +166,10 @@ void Settings::saveToJson()
   QJsonObject doc;
 
   doc["isClientSideDecorations"] = _isClientSideDecorations;
+
+  doc["volume"] = _volume;
+  doc["nextMode"] = _nextMode;
+  doc["loopMode"] = _loopMode;
 
   QJsonObject ym;
   ym["token"] = _ym_token;

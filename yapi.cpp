@@ -52,7 +52,7 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
         f();
         r(true);
         return;
-      }  catch (py_error) {
+      }  catch (py_error&) {
         --tries;
         if (tries <= 0) {
           r(false);
@@ -94,7 +94,7 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
           f();
           r(true);
           return;
-        }  catch (py_error) {
+        }  catch (py_error&) {
           --tries;
           if (tries <= 0) {
             r(false);
@@ -227,9 +227,11 @@ void YClient::fetchYTracks(qint64 id, const QJSValue& callback)
   do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchYTracks, id);
 }
 
-YTrack* YClient::track(qint64 id)
+Playlist* YClient::track(qint64 id)
 {
-  return new YTrack(id, this);
+  DPlaylist* res = new DPlaylist(this);
+  res->add(new YTrack(id, this));
+  return res;
 }
 
 Playlist* YClient::downloadsPlaylist()

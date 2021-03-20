@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Dialogs 1.2
-import DMisic 1.0
+import DMusic 1.0
 
 Window {
   id: _root
@@ -68,6 +68,8 @@ Window {
       width: root.width
       height: 66
       anchors.bottom: parent.bottom
+
+      settings: _settings
     }
 
     Title {

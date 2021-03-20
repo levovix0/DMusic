@@ -18,28 +18,17 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
     if (state == QMediaPlayer::PlayingState) {
     }
     else if (state == QMediaPlayer::StoppedState) {
-      if (_loopMode == LoopMode::LoopTrack && player->mediaStatus() == QMediaPlayer::EndOfMedia) {
+      if (_loopMode == Settings::LoopTrack && player->mediaStatus() == QMediaPlayer::EndOfMedia) {
         player->play();
         return;
       }
-      
-      if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
 
       if (_currentPlaylist != nullptr && player->mediaStatus() == QMediaPlayer::EndOfMedia) {
-        _currentTrack = _gen.first(); // next
-        if (_currentTrack == nullptr) goto stop_;
-
-        if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
-
-        emit currentTrackChanged(_currentTrack);
-
-        player->setMedia(_currentTrack->media());
-        player->setPosition(0);
-        player->play();
-        return;
+        if (next()) return;
       }
 
-stop_:
+      if (_currentTrack != &noneTrack && _currentTrack != nullptr) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+
       _currentTrack = &noneTrack;
       emit currentTrackChanged(_currentTrack);
 
@@ -63,10 +52,12 @@ void MediaPlayer::play(Track* track)
 {
   if (track == nullptr) return play(&noneTrack);
   _currentPlaylist = nullptr;
+  updatePlaylistGenerator();
 
-  if (state() != QMediaPlayer::PausedState) {
+  if (state() != QMediaPlayer::StoppedState) {
     player->stop();
   }
+
   if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
   _currentTrack = track;
 
@@ -84,7 +75,7 @@ void MediaPlayer::play(Playlist* playlist)
 {
   if (playlist == nullptr) return play(&noneTrack);
 
-  if (state() != QMediaPlayer::PausedState) {
+  if (state() != QMediaPlayer::StoppedState) {
     player->stop();
   }
 
@@ -149,12 +140,12 @@ bool MediaPlayer::muted()
   return player->isMuted();
 }
 
-MediaPlayer::LoopMode MediaPlayer::loopMode()
+Settings::LoopMode MediaPlayer::loopMode()
 {
   return _loopMode;
 }
 
-NextMode MediaPlayer::nextMode()
+Settings::NextMode MediaPlayer::nextMode()
 {
   return _nextMode;
 }
@@ -168,6 +159,10 @@ void MediaPlayer::setMedia(QMediaContent media)
 
 void MediaPlayer::updatePlaylistGenerator()
 {
+  if (_currentPlaylist == nullptr) {
+    _gen = {[]{return nullptr;}, []{return nullptr;}};
+    return;
+  }
   _gen = _currentPlaylist->generator(-1, nextMode());
 }
 
@@ -193,6 +188,44 @@ void MediaPlayer::play()
 void MediaPlayer::stop()
 {
   play(&noneTrack);
+}
+
+bool MediaPlayer::next()
+{
+  if (state() != QMediaPlayer::StoppedState) {
+    player->stop();
+  }
+
+  _currentTrack = _gen.first(); // next
+  if (_currentTrack == nullptr) return false;
+
+  if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+
+  emit currentTrackChanged(_currentTrack);
+
+  player->setMedia(_currentTrack->media());
+  player->setPosition(0);
+  player->play();
+  return true;
+}
+
+bool MediaPlayer::prev()
+{
+  if (state() != QMediaPlayer::StoppedState) {
+    player->stop();
+  }
+
+  _currentTrack = _gen.second(); // prev
+  if (_currentTrack == nullptr) return false;
+
+  if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+
+  emit currentTrackChanged(_currentTrack);
+
+  player->setMedia(_currentTrack->media());
+  player->setPosition(0);
+  player->play();
+  return true;
 }
 
 void MediaPlayer::setCurrentTrack(Track* v)
@@ -223,15 +256,16 @@ void MediaPlayer::setMuted(bool muted)
   player->setMuted(muted);
 }
 
-void MediaPlayer::setLoopMode(MediaPlayer::LoopMode loopMode)
+void MediaPlayer::setLoopMode(Settings::LoopMode loopMode)
 {
   _loopMode = loopMode;
   emit loopModeChanged(loopMode);
 }
 
-void MediaPlayer::setNextMode(NextMode nextMode)
+void MediaPlayer::setNextMode(Settings::NextMode nextMode)
 {
   _nextMode = nextMode;
+  updatePlaylistGenerator();
   emit nextModeChanged(nextMode);
 }
 

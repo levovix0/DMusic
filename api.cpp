@@ -83,24 +83,24 @@ Playlist::Generator Playlist::randomAccessGenerator(int index)
   return {[]{ return nullptr; }, []{ return nullptr; }};
 }
 
-Playlist::Generator Playlist::generator(int index, NextMode prefered)
+Playlist::Generator Playlist::generator(int index, Settings::NextMode prefered)
 {
   auto avaiable = modesSupported();
   switch (prefered) {
-  case NextMode::Sequence:
-    if (avaiable.contains(NextMode::Sequence)) return sequenceGenerator(index);
-    else if (avaiable.contains(NextMode::Shuffle)) return shuffleGenerator(index);
-    else if (avaiable.contains(NextMode::RandomAccess)) return randomAccessGenerator(index);
+  case Settings::NextSequence:
+    if (avaiable.contains(Settings::NextSequence)) return sequenceGenerator(index);
+    else if (avaiable.contains(Settings::NextShuffle)) return shuffleGenerator(index);
+    else if (avaiable.contains(Settings::NextRandomAccess)) return randomAccessGenerator(index);
     break;
-  case NextMode::Shuffle:
-    if (avaiable.contains(NextMode::Shuffle)) return shuffleGenerator(index);
-    else if (avaiable.contains(NextMode::RandomAccess)) return randomAccessGenerator(index);
-    else if (avaiable.contains(NextMode::Sequence)) return sequenceGenerator(index);
+  case Settings::NextShuffle:
+    if (avaiable.contains(Settings::NextShuffle)) return shuffleGenerator(index);
+    else if (avaiable.contains(Settings::NextRandomAccess)) return randomAccessGenerator(index);
+    else if (avaiable.contains(Settings::NextSequence)) return sequenceGenerator(index);
     break;
-  case NextMode::RandomAccess:
-    if (avaiable.contains(NextMode::RandomAccess)) return randomAccessGenerator(index);
-    else if (avaiable.contains(NextMode::Shuffle)) return shuffleGenerator(index);
-    else if (avaiable.contains(NextMode::Sequence)) return sequenceGenerator(index);
+  case Settings::NextRandomAccess:
+    if (avaiable.contains(Settings::NextRandomAccess)) return randomAccessGenerator(index);
+    else if (avaiable.contains(Settings::NextShuffle)) return shuffleGenerator(index);
+    else if (avaiable.contains(Settings::NextSequence)) return sequenceGenerator(index);
     break;
   }
   return {[]{ return nullptr; }, []{ return nullptr; }};
@@ -136,8 +136,8 @@ Playlist::Generator DPlaylist::sequenceGenerator(int index)
       return get(++_lastIndex);
     },
     [this]() -> refTrack { // prev
-      if (_lastIndex >= _tracks.length() || _lastIndex < 0) return nullptr;
-      return get(_lastIndex--);
+      if (_lastIndex - 1 >= _tracks.length() || _lastIndex < 1) return nullptr;
+      return get(--_lastIndex);
     }
   };
 }
