@@ -6,7 +6,7 @@ import DMusic 1.0
 Window {
   id: _root
   visible: true
-  flags: {
+  Component.onCompleted: {
     if (manualTitle) {
       flags += Qt.FramelessWindowHint
     }

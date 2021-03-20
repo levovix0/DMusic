@@ -21,7 +21,8 @@ int main(int argc, char *argv[])
   qmlRegisterType<Settings>("DMusic", 1, 0, "Settings");
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
 
-  QGuiApplication::setWindowIcon(QIcon("application.svg"));
+  if (QFileInfo::exists("application.svg"))
+    QGuiApplication::setWindowIcon(QIcon("application.svg"));
   app.setApplicationName("DMusic");
 
   QQmlApplicationEngine engine;
