@@ -53,6 +53,9 @@ struct refTrack
   refTrack operator=(refTrack const& copy);
   operator Track*();
 
+  bool operator==(refTrack const& b) const;
+  bool operator==(Track* b) const;
+
   QString title();
   QString author();
   QString extra();
@@ -102,8 +105,7 @@ public:
   ~DPlaylist();
   DPlaylist(QObject* parent = nullptr);
 
-//  QVector<NextMode> modesSupported() override { return { NextMode::Sequence, NextMode::Shuffle, NextMode::RandomAccess }; }
-  QVector<Settings::NextMode> modesSupported() override { return { Settings::NextSequence, Settings::NextRandomAccess }; }
+  QVector<Settings::NextMode> modesSupported() override { return { Settings::NextSequence, Settings::NextShuffle, Settings::NextRandomAccess }; }
   refTrack get(int index) override;
   Generator sequenceGenerator(int index = -1) override;
   Generator shuffleGenerator(int index = -1) override;
@@ -119,7 +121,7 @@ public slots:
 private:
   QVector<refTrack> _tracks;
   QVector<refTrack> _history;
-  int _lastIndex = 0;
+  int _currentIndex = 0;
 };
 
 struct Client : QObject
