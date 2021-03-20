@@ -153,9 +153,18 @@ Playlist::Generator DPlaylist::randomAccessGenerator(int index)
   Q_UNUSED(index)
   return {
     [this]() -> refTrack { // next
-      return get(QRandomGenerator::global()->bounded(_tracks.length() - 1));
+      auto a = get(QRandomGenerator::global()->bounded(_tracks.length() - 1));
+      _history.append(a);
+      if (_history.length() > _tracks.length())
+        _history.erase(_history.begin(), _history.begin() + (_history.length() - _tracks.length()));
+      return a;
     },
     [this]() -> refTrack { // prev
+      if (_history.length() > 1) {
+        auto a = _history[_history.length() - 2];
+        _history.pop_back();
+        return a;
+      }
       return get(QRandomGenerator::global()->bounded(_tracks.length() - 1));
     }
   };
