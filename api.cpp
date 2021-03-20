@@ -146,7 +146,7 @@ Playlist::Generator DPlaylist::sequenceGenerator(int index)
 
 Playlist::Generator DPlaylist::shuffleGenerator(int index)
 {
-  if (index < 0 || index > size()) return sequenceGenerator(QRandomGenerator::global()->bounded(_tracks.length() - 1));
+  if (index < 0 || index > size()) return shuffleGenerator(QRandomGenerator::global()->bounded(_tracks.length() - 1));
 
   _history = _tracks;
   std::shuffle(_history.begin(), _history.end(), rnd);
@@ -162,9 +162,9 @@ Playlist::Generator DPlaylist::shuffleGenerator(int index)
       possible.removeAll(*it);
     }
     if (possible.length() < 1)
-      return _tracks[QRandomGenerator::global()->bounded(_tracks.length() - 1)];
+      return _tracks[QRandomGenerator::global()->bounded(_tracks.length())];
     else
-      return possible[QRandomGenerator::global()->bounded(possible.length() - 1)];
+      return possible[QRandomGenerator::global()->bounded(possible.length())];
   };
 
   int half = std::floor((double)_tracks.length() / 2.0);
@@ -217,7 +217,7 @@ Playlist::Generator DPlaylist::randomAccessGenerator(int index)
   Q_UNUSED(index)
   return {
     [this]() -> refTrack { // next
-      auto a = get(QRandomGenerator::global()->bounded(_tracks.length() - 1));
+      auto a = get(QRandomGenerator::global()->bounded(_tracks.length()));
       _history.append(a);
       if (_history.length() > _tracks.length())
         _history.erase(_history.begin(), _history.begin() + (_history.length() - _tracks.length()));
@@ -229,7 +229,7 @@ Playlist::Generator DPlaylist::randomAccessGenerator(int index)
         _history.pop_back();
         return a;
       }
-      return get(QRandomGenerator::global()->bounded(_tracks.length() - 1));
+      return get(QRandomGenerator::global()->bounded(_tracks.length()));
     }
   };
 }
