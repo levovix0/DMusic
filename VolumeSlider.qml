@@ -72,5 +72,8 @@ Rectangle {
         root.seek(value)
       }
     }
+    onWheel: {
+      root.seek(value + 0.05 * wheel.angleDelta.y / 120)
+    }
   }
 }
