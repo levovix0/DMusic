@@ -56,12 +56,12 @@ Playlist::Playlist(QObject* parent) : QObject(parent)
 
 }
 
-refTrack Playlist::operator[](int index)
+refTrack_ Playlist::operator[](int index)
 {
   return get(index);
 }
 
-refTrack Playlist::get(int index)
+refTrack_ Playlist::get(int index)
 {
   Q_UNUSED(index)
   return nullptr;
@@ -123,7 +123,7 @@ DPlaylist::DPlaylist(QObject* parent) : Playlist(parent)
 
 }
 
-refTrack DPlaylist::get(int index)
+refTrack_ DPlaylist::get(int index)
 {
   return {_tracks[index], this};
 }
@@ -133,11 +133,11 @@ Playlist::Generator DPlaylist::sequenceGenerator(int index)
   if (index < -1 || index > size()) return sequenceGenerator(0);
   _currentIndex = index;
   return {
-    [this]() -> refTrack { // next
+    [this]() -> refTrack_ { // next
       if (_currentIndex + 1 >= _tracks.length() || _currentIndex < -1) return nullptr;
       return get(++_currentIndex);
     },
-    [this]() -> refTrack { // prev
+    [this]() -> refTrack_ { // prev
       if (_currentIndex - 1 >= _tracks.length() || _currentIndex < 1) return nullptr;
       return get(--_currentIndex);
     }
@@ -155,7 +155,7 @@ Playlist::Generator DPlaylist::shuffleGenerator(int index)
   // TODO: if index track in second half of history, reverse history
   _history.append(get(index));
 
-  auto gen = [this](refTrack* begin, refTrack* end) -> refTrack {
+  auto gen = [this](refTrack_* begin, refTrack_* end) -> refTrack_ {
     // do not repeat begin..end
     auto possible = _tracks;
     for (auto it = begin; it < end; ++it) {
@@ -173,7 +173,7 @@ Playlist::Generator DPlaylist::shuffleGenerator(int index)
   }
 
   return {
-    [this, gen]() -> refTrack { // next
+    [this, gen]() -> refTrack_ { // next
       if (_history.length() > _tracks.length() * 2 + 1) { // add some tracks
         // TODO
       }
@@ -191,7 +191,7 @@ Playlist::Generator DPlaylist::shuffleGenerator(int index)
 
       return _history[_currentIndex];
     },
-    [this, gen]() -> refTrack { // prev
+    [this, gen]() -> refTrack_ { // prev
       if (_history.length() > _tracks.length() * 2 + 1) { // add some tracks
         // TODO
       }
@@ -216,14 +216,14 @@ Playlist::Generator DPlaylist::randomAccessGenerator(int index)
 {
   Q_UNUSED(index)
   return {
-    [this]() -> refTrack { // next
+    [this]() -> refTrack_ { // next
       auto a = get(QRandomGenerator::global()->bounded(_tracks.length()));
       _history.append(a);
       if (_history.length() > _tracks.length())
         _history.erase(_history.begin(), _history.begin() + (_history.length() - _tracks.length()));
       return a;
     },
-    [this]() -> refTrack { // prev
+    [this]() -> refTrack_ { // prev
       if (_history.length() > 1) {
         auto a = _history[_history.length() - 2];
         _history.pop_back();
@@ -251,39 +251,39 @@ void DPlaylist::remove(Track* a)
   _tracks.erase(b);
 }
 
-refTrack::~refTrack()
+refTrack_::~refTrack_()
 {
   //decref
 }
 
-refTrack::refTrack(Track* a)
+refTrack_::refTrack_(Track* a)
 {
   _ref = a;
   //incref
 }
 
-refTrack::refTrack(Track* a, Playlist* playlist)
+refTrack_::refTrack_(Track* a, Playlist* playlist)
 {
   _ref = a;
   _attachedPlaylist = playlist;
   //incref
 }
 
-refTrack::refTrack(const refTrack& copy)
+refTrack_::refTrack_(const refTrack_& copy)
 {
   _ref = copy._ref;
   _attachedPlaylist = copy._attachedPlaylist;
   //incref
 }
 
-refTrack::refTrack(const refTrack& copy, Playlist* playlist)
+refTrack_::refTrack_(const refTrack_& copy, Playlist* playlist)
 {
   _ref = copy._ref;
   _attachedPlaylist = playlist;
   //incref
 }
 
-refTrack refTrack::operator=(const refTrack& copy)
+refTrack_ refTrack_::operator=(const refTrack_& copy)
 {
   _ref = copy._ref;
   _attachedPlaylist = copy._attachedPlaylist;
@@ -291,62 +291,62 @@ refTrack refTrack::operator=(const refTrack& copy)
   return *this;
 }
 
-bool refTrack::operator==(const refTrack& b) const
+bool refTrack_::operator==(const refTrack_& b) const
 {
   return _ref == b._ref;
 }
 
-bool refTrack::operator==(Track* b) const
+bool refTrack_::operator==(Track* b) const
 {
   return _ref == b;
 }
 
-refTrack::operator Track*()
+refTrack_::operator Track*()
 {
   return _ref;
 }
 
-QString refTrack::title()
+QString refTrack_::title()
 {
   return _ref->title();
 }
 
-QString refTrack::author()
+QString refTrack_::author()
 {
   return _ref->author();
 }
 
-QString refTrack::extra()
+QString refTrack_::extra()
 {
   return _ref->extra();
 }
 
-QString refTrack::cover()
+QString refTrack_::cover()
 {
   return _ref->cover();
 }
 
-QMediaContent refTrack::media()
+QMediaContent refTrack_::media()
 {
   return _ref->media();
 }
 
-qint64 refTrack::duration()
+qint64 refTrack_::duration()
 {
   return _ref->duration();
 }
 
-bool refTrack::isNone()
+bool refTrack_::isNone()
 {
   return _ref == nullptr;
 }
 
-Track* refTrack::ref()
+Track* refTrack_::ref()
 {
   return _ref;
 }
 
-Playlist* refTrack::attachedPlaylist()
+Playlist* refTrack_::attachedPlaylist()
 {
   return _attachedPlaylist;
 }

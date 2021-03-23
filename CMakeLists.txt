@@ -31,26 +31,20 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick LinguistTools Multimedi
 
 set(TS_FILES ${PROJECT_NAME}_ru_RU.ts)
 
-set(PROJECT_SOURCES
-        main.cpp
-        api.cpp
-        yapi.cpp
-        RemoteMediaController.cpp
-        mediaplayer.cpp
-        settings.cpp
-        qml.qrc
-        ${TS_FILES}
-)
+file(GLOB PROJECT_SOURCES "*.cpp")
+file(GLOB project_headers "*.hpp")
+file(GLOB project_qml "*.qml")
+set(PROJECT_SOURCES ${PROJECT_SOURCES} ${TS_FILES})
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+    qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${project_headers} qml.qrc)
 
     qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 else()
     if(ANDROID)
-        add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES})
+        add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES} ${project_headers} qml.qrc)
     else()
-        add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
+        add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${project_headers} qml.qrc)
     endif()
 
     qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})

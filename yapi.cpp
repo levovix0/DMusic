@@ -13,12 +13,6 @@
 
 using namespace py;
 
-QTextStream& qStdOut()
-{
-    static QTextStream ts(stdout);
-    return ts;
-}
-
 object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "NetworkError") {
   if (s == "") {
     while (true) {

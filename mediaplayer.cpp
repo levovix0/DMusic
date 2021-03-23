@@ -1,6 +1,7 @@
 #include "mediaplayer.hpp"
 #include "settings.hpp"
 #include "QDateTime"
+#include "Log.hpp"
 
 MediaPlayer::~MediaPlayer()
 {
@@ -27,7 +28,10 @@ MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
         if (next()) return;
       }
 
-      if (_currentTrack != &noneTrack && _currentTrack != nullptr) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+      if (_currentTrack != &noneTrack && _currentTrack != nullptr) {
+        QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+        QObject::disconnect(_currentTrack, &Track::mediaAborted, this, &MediaPlayer::onMediaAborted);
+      }
 
       _currentTrack = &noneTrack;
       emit currentTrackChanged(_currentTrack);
@@ -58,11 +62,10 @@ void MediaPlayer::play(Track* track)
     player->stop();
   }
 
-  if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
   _currentTrack = track;
 
   if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
-  //TODO: mediaAborted -> nextTrack_andShowWarning;
+  if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaAborted, this, &MediaPlayer::onMediaAborted);
 
   emit currentTrackChanged(_currentTrack);
 
@@ -81,11 +84,12 @@ void MediaPlayer::play(Playlist* playlist)
 
   _currentPlaylist = playlist;
   updatePlaylistGenerator();
-  if (_currentTrack != &noneTrack) QObject::disconnect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+
   _currentTrack = _gen.first(); // next
   if (_currentTrack == nullptr) return play(&noneTrack);
 
   if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+  if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaAborted, this, &MediaPlayer::onMediaAborted);
 
   emit currentTrackChanged(_currentTrack);
 
@@ -157,6 +161,12 @@ void MediaPlayer::setMedia(QMediaContent media)
   player->play();
 }
 
+void MediaPlayer::onMediaAborted()
+{
+  log.error("media aborted");
+  next();
+}
+
 void MediaPlayer::updatePlaylistGenerator()
 {
   if (_currentPlaylist == nullptr) {
@@ -200,6 +210,7 @@ bool MediaPlayer::next()
   if (_currentTrack == nullptr) return false;
 
   if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+  if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaAborted, this, &MediaPlayer::onMediaAborted);
 
   emit currentTrackChanged(_currentTrack);
 
@@ -219,6 +230,7 @@ bool MediaPlayer::prev()
   if (_currentTrack == nullptr) return false;
 
   if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaChanged, this, &MediaPlayer::setMedia);
+  if (_currentTrack != &noneTrack) QObject::connect(_currentTrack, &Track::mediaAborted, this, &MediaPlayer::onMediaAborted);
 
   emit currentTrackChanged(_currentTrack);
 

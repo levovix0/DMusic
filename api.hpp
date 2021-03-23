@@ -43,17 +43,17 @@ signals:
 private:
 };
 
-struct refTrack
+struct refTrack_
 {
-  ~refTrack();
-  refTrack(Track* a);
-  refTrack(Track* a, Playlist* playlist);
-  refTrack(refTrack const& copy);
-  refTrack(refTrack const& copy, Playlist* playlist);
-  refTrack operator=(refTrack const& copy);
+  ~refTrack_();
+  refTrack_(Track* a);
+  refTrack_(Track* a, Playlist* playlist);
+  refTrack_(refTrack_ const& copy);
+  refTrack_(refTrack_ const& copy, Playlist* playlist);
+  refTrack_ operator=(refTrack_ const& copy);
   operator Track*();
 
-  bool operator==(refTrack const& b) const;
+  bool operator==(refTrack_ const& b) const;
   bool operator==(Track* b) const;
 
   QString title();
@@ -77,17 +77,17 @@ struct Playlist : QObject
 {
   Q_OBJECT
 public:
-  using Generator = std::pair<std::function<refTrack()>, std::function<refTrack()>>;
+  using Generator = std::pair<std::function<refTrack_()>, std::function<refTrack_()>>;
 
   virtual ~Playlist();
   Playlist(QObject* parent = nullptr);
 
   static Playlist none;
 
-  refTrack operator[](int index);
+  refTrack_ operator[](int index);
 
   virtual QVector<Settings::NextMode> modesSupported() { return {}; }
-  virtual refTrack get(int index);
+  virtual refTrack_ get(int index);
   virtual Generator sequenceGenerator(int index = -1);
   virtual Generator shuffleGenerator(int index = -1);
   virtual Generator randomAccessGenerator(int index = -1);
@@ -106,7 +106,7 @@ public:
   DPlaylist(QObject* parent = nullptr);
 
   QVector<Settings::NextMode> modesSupported() override { return { Settings::NextSequence, Settings::NextShuffle, Settings::NextRandomAccess }; }
-  refTrack get(int index) override;
+  refTrack_ get(int index) override;
   Generator sequenceGenerator(int index = -1) override;
   Generator shuffleGenerator(int index = -1) override;
   Generator randomAccessGenerator(int index = -1) override;
@@ -119,8 +119,8 @@ public slots:
   void remove(Track* a);
 
 private:
-  QVector<refTrack> _tracks;
-  QVector<refTrack> _history;
+  QVector<refTrack_> _tracks;
+  QVector<refTrack_> _history;
   int _currentIndex = 0;
 };
 

@@ -42,6 +42,7 @@ public:
 
 private slots:
   void setMedia(QMediaContent media);
+  void onMediaAborted();
   void updatePlaylistGenerator();
 
 public slots:
