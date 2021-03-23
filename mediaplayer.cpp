@@ -246,7 +246,7 @@ void MediaPlayer::setProgress_ms(int progress)
 void MediaPlayer::setVolume(double volume)
 {
   volume = qMin(1.0, qMax(0.0, volume));
-  player->setVolume(qRound(volume * 100));
+  player->setVolume(qRound((volume * volume) * 100)); // volume^2
   _volume = volume;
   emit volumeChanged(volume);
 }
