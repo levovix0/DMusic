@@ -1,6 +1,9 @@
 #pragma once
+#undef slots
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#define slots Q_SLOTS
+
 #include <QString>
 #include <QVector>
 #include <QList>
@@ -441,7 +444,7 @@ namespace py
   {
     QMutexLocker locker(&mutex);
     raw = PyImport_ImportModule(name);
-    if (raw == nullptr) throw std::runtime_error("can't import module");
+    if (raw == nullptr) throw std::runtime_error(std::string("python: can't import module '") + name + "'");
   }
 
   inline module::module(object name) : module(name.to<std::string>().c_str()) {}

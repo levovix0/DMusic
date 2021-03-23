@@ -2,12 +2,9 @@
 #include <QString>
 #include <iostream>
 #include <fstream>
-#include <filesystem>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
-
-namespace fs = std::filesystem;
 
 enum FileMode {
   fmRead = QFile::ReadOnly,
@@ -130,18 +127,6 @@ inline void File::needOpen(QIODevice::OpenMode om)
 
 inline std::ostream& operator<<(std::ostream& o, QString const& s) {
   return o << s.toUtf8().data();
-}
-
-inline fs::path operator/(fs::path a, QString b) {
-  return a / std::string(b.toUtf8().data());
-}
-inline fs::path operator/(QString a, fs::path b) {
-  return std::string(a.toUtf8().data()) / b;
-}
-
-inline QString qstr(fs::path a)
-{
-  return a.string().c_str();
 }
 
 inline bool fileExists(QString path) {

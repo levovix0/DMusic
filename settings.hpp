@@ -1,7 +1,6 @@
 #pragma once
 #include <QString>
 #include <QObject>
-#include <filesystem>
 #include "file.hpp"
 
 class Settings : public QObject
@@ -41,7 +40,6 @@ public:
   static QString ym_token();
   static QString ym_proxyServer();
 
-  static fs::path ym_savePath_();
   static QString ym_savePath();
   static int ym_repeatsIfError();
 
@@ -83,6 +81,6 @@ private:
 
   inline static QString _ym_token = "";
   inline static QString _ym_proxyServer = "";
-  inline static fs::path _ym_savePath = "yandex/";
+  inline static QString _ym_savePath = "yandex/";
   inline static int _ym_repeatsIfError = 1;
 };

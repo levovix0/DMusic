@@ -13,6 +13,7 @@ Item {
 
     onActiveChanged: if (active) window.startSystemResize(edge);
     cursorShape: if (enabled) cursorShape = cursor
+    dragThreshold: 0
   }
 
   MouseArea {

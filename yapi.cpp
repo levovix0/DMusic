@@ -12,7 +12,6 @@
 #include <QMediaPlayer>
 
 using namespace py;
-namespace fs = std::filesystem;
 
 QTextStream& qStdOut()
 {
@@ -303,7 +302,7 @@ QString YTrack::cover()
     else emit coverAborted();
     return "qrc:resources/player/no-cover.svg";
   }
-  auto s = _relativePathToCover? qstr(Settings::ym_savePath_() / _cover) : _cover;
+  auto s = _relativePathToCover? QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _cover) : _cover;
   if (!fileExists(s)) {
     if (_relativePathToCover)
       _downloadCover(); // async
@@ -319,7 +318,7 @@ QMediaContent YTrack::media()
     else emit mediaAborted();
     return {};
   }
-  return QMediaContent("file:" + qstr(Settings::ym_savePath_() / _media));
+  return QMediaContent("file:" + QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _media));
 }
 
 qint64 YTrack::duration()

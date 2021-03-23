@@ -33,6 +33,7 @@ Rectangle {
     enabled: root.manual
     onActiveChanged: if (active) window.startSystemMove();
     target: null
+    dragThreshold: 0
   }
 
   MouseArea {
@@ -41,6 +42,7 @@ Rectangle {
 
     onDoubleClicked: root.window.maximize()
   }
+
   MouseArea {
     anchors.fill: root
     enabled: root.manual
