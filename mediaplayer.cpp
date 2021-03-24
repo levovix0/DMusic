@@ -163,7 +163,7 @@ void MediaPlayer::setMedia(QMediaContent media)
 
 void MediaPlayer::onMediaAborted()
 {
-  log.error("media aborted");
+  logging.error("media aborted");
   next();
 }
 

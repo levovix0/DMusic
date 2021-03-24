@@ -146,7 +146,7 @@ Playlist::Generator DPlaylist::sequenceGenerator(int index)
 
 Playlist::Generator DPlaylist::shuffleGenerator(int index)
 {
-  if (index < 0 || index > size()) return shuffleGenerator(QRandomGenerator::global()->bounded(_tracks.length() - 1));
+  if (index < 0 || index > size()) return shuffleGenerator(QRandomGenerator::global()->bounded(_tracks.length()));
 
   _history = _tracks;
   std::shuffle(_history.begin(), _history.end(), rnd);

@@ -26,8 +26,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Python3 COMPONENTS Development REQUIRED)
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick LinguistTools Multimedia DBus REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick LinguistTools Multimedia DBus REQUIRED)
+set(qt_winextras )
+if(WIN32)
+  set(qt_winextras WinExtras)
+endif()
+
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick LinguistTools Multimedia DBus ${qt_winextras} REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick LinguistTools Multimedia DBus ${qt_winextras} REQUIRED)
 
 set(TS_FILES ${PROJECT_NAME}_ru_RU.ts)
 
@@ -61,5 +66,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   Qt${QT_VERSION_MAJOR}::Multimedia
   Qt${QT_VERSION_MAJOR}::DBus
 )
+if(WIN32)
+  target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::WinExtras)
+endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${Python3_INCLUDE_DIRS})

@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+#undef log
 
 struct Log
 {
@@ -9,4 +10,4 @@ struct Log
   Log& error(QString s);
 };
 
-inline static Log log;
+inline static Log logging;

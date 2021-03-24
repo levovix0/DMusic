@@ -2,6 +2,7 @@
 #include "file.hpp"
 #include "settings.hpp"
 #include "utils.hpp"
+#include "Log.hpp"
 #include <thread>
 #include <functional>
 #include <QDebug>
@@ -309,7 +310,10 @@ QMediaContent YTrack::media()
 {
   if (_media.isEmpty()) {
     if (!_noMedia) _downloadMedia(); // async
-    else emit mediaAborted();
+    else {
+      logging.warning("yandex/" + QString::number(id()) + ": no media");
+      emit mediaAborted();
+    }
     return {};
   }
   return QMediaContent("file:" + QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _media));

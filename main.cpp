@@ -6,6 +6,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>
+#include <QtWinExtras>
 
 int main(int argc, char *argv[])
 {
@@ -21,8 +22,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<Settings>("DMusic", 1, 0, "Settings");
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
 
-  if (QFileInfo::exists("application.svg"))
-    QGuiApplication::setWindowIcon(QIcon("application.svg"));
+  QGuiApplication::setWindowIcon(QIcon(":resources/application.svg"));
   app.setApplicationName("DMusic");
 
   QQmlApplicationEngine engine;
