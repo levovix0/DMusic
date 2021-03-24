@@ -278,7 +278,7 @@ void Mpris2Player::onTrackChanged(Track* track)
 
 void Mpris2Player::onProgressChanged(qint64 ms)
 {
-  if (labs(ms - _prevPosition) > 100 || ms == 0 || _prevPosition == 0) //TODO: seek minimum by Settings
+  if (std::abs(ms - _prevPosition) > 100 || ms == 0 || _prevPosition == 0) //TODO: seek minimum by Settings
     emit Seeked(ms * 1000);
   _prevPosition = ms;
 }
@@ -423,7 +423,67 @@ MediaPlayer* RemoteMediaController::target()
 
 void RemoteMediaController::setTarget(MediaPlayer* player)
 {
+#ifdef Q_OS_WIN
+  delete _win;
+  _win = new ThumbnailController(player, this);
+#endif
   if (!_isDBusServiceCreated) return;
   _mpris2Player = new Mpris2Player(player, this);
   _target = player;
 }
+
+#ifdef Q_OS_WIN
+
+ThumbnailController::ThumbnailController(MediaPlayer* player, QObject* parent) : QObject(parent), _player(player)
+{
+  _toolbar = new QWinThumbnailToolBar(this);
+  auto windows = QGuiApplication::allWindows();
+  _toolbar->setWindow(windows[0]);
+
+  _pausePlay = new QWinThumbnailToolButton(_toolbar);
+  _pausePlay->setEnabled(false);
+  _pausePlay->setToolTip(tr("Play"));
+  _pausePlay->setIcon(QIcon(":resources/player/play.svg"));
+  connect(_pausePlay, &QWinThumbnailToolButton::clicked, _player, &MediaPlayer::pause_or_play);
+
+  _next = new QWinThumbnailToolButton(_toolbar);
+  _next->setEnabled(false);
+  _next->setToolTip(tr("Next"));
+  _next->setIcon(QIcon(":resources/player/next.svg"));
+  connect(_next, &QWinThumbnailToolButton::clicked, _player, &MediaPlayer::next);
+
+  _prev = new QWinThumbnailToolButton(_toolbar);
+  _prev->setEnabled(false);
+  _prev->setToolTip(tr("Previous"));
+  _prev->setIcon(QIcon(":resources/player/prev.svg"));
+  connect(_prev, &QWinThumbnailToolButton::clicked, _player, &MediaPlayer::prev);
+
+  _toolbar->addButton(_prev);
+  _toolbar->addButton(_pausePlay);
+  _toolbar->addButton(_next);
+
+  connect(_player, &MediaPlayer::stateChanged, this, &ThumbnailController::updateToolbar);
+}
+
+ThumbnailController::~ThumbnailController()
+{
+
+}
+
+void ThumbnailController::updateToolbar()
+{
+  if (_player->state() == QMediaPlayer::PlayingState) {
+    _pausePlay->setToolTip(tr("Pause"));
+    _pausePlay->setIcon(QIcon(":resources/player/pause.svg"));
+  } else {
+    _pausePlay->setToolTip(tr("Play"));
+    _pausePlay->setIcon(QIcon(":resources/player/play.svg"));
+  }
+
+  bool enabled = _player->state() != QMediaPlayer::StoppedState;
+  _pausePlay->setEnabled(enabled);
+  _next->setEnabled(enabled);
+  _prev->setEnabled(enabled);
+}
+
+#endif

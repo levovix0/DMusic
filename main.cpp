@@ -2,16 +2,23 @@
 #include "file.hpp"
 #include "settings.hpp"
 #include "mediaplayer.hpp"
+#include "Log.hpp"
 #include "RemoteMediaController.hpp"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>
-#include <QtWinExtras>
+#include <QTranslator>
 
 int main(int argc, char *argv[])
 {
   Py_Initialize();
+
+  QTranslator translator;
+  translator.load("russian");
+
   QGuiApplication app(argc, argv);
+  app.installTranslator(&translator);
+
   qmlRegisterType<YClient>("DMusic", 1, 0, "YClient");
   qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");

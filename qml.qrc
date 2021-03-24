@@ -58,5 +58,6 @@
         <file>VolumeSlider.qml</file>
         <file>FloatingPanel.qml</file>
         <file>PopupController.qml</file>
+        <file>russian.ts</file>
     </qresource>
 </RCC>

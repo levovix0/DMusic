@@ -34,7 +34,7 @@ endif()
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick LinguistTools Multimedia DBus ${qt_winextras} REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick LinguistTools Multimedia DBus ${qt_winextras} REQUIRED)
 
-set(TS_FILES ${PROJECT_NAME}_ru_RU.ts)
+set(TS_FILES russian.ts)
 
 file(GLOB PROJECT_SOURCES "*.cpp")
 file(GLOB project_headers "*.hpp")
@@ -42,17 +42,17 @@ file(GLOB project_qml "*.qml")
 set(PROJECT_SOURCES ${PROJECT_SOURCES} ${TS_FILES})
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${project_headers} qml.qrc)
+  qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
-    qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+  qt_add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${project_headers} qml.qrc ${QM_FILES})
 else()
-    if(ANDROID)
-        add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES} ${project_headers} qml.qrc)
-    else()
-        add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${project_headers} qml.qrc)
-    endif()
+  qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
-    qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+  if(ANDROID)
+    add_library(${PROJECT_NAME} SHARED ${PROJECT_SOURCES} ${project_headers} qml.qrc ${QM_FILES})
+  else()
+    add_executable(${PROJECT_NAME} ${PROJECT_SOURCES} ${project_headers} qml.qrc ${QM_FILES})
+  endif()
 endif()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE

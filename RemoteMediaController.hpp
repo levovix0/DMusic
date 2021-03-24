@@ -5,6 +5,10 @@
 #include <QDBusReply>
 #include <QDBusAbstractAdaptor>
 
+#ifdef Q_OS_WIN
+#include <QtWinExtras>
+#endif
+
 
 class Mpris2Root : public QDBusAbstractAdaptor
 {
@@ -123,6 +127,28 @@ private:
     QMap<QString, QVariant> _currentTrackMetadata;
 };
 
+#ifdef Q_OS_WIN
+
+class ThumbnailController : public QObject
+{
+  Q_OBJECT
+public:
+  explicit ThumbnailController(MediaPlayer* player, QObject* parent = nullptr);
+  ~ThumbnailController();
+
+private slots:
+  void updateToolbar();
+
+private:
+  MediaPlayer* _player;
+  QWinThumbnailToolBar* _toolbar;
+  QWinThumbnailToolButton* _next;
+  QWinThumbnailToolButton* _prev;
+  QWinThumbnailToolButton* _pausePlay;
+};
+
+#endif
+
 class RemoteMediaController : public QObject
 {
   Q_OBJECT
@@ -144,6 +170,9 @@ private:
   Mpris2Root* _mpris2Root;
   Mpris2Player* _mpris2Player;
   MediaPlayer* _target;
+#ifdef Q_OS_WIN
+  ThumbnailController* _win = nullptr;
+#endif
   inline static qint64 _serviceDuplicateCount = 1;
 };
 
