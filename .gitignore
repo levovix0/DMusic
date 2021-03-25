@@ -1,6 +1,6 @@
-/DMusic
 /.vscode
 /build-*
 *.user
-/yapi/tests/test1
-/yapi/tests/test1.exe
+
+# Qt translation binaries
+*.qm

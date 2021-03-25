@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
   Py_Initialize();
 
   QTranslator translator;
-  translator.load("russian");
+  translator.load(":translations/russian");
 
   QGuiApplication app(argc, argv);
   app.installTranslator(&translator);

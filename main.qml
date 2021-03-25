@@ -93,7 +93,8 @@ Window {
       anchors.right: root.horizontalCenter
       anchors.rightMargin: 10
 
-      text: "Прослушать"
+      //: Play button
+      text: qsTr("Play")
 
       onClick: {
         _player.player.play(_yapi.track(parseInt(_id_input.text)))
@@ -107,7 +108,7 @@ Window {
       anchors.left: root.horizontalCenter
       anchors.leftMargin: 10
 
-      text: "Прослушать скачанное"
+      text: qsTr("Play downloaded")
 
       onClick: {
         _player.player.play(_yapi.downloadsPlaylist())
