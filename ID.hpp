@@ -5,7 +5,7 @@ struct ID
 {
   refClient client;
   qint64 id = 0;
-  QString path = "";
+  DataKind kind = dkNone;
 
   QString toString();
 };

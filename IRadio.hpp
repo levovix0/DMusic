@@ -10,6 +10,6 @@ public:
   virtual void previous() = 0;    // goto previous track
 
   virtual bool hasCurrent();
-  virtual bool hasNext() = 0;
-  virtual bool hasPrevious() = 0;
+  virtual bool hasNext();
+  virtual bool hasPrevious();
 };

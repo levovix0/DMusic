@@ -3,8 +3,8 @@
 
 QString ID::toString()
 {
-  if (path.isEmpty())
+  if (kind == dkNone)
     return client->identity() + '/' + QString::number(id);
   else
-    return client->identity() + '/' + path + '/' + QString::number(id);
+    return client->identity() + '/' + ::toString(kind) + '/' + QString::number(id);
 }
