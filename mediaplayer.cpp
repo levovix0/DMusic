@@ -8,7 +8,7 @@ MediaPlayer::~MediaPlayer()
   delete player;
 }
 
-MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer), _currentTrack(nullptr)
+MediaPlayer::MediaPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer(this)), _currentTrack(nullptr)
 {
   player->setNotifyInterval(50);
   player->setVolume(50);

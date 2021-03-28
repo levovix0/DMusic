@@ -11,3 +11,5 @@ struct Log
 };
 
 inline static Log logging;
+
+inline void __logging_used() { (void)logging; }
