@@ -19,6 +19,8 @@ Item {
     id: _info
     anchors.left: _icon.right
     anchors.leftMargin: 11
+    width: root.width - anchors.leftMargin - _icon.width
+    height: root.height
 
     title: root.title
     author: root.author

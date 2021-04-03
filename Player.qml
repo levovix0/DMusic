@@ -28,6 +28,7 @@ Rectangle {
   }
 
   PlayerLine {
+    id: _playerLine
     anchors.horizontalCenter: root.horizontalCenter
     y: 48
     width: root.width / 2.7
@@ -35,7 +36,7 @@ Rectangle {
     progress: _player.progress
     onSeek: _player.progress = progress
 
-    progressText: _player.formatProgress
+    positionText: _player.formatProgress
     durationText: _player.formatDuration
   }
 
@@ -67,6 +68,9 @@ Rectangle {
     id: _track
     x: 8
     anchors.verticalCenter: root.verticalCenter
+    width: root.width / 2 - _playerLine.leftWidth - 14 - x
+    height: root.height
+
     icon: _player.currentTrack.cover
     title: _player.currentTrack.title
     author: _player.currentTrack.author

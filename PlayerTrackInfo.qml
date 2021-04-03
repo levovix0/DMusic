@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.15
 
 Item {
   id: root
@@ -6,6 +6,8 @@ Item {
   property string title: ""
   property string author: ""
   property string extra: ""
+
+  clip: true
 
   DText {
     id: _title
@@ -36,5 +38,17 @@ Item {
     text: extra
     font.pixelSize: 14
     color: "#999999"
+  }
+
+  Rectangle {
+    width: 10
+    height: root.height
+    anchors.right: root.right
+
+    gradient: Gradient {
+      orientation: Gradient.Horizontal
+      GradientStop { position: 0.0; color: "transparent" }
+      GradientStop { position: 1.0; color: "#262626" }
+    }
   }
 }
