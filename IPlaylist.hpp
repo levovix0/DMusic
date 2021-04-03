@@ -5,4 +5,7 @@ class IPlaylist : public QObject
 {
   Q_OBJECT
 public:
+
+signals:
+  void dataChanged();
 };

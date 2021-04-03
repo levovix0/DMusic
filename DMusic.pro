@@ -12,6 +12,7 @@ SOURCES += \
         IRadio.cpp \
         ITrack.cpp \
         Log.cpp \
+        QmlRadio.cpp \
         QmlTrack.cpp \
         RemoteMediaController.cpp \
         api.cpp \
@@ -29,6 +30,7 @@ HEADERS += \
   IRadio.hpp \
   ITrack.hpp \
   Log.hpp \
+  QmlRadio.hpp \
   QmlTrack.hpp \
   RemoteMediaController.hpp \
   api.hpp \

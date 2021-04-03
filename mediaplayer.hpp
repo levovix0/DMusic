@@ -80,7 +80,7 @@ private:
 
   QMediaPlayer* player;
   Track* _currentTrack;
-  Playlist* _currentPlaylist;
+  Playlist* _currentPlaylist = nullptr;
   Playlist::Generator _gen;
   double _volume;
   Settings::LoopMode _loopMode;

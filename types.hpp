@@ -5,14 +5,14 @@ class ITrack;
 class IArtist;
 class IPlaylst;
 class IRadio;
-class IPlaylstRadio;
+class IPlaylistRadio;
 class IClient;
 
 using refTrack = QSharedPointer<ITrack>;
 using refArtist = QSharedPointer<IArtist>;
 using refPlaylist = QSharedPointer<IPlaylst>;
 using refRadio = QSharedPointer<IRadio>;
-using refPlaylistRadio = QSharedPointer<IPlaylstRadio>;
+using refPlaylistRadio = QSharedPointer<IPlaylistRadio>;
 using refClient = QSharedPointer<IClient>;
 
 enum DataKind : quint8 {
