@@ -16,6 +16,7 @@
 
 namespace py
 {
+// TODO: итератор по списку
   inline QMutex mutex(QMutex::Recursive);
 
   struct none_t {};
@@ -55,6 +56,9 @@ namespace py
 
     object copy() const;
     object deepcopy() const;
+
+    object& print();
+    object& throw_repr();
 
     object operator<(object const& a) const;
     bool operator==(none_t) const;
@@ -403,6 +407,18 @@ namespace py
   inline object object::deepcopy() const
   {
     return module("copy").call("deepcopy", *this);
+  }
+
+  inline object& object::print()
+  {
+    PyObject_Print(raw, stdout, 0);
+    return *this;
+  }
+
+  inline object& object::throw_repr()
+  {
+    throw std::runtime_error(to<std::string>());
+    return *this;
   }
 
   inline object object::operator<(const object& a) const

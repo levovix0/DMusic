@@ -34,7 +34,13 @@
         <translation>Прослушать</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="111"/>
+        <location filename="../main.qml" line="113"/>
+        <source>Play playlist</source>
+        <extracomment>Play button</extracomment>
+        <translation type="unfinished">Прослушать плейлист</translation>
+    </message>
+    <message>
+        <location filename="../main.qml" line="128"/>
         <source>Play downloaded</source>
         <translation>Прослушать скачанное</translation>
     </message>
