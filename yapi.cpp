@@ -221,6 +221,20 @@ void YClient::fetchYTracks(qint64 id, const QJSValue& callback)
   do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchYTracks, id);
 }
 
+Playlist* YClient::playlist(int id)
+{
+  auto a = me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0].call("fetch_tracks");
+  DPlaylist* res = new DPlaylist(this);
+  for (int i = 0; i < PyList_Size(a.raw); ++i) {
+    object p = PyList_GetItem(a.raw, i);
+    auto track = p.get("tracks").call("fetch_track").to<YTrack*>();
+    track->_client = this;
+    track->setParent(this);
+    res->add(track);
+  }
+  return res;
+}
+
 Playlist* YClient::track(qint64 id)
 {
   DPlaylist* res = new DPlaylist(this);

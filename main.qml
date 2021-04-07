@@ -97,7 +97,24 @@ Window {
       text: qsTr("Play")
 
       onClick: {
+        if (_id_input.text == "") return
         _player.player.play(_yapi.track(parseInt(_id_input.text)))
+      }
+    }
+
+    DButton {
+      id: _play_playlist
+      anchors.verticalCenter: root.verticalCenter
+      anchors.verticalCenterOffset: 40
+      anchors.right: _play.left
+      anchors.rightMargin: 20
+
+      //: Play button
+      text: qsTr("Play playlist")
+
+      onClick: {
+        if (_id_input.text == "") return
+        _player.player.play(_yapi.playlist(parseInt(_id_input.text)))
       }
     }
 
@@ -111,6 +128,7 @@ Window {
       text: qsTr("Play downloaded")
 
       onClick: {
+        if (_id_input.text == "") return
         _player.player.play(_yapi.downloadsPlaylist())
       }
     }
