@@ -39,6 +39,7 @@ namespace py
 
     object attr(object name) const;
     object get(object name) const { return attr(name); }
+    bool has(object name) const;
 
     object operator()(std::initializer_list<object> const& args) const;
     object operator()(object arg) const;
@@ -59,6 +60,8 @@ namespace py
 
     object& print();
     object& throw_repr();
+
+    operator bool() { return to<bool>(); }
 
     object operator<(object const& a) const;
     bool operator==(none_t) const;
@@ -334,6 +337,12 @@ namespace py
   {
     QMutexLocker locker(&mutex);
     return maybe_exception(PyObject_GetAttr(raw, name.raw));
+  }
+
+  inline bool object::has(object name) const
+  {
+    QMutexLocker locker(&mutex);
+    return PyObject_HasAttr(raw, name.raw);
   }
 
 
