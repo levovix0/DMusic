@@ -7,7 +7,7 @@ class IRadio : public QObject
 public:
   virtual refTrack current() = 0; // get current track
   virtual void next() = 0;        // goto next track
-  virtual void previous() = 0;    // goto previous track
+  virtual void prev() = 0;    // goto previous track
 
   virtual bool hasCurrent();
   virtual bool hasNext();

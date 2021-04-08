@@ -84,12 +84,20 @@ void AudioPlayer::play()
 
 void AudioPlayer::next()
 {
-  // todo
+  _radio->next();
+  if (_radio->hasCurrent())
+    _playTrack(_radio->current());
+  else
+    stop();
 }
 
 void AudioPlayer::prev()
 {
-  // todo
+  _radio->prev();
+  if (_radio->hasCurrent())
+    _playTrack(_radio->current());
+  else
+    stop();
 }
 
 void AudioPlayer::stop()
@@ -111,7 +119,10 @@ void AudioPlayer::togglePause()
 void AudioPlayer::play(refRadio radio)
 {
   _setRadio(radio);
-  play();
+  if (radio->hasCurrent())
+    _playTrack(radio->current());
+  else
+    stop();
 }
 
 void AudioPlayer::play(QmlRadio* radio)
@@ -133,12 +144,14 @@ void AudioPlayer::setState(AudioPlayer::State state)
 void AudioPlayer::setNextMode(IPlaylistRadio::NextMode nextMode)
 {
   _nextMode = nextMode;
+  if (_playlist != nullptr) _playlist->setNextMode(nextMode);
   emit nextModeChanged(nextMode);
 }
 
 void AudioPlayer::setLoopMode(IPlaylistRadio::LoopMode loopMode)
 {
   _loopMode = loopMode;
+  if (_playlist != nullptr) _playlist->setLoopMode(loopMode);
   emit loopModeChanged(loopMode);
 }
 
@@ -174,7 +187,22 @@ void AudioPlayer::_updateState(QMediaPlayer::State state)
   case QMediaPlayer::PausedState: _state = StatePaused; break;
   case QMediaPlayer::StoppedState: _state = StateStopped; break;
   }
+  if (_state == StateStopped)
+    _resetTrack();
   emit stateChanged(_state);
+}
+
+void AudioPlayer::_onMediaChanged(std::optional<QMediaContent> media)
+{
+  if (media == std::nullopt) return _onMediaAborted();
+  _player->setMedia(media.value());
+  _player->play();
+}
+
+void AudioPlayer::_onMediaAborted()
+{
+  next();
+  // TODO: show warning
 }
 
 void AudioPlayer::_setRadio(refRadio radio)
@@ -182,7 +210,48 @@ void AudioPlayer::_setRadio(refRadio radio)
   _radio = radio;
   _playlist = dynamic_cast<IPlaylistRadio*>(radio.get());
   _currentRadioQml->ref = _radio;
+  if (_playlist != nullptr) {
+    _playlist->setNextMode(_nextMode);
+    _playlist->setLoopMode(_loopMode);
+  }
   emit currentRadioChanged(_currentRadioQml);
+}
+
+void AudioPlayer::_unsubscribeCurrentTrack()
+{
+  disconnect(this, nullptr, _track.get(), nullptr);
+}
+
+void AudioPlayer::_subscribeCurrentTrack()
+{
+  connect(_track.get(), &ITrack::mediaChanged, this, &AudioPlayer::_onMediaChanged);
+  connect(_track.get(), &ITrack::mediaAborted, this, &AudioPlayer::_onMediaAborted);
+}
+
+void AudioPlayer::_setTrack(refTrack track)
+{
+  _unsubscribeCurrentTrack();
+  _track = track;
+  _subscribeCurrentTrack();
+  _currentTrackQml->ref = _track;
+  emit currentTrackChanged(_currentTrackQml);
+}
+
+void AudioPlayer::_playTrack(refTrack track)
+{
+  _setTrack(track);
+  auto media = track->media();
+  if (media != std::nullopt) {
+    _player->setMedia(media.value());
+    _player->play();
+  }
+}
+
+void AudioPlayer::_resetTrack()
+{
+  _unsubscribeCurrentTrack();
+  // TODO
+  emit currentTrackChanged(_currentTrackQml);
 }
 
 QString AudioPlayer::_formatTime(int t)
@@ -199,5 +268,5 @@ QString AudioPlayer::_formatTime(int t)
 
 void AudioPlayer::_onMediaEnded()
 {
-  // do magic
+  next();
 }

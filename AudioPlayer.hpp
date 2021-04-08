@@ -77,9 +77,16 @@ signals:
 
 private slots:
   void _updateState(QMediaPlayer::State state);
+  void _onMediaChanged(std::optional<QMediaContent> media);
+  void _onMediaAborted();
 
 private:
   void _setRadio(refRadio radio);
+  void _unsubscribeCurrentTrack();
+  void _subscribeCurrentTrack();
+  void _setTrack(refTrack track);
+  void _playTrack(refTrack track);
+  void _resetTrack();
   QString _formatTime(int t);
   void _onMediaEnded();
 
@@ -88,6 +95,7 @@ private:
 
   IPlaylistRadio* _playlist = nullptr;
   refRadio _radio;
+  refTrack _track;
 
   QMediaPlayer* _player;
   State _state = StateStopped;

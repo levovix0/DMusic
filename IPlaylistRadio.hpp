@@ -15,6 +15,8 @@ public:
     LoopTrack,
   };
 
+  // TODO: auto-fetch next and previous
+
   virtual NextMode nextMode();
   virtual LoopMode loopMode();
 
