@@ -278,6 +278,11 @@ YTrack::YTrack(QObject* parent) : Track(parent)
 
 }
 
+QString YTrack::idInt()
+{
+  return QString::number(_id);
+}
+
 QString YTrack::title()
 {
   if (_title.isEmpty() && !_noTitle) {

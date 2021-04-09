@@ -7,6 +7,7 @@ Item {
   property string title: ""
   property string author: ""
   property string extra: ""
+  property string idInt: ""
 
   PlayerTrackIcon {
     id: _icon
@@ -25,5 +26,6 @@ Item {
     title: root.title
     author: root.author
     extra: root.extra
+    idInt: root.idInt
   }
 }

@@ -5,6 +5,7 @@ CONFIG += c++17
 
 SOURCES += \
         AudioPlayer.cpp \
+        Clipboard.cpp \
         IArtist.cpp \
         IClient.cpp \
         ID.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
 
 HEADERS += \
   AudioPlayer.hpp \
+  Clipboard.hpp \
   IArtist.hpp \
   IClient.hpp \
   ID.hpp \

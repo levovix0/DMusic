@@ -13,6 +13,7 @@ public:
   virtual ~Track();
   explicit Track(QObject *parent = nullptr);
 
+  Q_PROPERTY(QString idInt READ idInt NOTIFY idIntChanged)
   Q_PROPERTY(QString title READ title NOTIFY titleChanged)
   Q_PROPERTY(QString author READ author NOTIFY authorChanged)
   Q_PROPERTY(QString extra READ extra NOTIFY extraChanged)
@@ -20,6 +21,7 @@ public:
   Q_PROPERTY(QMediaContent media READ media NOTIFY mediaChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
 
+  virtual QString idInt();
   virtual QString title();
   virtual QString author();
   virtual QString extra();
@@ -30,6 +32,7 @@ public:
 public slots:
 
 signals:
+  void idIntChanged(QString idInt);
   void titleChanged(QString title);
   void authorChanged(QString author);
   void extraChanged(QString extra);
@@ -131,5 +134,3 @@ public:
 
 private:
 };
-
-// TODO: client, освобождающий мусор, когда все говорят ему, что больше не используют трек

@@ -75,5 +75,6 @@ Rectangle {
     title: _player.currentTrack.title
     author: _player.currentTrack.author
     extra: _player.currentTrack.extra
+    idInt: _player.currentTrack.idInt
   }
 }

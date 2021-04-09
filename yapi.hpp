@@ -21,6 +21,7 @@ public:
 
   PyObject* raw() const { return _py.raw; }
 
+  QString idInt() override;
   QString title() override;
   QString author() override;
   QString extra() override;

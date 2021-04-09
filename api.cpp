@@ -16,6 +16,11 @@ Track::~Track()
 Track::Track(QObject* parent) : QObject(parent)
 {}
 
+QString Track::idInt()
+{
+  return "";
+}
+
 QString Track::title()
 {
   return "";

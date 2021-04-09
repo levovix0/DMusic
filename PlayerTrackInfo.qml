@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import DMusic 1.0
 
 Item {
   id: root
@@ -6,6 +7,7 @@ Item {
   property string title: ""
   property string author: ""
   property string extra: ""
+  property string idInt: ""
 
   clip: true
 
@@ -16,6 +18,17 @@ Item {
 
     text: title
     font.pixelSize: 14
+
+    MouseArea {
+      anchors.fill: parent
+      cursorShape: Qt.PointingHandCursor
+
+      Clipboard {
+        id: _clipboard
+      }
+
+      onClicked: _clipboard.copy(root.idInt);
+    }
   }
 
   DText {
