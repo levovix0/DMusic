@@ -227,11 +227,8 @@ Playlist* YClient::playlist(int id)
   DPlaylist* res = new DPlaylist(this);
   for (int i = 0; i < PyList_Size(a.raw); ++i) {
     object p = PyList_GetItem(a.raw, i);
-    if (p.has("user_info")) continue;
-    auto track = p.call("fetch_track").to<YTrack*>(); // TODO: fetch_track только при попытке доступа к информации трека
-    track->_client = this;
-    track->setParent(this);
-    res->add(track);
+    if (!p.has("id")) continue;
+    res->add(new YTrack(p.get("id").to<int>(), this));
   }
   return res;
 }
