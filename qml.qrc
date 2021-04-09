@@ -25,9 +25,6 @@
         <file>Title.qml</file>
         <file>TitleManualButton.qml</file>
         <file>PlayerControlsButton.qml</file>
-        <file>resources/application.ico</file>
-        <file>resources/application.png</file>
-        <file>resources/application.svg</file>
         <file>resources/logo.svg</file>
         <file>resources/title/back.svg</file>
         <file>resources/title/close.svg</file>
@@ -58,5 +55,9 @@
         <file>VolumeSlider.qml</file>
         <file>FloatingPanel.qml</file>
         <file>PopupController.qml</file>
+        <file>resources/app-papirus.svg</file>
+        <file>resources/app.png</file>
+        <file>resources/app.svg</file>
+        <file>resources/app.ico</file>
     </qresource>
 </RCC>

@@ -5,6 +5,7 @@ CONFIG += c++17
 
 SOURCES += \
         AudioPlayer.cpp \
+        IArtist.cpp \
         IClient.cpp \
         ID.cpp \
         IPlaylist.cpp \
@@ -23,6 +24,7 @@ SOURCES += \
 
 HEADERS += \
   AudioPlayer.hpp \
+  IArtist.hpp \
   IClient.hpp \
   ID.hpp \
   IPlaylist.hpp \
@@ -43,7 +45,7 @@ HEADERS += \
   yapi.hpp
 
 RESOURCES += qml.qrc translations.qrc
-win32:RC_ICONS += resources/application.ico
+win32:RC_ICONS += resources/app.ico
 
 TRANSLATIONS += \
   translations/russian.ts

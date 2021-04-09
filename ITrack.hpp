@@ -34,7 +34,7 @@ public slots:
 
 signals:
   void titleChanged(std::optional<QString> title);
-  void authorChanged(std::optional<QVector<refArtist>> author);
+  void artistsChanged(std::optional<QVector<refArtist>> author);
   void extraChanged(std::optional<QString> extra);
   void coverChanged(std::optional<QString> cover);
   void mediaChanged(std::optional<QMediaContent> media);

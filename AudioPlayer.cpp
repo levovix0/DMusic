@@ -233,7 +233,7 @@ void AudioPlayer::_setTrack(refTrack track)
   _unsubscribeCurrentTrack();
   _track = track;
   _subscribeCurrentTrack();
-  _currentTrackQml->ref = _track;
+  _currentTrackQml->setRef(_track);
   emit currentTrackChanged(_currentTrackQml);
 }
 

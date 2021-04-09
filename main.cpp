@@ -29,7 +29,11 @@ int main(int argc, char *argv[])
   qmlRegisterType<Settings>("DMusic", 1, 0, "Settings");
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
 
-  QGuiApplication::setWindowIcon(QIcon(":resources/application.svg"));
+#ifdef Q_OS_LINUX
+  QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));
+#else
+  QGuiApplication::setWindowIcon(QIcon(":resources/app.svg"));
+#endif
   app.setApplicationName("DMusic");
 
   QQmlApplicationEngine engine;
