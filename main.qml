@@ -133,5 +133,12 @@ Window {
       }
     }
     Keys.onSpacePressed: _player.player.pause_or_play()
+
+    PlaylistEntry {
+      anchors.left: root.left
+      anchors.top: _title.bottom
+      anchors.leftMargin: 25
+      anchors.topMargin: 25
+    }
   }
 }

@@ -59,5 +59,7 @@
         <file>resources/app.svg</file>
         <file>resources/app.ico</file>
         <file>resources/app-papirus.svg</file>
+        <file>PlaylistEntry.qml</file>
+        <file>RoundMask.qml</file>
     </qresource>
 </RCC>
