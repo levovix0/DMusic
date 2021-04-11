@@ -75,8 +75,11 @@ namespace py
   struct py_error : std::exception
   {
     std::string type;
+    object value;
+
     py_error(object type, object value, object traceback);
 
+    std::string msg;
     char const* what() const throw() override;
   };
 
@@ -496,14 +499,19 @@ namespace py
 
   inline py_error::py_error(object type, object value, object traceback)
   {
-    (void)value;
-    (void)traceback;
     this->type = type.get("__name__").to<std::string>();
+    this->value = value;
+    (void)traceback;
+
+    if (value == none) {
+      msg = this->type;
+    } else {
+      msg = value.to<std::string>() + " [" + this->type + "]";
+    }
   }
 
   inline const char* py_error::what() const throw()
   {
-    return type.c_str();
+    return msg.c_str();
   }
-
 }

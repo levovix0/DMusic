@@ -2,6 +2,8 @@
 #include <QGuiApplication>
 #include <stdexcept>
 
+using namespace py;
+
 Mpris2Root::Mpris2Root(QObject* parent) : QDBusAbstractAdaptor(parent)
 {
 }
@@ -387,51 +389,6 @@ QString Mpris2Player::stateToString(QMediaPlayer::State state)
   }
 }
 
-
-
-RemoteMediaController::~RemoteMediaController()
-{
-  if (!_isDBusServiceCreated) return;
-  auto&& bus = QDBusConnection::sessionBus();
-  bus.unregisterObject("/org/mpris/MediaPlayer2");
-  bus.unregisterService(serviceName);
-}
-
-RemoteMediaController::RemoteMediaController(QObject *parent) : QObject(parent)
-{
-  auto&& bus = QDBusConnection::sessionBus();
-
-  if (!bus.isConnected()) return;
-  while (!bus.registerService(serviceName + (_serviceDuplicateCount == 1? "" : QString::number(_serviceDuplicateCount)))) {
-    if (_serviceDuplicateCount > 20)
-      throw std::runtime_error(qPrintable(QDBusConnection::sessionBus().lastError().message()));
-    ++_serviceDuplicateCount;
-  }
-
-  if (!bus.registerObject("/org/mpris/MediaPlayer2", this))
-    throw std::runtime_error(qPrintable(QDBusConnection::sessionBus().lastError().message()));
-
-  _mpris2Root = new Mpris2Root(this);
-
-  _isDBusServiceCreated = true;
-}
-
-MediaPlayer* RemoteMediaController::target()
-{
-  return _target;
-}
-
-void RemoteMediaController::setTarget(MediaPlayer* player)
-{
-#ifdef Q_OS_WIN
-  delete _win;
-  _win = new ThumbnailController(player, this);
-#endif
-  if (!_isDBusServiceCreated) return;
-  _mpris2Player = new Mpris2Player(player, this);
-  _target = player;
-}
-
 #ifdef Q_OS_WIN
 
 ThumbnailController::ThumbnailController(MediaPlayer* player, QObject* parent) : QObject(parent), _player(player)
@@ -487,3 +444,101 @@ void ThumbnailController::updateToolbar()
 }
 
 #endif
+
+DiscordPresence::DiscordPresence(MediaPlayer* player, QObject* parent) : QObject(parent), _player(player)
+{
+  try {
+    auto presence = py::module("pypresence");
+    _time = module("time");
+    _start = _time.call("time");
+    _rpc = presence.call("Presence", "830725995769626624");
+
+    //TODO: buttons
+
+    _rpc.call("connect");
+
+    connect(_player, &MediaPlayer::currentTrackChanged, this, &DiscordPresence::update);
+  } catch(py_error const& e) {
+    std::cerr << "failed to init discord presence: " << e.what();
+  }
+}
+
+void DiscordPresence::update(Track* track)
+{
+  if (_rpc == py::none) return;
+  try {
+    _rpc.call("clear");
+
+    std::map<std::string, object> args;
+    args["state"] = track->author();
+    if (track->extra() == "")
+      args["details"] = track->title();
+    else
+      args["details"] = track->title() + " (" + track->extra() + ")";
+    args["start"] = _start;
+    args["large_image"] = "app";
+    args["large_text"] = track->idInt();
+    _rpc.call("update", std::initializer_list<object>{}, args);
+  }  catch (py_error const& e) {
+//     it's normal ;)
+  }
+}
+
+void DiscordPresence::onTrackChanged(Track* track)
+{
+  disconnect(nullptr, nullptr, this, SLOT(updateData()));
+  update(track);
+  connect(track, &Track::authorChanged, this, &DiscordPresence::updateData);
+  connect(track, &Track::titleChanged, this, &DiscordPresence::updateData);
+  connect(track, &Track::idIntChanged, this, &DiscordPresence::updateData);
+}
+
+void DiscordPresence::updateData()
+{
+  update(_player->currentTrack());
+}
+
+
+RemoteMediaController::~RemoteMediaController()
+{
+  if (!_isDBusServiceCreated) return;
+  auto&& bus = QDBusConnection::sessionBus();
+  bus.unregisterObject("/org/mpris/MediaPlayer2");
+  bus.unregisterService(serviceName);
+}
+
+RemoteMediaController::RemoteMediaController(QObject *parent) : QObject(parent)
+{
+  auto&& bus = QDBusConnection::sessionBus();
+
+  if (!bus.isConnected()) return;
+  while (!bus.registerService(serviceName + (_serviceDuplicateCount == 1? "" : QString::number(_serviceDuplicateCount)))) {
+    if (_serviceDuplicateCount > 20)
+      throw std::runtime_error(qPrintable(QDBusConnection::sessionBus().lastError().message()));
+    ++_serviceDuplicateCount;
+  }
+
+  if (!bus.registerObject("/org/mpris/MediaPlayer2", this))
+    throw std::runtime_error(qPrintable(QDBusConnection::sessionBus().lastError().message()));
+
+  _mpris2Root = new Mpris2Root(this);
+
+  _isDBusServiceCreated = true;
+}
+
+MediaPlayer* RemoteMediaController::target()
+{
+  return _target;
+}
+
+void RemoteMediaController::setTarget(MediaPlayer* player)
+{
+#ifdef Q_OS_WIN
+  delete _win;
+  _win = new ThumbnailController(player, this);
+#endif
+  if (!_isDBusServiceCreated) return;
+  _mpris2Player = new Mpris2Player(player, this);
+  _discordPresence = new DiscordPresence(player, this);
+  _target = player;
+}

@@ -1,9 +1,10 @@
 #pragma once
-#include "mediaplayer.hpp"
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QDBusReply>
 #include <QDBusAbstractAdaptor>
+#include "mediaplayer.hpp"
+#include "python.hpp"
 
 #ifdef Q_OS_WIN
 #include <QtWinExtras>
@@ -149,6 +150,24 @@ private:
 
 #endif
 
+class DiscordPresence : public QObject
+{
+  Q_OBJECT
+public:
+  DiscordPresence(MediaPlayer* player, QObject* parent = nullptr);
+
+  void update(Track* track);
+private slots:
+  void onTrackChanged(Track* track);
+  void updateData();
+
+private:
+  MediaPlayer* _player;
+  py::object _time;
+  py::object _start = py::none;
+  py::object _rpc = py::none;
+};
+
 class RemoteMediaController : public QObject
 {
   Q_OBJECT
@@ -169,6 +188,7 @@ private:
   bool _isDBusServiceCreated = false;
   Mpris2Root* _mpris2Root;
   Mpris2Player* _mpris2Player;
+  DiscordPresence* _discordPresence;
   MediaPlayer* _target;
 #ifdef Q_OS_WIN
   ThumbnailController* _win = nullptr;
