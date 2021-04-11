@@ -2,6 +2,7 @@
 #include "settings.hpp"
 #include "QDateTime"
 #include "Log.hpp"
+#include <cmath>
 
 MediaPlayer::~MediaPlayer()
 {
@@ -258,7 +259,10 @@ void MediaPlayer::setProgress_ms(int progress)
 void MediaPlayer::setVolume(double volume)
 {
   volume = qMin(1.0, qMax(0.0, volume));
-  player->setVolume(qRound((volume * volume) * 100)); // volume^2
+  volume = std::round(volume * 1000) / 1000; // round to 3 decimal places
+  auto vol = qRound((volume * volume) * 100); // volume^2
+  if (volume > 0.01) vol = qMax(vol, 1); // minimal volume
+  player->setVolume(vol);
   _volume = volume;
   emit volumeChanged(volume);
 }

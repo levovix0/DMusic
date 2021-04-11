@@ -157,8 +157,11 @@ void AudioPlayer::setLoopMode(IPlaylistRadio::LoopMode loopMode)
 
 void AudioPlayer::setVolume(double volume)
 {
-  _volume = round(volume * 1000) / 1000; // round to 3 decimal places
-  _player->setVolume(std::round(_volume * 100)); // convert 0..1 to 0..100%
+  volume = qMin(1.0, qMax(0.0, volume));
+  _volume = std::round(volume * 1000) / 1000; // round to 3 decimal places
+  auto vol = qRound((_volume * _volume) * 100); // volume^2, convert 0..1 to 0..100%
+  if (_volume >= 0.001) vol = qMax(vol, 1); // minimal volume
+  _player->setVolume(vol);
   emit volumeChanged(_volume);
 }
 

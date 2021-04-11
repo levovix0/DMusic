@@ -457,7 +457,7 @@ DiscordPresence::DiscordPresence(MediaPlayer* player, QObject* parent) : QObject
 
     _rpc.call("connect");
 
-    connect(_player, &MediaPlayer::currentTrackChanged, this, &DiscordPresence::update);
+    connect(_player, &MediaPlayer::currentTrackChanged, this, &DiscordPresence::onTrackChanged);
   } catch(py_error const& e) {
     std::cerr << "failed to init discord presence: " << e.what();
   }
@@ -487,10 +487,10 @@ void DiscordPresence::update(Track* track)
 void DiscordPresence::onTrackChanged(Track* track)
 {
   disconnect(nullptr, nullptr, this, SLOT(updateData()));
-  update(track);
   connect(track, &Track::authorChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::titleChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::idIntChanged, this, &DiscordPresence::updateData);
+  update(track);
 }
 
 void DiscordPresence::updateData()
