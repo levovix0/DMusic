@@ -128,7 +128,6 @@ Window {
       text: qsTr("Play downloaded")
 
       onClick: {
-        if (_id_input.text == "") return
         _player.player.play(_yapi.downloadsPlaylist())
       }
     }

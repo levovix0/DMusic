@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include <iostream>
 
 namespace py
 {
@@ -87,16 +88,16 @@ namespace py
   {
     ~module() override;
     module(module const& copy);
-    module(char const* name);
-    module(object name);
+    module(char const* name, bool autoInstall = false);
+    module(object name, bool autoInstall = false);
     module(PyObject* raw);
 
     module& operator=(module const& copy);
 
-
     module submodule(object name);
     module operator/(object name) { return submodule(name); }
     static module main();
+    static bool autoInstall(object name); // auto-install module using pip
   };
 
 
@@ -468,14 +469,23 @@ namespace py
     Py_INCREF(raw);
   }
 
-  inline module::module(char const* name)
+  inline module::module(char const* name, bool autoInstall)
   {
     QMutexLocker locker(&mutex);
     raw = PyImport_ImportModule(name);
-    if (raw == nullptr) throw std::runtime_error(std::string("python: can't import module '") + name + "'");
+    if (raw == nullptr) {
+      std::cerr << "failed to import python module '" << name << "', trying to auto-install..." << std::endl;
+      if (autoInstall) {
+        if (module::autoInstall(name)) {
+          raw = PyImport_ImportModule(name);
+          if (raw != nullptr) return;
+        }
+      }
+      throw std::runtime_error(std::string("python: can't import module '") + name + "'");
+    }
   }
 
-  inline module::module(object name) : module(name.to<std::string>().c_str()) {}
+  inline module::module(object name, bool autoInstall) : module(name.to<std::string>().c_str(), autoInstall) {}
 
   inline module::module(PyObject* raw) : object(raw) {}
 
@@ -494,6 +504,18 @@ namespace py
   {
     QMutexLocker locker(&mutex);
     return PyImport_AddModule("__main__");
+  }
+
+  inline bool module::autoInstall(object name)
+  {
+    try {
+      auto pip = module("pip");
+      pip.call("main", std::vector<object>{"install", name});
+      return true;
+    }  catch (std::exception const& e) {
+      std::cerr << "failed to auto-install python module '" << name << "': " << e.what() << std::endl;
+      return false;
+    }
   }
 
 

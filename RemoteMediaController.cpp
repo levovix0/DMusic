@@ -448,7 +448,7 @@ void ThumbnailController::updateToolbar()
 DiscordPresence::DiscordPresence(MediaPlayer* player, QObject* parent) : QObject(parent), _player(player)
 {
   try {
-    auto presence = py::module("pypresence");
+    auto presence = py::module("pypresence", true);
     _time = module("time");
     _start = _time.call("time");
     _rpc = presence.call("Presence", "830725995769626624");

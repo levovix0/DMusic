@@ -119,7 +119,7 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
 }
 
 
-YClient::YClient(QObject *parent) : QObject(parent), ym("yandex_music"), ym_request(ym/"utils"/"request")
+YClient::YClient(QObject *parent) : QObject(parent), ym("yandex_music", true), ym_request(ym/"utils"/"request")
 {
 
 }

@@ -50,7 +50,7 @@ QString Settings::ym_proxyServer()
 QString Settings::ym_savePath()
 {
   if (!QDir(_ym_savePath).exists())
-    QDir().mkpath(_ym_savePath);
+    QDir::current().mkpath(_ym_savePath);
   return QDir(_ym_savePath).canonicalPath();
 }
 
@@ -61,27 +61,27 @@ int Settings::ym_repeatsIfError()
 
 QString Settings::ym_mediaPath(int id)
 {
-  return QDir::cleanPath(_ym_savePath + QDir::separator() + (QString::number(id) + ".mp3"));
+  return QDir::cleanPath(ym_savePath() + QDir::separator() + (QString::number(id) + ".mp3"));
 }
 
 QString Settings::ym_coverPath(int id)
 {
-  return QDir::cleanPath(_ym_savePath + QDir::separator() + (QString::number(id) + ".png"));
+  return QDir::cleanPath(ym_savePath() + QDir::separator() + (QString::number(id) + ".png"));
 }
 
 QString Settings::ym_metadataPath(int id)
 {
-  return QDir::cleanPath(_ym_savePath + QDir::separator() + (QString::number(id) + ".json"));
+  return QDir::cleanPath(ym_savePath() + QDir::separator() + (QString::number(id) + ".json"));
 }
 
 QString Settings::ym_artistCoverPath(int id)
 {
-  return QDir::cleanPath(_ym_savePath + QDir::separator() + ("artist-" + QString::number(id) + ".png"));
+  return QDir::cleanPath(ym_savePath() + QDir::separator() + ("artist-" + QString::number(id) + ".png"));
 }
 
 QString Settings::ym_artistMetadataPath(int id)
 {
-  return QDir::cleanPath(_ym_savePath + QDir::separator() + ("artist-" + QString::number(id) + ".json"));
+  return QDir::cleanPath(ym_savePath() + QDir::separator() + ("artist-" + QString::number(id) + ".json"));
 }
 
 void Settings::set_isClientSideDecorations(bool v)
