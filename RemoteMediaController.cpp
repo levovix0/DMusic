@@ -467,6 +467,10 @@ void DiscordPresence::update(Track* track)
 {
   if (_rpc == py::none) return;
   try {
+    auto author = track->author();
+    auto details = track->title();
+    if (author == "" || details == "") return;
+
     _rpc.call("clear");
 
     std::map<std::string, object> args;
@@ -533,12 +537,12 @@ MediaPlayer* RemoteMediaController::target()
 
 void RemoteMediaController::setTarget(MediaPlayer* player)
 {
+  _target = player;
 #ifdef Q_OS_WIN
   delete _win;
   _win = new ThumbnailController(player, this);
 #endif
+  _discordPresence = new DiscordPresence(player, this);
   if (!_isDBusServiceCreated) return;
   _mpris2Player = new Mpris2Player(player, this);
-  _discordPresence = new DiscordPresence(player, this);
-  _target = player;
 }
