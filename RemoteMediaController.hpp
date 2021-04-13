@@ -164,7 +164,6 @@ private slots:
 private:
   MediaPlayer* _player;
   py::object _time;
-  py::object _start = py::none;
   py::object _rpc = py::none;
 };
 

@@ -1,6 +1,7 @@
 #include "RemoteMediaController.hpp"
 #include <QGuiApplication>
 #include <stdexcept>
+#include "utils.hpp"
 
 using namespace py;
 
@@ -450,7 +451,6 @@ DiscordPresence::DiscordPresence(MediaPlayer* player, QObject* parent) : QObject
   try {
     auto presence = py::module("pypresence", true);
     _time = module("time");
-    _start = _time.call("time");
     _rpc = presence.call("Presence", "830725995769626624");
 
     //TODO: buttons
@@ -466,26 +466,28 @@ DiscordPresence::DiscordPresence(MediaPlayer* player, QObject* parent) : QObject
 void DiscordPresence::update(Track* track)
 {
   if (_rpc == py::none) return;
-  try {
-    auto author = track->author();
-    auto details = track->title();
-    if (author == "" || details == "") return;
+  auto author = track->author();
+  auto details = track->title();
+  if (author == "" || details == "") return;
 
-    _rpc.call("clear");
+  QtConcurrent::run([track, author, details, this]() {
+    try {
+      _rpc.call("clear");
 
-    std::map<std::string, object> args;
-    args["state"] = track->author();
-    if (track->extra() == "")
-      args["details"] = track->title();
-    else
-      args["details"] = track->title() + " (" + track->extra() + ")";
-    args["start"] = _start;
-    args["large_image"] = "app";
-    args["large_text"] = track->idInt();
-    _rpc.call("update", std::initializer_list<object>{}, args);
-  }  catch (py_error const& e) {
-//     it's normal ;)
-  }
+      std::map<std::string, object> args;
+      args["state"] = track->author();
+      if (track->extra() == "")
+        args["details"] = track->title();
+      else
+        args["details"] = track->title() + " (" + track->extra() + ")";
+      args["start"] = _time.call("time");
+      args["large_image"] = "app";
+      args["large_text"] = track->idInt();
+      _rpc.call("update", std::initializer_list<object>{}, args);
+    }  catch (py_error const& e) {
+      // it's normal ;)
+    }
+  });
 }
 
 void DiscordPresence::onTrackChanged(Track* track)
