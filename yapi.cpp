@@ -355,8 +355,13 @@ QMediaContent YTrack::media()
       return QMediaContent("file:" + media);
     emit mediaAborted();
   } else {
-    if (_py == none) do_async([this](){ _fetchYandex(); saveMetadata(); });
-    else return QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>()));
+    if (_py == none) do_async([this](){
+      _fetchYandex();
+      saveMetadata();
+      emit mediaChanged(QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>())));
+    });
+    else
+      return QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>()));
   }
   return {};
 }
