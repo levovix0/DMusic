@@ -75,6 +75,8 @@ signals:
   void nextModeChanged(Settings::NextMode nextMode);
 
 private:
+  void _unsubscribeCurrentTrack();
+  void _subscribeCurrentTrack();
 
   QString formatTime(int t);
 

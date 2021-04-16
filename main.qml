@@ -86,52 +86,59 @@ Window {
       width: root.width / 3 * 2
     }
 
-    DButton {
-      id: _play
-      anchors.verticalCenter: root.verticalCenter
-      anchors.verticalCenterOffset: 40
-      anchors.right: root.horizontalCenter
-      anchors.rightMargin: 10
+    Item {
+      anchors.top: root.verticalCenter
+      anchors.horizontalCenter: root.horizontalCenter
+      anchors.topMargin: 20
+      height: Math.max(_play_playlist.height, _play.height, _play_downloads.height)
+      width: _play_playlist.width + 20 + _play.width + 20 + _play_downloads.width
 
-      //: Play button
-      text: qsTr("Play")
+      DButton {
+        id: _play_playlist
 
-      onClick: {
-        if (_id_input.text == "") return
-        _player.player.play(_yapi.track(parseInt(_id_input.text)))
+        text: qsTr("Play playlist")
+
+        onClick: {
+          if (_id_input.text == "") return
+          _player.player.play(_yapi.playlist(parseInt(_id_input.text)))
+        }
+      }
+
+      DButton {
+        id: _play
+        anchors.left: _play_playlist.right
+        anchors.leftMargin: 20
+
+        //: Play button
+        text: qsTr("Play")
+
+        onClick: {
+          if (_id_input.text == "") return
+          _player.player.play(_yapi.track(parseInt(_id_input.text)))
+        }
+      }
+
+      DButton {
+        id: _play_downloads
+        anchors.left: _play.right
+        anchors.leftMargin: 20
+
+        text: qsTr("Play downloaded")
+
+        onClick: {
+          _player.player.play(_yapi.downloadsPlaylist())
+        }
       }
     }
 
-    DButton {
-      id: _play_playlist
-      anchors.verticalCenter: root.verticalCenter
-      anchors.verticalCenterOffset: 40
-      anchors.right: _play.left
-      anchors.rightMargin: 20
-
-      //: Play button
-      text: qsTr("Play playlist")
-
-      onClick: {
-        if (_id_input.text == "") return
-        _player.player.play(_yapi.playlist(parseInt(_id_input.text)))
-      }
-    }
-
-    DButton {
-      id: _play_downloads
-      anchors.verticalCenter: root.verticalCenter
-      anchors.verticalCenterOffset: 40
-      anchors.left: root.horizontalCenter
-      anchors.leftMargin: 10
-
-      text: qsTr("Play downloaded")
-
-      onClick: {
-        _player.player.play(_yapi.downloadsPlaylist())
-      }
-    }
     Keys.onSpacePressed: _player.player.pause_or_play()
+    Keys.onRightPressed: _player.next()
+    Keys.onLeftPressed: _player.prev()
+    Keys.onPressed: {
+      if (event.key == Qt.Key_L) _player.toglleLiked()
+      else if (event.key == Qt.Key_D) _player.next()
+      else if (event.key == Qt.Key_A) _player.prev()
+    }
 
     PlaylistEntry {
       anchors.left: root.left

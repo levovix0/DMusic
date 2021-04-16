@@ -10,6 +10,16 @@ Rectangle {
   property alias player: _player
   property alias track: _track
 
+  function toglleLiked() {
+    _player.currentTrack.setLiked(!_player.currentTrack.liked)
+  }
+  function next() {
+    _player.next()
+  }
+  function prev() {
+    _player.prev()
+  }
+
   PlayerControls {
     id: _controls
 
@@ -76,5 +86,8 @@ Rectangle {
     author: _player.currentTrack.author
     extra: _player.currentTrack.extra
     idInt: _player.currentTrack.idInt
+    liked: _player.currentTrack.liked
+
+    onToggleLiked: _player.currentTrack.setLiked(liked)
   }
 }

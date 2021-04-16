@@ -20,6 +20,7 @@ public:
   Q_PROPERTY(QString cover READ cover NOTIFY coverChanged)
   Q_PROPERTY(QMediaContent media READ media NOTIFY mediaChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
+  Q_PROPERTY(bool liked READ liked NOTIFY likedChanged)
 
   virtual QString idInt();
   virtual QString title();
@@ -28,8 +29,10 @@ public:
   virtual QString cover();
   virtual QMediaContent media();
   virtual qint64 duration();
+  virtual bool liked();
 
 public slots:
+  virtual void setLiked(bool liked);
 
 signals:
   void idIntChanged(QString idInt);
@@ -39,6 +42,7 @@ signals:
   void coverChanged(QString cover);
   void mediaChanged(QMediaContent media);
   void durationChanged(qint64 duration);
+  void likedChanged(bool liked);
   
   void coverAborted();
   void mediaAborted();
@@ -103,6 +107,7 @@ private:
 
 struct DPlaylist : Playlist
 {
+  //TODO: слишком медленная перемешка
   Q_OBJECT
 public:
   ~DPlaylist();
@@ -117,7 +122,6 @@ public:
   int size() override;
 
 public slots:
-
   void add(Track* a);
   void remove(Track* a);
 

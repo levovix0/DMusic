@@ -55,6 +55,7 @@ namespace py
     object call(object name, object arg, std::map<std::string, object> const& kwargs) const;
 
     object operator[](size_t i) const;
+    object contains(object a) const;
 
     object copy() const;
     object deepcopy() const;
@@ -410,6 +411,11 @@ namespace py
   {
     QMutexLocker locker(&mutex);
     return maybe_exception(PySequence_GetItem(raw, i));
+  }
+
+  inline object object::contains(object a) const
+  {
+    return call("__contains__", a);
   }
 
   inline object object::copy() const

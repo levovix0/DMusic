@@ -221,8 +221,21 @@ void YClient::fetchYTracks(qint64 id, const QJSValue& callback)
   do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchYTracks, id);
 }
 
+Playlist* YClient::likedTracks()
+{
+  auto a = me.call("users_likes_tracks").get("tracks_ids");
+  DPlaylist* res = new DPlaylist(this);
+  for (int i = 0; i < PyList_Size(a.raw); ++i) {
+    object p = PyList_GetItem(a.raw, i);
+    if (!p.contains(":")) continue;
+    res->add(new YTrack(p.call("split", ":")[0].to<int>(), this));
+  }
+  return res;
+}
+
 Playlist* YClient::playlist(int id)
 {
+  if (id == 3) return likedTracks();
   auto a = me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0].call("fetch_tracks");
   DPlaylist* res = new DPlaylist(this);
   for (int i = 0; i < PyList_Size(a.raw); ++i) {
@@ -258,14 +271,12 @@ YTrack::YTrack(qint64 id, YClient* client) : Track((QObject*)client)
 {
   _id = id;
   _client = client;
-  _loadFromDisk();
 }
 
 YTrack::YTrack(object obj, YClient* client) : Track((QObject*)client)
 {
   _id = obj.get("id").to<qint64>();
   _client = client;
-  _loadFromDisk();
 }
 
 YTrack::~YTrack()
@@ -285,6 +296,7 @@ QString YTrack::idInt()
 
 QString YTrack::title()
 {
+  if (!_checkedDisk) _loadFromDisk();
   if (_title.isEmpty() && !_noTitle) {
     do_async([this](){ _fetchYandex(); saveMetadata(); });
   }
@@ -293,6 +305,7 @@ QString YTrack::title()
 
 QString YTrack::author()
 {
+  if (!_checkedDisk) _loadFromDisk();
   if (_author.isEmpty() && !_noAuthor) {
     do_async([this](){ _fetchYandex(); saveMetadata(); });
   }
@@ -301,6 +314,7 @@ QString YTrack::author()
 
 QString YTrack::extra()
 {
+  if (!_checkedDisk) _loadFromDisk();
   if (_extra.isEmpty() && !_noExtra) {
     do_async([this](){ _fetchYandex(); saveMetadata(); });
   }
@@ -309,6 +323,7 @@ QString YTrack::extra()
 
 QString YTrack::cover()
 {
+  if (!_checkedDisk) _loadFromDisk();
   if (_cover.isEmpty()) {
     if (!_noCover) _downloadCover(); // async
     else emit coverAborted();
@@ -325,6 +340,7 @@ QString YTrack::cover()
 
 QMediaContent YTrack::media()
 {
+  if (!_checkedDisk) _loadFromDisk();
   if (_media.isEmpty()) {
     if (!_noMedia) _downloadMedia(); // async
     else {
@@ -333,15 +349,29 @@ QMediaContent YTrack::media()
     }
     return {};
   }
-  return QMediaContent("file:" + QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _media));
+  auto media = QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _media);
+  if (QFile::exists(media))
+    return QMediaContent("file:" + media);
+  emit mediaAborted();
+  return {};
 }
 
 qint64 YTrack::duration()
 {
+  if (!_checkedDisk) _loadFromDisk();
   if (_duration == 0 && !_noMedia) {
     do_async([this](){ _fetchYandex(); saveMetadata(); });
   }
   return _duration;
+}
+
+bool YTrack::liked()
+{
+  if (!_checkedDisk) _loadFromDisk();
+  if (!_hasLiked) {
+    do_async([this](){ _fetchYandex(); saveMetadata(); });
+  }
+  return _liked;
 }
 
 qint64 YTrack::id()
@@ -351,11 +381,13 @@ qint64 YTrack::id()
 
 bool YTrack::available()
 {
+  //TODO: check _py is not nil
   return _py.get("available").to<bool>();
 }
 
 QVector<YArtist> YTrack::artists()
 {
+  //TODO: check _py is not nil
   return _py.get("artists").to<QVector<YArtist>>();
 }
 
@@ -390,6 +422,7 @@ QJsonObject YTrack::jsonMetadata()
   info["cover"] = _cover;
   info["relativePathToCover"] = _relativePathToCover;
   info["duration"] = _duration;
+  if (_hasLiked) info["liked"] = _liked;
   return info;
 }
 
@@ -401,12 +434,32 @@ QString YTrack::stringMetadata()
 
 void YTrack::saveMetadata()
 {
+  if (_id <= 0) return;
   File(metadataPath()).writeAll(jsonMetadata());
+}
+
+void YTrack::setLiked(bool liked)
+{
+  do_async([this, liked](){
+    QMutexLocker lock(&_mtx);
+    _fetchYandex();
+    repeat_if_error([this, liked]() {
+      if (liked) {
+        _py.call("like");
+      } else {
+        _py.call("dislike");
+      }
+      _liked = liked;
+      emit likedChanged(liked);
+    }, [](bool) {}, Settings::ym_repeatsIfError());
+    saveMetadata();
+  });
 }
 
 bool YTrack::_loadFromDisk()
 {
-  if (_id == 0) return false;
+  _checkedDisk = true;
+  if (_id <= 0) return false;
   auto metadataPath = Settings::ym_metadataPath(_id);
   if (!fileExists(metadataPath)) return false;
 
@@ -425,7 +478,11 @@ bool YTrack::_loadFromDisk()
   _relativePathToCover = doc["relativePathToCover"].toBool(true);
   _media = _noMedia? "" : QString::number(_id) + ".mp3";
 
-  if (doc["duration"].type() != QJsonValue::Double && !_noMedia) {
+  auto liked = doc["liked"];
+  if (liked.isBool()) _hasLiked = true;
+  _liked = liked.toBool(false);
+
+  if (!doc["duration"].isDouble() && !_noMedia) {
     //TODO: load duration from media and save data to file. use taglib
     _duration = 0;
     do_async([this](){ _fetchYandex(); saveMetadata(); });
@@ -463,6 +520,7 @@ void YTrack::_fetchYandex(object _pys)
     _noExtra = true;
     _noCover = true;
     _noMedia = true;
+    _liked = false;
   } else {
     _py = _pys;
 
@@ -487,6 +545,19 @@ void YTrack::_fetchYandex(object _pys)
 
     _duration = _py.get("duration_ms").to<qint64>();
     emit durationChanged(_duration);
+
+    //TODO: отдельно фетчить liked
+    auto ult = _py.get("client").call("users_likes_tracks").get("tracks_ids");
+    _liked = false;
+    for (int i = 0; i < PyList_Size(ult.raw); ++i) {
+      object p = PyList_GetItem(ult.raw, i);
+      if (!p.contains(":")) continue;
+      if (p.call("split", ":")[0].to<int>() == _id) {
+        _liked = true;
+        break;
+      }
+    }
+    emit likedChanged(_liked);
   }
 }
 

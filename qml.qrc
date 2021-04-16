@@ -7,7 +7,6 @@
         <file>PlayerLineSlider.qml</file>
         <file>Icon.qml</file>
         <file>resources/player/dislike.svg</file>
-        <file>resources/player/send-to-device.svg</file>
         <file>resources/player/download.svg</file>
         <file>resources/player/shuffle.svg</file>
         <file>resources/player/loop-playlist.svg</file>
@@ -61,5 +60,8 @@
         <file>resources/app-papirus.svg</file>
         <file>PlaylistEntry.qml</file>
         <file>RoundMask.qml</file>
+        <file>resources/player/share.svg</file>
+        <file>resources/player/like.svg</file>
+        <file>resources/player/liked.svg</file>
     </qresource>
 </RCC>

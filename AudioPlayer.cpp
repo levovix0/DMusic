@@ -220,9 +220,10 @@ void AudioPlayer::_setRadio(refRadio radio)
   emit currentRadioChanged(_currentRadioQml);
 }
 
-void AudioPlayer::_unsubscribeCurrentTrack()
+void AudioPlayer::_unsubscribe()
 {
-  disconnect(this, nullptr, _track.get(), nullptr);
+  disconnect(nullptr, nullptr, this, SLOT(_onMediaChanged));
+  disconnect(nullptr, nullptr, this, SLOT(_onMediaAborted));
 }
 
 void AudioPlayer::_subscribeCurrentTrack()
@@ -233,7 +234,7 @@ void AudioPlayer::_subscribeCurrentTrack()
 
 void AudioPlayer::_setTrack(refTrack track)
 {
-  _unsubscribeCurrentTrack();
+  _unsubscribe();
   _track = track;
   _subscribeCurrentTrack();
   _currentTrackQml->setRef(_track);
@@ -252,7 +253,7 @@ void AudioPlayer::_playTrack(refTrack track)
 
 void AudioPlayer::_resetTrack()
 {
-  _unsubscribeCurrentTrack();
+  _unsubscribe();
   // TODO
   emit currentTrackChanged(_currentTrackQml);
 }

@@ -26,8 +26,9 @@ public:
   QString author() override;
   QString extra() override;
   QString cover() override;
-  QMediaContent media() override;
+  QMediaContent media() override; //TODO: скачивать параллельно, через c++, или вообще возвращать ссылку
   qint64 duration() override;
+  bool liked() override;
 
   Q_INVOKABLE qint64 id();
   Q_INVOKABLE bool available();
@@ -42,6 +43,9 @@ public:
 
   YClient* _client;
 
+public slots:
+  void setLiked(bool liked) override;
+
 private:
   bool _loadFromDisk();
   
@@ -55,9 +59,12 @@ private:
   qint64 _id;
   QString _title, _author, _extra, _cover, _media;
   qint64 _duration;
+  bool _liked = false;
   QVector<qint64> _artists;
   bool _noTitle = false, _noAuthor = false, _noExtra = false, _noCover = false, _noMedia = false;
+  bool _hasLiked = false;
   bool _relativePathToCover = true;
+  bool _checkedDisk = false;
 };
 inline PyObject* toPyObject(YTrack const& a) { Py_INCREF(a.raw()); return a.raw(); }
 inline void fromPyObject(py::object const& o, YTrack*& res) { res = new YTrack(o, nullptr); }
@@ -113,6 +120,7 @@ public:
   Q_INVOKABLE void fetchYTracks(qint64 id, QJSValue const& callback);
 
 public slots:
+  Playlist* likedTracks();
   Playlist* playlist(int id);
   Playlist* track(qint64 id);
   Playlist* downloadsPlaylist();

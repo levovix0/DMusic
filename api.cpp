@@ -38,17 +38,29 @@ QString Track::extra()
 
 QString Track::cover()
 {
+  emit coverAborted();
   return "qrc:resources/player/no-cover.svg";
 }
 
 QMediaContent Track::media()
 {
+  emit mediaAborted();
   return {};
 }
 
 qint64 Track::duration()
 {
   return 0;
+}
+
+bool Track::liked()
+{
+  return false;
+}
+
+void Track::setLiked(bool)
+{
+
 }
 
 Playlist::~Playlist()

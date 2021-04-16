@@ -82,7 +82,7 @@ private slots:
 
 private:
   void _setRadio(refRadio radio);
-  void _unsubscribeCurrentTrack();
+  void _unsubscribe();
   void _subscribeCurrentTrack();
   void _setTrack(refTrack track);
   void _playTrack(refTrack track);

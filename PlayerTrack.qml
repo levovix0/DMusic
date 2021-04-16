@@ -8,6 +8,9 @@ Item {
   property string author: ""
   property string extra: ""
   property string idInt: ""
+  property bool liked: false
+
+  signal toggleLiked(bool liked)
 
   PlayerTrackIcon {
     id: _icon
@@ -27,5 +30,8 @@ Item {
     author: root.author
     extra: root.extra
     idInt: root.idInt
+    liked: root.liked
+
+    onToggleLiked: root.toggleLiked(liked)
   }
 }

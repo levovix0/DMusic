@@ -1,4 +1,4 @@
-QT += quick multimedia dbus svg
+QT += quick multimedia dbus svg network
 win32: QT += winextras
 
 CONFIG += c++17
@@ -6,6 +6,7 @@ CONFIG += c++17
 SOURCES += \
         AudioPlayer.cpp \
         Clipboard.cpp \
+        Download.cpp \
         IArtist.cpp \
         IClient.cpp \
         ID.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
 HEADERS += \
   AudioPlayer.hpp \
   Clipboard.hpp \
+  Download.hpp \
   IArtist.hpp \
   IClient.hpp \
   ID.hpp \
