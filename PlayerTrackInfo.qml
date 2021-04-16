@@ -11,6 +11,7 @@ Item {
   property bool liked: false
 
   signal toggleLiked(bool liked)
+  //TODO: показывать полное название трека при наведении
 
   Item {
     anchors.fill: root

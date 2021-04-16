@@ -27,6 +27,8 @@ public:
   Q_PROPERTY(QString ym_savePath READ ym_savePath WRITE set_ym_savePath NOTIFY reload)
   Q_PROPERTY(int ym_repeatsIfError READ ym_repeatsIfError WRITE set_ym_repeatsIfError NOTIFY reload)
   Q_PROPERTY(bool ym_downloadMedia READ ym_downloadMedia WRITE set_ym_downloadMedia NOTIFY reload)
+  Q_PROPERTY(bool ym_saveCover READ ym_saveCover WRITE set_ym_saveCover NOTIFY reload)
+  Q_PROPERTY(bool ym_saveInfo READ ym_saveInfo WRITE set_ym_saveInfo NOTIFY reload)
 
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
@@ -44,6 +46,8 @@ public:
   static QString ym_savePath();
   static int ym_repeatsIfError();
   static bool ym_downloadMedia();
+  static bool ym_saveCover();
+  static bool ym_saveInfo();
 
   static QString ym_mediaPath(int id);
   static QString ym_coverPath(int id);
@@ -65,6 +69,8 @@ public slots:
   void set_ym_savePath(QString v);
   void set_ym_repeatsIfError(int v);
   void set_ym_downloadMedia(bool v);
+  void set_ym_saveCover(bool v);
+  void set_ym_saveInfo(bool v);
 
   void reloadFromJson();
   void saveToJson();
@@ -88,6 +94,6 @@ private:
   inline static QString _ym_savePath = "yandex/";
   inline static int _ym_repeatsIfError = 1;
   inline static bool _ym_downloadMedia = true;
-  inline static bool _ym_saveCover = true; //TODO
-  inline static bool _ym_saveInfo = true; //TODO
+  inline static bool _ym_saveCover = true;
+  inline static bool _ym_saveInfo = true;
 };

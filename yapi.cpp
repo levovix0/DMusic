@@ -324,18 +324,30 @@ QString YTrack::extra()
 QString YTrack::cover()
 {
   if (!_checkedDisk) _loadFromDisk();
-  if (_cover.isEmpty()) {
-    if (!_noCover) _downloadCover(); // async
-    else emit coverAborted();
-    return "qrc:resources/player/no-cover.svg";
+  if (Settings::ym_saveCover()) {
+    if (_cover.isEmpty()) {
+      if (!_noCover) _downloadCover(); // async
+      else emit coverAborted();
+      return "qrc:resources/player/no-cover.svg";
+    }
+    auto s = _relativePathToCover? QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _cover) : _cover;
+    if (!fileExists(s)) {
+      if (_relativePathToCover)
+        _downloadCover(); // async
+      return "qrc:resources/player/no-cover.svg";
+    }
+    return "file:" + s;
+  } else {
+    if (_py == none) do_async([this](){
+      _fetchYandex();
+      saveMetadata();
+      if (!_py.has("cover_uri")) return;
+      emit coverChanged(_coverUrl());
+    });
+    else
+      return _coverUrl();
   }
-  auto s = _relativePathToCover? QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _cover) : _cover;
-  if (!fileExists(s)) {
-    if (_relativePathToCover)
-      _downloadCover(); // async
-    return "qrc:resources/player/no-cover.svg";
-  }
-  return "file:" + s;
+  return "qrc:resources/player/no-cover.svg";
 }
 
 QMediaContent YTrack::media()
@@ -444,6 +456,7 @@ QString YTrack::stringMetadata()
 
 void YTrack::saveMetadata()
 {
+  if (!Settings::ym_saveInfo()) return;
   if (_id <= 0) return;
   File(metadataPath()).writeAll(jsonMetadata());
 }
@@ -469,6 +482,7 @@ void YTrack::setLiked(bool liked)
 bool YTrack::_loadFromDisk()
 {
   _checkedDisk = true;
+  if (!Settings::ym_saveInfo()) return false;
   if (_id <= 0) return false;
   auto metadataPath = Settings::ym_metadataPath(_id);
   if (!fileExists(metadataPath)) return false;
@@ -616,6 +630,15 @@ void YTrack::_downloadMedia()
     }, Settings::ym_repeatsIfError());
     saveMetadata();
   });
+}
+
+QString YTrack::_coverUrl()
+{
+  if (!_py.has("cover_uri")) return "";
+  auto a = "https://" + _py.get("cover_uri").to<QString>();
+  a.remove(a.length() - 2, 2);
+  a += "m" + Settings::ym_coverQuality();
+  return a;
 }
 
 

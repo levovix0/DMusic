@@ -54,6 +54,8 @@ private:
   void _downloadCover();
   void _downloadMedia();
 
+  QString _coverUrl();
+
   py::object _py;
   QMutex _mtx = QMutex(QMutex::Recursive);
   qint64 _id;
