@@ -59,6 +59,11 @@ int Settings::ym_repeatsIfError()
   return _ym_repeatsIfError;
 }
 
+bool Settings::ym_downloadMedia()
+{
+  return _ym_downloadMedia;
+}
+
 QString Settings::ym_mediaPath(int id)
 {
   return QDir::cleanPath(ym_savePath() + QDir::separator() + (QString::number(id) + ".mp3"));
@@ -132,6 +137,12 @@ void Settings::set_ym_repeatsIfError(int v)
   emit reload();
 }
 
+void Settings::set_ym_downloadMedia(bool v)
+{
+  _ym_downloadMedia = v;
+  emit reload();
+}
+
 
 void Settings::reloadFromJson()
 {
@@ -150,6 +161,7 @@ void Settings::reloadFromJson()
 
   _ym_savePath = ym["savePath"].toString("yandex/");
   _ym_repeatsIfError = ym["repeatsIfError"].toInt(1);
+  _ym_downloadMedia = ym["downloadMedia"].toBool(true);
 
   disconnect(SIGNAL(reload()));
   emit reload();
@@ -172,6 +184,7 @@ void Settings::saveToJson()
 
   ym["savePath"] = _ym_savePath;
   ym["repeatsIfError"] = _ym_repeatsIfError;
+  ym["downloadMedia"] = _ym_downloadMedia;
   doc["yandexMusic"] = ym;
 
   File("settings.json").writeAll(doc, QJsonDocument::Indented);

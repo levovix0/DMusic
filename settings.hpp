@@ -26,6 +26,7 @@ public:
   Q_PROPERTY(QString ym_proxyServer READ ym_proxyServer WRITE set_ym_proxyServer NOTIFY reload)
   Q_PROPERTY(QString ym_savePath READ ym_savePath WRITE set_ym_savePath NOTIFY reload)
   Q_PROPERTY(int ym_repeatsIfError READ ym_repeatsIfError WRITE set_ym_repeatsIfError NOTIFY reload)
+  Q_PROPERTY(bool ym_downloadMedia READ ym_downloadMedia WRITE set_ym_downloadMedia NOTIFY reload)
 
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
@@ -42,6 +43,7 @@ public:
 
   static QString ym_savePath();
   static int ym_repeatsIfError();
+  static bool ym_downloadMedia();
 
   static QString ym_mediaPath(int id);
   static QString ym_coverPath(int id);
@@ -62,12 +64,14 @@ public slots:
   void set_ym_proxyServer(QString v);
   void set_ym_savePath(QString v);
   void set_ym_repeatsIfError(int v);
+  void set_ym_downloadMedia(bool v);
 
   void reloadFromJson();
   void saveToJson();
 
 signals:
   void reload();
+
   void volumeChanged(double volume);
   void nextModeChanged(NextMode nextMode);
   void loopModeChanged(LoopMode loopMode);
@@ -83,4 +87,7 @@ private:
   inline static QString _ym_proxyServer = "";
   inline static QString _ym_savePath = "yandex/";
   inline static int _ym_repeatsIfError = 1;
+  inline static bool _ym_downloadMedia = true;
+  inline static bool _ym_saveCover = true; //TODO
+  inline static bool _ym_saveInfo = true; //TODO
 };

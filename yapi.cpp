@@ -341,18 +341,23 @@ QString YTrack::cover()
 QMediaContent YTrack::media()
 {
   if (!_checkedDisk) _loadFromDisk();
-  if (_media.isEmpty()) {
-    if (!_noMedia) _downloadMedia(); // async
-    else {
-      logging.warning("yandex/" + QString::number(id()) + ": no media");
-      emit mediaAborted();
+  if (Settings::ym_downloadMedia()) {
+    if (_media.isEmpty()) {
+      if (!_noMedia) _downloadMedia(); // async
+      else {
+        logging.warning("yandex/" + QString::number(id()) + ": no media");
+        emit mediaAborted();
+      }
+      return {};
     }
-    return {};
+    auto media = QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _media);
+    if (QFile::exists(media))
+      return QMediaContent("file:" + media);
+    emit mediaAborted();
+  } else {
+    if (_py == none) do_async([this](){ _fetchYandex(); saveMetadata(); });
+    else return QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>()));
   }
-  auto media = QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _media);
-  if (QFile::exists(media))
-    return QMediaContent("file:" + media);
-  emit mediaAborted();
   return {};
 }
 
