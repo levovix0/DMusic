@@ -27,7 +27,7 @@ Item {
     height: root.height
 
     title: root.title
-    author: root.author
+    artists: root.author
     extra: root.extra
     idInt: root.idInt
     liked: root.liked
