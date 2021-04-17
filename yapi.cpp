@@ -253,6 +253,13 @@ Playlist* YClient::track(qint64 id)
   return res;
 }
 
+Playlist* YClient::userTrack(int id)
+{
+  DPlaylist* res = new DPlaylist(this);
+  res->add(new UserTrack(id, this));
+  return res;
+}
+
 Playlist* YClient::downloadsPlaylist()
 {
   DPlaylist* res = new DPlaylist(this);
@@ -263,7 +270,19 @@ Playlist* YClient::downloadsPlaylist()
     s.chop(5);
     res->add(new YTrack(s.toInt(), this));
   }
+  recoredDir = QDir("user");
+  allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
+  for (auto s : allFiles) {
+    if (!s.endsWith(".json")) continue;
+    s.chop(5);
+    res->add(new UserTrack(s.toInt(), this));
+  }
   return res;
+}
+
+void YClient::addUserTrack(QString media, QString cover, QString title, QString artists, QString extra)
+{
+  UserTrack().setup(media, cover, title, artists, extra);
 }
 
 

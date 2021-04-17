@@ -125,7 +125,10 @@ public slots:
   Playlist* likedTracks();
   Playlist* playlist(int id);
   Playlist* track(qint64 id);
+  Playlist* userTrack(int id);
   Playlist* downloadsPlaylist();
+
+  void addUserTrack(QString media, QString cover, QString title, QString artists, QString extra);
 
 private:
   py::module ym; // yandex_music module

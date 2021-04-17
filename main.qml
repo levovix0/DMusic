@@ -91,7 +91,7 @@ Window {
       anchors.horizontalCenter: root.horizontalCenter
       anchors.topMargin: 20
       height: Math.max(_play_playlist.height, _play.height, _play_downloads.height)
-      width: _play_playlist.width + 20 + _play.width + 20 + _play_downloads.width
+      width: _play_playlist.width + 10 + _play.width + 10 + _play_downloads.width + 10 + _play_user.width
 
       DButton {
         id: _play_playlist
@@ -107,7 +107,7 @@ Window {
       DButton {
         id: _play
         anchors.left: _play_playlist.right
-        anchors.leftMargin: 20
+        anchors.leftMargin: 10
 
         //: Play button
         text: qsTr("Play")
@@ -121,13 +121,84 @@ Window {
       DButton {
         id: _play_downloads
         anchors.left: _play.right
-        anchors.leftMargin: 20
+        anchors.leftMargin: 10
 
         text: qsTr("Play downloaded")
 
         onClick: {
           _player.player.play(_yapi.downloadsPlaylist())
         }
+      }
+
+      DButton {
+        id: _play_user
+        anchors.left: _play_downloads.right
+        anchors.leftMargin: 10
+
+        text: qsTr("Play custom")
+
+        onClick: {
+          _player.player.play(_yapi.userTrack(parseInt(_id_input.text)))
+        }
+      }
+    }
+
+    DTextBox {
+      id: _tb_title
+      anchors.centerIn: root
+      anchors.verticalCenterOffset: 80
+      width: root.width / 3
+    }
+
+    DTextBox {
+      id: _tb_artists
+      anchors.horizontalCenter: _tb_title.horizontalCenter
+      anchors.top: _tb_title.bottom
+      anchors.topMargin: 10
+      width: root.width / 3
+    }
+
+    DTextBox {
+      id: _tb_extra
+      anchors.horizontalCenter: _tb_artists.horizontalCenter
+      anchors.top: _tb_artists.bottom
+      anchors.topMargin: 10
+      width: root.width / 3
+    }
+
+    FileDialog {
+      id: _openMedia
+      title: qsTr("Chose media")
+      nameFilters: [qsTr("Audio (*.mp3 *.vaw *.ogg *.m4a)")]
+      property string media: ""
+      onAccepted: {
+        media = fileUrl.toString()
+        _openCover.open()
+      }
+    }
+
+    FileDialog {
+      id: _openCover
+      title: qsTr("Chose cover")
+      nameFilters: [qsTr("Image (*.jpg *.png *.svg)")]
+      onAccepted: {
+        _yapi.addUserTrack(_openMedia.media, fileUrl.toString(), _tb_title.text, _tb_artists.text, _tb_extra.text)
+      }
+      onRejected: {
+        _yapi.addUserTrack(_openMedia.media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
+      }
+    }
+
+    DButton {
+      id: _addUserTrack
+      anchors.horizontalCenter: _tb_extra.horizontalCenter
+      anchors.top: _tb_extra.bottom
+      anchors.topMargin: 10
+
+      text: qsTr("Add custom track")
+
+      onClick: {
+        _openMedia.open()
       }
     }
 

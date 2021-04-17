@@ -1,10 +1,12 @@
 #include "api.hpp"
 #include "file.hpp"
 #include <QFile>
+#include <QDir>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QRandomGenerator>
+#include <QFileDialog>
 
 Playlist Playlist::none;
 std::random_device rd;
@@ -366,4 +368,107 @@ Track* refTrack_::ref()
 Playlist* refTrack_::attachedPlaylist()
 {
   return _attachedPlaylist;
+}
+
+UserTrack::UserTrack(int id, QObject* parent) : Track(parent)
+{
+  this->id = id;
+  load();
+}
+
+QString UserTrack::title()
+{
+  return _title;
+}
+
+QString UserTrack::author()
+{
+  return _artists;
+}
+
+QString UserTrack::extra()
+{
+  return _extra;
+}
+
+QString UserTrack::cover()
+{
+  auto ids = QString::number(id);
+  auto recoredDir = QDir("user");
+  QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
+  for (auto s : allFiles) {
+    auto ext = s.right(4);
+    if (ext != ".png" && ext != ".jpg" && ext != ".svg") continue;
+    s.chop(4);
+    if (s.endsWith(ids)) return QString("file:") + QDir::currentPath() + "/" + "user/" + ids + ext;
+  }
+  emit coverAborted();
+  return "qrc:resources/player/no-cover.svg";
+}
+
+QMediaContent UserTrack::media()
+{
+  auto ids = QString::number(id);
+  auto recoredDir = QDir("user");
+  QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
+  for (auto s : allFiles) {
+    auto ext = s.right(4);
+    if (ext != ".mp3" && ext != ".vaw" && ext != ".ogg" && ext != ".m4a") continue;
+    s.chop(4);
+    if (s.endsWith(ids)) return QMediaContent(QUrl(QString("file:") + QDir::currentPath() + "/" + "user/" + ids + ext));
+  }
+  emit coverAborted();
+  return QMediaContent();
+}
+
+void UserTrack::save()
+{
+  QJsonObject info;
+  info["title"] = _title;
+  info["extra"] = _extra;
+  info["artists"] = _artists;
+
+  if (!QDir("user").exists()) QDir(".").mkdir("user");
+  auto json = QJsonDocument(info).toJson(QJsonDocument::Compact);
+  File("user/" + QString::number(id) + ".json").writeAll(json);
+}
+
+bool UserTrack::load()
+{
+  if (!QFile::exists("user/" + QString::number(id) + ".json")) return false;
+  QJsonObject doc = File("user/" + QString::number(id) + ".json").allJson().object();
+
+  _title = doc["title"].toString("");
+  _artists = doc["artists"].toString("");
+  _extra = doc["extra"].toString("");
+
+  return true;
+}
+
+void UserTrack::setup(QString media, QString cover, QString title, QString artists, QString extra)
+{
+  _title = title;
+  _artists = artists;
+  _extra = extra;
+
+  if (!QDir("user").exists()) QDir(".").mkdir("user");
+
+  int maxId = 0;
+  auto recoredDir = QDir("user");
+  QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
+  for (auto s : allFiles) {
+    if (!s.endsWith(".json")) continue;
+    s.chop(5);
+    maxId = qMax(maxId, s.toInt());
+  }
+  id = maxId + 1;
+
+  if (media.startsWith("file://")) media.remove(0, 7);
+  if (cover.startsWith("file://")) cover.remove(0, 7);
+
+  QFile::copy(media, "user/" + QString::number(id) + "." + QFileInfo(media).completeSuffix());
+  if (cover != "") {
+    QFile::copy(cover, "user/" + QString::number(id) + "." + QFileInfo(cover).completeSuffix());
+  }
+  save();
 }

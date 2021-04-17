@@ -138,3 +138,28 @@ public:
 
 private:
 };
+
+struct UserTrack : Track
+{
+  Q_OBJECT
+public:
+  UserTrack(int id = 0, QObject *parent = nullptr);
+
+  QString title() override;
+  QString author() override;
+  QString extra() override;
+  QString cover() override;
+  QMediaContent media() override;
+
+public slots:
+  void save();
+  bool load();
+
+  void setup(QString media, QString cover, QString title, QString artists, QString extra);
+
+private:
+  int id;
+  QString _title;
+  QString _artists;
+  QString _extra;
+};

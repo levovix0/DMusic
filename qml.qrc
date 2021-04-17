@@ -63,5 +63,6 @@
         <file>resources/player/share.svg</file>
         <file>resources/player/like.svg</file>
         <file>resources/player/liked.svg</file>
+        <file>TriangleAnimator.qml</file>
     </qresource>
 </RCC>
