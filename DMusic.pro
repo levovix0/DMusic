@@ -97,9 +97,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 win32 {
-  LIBS += -LC:\Users\levovix\AppData\Local\Programs\Python\Python39\libs -lpython39
-  INCLUDEPATH += C:\Users\levovix\AppData\Local\Programs\Python\Python39\include
-  DEPENDPATH += C:\Users\levovix\AppData\Local\Programs\Python\Python39\include
+  LIBS += -L$$(HOME)\AppData\Local\Programs\Python\Python39\libs -lpython39
+  INCLUDEPATH += $$(HOME)\AppData\Local\Programs\Python\Python39\include
+  DEPENDPATH += $$(HOME)\AppData\Local\Programs\Python\Python39\include
 }
 
 unix {

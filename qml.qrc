@@ -54,7 +54,6 @@
         <file>VolumeSlider.qml</file>
         <file>FloatingPanel.qml</file>
         <file>PopupController.qml</file>
-        <file>resources/app.png</file>
         <file>resources/app.svg</file>
         <file>resources/app.ico</file>
         <file>resources/app-papirus.svg</file>

@@ -169,7 +169,7 @@ Window {
     FileDialog {
       id: _openMedia
       title: qsTr("Chose media")
-      nameFilters: [qsTr("Audio (*.mp3 *.vaw *.ogg *.m4a)")]
+      nameFilters: [qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)")]
       property string media: ""
       onAccepted: {
         media = fileUrl.toString()

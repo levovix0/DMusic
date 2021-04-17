@@ -400,7 +400,7 @@ QString UserTrack::cover()
     auto ext = s.right(4);
     if (ext != ".png" && ext != ".jpg" && ext != ".svg") continue;
     s.chop(4);
-    if (s.endsWith(ids)) return QString("file:") + QDir::currentPath() + "/" + "user/" + ids + ext;
+    if (s.endsWith(ids)) return QString("file:") + QDir::cleanPath(QDir::currentPath() + "/" + "user/" + ids + ext);
   }
   emit coverAborted();
   return "qrc:resources/player/no-cover.svg";
@@ -413,9 +413,9 @@ QMediaContent UserTrack::media()
   QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
   for (auto s : allFiles) {
     auto ext = s.right(4);
-    if (ext != ".mp3" && ext != ".vaw" && ext != ".ogg" && ext != ".m4a") continue;
+    if (ext != ".mp3" && ext != ".wav" && ext != ".ogg" && ext != ".m4a") continue;
     s.chop(4);
-    if (s.endsWith(ids)) return QMediaContent(QUrl(QString("file:") + QDir::currentPath() + "/" + "user/" + ids + ext));
+    if (s.endsWith(ids)) return QMediaContent(QUrl(QString("file:") + QDir::cleanPath(QDir::currentPath() + "/" + "user/" + ids + ext)));
   }
   emit coverAborted();
   return QMediaContent();
@@ -465,10 +465,12 @@ void UserTrack::setup(QString media, QString cover, QString title, QString artis
 
   if (media.startsWith("file://")) media.remove(0, 7);
   if (cover.startsWith("file://")) cover.remove(0, 7);
+  if (media[0] == '/' && media[2] == ':') media.remove(0, 1);
+  if (cover[0] == '/' && cover[2] == ':') cover.remove(0, 1);
 
-  QFile::copy(media, "user/" + QString::number(id) + "." + QFileInfo(media).completeSuffix());
+  QFile::copy(media, "user/" + QString::number(id) + "." + media.right(3));
   if (cover != "") {
-    QFile::copy(cover, "user/" + QString::number(id) + "." + QFileInfo(cover).completeSuffix());
+    QFile::copy(cover, "user/" + QString::number(id) + "." + cover.right(3));
   }
   save();
 }
