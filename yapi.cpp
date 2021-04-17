@@ -635,7 +635,7 @@ void YTrack::_downloadMedia()
 QString YTrack::_coverUrl()
 {
   if (!_py.has("cover_uri")) return "";
-  auto a = "https://" + _py.get("cover_uri").to<QString>();
+  auto a = "http://" + _py.get("cover_uri").to<QString>();
   a.remove(a.length() - 2, 2);
   a += "m" + Settings::ym_coverQuality();
   return a;
