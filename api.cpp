@@ -168,14 +168,19 @@ Playlist::Generator DPlaylist::shuffleGenerator(int index)
   if (index < 0 || index > size()) return shuffleGenerator(QRandomGenerator::global()->bounded(_tracks.size()));
 
   _history.resize(_tracks.size());
-  std::iota(_history.begin(), _history.end(), 0);
-  std::shuffle(_history.begin(), _history.end(), rnd);
-  // TODO: if index track in second half of history, reverse history
-  _history.append(index);
+
+  if (_tracks.size() != 0) {
+    std::iota(_history.begin(), _history.end(), 0);
+    std::shuffle(_history.begin(), _history.end(), rnd);
+
+    if (_history.mid(_tracks.size() / 2).contains(index))
+      std::reverse(_history.begin(), _history.end());
+
+    _history.append(index);
+  }
   _currentIndex = _tracks.size();
 
   auto gen = [this]() -> int {
-    // do not repeat begin..end
     if (_history.size() < _tracks.size() / 2)
       return QRandomGenerator::global()->bounded(_tracks.size());
     else
@@ -185,33 +190,39 @@ Playlist::Generator DPlaylist::shuffleGenerator(int index)
   for (int i = 0; i < _tracks.size(); ++i)
     _history.append(gen());
 
-  return {
-    [this, gen]() -> refTrack_ { // next
-      if (_history.length() > _tracks.size() * 2 + 1) { // add some tracks
-        // TODO
-      }
-      if (_history.length() < _tracks.size() * 2 + 1) { // remove some tracks
-        // TODO
-      }
+  auto fit = [this, gen]() {
+    auto n = (_tracks.size() * 2 + 1) - _history.size();
+    if (n < 0)
+      for (int i = 0; i < n; ++i) _history.pop_back();
+    else if (n > 0)
+      for (int i = 0; i < n; ++i) _history.append(gen());
+  };
 
-      if (_history.length() <= 0) return nullptr;
-      if (_history.length() <= 2) return _tracks.last();
+  return {
+    [this, gen, fit]() -> refTrack_ { // next
+      if (_tracks.size() == 0) {
+        _history.clear();
+        return nullptr;
+      }
+      fit();
+
+      if (_history.size() <= 0) return nullptr;
+      if (_history.size() <= 2) return _tracks.last();
 
       std::rotate(_history.begin(), _history.begin() + 1, _history.end()); // rotate left
       _history.last() = gen();
 
       return get(_history[_currentIndex]);
     },
-    [this, gen]() -> refTrack_ { // prev
-      if (_history.length() > _tracks.size() * 2 + 1) { // add some tracks
-        // TODO
+    [this, gen, fit]() -> refTrack_ { // prev
+      if (_tracks.size() == 0) {
+        _history.clear();
+        return nullptr;
       }
-      if (_history.length() < _tracks.size() * 2 + 1) { // remove some tracks
-        // TODO
-      }
+      fit();
 
-      if (_history.length() <= 0) return nullptr;
-      if (_history.length() <= 2) return _tracks.last();
+      if (_history.size() <= 0) return nullptr;
+      if (_history.size() <= 2) return _tracks[0];
 
       std::rotate(_history.rbegin(), _history.rbegin() + 1, _history.rend()); // rotate right
       _history.first() = gen();
@@ -226,6 +237,7 @@ Playlist::Generator DPlaylist::randomAccessGenerator(int index)
   Q_UNUSED(index)
   return {
     [this]() -> refTrack_ { // next
+      if (_tracks.size() == 0) return nullptr;
       auto a = QRandomGenerator::global()->bounded(_tracks.size());
       _history.append(a);
       if (_history.size() > _tracks.size())
@@ -233,6 +245,7 @@ Playlist::Generator DPlaylist::randomAccessGenerator(int index)
       return get(a);
     },
     [this]() -> refTrack_ { // prev
+      if (_tracks.size() == 0) return nullptr;
       if (_history.size() > 1) {
         auto a = _history[_history.size() - 2];
         _history.pop_back();

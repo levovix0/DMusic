@@ -107,7 +107,6 @@ private:
 
 struct DPlaylist : Playlist
 {
-  //TODO: слишком медленная перемешка
   Q_OBJECT
 public:
   ~DPlaylist();
