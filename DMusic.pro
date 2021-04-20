@@ -97,9 +97,9 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 win32 {
-  LIBS += -L$$(HOME)\AppData\Local\Programs\Python\Python39\libs -lpython39
-  INCLUDEPATH += $$(HOME)\AppData\Local\Programs\Python\Python39\include
-  DEPENDPATH += $$(HOME)\AppData\Local\Programs\Python\Python39\include
+  LIBS += -L$$(USERPROFILE)\AppData\Local\Programs\Python\Python39\libs -lpython39
+  INCLUDEPATH += $$(USERPROFILE)\AppData\Local\Programs\Python\Python39\include
+  DEPENDPATH += $$(USERPROFILE)\AppData\Local\Programs\Python\Python39\include
 }
 
 unix {
