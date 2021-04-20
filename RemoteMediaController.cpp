@@ -47,7 +47,6 @@ bool Mpris2Root::fullscreen()
 void Mpris2Root::setFullscreen(bool value)
 {
   Q_UNUSED(value);
-  //TODO
 }
 
 QString Mpris2Root::identity()
@@ -345,10 +344,10 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
   res["xesam:artist"] = artist;
   res["xesam:album"] = ""; //TODO
   res["xesam:title"] = title;
-  res["xesam:userRating"] = 0; //TODO
+  res["xesam:userRating"] = track.liked()? 1 : 0;
   auto duration = track.duration();
   res["mpris:length"] = duration > 0? duration * 1000 : 1; // in microseconds
-  QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/Track/") + QString::number(0); //TODO
+  QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/Track/") + track.idInt();
   res["mpris:trackid"] = QVariant(QDBusObjectPath(trackId).path());
   res["mpris:artUrl"] = track.cover();
   return res;

@@ -127,7 +127,7 @@ public slots:
 
 private:
   QVector<refTrack_> _tracks;
-  QVector<refTrack_> _history;
+  QVector<int> _history;
   int _currentIndex = 0;
 };
 
