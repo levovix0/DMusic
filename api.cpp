@@ -183,18 +183,14 @@ Playlist::Generator DPlaylist::shuffleGenerator(int index)
   auto gen = [this]() -> int {
     QVector<int> able(_tracks.size());
     std::iota(able.begin(), able.end(), 0);
-    for (auto&& t : _history.mid(_history.size() - _tracks.size() / 2, _tracks.size() / 2))
-      able.removeOne(t);
+    for (int i = _history.size() - _tracks.size() / 2; i < _history.size(); ++i)
+      able.removeOne(_history[i]);
     if (able.size() < 2) return QRandomGenerator::global()->bounded(_tracks.size());
     return able[QRandomGenerator::global()->bounded(able.size())];
   };
 
   for (int i = 0; i < _tracks.size(); ++i)
     _history.append(gen());
-
-  for (auto&& track : _history)
-    std::cout << track << " ";
-  std::cout << std::endl << std::endl;
 
   auto fit = [this, gen]() {
     auto n = (_tracks.size() * 2 + 1) - _history.size();
