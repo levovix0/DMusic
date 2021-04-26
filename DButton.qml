@@ -9,7 +9,7 @@ Rectangle {
   property alias text: _text.text
   signal click()
 
-  color: _mouse.containsPress? "#404040" : "#303030"
+  color: _mouse.containsPress? "#404040" : (_mouse.containsMouse? "#303030" : "#262626")
 
   DText {
     id: _text
@@ -22,6 +22,7 @@ Rectangle {
     id: _mouse
     anchors.fill: parent
 
+    hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: root.click()
   }

@@ -64,7 +64,7 @@ Item {
       id: _hoverShadeEffect
       anchors.fill: parent
       color: "#000000"
-      opacity: _anim_n * 0.5
+      opacity: _anim_n * 0.4 + _anim2_n * 0.1
     }
   }
 

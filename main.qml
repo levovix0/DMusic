@@ -84,6 +84,8 @@ Window {
       id: _id_input
       anchors.centerIn: root
       width: root.width / 3 * 2
+
+      hint: qsTr("ID")
     }
 
     Item {
@@ -148,6 +150,8 @@ Window {
       anchors.centerIn: root
       anchors.verticalCenterOffset: 80
       width: root.width / 3
+
+      hint: qsTr("Title")
     }
 
     DTextBox {
@@ -156,6 +160,8 @@ Window {
       anchors.top: _tb_title.bottom
       anchors.topMargin: 10
       width: root.width / 3
+
+      hint: qsTr("Artists")
     }
 
     DTextBox {
@@ -164,6 +170,8 @@ Window {
       anchors.top: _tb_artists.bottom
       anchors.topMargin: 10
       width: root.width / 3
+
+      hint: qsTr("Extra")
     }
 
     FileDialog {
