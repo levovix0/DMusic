@@ -206,6 +206,10 @@ bool MediaPlayer::next()
 
 bool MediaPlayer::prev()
 {
+  if (progress_ms() > 10'000) {
+    setProgress_ms(0);
+    return true;
+  }
   _unsubscribeCurrentTrack();
   player->stop();
 
