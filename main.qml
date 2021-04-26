@@ -212,10 +212,22 @@ Window {
     }
 
     PlaylistEntry {
+      id: _userLikedPlaylist
       anchors.left: root.left
       anchors.top: _title.bottom
       anchors.leftMargin: 25
       anchors.topMargin: 25
+
+      onPlay: _player.player.play(_yapi.playlist(3))
+    }
+
+    PlaylistEntry {
+      anchors.left: _userLikedPlaylist.right
+      anchors.top: _title.bottom
+      anchors.leftMargin: 25
+      anchors.topMargin: 25
+
+      onPlay: _player.player.play(_yapi.userDailyPlaylist())
     }
   }
 }

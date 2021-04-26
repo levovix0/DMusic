@@ -125,6 +125,7 @@ public slots:
   Playlist* likedTracks();
   Playlist* playlist(int id);
   Playlist* track(qint64 id);
+  Playlist* userDailyPlaylist();
   Playlist* userTrack(int id);
   Playlist* downloadsPlaylist();
 

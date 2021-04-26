@@ -253,6 +253,20 @@ Playlist* YClient::track(qint64 id)
   return res;
 }
 
+Playlist* YClient::userDailyPlaylist()
+{
+  auto ppb = me.call("landing", std::vector<object>{"personalplaylists"}).get("blocks")[0];
+  auto daily = ppb.get("entities")[0].get("data").get("data");
+  auto a = daily.call("fetch_tracks");
+  DPlaylist* res = new DPlaylist(this);
+  for (int i = 0; i < PyList_Size(a.raw); ++i) {
+    object p = PyList_GetItem(a.raw, i);
+    if (!p.has("id")) continue;
+    res->add(new YTrack(p.get("id").to<int>(), this));
+  }
+  return res;
+}
+
 Playlist* YClient::userTrack(int id)
 {
   DPlaylist* res = new DPlaylist(this);

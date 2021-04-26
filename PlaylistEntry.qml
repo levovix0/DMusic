@@ -7,7 +7,47 @@ Item {
   width: 115
   height: root.width + _name.height + 10
 
+  property bool playing: false
+
+  property real _anim_n: 0
+  property real _anim2_n: 0
 //  property QmlPlaylist playlist
+
+  signal play()
+  signal pause()
+  signal showOrHide()
+  signal showFull()
+
+  NumberAnimation on _anim_n {
+    id: _anim
+    duration: 250
+    easing.type: Easing.OutQuad
+  }
+  function processHover() {
+    _anim.from = 0
+    _anim.to = 1
+    _anim.restart()
+  }
+  function processLeave() {
+    _anim.from = 1
+    _anim.to = 0
+    _anim.restart()
+  }
+  NumberAnimation on _anim2_n {
+    id: _anim2
+    duration: 250
+    easing.type: Easing.OutQuad
+  }
+  function processHover2() {
+    _anim2.from = 0
+    _anim2.to = 1
+    _anim2.restart()
+  }
+  function processLeave2() {
+    _anim2.from = 1
+    _anim2.to = 0
+    _anim2.restart()
+  }
 
   Image {
     id: _cover
@@ -24,24 +64,7 @@ Item {
       id: _hoverShadeEffect
       anchors.fill: parent
       color: "#000000"
-      opacity: 0
-
-      OpacityAnimator {
-        target: _hoverShadeEffect
-        id: _anim_opacity
-        duration: 300
-        easing.type: Easing.OutCubic
-      }
-    }
-    function processHover() {
-      _anim_opacity.from = 0
-      _anim_opacity.to = 0.4
-      _anim_opacity.restart()
-    }
-    function processLeave() {
-      _anim_opacity.from = 0.4
-      _anim_opacity.to = 0
-      _anim_opacity.restart()
+      opacity: _anim_n * 0.5
     }
   }
 
@@ -57,10 +80,47 @@ Item {
 
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
-      onEntered: _cover.processHover()
-      onExited: _cover.processLeave()
+      onEntered: root.processHover()
+      onExited: root.processLeave()
+
+      onPressed: showOrHide()
+
+      MouseArea {
+        id: _playMouse
+        anchors.centerIn: parent
+        width: 30
+        height: 30
+
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onEntered: root.processHover2()
+        onExited: root.processLeave2()
+
+        onPressed: playing? pause() : play()
+      }
     }
   }
+
+  Icon {
+    id: _play
+    anchors.centerIn: _roundCover
+    opacity: _anim_n
+
+    src: playing? "qrc:/resources/player/pause.svg" : "qrc:/resources/player/play.svg"
+    color: Qt.hsla(0.14, 0.7 + _anim2_n * 0.3, 1 - _anim2_n * 0.3, 1)
+    image.sourceSize: Qt.size(25, 30)
+    scale: 0.7 + _anim_n * 0.1 + _anim2_n * 0.2
+  }
+
+  DropShadow {
+    anchors.fill: root
+    visible: _play.visible
+    radius: 5.0
+    samples: 25
+    color: "#60000000"
+    source: _play
+  }
+
 
   DText {
     id: _name
@@ -74,13 +134,15 @@ Item {
     wrapMode: Text.WordWrap
 
 //    text: playlist.name
-    text: "some playlist"
+    text: "some playlist" // " "
 
     MouseArea {
       id: _textMouse
       anchors.fill: parent
 
       cursorShape: Qt.PointingHandCursor
+
+      onPressed: showFull()
     }
   }
 }
