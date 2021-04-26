@@ -10,12 +10,21 @@ Rectangle {
 
   property alias text: _input.text
 
-  TextInput {
-    id: _input
+  Item {
     anchors.centerIn: root
     width: root.width - 10
+    height: root.height
 
-    color: "#FFFFFF"
-    font.pixelSize: root.height * 0.8
+    clip: true
+
+    TextInput {
+      id: _input
+      anchors.fill: parent
+
+      color: "#FFFFFF"
+      font.pixelSize: root.height * 0.8
+      selectByMouse: true
+      selectionColor: "#627FAA"
+    }
   }
 }
