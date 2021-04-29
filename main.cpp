@@ -5,6 +5,8 @@
 #include "Log.hpp"
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
+#include "QmlTrack.hpp"
+#include "QmlPlaylist.hpp"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>
@@ -30,6 +32,10 @@ int main(int argc, char *argv[])
   qmlRegisterType<Settings>("DMusic", 1, 0, "Settings");
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
   qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
+
+  qmlRegisterType<QmlTrack>("DMusic", 1, 1, "Track");
+  qmlRegisterType<QmlRadio>("DMusic", 1, 1, "Radio");
+  qmlRegisterType<QmlPlaylist>("DMusic", 1, 1, "Playlist");
 
 #ifdef Q_OS_LINUX
   QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));

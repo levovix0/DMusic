@@ -1,14 +1,18 @@
 #pragma once
 #include <optional>
 #include <QMediaContent>
+#include <QJsonObject>
 #include "types.hpp"
 #include "ID.hpp"
 
 class ITrack : public QObject
 {
-  // any track can change (load) it's data on the fly
+  // any track has mutable (loadable) data, to load it use `fetch`
   Q_OBJECT
 public:
+  // getters cannot
+  // нет.
+  // плохо.
   virtual std::optional<QString> title();
   virtual std::optional<QVector<refArtist>> artists();
   virtual std::optional<QString> extra();
@@ -21,7 +25,9 @@ public:
   virtual bool exists(); // when false, all getters must return `none`, and emit `xAborted`
 
   virtual refClient client() = 0;
-  virtual ID id(); // must have same client as client() returns;
+  virtual ID id();
+
+  virtual QJsonObject serialize();
 
 public slots:
   virtual void setliked(bool liked) = 0;

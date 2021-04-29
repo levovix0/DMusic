@@ -6,19 +6,25 @@ class IPlaylist : public QObject
 {
   Q_OBJECT
 public:
+  virtual void fetchInfo() {}
+  virtual void refetchInfo() {}
+  virtual void fetchTracks() {}
+  virtual void refetchTracks() {}
+  virtual void fetchCover() {}
+  virtual void refetchCover() {}
+
+  virtual std::optional<QString> name();
+  virtual std::optional<QString> description();
+  virtual std::optional<QString> cover();
+  virtual QVector<refTrack> tracks();
+
   virtual refPlaylistRadio radio(int pos, IPlaylistRadio::NextMode nextMode = IPlaylistRadio::NextSequence, IPlaylistRadio::LoopMode loopMode = IPlaylistRadio::LoopNone) = 0;
   virtual refPlaylistRadio radio(IPlaylistRadio::NextMode nextMode = IPlaylistRadio::NextSequence, IPlaylistRadio::LoopMode loopMode = IPlaylistRadio::LoopNone)
   { return radio(-1, nextMode, loopMode); }
 
-  void fetchInfo() {}
-  void refetchInfo() {}
-  void fetchTracks() {}
-  void refetchTracks() {}
-  void fetchCover() {}
-  void refetchCover() {}
-
-  QVector<refTrack> tracks();
-
 signals:
-  void dataChanged();
+  void nameChanged();
+  void descriptionChanged();
+  void coverChanged();
+  void tracksChanged();
 };

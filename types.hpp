@@ -3,14 +3,14 @@
 
 class ITrack;
 class IArtist;
-class IPlaylst;
+class IPlaylist;
 class IRadio;
 class IPlaylistRadio;
 class IClient;
 
 using refTrack = QSharedPointer<ITrack>;
 using refArtist = QSharedPointer<IArtist>;
-using refPlaylist = QSharedPointer<IPlaylst>;
+using refPlaylist = QSharedPointer<IPlaylist>;
 using refRadio = QSharedPointer<IRadio>;
 using refPlaylistRadio = QSharedPointer<IPlaylistRadio>;
 using refClient = QSharedPointer<IClient>;
@@ -22,6 +22,10 @@ enum DataKind : quint8 {
   dkPlaylist,
   dkAlbum,
 };
+enum ClientKind : quint8 {
+  ckNone = 0,
+  ckYandex,
+};
 
 inline QString toString(DataKind a) {
   switch (a) {
@@ -30,6 +34,14 @@ inline QString toString(DataKind a) {
   case dkArtist: return "artist";
   case dkPlaylist: return "playlist";
   case dkAlbum: return "album";
+  }
+  return "";
+}
+
+inline QString toString(ClientKind a) {
+  switch (a) {
+  case ckNone: return "";
+  case ckYandex: return "ym";
   }
   return "";
 }

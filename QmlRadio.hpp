@@ -9,7 +9,11 @@ public:
   explicit QmlRadio(QObject* parent = nullptr);
   explicit QmlRadio(refRadio const& ref, QObject* parent = nullptr);
 
-  refRadio ref;
+  void set(refRadio ref);
+  refRadio get();
+
 signals:
 
+private:
+  refRadio ref{};
 };

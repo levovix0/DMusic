@@ -25,9 +25,7 @@ Item {
 
     hoverEnabled: true
 
-    onExited: opened = false
-
-    property alias opened: _ppc.opened
+    onExited: _ppc.opened = false
 
     VolumeControlPanel {
       id: _panel
@@ -59,7 +57,7 @@ Item {
 
       onPressed: target.muted = !target.muted
       onWheel: target.volume += 0.05 * wheel.angleDelta.y / 120
-      onEntered: _bg_mouse.opened = true
+      onEntered: _ppc.opened = true
     }
   }
 }

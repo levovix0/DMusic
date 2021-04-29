@@ -27,9 +27,8 @@ public:
   bool liked();
   bool isExplicit();
 
-  void setRef(refTrack track);
-
-  refTrack ref;
+  void set(refTrack track);
+  refTrack get();
 
 signals:
   void titleChanged();
@@ -40,5 +39,8 @@ signals:
   void durationChanged();
   void likedChanged();
   void isExplicitChanged();
+
+private:
+  refTrack ref{};
 };
 

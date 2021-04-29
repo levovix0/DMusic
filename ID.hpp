@@ -3,10 +3,14 @@
 
 struct ID
 {
-  refClient client;
   qint64 id = 0;
+  ClientKind client = ckNone;
   DataKind kind = dkNone;
 
-  QString toString();
+  qint64 container = 0;
+  DataKind containerKind = dkNone;
+
+  QString serialize();
+  static ID deseralize(QString s);
 };
 

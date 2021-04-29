@@ -47,5 +47,24 @@ bool ITrack::exists()
 
 ID ITrack::id()
 {
-  return {client(), 0};
+  return {};
+}
+
+QJsonObject ITrack::serialize()
+{
+  QJsonObject res;
+
+  res["id"] = id().serialize();
+  auto _title = title();
+  if (_title != std::nullopt) res["title"] = _title.value();
+//  auto _artists = artists();
+//  if (_title != std::nullopt) res["title"] = _artists.serialize();
+//  auto _extra = extra();
+//  if (_title != std::nullopt) res["title"] = _extra.value();
+//  auto _title = title();
+//  if (_title != std::nullopt) res["title"] = _title.value();
+//  auto _title = title();
+//  if (_title != std::nullopt) res["title"] = _title.value();
+
+  return res;
 }

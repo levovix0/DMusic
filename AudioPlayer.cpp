@@ -86,7 +86,7 @@ void AudioPlayer::next()
 {
   _radio->next();
   if (_radio->hasCurrent())
-    _playTrack(_radio->current());
+    _playTrack(_radio->current().value());
   else
     stop();
 }
@@ -95,7 +95,7 @@ void AudioPlayer::prev()
 {
   _radio->prev();
   if (_radio->hasCurrent())
-    _playTrack(_radio->current());
+    _playTrack(_radio->current().value());
   else
     stop();
 }
@@ -120,14 +120,14 @@ void AudioPlayer::play(refRadio radio)
 {
   _setRadio(radio);
   if (radio->hasCurrent())
-    _playTrack(radio->current());
+    _playTrack(radio->current().value());
   else
     stop();
 }
 
 void AudioPlayer::play(QmlRadio* radio)
 {
-  play(radio->ref);
+  play(radio->get());
 }
 
 void AudioPlayer::setState(AudioPlayer::State state)
@@ -212,7 +212,7 @@ void AudioPlayer::_setRadio(refRadio radio)
 {
   _radio = radio;
   _playlist = dynamic_cast<IPlaylistRadio*>(radio.get());
-  _currentRadioQml->ref = _radio;
+  _currentRadioQml->set(_radio);
   if (_playlist != nullptr) {
     _playlist->setNextMode(_nextMode);
     _playlist->setLoopMode(_loopMode);
@@ -237,7 +237,7 @@ void AudioPlayer::_setTrack(refTrack track)
   _unsubscribe();
   _track = track;
   _subscribeCurrentTrack();
-  _currentTrackQml->setRef(_track);
+  _currentTrackQml->set(_track);
   emit currentTrackChanged(_currentTrackQml);
 }
 

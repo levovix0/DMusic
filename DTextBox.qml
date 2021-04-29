@@ -11,10 +11,12 @@ Rectangle {
   property string hint: ""
   property alias text: _input.text
 
-  Item {
+  MouseArea {
     anchors.centerIn: root
     width: root.width - 10
     height: root.height
+
+    cursorShape: Qt.IBeamCursor
 
     clip: true
 
