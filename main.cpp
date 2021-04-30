@@ -1,7 +1,7 @@
 #include "yapi.hpp"
 #include "file.hpp"
 #include "settings.hpp"
-#include "mediaplayer.hpp"
+#include "AudioPlayer.hpp"
 #include "Log.hpp"
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
@@ -28,14 +28,10 @@ int main(int argc, char *argv[])
   qmlRegisterType<YTrack>("DMusic", 1, 0, "Track");
   qmlRegisterType<Playlist>("DMusic", 1, 0, "Playlist");
   qmlRegisterType<DPlaylist>("DMusic", 1, 0, "DPlaylist");
-  qmlRegisterType<MediaPlayer>("DMusic", 1, 0, "MediaPlayer");
+  qmlRegisterType<AudioPlayer>("DMusic", 1, 0, "AudioPlayer");
   qmlRegisterType<Settings>("DMusic", 1, 0, "Settings");
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
   qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
-
-  qmlRegisterType<QmlTrack>("DMusic", 1, 1, "Track");
-  qmlRegisterType<QmlRadio>("DMusic", 1, 1, "Radio");
-  qmlRegisterType<QmlPlaylist>("DMusic", 1, 1, "Playlist");
 
 #ifdef Q_OS_LINUX
   QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));

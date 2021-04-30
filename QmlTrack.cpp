@@ -7,7 +7,7 @@ QmlTrack::QmlTrack(QObject* parent) : QObject(parent)
 
 }
 
-QmlTrack::QmlTrack(const refTrack& ref, QObject* parent) : QObject(parent)
+QmlTrack::QmlTrack(const _refTrack& ref, QObject* parent) : QObject(parent)
 {
   set(ref);
 }
@@ -66,7 +66,7 @@ bool QmlTrack::isExplicit()
   return ref->isExplicit().value_or(false);
 }
 
-void QmlTrack::set(refTrack track)
+void QmlTrack::set(_refTrack track)
 {
   ref = track;
   disconnect(nullptr, nullptr, this, nullptr);
@@ -80,7 +80,7 @@ void QmlTrack::set(refTrack track)
   connect(ref.get(), &ITrack::isExplicitChanged, this, &QmlTrack::isExplicitChanged);
 }
 
-refTrack QmlTrack::get()
+_refTrack QmlTrack::get()
 {
   return ref;
 }

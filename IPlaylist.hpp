@@ -16,10 +16,10 @@ public:
   virtual std::optional<QString> name();
   virtual std::optional<QString> description();
   virtual std::optional<QString> cover();
-  virtual QVector<refTrack> tracks();
+  virtual QVector<_refTrack> tracks();
 
-  virtual refPlaylistRadio radio(int pos, IPlaylistRadio::NextMode nextMode = IPlaylistRadio::NextSequence, IPlaylistRadio::LoopMode loopMode = IPlaylistRadio::LoopNone) = 0;
-  virtual refPlaylistRadio radio(IPlaylistRadio::NextMode nextMode = IPlaylistRadio::NextSequence, IPlaylistRadio::LoopMode loopMode = IPlaylistRadio::LoopNone)
+  virtual _refPlaylistRadio radio(int pos, IPlaylistRadio::NextMode nextMode = IPlaylistRadio::NextSequence, IPlaylistRadio::LoopMode loopMode = IPlaylistRadio::LoopNone) = 0;
+  virtual _refPlaylistRadio radio(IPlaylistRadio::NextMode nextMode = IPlaylistRadio::NextSequence, IPlaylistRadio::LoopMode loopMode = IPlaylistRadio::LoopNone)
   { return radio(-1, nextMode, loopMode); }
 
 signals:

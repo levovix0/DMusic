@@ -7,13 +7,13 @@ class QmlRadio : public QObject
   Q_OBJECT
 public:
   explicit QmlRadio(QObject* parent = nullptr);
-  explicit QmlRadio(refRadio const& ref, QObject* parent = nullptr);
+  explicit QmlRadio(_refRadio const& ref, QObject* parent = nullptr);
 
-  void set(refRadio ref);
-  refRadio get();
+  void set(_refRadio ref);
+  _refRadio get();
 
 signals:
 
 private:
-  refRadio ref{};
+  _refRadio ref{};
 };

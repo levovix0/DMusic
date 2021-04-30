@@ -5,7 +5,7 @@ Item {
 
   property string icon: ""
   property string title: ""
-  property string author: ""
+  property string artists: ""
   property string extra: ""
   property string idInt: ""
   property bool liked: false
@@ -27,7 +27,7 @@ Item {
     height: root.height
 
     title: root.title
-    artists: root.author
+    artists: root.artists
     extra: root.extra
     idInt: root.idInt
     liked: root.liked

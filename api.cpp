@@ -12,59 +12,6 @@ Playlist Playlist::none;
 std::random_device rd;
 std::mt19937 rnd(rd());
 
-Track::~Track()
-{}
-
-Track::Track(QObject* parent) : QObject(parent)
-{}
-
-QString Track::idInt()
-{
-  return "";
-}
-
-QString Track::title()
-{
-  return "";
-}
-
-QString Track::author()
-{
-  return "";
-}
-
-QString Track::extra()
-{
-  return "";
-}
-
-QString Track::cover()
-{
-  emit coverAborted();
-  return "qrc:resources/player/no-cover.svg";
-}
-
-QMediaContent Track::media()
-{
-  emit mediaAborted();
-  return {};
-}
-
-qint64 Track::duration()
-{
-  return 0;
-}
-
-bool Track::liked()
-{
-  return false;
-}
-
-void Track::setLiked(bool)
-{
-
-}
-
 Playlist::~Playlist()
 {
 
@@ -75,62 +22,115 @@ Playlist::Playlist(QObject* parent) : QObject(parent)
 
 }
 
-refTrack_ Playlist::operator[](int index)
+refTrack Playlist::operator[](int index)
 {
   return get(index);
 }
 
-refTrack_ Playlist::get(int index)
+refTrack Playlist::get(int)
 {
-  Q_UNUSED(index)
   return nullptr;
 }
 
-Playlist::Generator Playlist::sequenceGenerator(int index)
+Radio Playlist::radio(int, Settings::NextMode)
 {
-  Q_UNUSED(index)
-  return {[]{ return nullptr; }, []{ return nullptr; }};
+  return {[]{ return nullptr; }, []{ return nullptr; }, refPlaylist(this)};
 }
 
-Playlist::Generator Playlist::shuffleGenerator(int index)
+Radio DPlaylist::radio(int index, Settings::NextMode nextMode)
 {
-  Q_UNUSED(index)
-  return {[]{ return nullptr; }, []{ return nullptr; }};
-}
+  if (nextMode == Settings::NextMode::NextRandomAccess) nextMode = Settings::NextMode::NextShuffle; //!
+  if (nextMode == Settings::NextMode::NextSequence) {
+    if (index < -1 || index > size()) return radio(0, nextMode);
+    _currentIndex = index;
+    return {
+      [this]() -> refTrack { // next
+        if (_currentIndex + 1 >= _tracks.size() || _currentIndex < -1) return nullptr;
+        return get(++_currentIndex);
+      },
+      [this]() -> refTrack { // prev
+        if (_currentIndex - 1 >= _tracks.size() || _currentIndex < 1) return nullptr;
+        return get(--_currentIndex);
+      },
+      QSharedPointer<Playlist>(this)
+    };
+  } else {
+    if (index < 0 || index > size()) return radio(QRandomGenerator::global()->bounded(_tracks.size()), nextMode);
 
-Playlist::Generator Playlist::randomAccessGenerator(int index)
-{
-  Q_UNUSED(index)
-  return {[]{ return nullptr; }, []{ return nullptr; }};
-}
+    _history.resize(_tracks.size());
 
-Playlist::Generator Playlist::generator(int index, Settings::NextMode prefered)
-{
-  auto avaiable = modesSupported();
-  switch (prefered) {
-  case Settings::NextSequence:
-    if (avaiable.contains(Settings::NextSequence)) return sequenceGenerator(index);
-    else if (avaiable.contains(Settings::NextShuffle)) return shuffleGenerator(index);
-    else if (avaiable.contains(Settings::NextRandomAccess)) return randomAccessGenerator(index);
-    break;
-  case Settings::NextShuffle:
-    if (avaiable.contains(Settings::NextShuffle)) return shuffleGenerator(index);
-    else if (avaiable.contains(Settings::NextRandomAccess)) return randomAccessGenerator(index);
-    else if (avaiable.contains(Settings::NextSequence)) return sequenceGenerator(index);
-    break;
-  case Settings::NextRandomAccess:
-    if (avaiable.contains(Settings::NextRandomAccess)) return randomAccessGenerator(index);
-    else if (avaiable.contains(Settings::NextShuffle)) return shuffleGenerator(index);
-    else if (avaiable.contains(Settings::NextSequence)) return sequenceGenerator(index);
-    break;
+    if (_tracks.size() != 0) {
+      std::iota(_history.begin(), _history.end(), 0);
+      std::shuffle(_history.begin(), _history.end(), *QRandomGenerator::global());
+
+      if (_history.mid(_tracks.size() / 2).contains(index))
+        std::reverse(_history.begin(), _history.end());
+
+      _history.append(index);
+    }
+    _currentIndex = _tracks.size();
+
+    auto gen = [this]() -> int {
+      QVector<int> able(_tracks.size());
+      std::iota(able.begin(), able.end(), 0);
+      for (int i = _history.size() - _tracks.size() / 2; i < _history.size(); ++i)
+        able.removeOne(_history[i]);
+      if (able.size() < 2) return QRandomGenerator::global()->bounded(_tracks.size());
+      return able[QRandomGenerator::global()->bounded(able.size())];
+    };
+
+    for (int i = 0; i < _tracks.size(); ++i)
+      _history.append(gen());
+
+    auto fit = [this, gen]() {
+      auto n = (_tracks.size() * 2 + 1) - _history.size();
+      if (n < 0)
+        for (int i = 0; i < n; ++i) _history.pop_back();
+      else if (n > 0)
+        for (int i = 0; i < n; ++i) _history.append(gen());
+    };
+
+    return {
+      [this, gen, fit]() -> refTrack { // next
+        if (_tracks.size() == 0) {
+          _history.clear();
+          return nullptr;
+        }
+        fit();
+
+        if (_history.size() <= 0) return nullptr;
+        if (_history.size() <= 2) return _tracks.last();
+
+        std::rotate(_history.begin(), _history.begin() + 1, _history.end()); // rotate left
+        _history.last() = gen();
+
+        return get(_history[_currentIndex]);
+      },
+      [this, gen, fit]() -> refTrack { // prev
+        if (_tracks.size() == 0) {
+          _history.clear();
+          return nullptr;
+        }
+        fit();
+
+        if (_history.size() <= 0) return nullptr;
+        if (_history.size() <= 2) return _tracks[0];
+
+        std::rotate(_history.rbegin(), _history.rbegin() + 1, _history.rend()); // rotate right
+        _history.first() = gen();
+
+        return get(_history[_currentIndex]);
+      },
+      QSharedPointer<Playlist>(this)
+    };
   }
-  return {[]{ return nullptr; }, []{ return nullptr; }};
 }
 
 int Playlist::size()
 {
   return 0;
 }
+
 
 DPlaylist::~DPlaylist()
 {
@@ -142,120 +142,9 @@ DPlaylist::DPlaylist(QObject* parent) : Playlist(parent)
 
 }
 
-refTrack_ DPlaylist::get(int index)
+refTrack DPlaylist::get(int index)
 {
-  return {_tracks[index], this};
-}
-
-Playlist::Generator DPlaylist::sequenceGenerator(int index)
-{
-  if (index < -1 || index > size()) return sequenceGenerator(0);
-  _currentIndex = index;
-  return {
-    [this]() -> refTrack_ { // next
-      if (_currentIndex + 1 >= _tracks.size() || _currentIndex < -1) return nullptr;
-      return get(++_currentIndex);
-    },
-    [this]() -> refTrack_ { // prev
-      if (_currentIndex - 1 >= _tracks.size() || _currentIndex < 1) return nullptr;
-      return get(--_currentIndex);
-    }
-  };
-}
-
-Playlist::Generator DPlaylist::shuffleGenerator(int index)
-{
-  if (index < 0 || index > size()) return shuffleGenerator(QRandomGenerator::global()->bounded(_tracks.size()));
-
-  _history.resize(_tracks.size());
-
-  if (_tracks.size() != 0) {
-    std::iota(_history.begin(), _history.end(), 0);
-    std::shuffle(_history.begin(), _history.end(), *QRandomGenerator::global());
-
-    if (_history.mid(_tracks.size() / 2).contains(index))
-      std::reverse(_history.begin(), _history.end());
-
-    _history.append(index);
-  }
-  _currentIndex = _tracks.size();
-
-  auto gen = [this]() -> int {
-    QVector<int> able(_tracks.size());
-    std::iota(able.begin(), able.end(), 0);
-    for (int i = _history.size() - _tracks.size() / 2; i < _history.size(); ++i)
-      able.removeOne(_history[i]);
-    if (able.size() < 2) return QRandomGenerator::global()->bounded(_tracks.size());
-    return able[QRandomGenerator::global()->bounded(able.size())];
-  };
-
-  for (int i = 0; i < _tracks.size(); ++i)
-    _history.append(gen());
-
-  auto fit = [this, gen]() {
-    auto n = (_tracks.size() * 2 + 1) - _history.size();
-    if (n < 0)
-      for (int i = 0; i < n; ++i) _history.pop_back();
-    else if (n > 0)
-      for (int i = 0; i < n; ++i) _history.append(gen());
-  };
-
-  return {
-    [this, gen, fit]() -> refTrack_ { // next
-      if (_tracks.size() == 0) {
-        _history.clear();
-        return nullptr;
-      }
-      fit();
-
-      if (_history.size() <= 0) return nullptr;
-      if (_history.size() <= 2) return _tracks.last();
-
-      std::rotate(_history.begin(), _history.begin() + 1, _history.end()); // rotate left
-      _history.last() = gen();
-
-      return get(_history[_currentIndex]);
-    },
-    [this, gen, fit]() -> refTrack_ { // prev
-      if (_tracks.size() == 0) {
-        _history.clear();
-        return nullptr;
-      }
-      fit();
-
-      if (_history.size() <= 0) return nullptr;
-      if (_history.size() <= 2) return _tracks[0];
-
-      std::rotate(_history.rbegin(), _history.rbegin() + 1, _history.rend()); // rotate right
-      _history.first() = gen();
-
-      return get(_history[_currentIndex]);
-    }
-  };
-}
-
-Playlist::Generator DPlaylist::randomAccessGenerator(int index)
-{
-  Q_UNUSED(index)
-  return {
-    [this]() -> refTrack_ { // next
-      if (_tracks.size() == 0) return nullptr;
-      auto a = QRandomGenerator::global()->bounded(_tracks.size());
-      _history.append(a);
-      if (_history.size() > _tracks.size())
-        _history.erase(_history.begin(), _history.begin() + (_history.size() - _tracks.size()));
-      return get(a);
-    },
-    [this]() -> refTrack_ { // prev
-      if (_tracks.size() == 0) return nullptr;
-      if (_history.size() > 1) {
-        auto a = _history[_history.size() - 2];
-        _history.pop_back();
-        return get(a);
-      }
-      return get(QRandomGenerator::global()->bounded(_tracks.size()));
-    }
-  };
+  return _tracks[index];
 }
 
 int DPlaylist::size()
@@ -263,116 +152,9 @@ int DPlaylist::size()
   return _tracks.length();
 }
 
-void DPlaylist::add(Track* a)
+void DPlaylist::add(refTrack a)
 {
   _tracks.append(a);
-}
-
-void DPlaylist::remove(Track* a)
-{
-  auto b = std::find(_tracks.begin(), _tracks.end(), a);
-  if (b == _tracks.end()) return;
-  _tracks.erase(b);
-}
-
-refTrack_::~refTrack_()
-{
-  //decref
-}
-
-refTrack_::refTrack_(Track* a)
-{
-  _ref = a;
-  //incref
-}
-
-refTrack_::refTrack_(Track* a, Playlist* playlist)
-{
-  _ref = a;
-  _attachedPlaylist = playlist;
-  //incref
-}
-
-refTrack_::refTrack_(const refTrack_& copy)
-{
-  _ref = copy._ref;
-  _attachedPlaylist = copy._attachedPlaylist;
-  //incref
-}
-
-refTrack_::refTrack_(const refTrack_& copy, Playlist* playlist)
-{
-  _ref = copy._ref;
-  _attachedPlaylist = playlist;
-  //incref
-}
-
-refTrack_ refTrack_::operator=(const refTrack_& copy)
-{
-  _ref = copy._ref;
-  _attachedPlaylist = copy._attachedPlaylist;
-  //incref
-  return *this;
-}
-
-bool refTrack_::operator==(const refTrack_& b) const
-{
-  return _ref == b._ref;
-}
-
-bool refTrack_::operator==(Track* b) const
-{
-  return _ref == b;
-}
-
-refTrack_::operator Track*()
-{
-  return _ref;
-}
-
-QString refTrack_::title()
-{
-  return _ref->title();
-}
-
-QString refTrack_::author()
-{
-  return _ref->author();
-}
-
-QString refTrack_::extra()
-{
-  return _ref->extra();
-}
-
-QString refTrack_::cover()
-{
-  return _ref->cover();
-}
-
-QMediaContent refTrack_::media()
-{
-  return _ref->media();
-}
-
-qint64 refTrack_::duration()
-{
-  return _ref->duration();
-}
-
-bool refTrack_::isNone()
-{
-  return _ref == nullptr;
-}
-
-Track* refTrack_::ref()
-{
-  return _ref;
-}
-
-Playlist* refTrack_::attachedPlaylist()
-{
-  return _attachedPlaylist;
 }
 
 UserTrack::UserTrack(int id, QObject* parent) : Track(parent)
@@ -386,7 +168,7 @@ QString UserTrack::title()
   return _title;
 }
 
-QString UserTrack::author()
+QString UserTrack::artistsStr()
 {
   return _artists;
 }

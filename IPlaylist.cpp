@@ -15,7 +15,7 @@ std::optional<QString> IPlaylist::cover()
   return {};
 }
 
-QVector<refTrack> IPlaylist::tracks()
+QVector<_refTrack> IPlaylist::tracks()
 {
   return {};
 }

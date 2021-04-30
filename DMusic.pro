@@ -8,7 +8,6 @@ SOURCES += \
         Clipboard.cpp \
         Download.cpp \
         IArtist.cpp \
-        IClient.cpp \
         ID.cpp \
         IPlaylist.cpp \
         IPlaylistRadio.cpp \
@@ -19,9 +18,10 @@ SOURCES += \
         QmlRadio.cpp \
         QmlTrack.cpp \
         RemoteMediaController.cpp \
+        Track.cpp \
+        _AudioPlayer.cpp \
         api.cpp \
         main.cpp \
-        mediaplayer.cpp \
         settings.cpp \
         yapi.cpp
 
@@ -30,7 +30,6 @@ HEADERS += \
   Clipboard.hpp \
   Download.hpp \
   IArtist.hpp \
-  IClient.hpp \
   ID.hpp \
   IPlaylist.hpp \
   IPlaylistRadio.hpp \
@@ -41,9 +40,10 @@ HEADERS += \
   QmlRadio.hpp \
   QmlTrack.hpp \
   RemoteMediaController.hpp \
+  Track.hpp \
+  _AudioPlayer.hpp \
   api.hpp \
   file.hpp \
-  mediaplayer.hpp \
   python.hpp \
   settings.hpp \
   types.hpp \

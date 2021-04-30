@@ -1,44 +1,80 @@
-#include "AudioPlayer.hpp"
+﻿#include "AudioPlayer.hpp"
+#include "settings.hpp"
+#include "QDateTime"
+#include "Log.hpp"
 #include <cmath>
-#include <QDateTime>
 
-AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), _currentTrackQml(new QmlTrack(this)), _currentRadioQml(new QmlRadio(this)), _player(new QMediaPlayer(this))
+AudioPlayer::~AudioPlayer()
 {
-  _player->setVolume(50); // 50%
-  _player->setNotifyInterval(50); // 50ms
+  delete player;
+}
 
-  connect(_player, &QMediaPlayer::stateChanged, this, &AudioPlayer::_updateState);
-  connect(_player, &QMediaPlayer::positionChanged, this, &AudioPlayer::positionChanged);
-  connect(_player, &QMediaPlayer::durationChanged, this, &AudioPlayer::durationChanged);
+AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer(this)), _currentTrack(nullptr)
+{
+  player->setNotifyInterval(50);
+  player->setVolume(50);
+  _volume = 0.5;
+  _currentTrack = noneTrack;
 
-  connect(_player, &QMediaPlayer::mediaStatusChanged, [this](QMediaPlayer::MediaStatus status) {
-    if (status == QMediaPlayer::EndOfMedia) _onMediaEnded();
+  QObject::connect(player, &QMediaPlayer::mediaStatusChanged, [this](QMediaPlayer::MediaStatus status) {
+    if (status == QMediaPlayer::EndOfMedia) {
+      if (_loopMode == Settings::LoopTrack) {
+        player->play();
+        return;
+      }
+
+      if (_currentPlaylist != nullptr) {
+        if (next()) return;
+      }
+      stop();
+    }
   });
+  QObject::connect(player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
+    emit stateChanged(state);
+  });
+  QObject::connect(player, &QMediaPlayer::mediaChanged, [this](QMediaContent const& media) {
+    if (media.isNull()) emit durationChanged(0);
+  });
+
+  QObject::connect(player, &QMediaPlayer::positionChanged, this, &AudioPlayer::progressChanged);
+  QObject::connect(player, &QMediaPlayer::durationChanged, this, &AudioPlayer::durationChanged);
+  QObject::connect(player, &QMediaPlayer::mutedChanged, this, &AudioPlayer::mutedChanged);
 }
 
-QmlTrack* AudioPlayer::currentTrack()
+float AudioPlayer::progress()
 {
-  return _currentTrackQml;
+  auto duration = this->duration();
+  return duration != 0? ((float)progress_ms() / (float)duration) : 0;
 }
 
-QmlRadio* AudioPlayer::currentRadio()
+qint64 AudioPlayer::progress_ms()
 {
-  return _currentRadioQml;
+  return player->position();
 }
 
-AudioPlayer::State AudioPlayer::state()
+Track* AudioPlayer::currentTrack()
 {
-  return _state;
+  return _currentTrack.get();
 }
 
-IPlaylistRadio::NextMode AudioPlayer::nextMode()
+QString AudioPlayer::formatProgress()
 {
-  return _nextMode;
+  return formatTime(progress_ms() / 1000);
 }
 
-IPlaylistRadio::LoopMode AudioPlayer::loopMode()
+QString AudioPlayer::formatDuration()
 {
-  return _loopMode;
+  return formatTime(duration() / 1000);
+}
+
+qint64 AudioPlayer::duration()
+{
+  return player->media().isNull()? 0 : player->duration();
+}
+
+QMediaPlayer::State AudioPlayer::state()
+{
+  return player->state();
 }
 
 double AudioPlayer::volume()
@@ -48,217 +84,212 @@ double AudioPlayer::volume()
 
 bool AudioPlayer::muted()
 {
-  return _player->isMuted();
+  return player->isMuted();
 }
 
-double AudioPlayer::position()
+Settings::LoopMode AudioPlayer::loopMode()
 {
-  auto duration = _player->duration();
-  return duration > 0? (double)_player->position() / (double)duration : 0.0;
+  return _loopMode;
 }
 
-qint64 AudioPlayer::positionMs()
+Settings::NextMode AudioPlayer::nextMode()
 {
-  return _player->position();
+  return _nextMode;
 }
 
-qint64 AudioPlayer::duration()
+void AudioPlayer::setMedia(QMediaContent media)
 {
-  return _player->duration();
+  player->stop();
+  player->setMedia(media);
+  player->setPosition(0);
+  player->play();
 }
 
-QString AudioPlayer::formatPosition()
+void AudioPlayer::onMediaAborted()
 {
-  return _formatTime(positionMs());
+  logging.error("media aborted");
+  next();
 }
 
-QString AudioPlayer::formatDuration()
+void AudioPlayer::updatePlaylistGenerator()
 {
-  return _formatTime(duration());
+  if (_currentPlaylist == nullptr) {
+    _gen = {[]{return nullptr;}, []{return nullptr;}, nullptr};
+    return;
+  }
+  _gen = _currentPlaylist->radio(-1, nextMode());
 }
 
-void AudioPlayer::play()
+void AudioPlayer::play(refTrack track)
 {
-  _player->play();
+  if (track.isNull()) return play(noneTrack);
+  _currentPlaylist = nullptr;
+  updatePlaylistGenerator();
+
+  _unsubscribeCurrentTrack();
+  player->stop();
+
+  _currentTrack = track;
+
+  _subscribeCurrentTrack();
+
+  emit currentTrackChanged(_currentTrack.get());
+
+  player->setMedia(track->media());
+  player->setPosition(0);
+  player->play();
 }
 
-void AudioPlayer::next()
+void AudioPlayer::play(Track* track)
 {
-  _radio->next();
-  if (_radio->hasCurrent())
-    _playTrack(_radio->current().value());
-  else
-    stop();
+  play(refTrack(track));
 }
 
-void AudioPlayer::prev()
+void AudioPlayer::play(Playlist* playlist)
 {
-  _radio->prev();
-  if (_radio->hasCurrent())
-    _playTrack(_radio->current().value());
-  else
-    stop();
+  if (playlist == nullptr) return play(noneTrack);
+
+  _unsubscribeCurrentTrack();
+  player->stop();
+
+  _currentPlaylist = playlist;
+  updatePlaylistGenerator();
+
+  _currentTrack = _gen.next();
+  if (_currentTrack == nullptr) return play(noneTrack);
+
+  _subscribeCurrentTrack();
+
+  emit currentTrackChanged(_currentTrack.get());
+
+  player->setMedia(_currentTrack->media());
+  player->setPosition(0);
+  player->play();
 }
 
-void AudioPlayer::stop()
+void AudioPlayer::pause_or_play()
 {
-  _player->stop();
+  if (state() == QMediaPlayer::PlayingState) {
+    player->pause();
+  } else {
+    player->play();
+  }
 }
 
 void AudioPlayer::pause()
 {
-  _player->pause();
+  player->pause();
 }
 
-void AudioPlayer::togglePause()
+void AudioPlayer::play()
 {
-  if (_state == StatePlaying) pause();
-  else play();
+  player->play();
 }
 
-void AudioPlayer::play(refRadio radio)
+void AudioPlayer::stop()
 {
-  _setRadio(radio);
-  if (radio->hasCurrent())
-    _playTrack(radio->current().value());
-  else
-    stop();
+  play(noneTrack);
 }
 
-void AudioPlayer::play(QmlRadio* radio)
+bool AudioPlayer::next()
 {
-  play(radio->get());
+  _unsubscribeCurrentTrack();
+  player->stop();
+
+  _currentTrack = _gen.next();
+  if (_currentTrack == nullptr) return false;
+
+  _subscribeCurrentTrack();
+
+  emit currentTrackChanged(_currentTrack.get());
+
+  player->setMedia(_currentTrack->media());
+  player->setPosition(0);
+  player->play();
+  return true;
 }
 
-void AudioPlayer::setState(AudioPlayer::State state)
+bool AudioPlayer::prev()
 {
-  if (_state == state) return;
-  _state = state;
-  switch (state) {
-  case StatePlaying: play(); break;
-  case StatePaused: pause(); break;
-  case StateStopped: stop(); break;
+  if (progress_ms() > 10'000) {
+    setProgress_ms(0);
+    return true;
   }
+  _unsubscribeCurrentTrack();
+  player->stop();
+
+  _currentTrack = _gen.prev();
+  if (_currentTrack == nullptr) return false;
+
+  _subscribeCurrentTrack();
+
+  emit currentTrackChanged(_currentTrack.get());
+
+  player->setMedia(_currentTrack->media());
+  player->setPosition(0);
+  player->play();
+  return true;
 }
 
-void AudioPlayer::setNextMode(IPlaylistRadio::NextMode nextMode)
+void AudioPlayer::setCurrentTrack(Track* v)
 {
-  _nextMode = nextMode;
-  if (_playlist != nullptr) _playlist->setNextMode(nextMode);
-  emit nextModeChanged(nextMode);
+  play(v);
 }
 
-void AudioPlayer::setLoopMode(IPlaylistRadio::LoopMode loopMode)
+void AudioPlayer::setProgress(float progress)
 {
-  _loopMode = loopMode;
-  if (_playlist != nullptr) _playlist->setLoopMode(loopMode);
-  emit loopModeChanged(loopMode);
+  player->setPosition(player->duration() * progress);
+}
+
+void AudioPlayer::setProgress_ms(int progress)
+{
+  player->setPosition(progress);
 }
 
 void AudioPlayer::setVolume(double volume)
 {
   volume = qMin(1.0, qMax(0.0, volume));
-  _volume = std::round(volume * 1000) / 1000; // round to 3 decimal places
-  auto vol = qRound((_volume * _volume) * 100); // volume^2, convert 0..1 to 0..100%
-  if (_volume >= 0.001) vol = qMax(vol, 1); // minimal volume
-  _player->setVolume(vol);
-  emit volumeChanged(_volume);
+  volume = std::round(volume * 1000) / 1000; // round to 3 decimal places
+  auto vol = qRound((volume * volume) * 100); // volume^2
+  if (volume > 0.01) vol = qMax(vol, 1); // minimal volume
+  player->setVolume(vol);
+  _volume = volume;
+  emit volumeChanged(volume);
 }
 
 void AudioPlayer::setMuted(bool muted)
 {
-  _player->setMuted(muted);
-  emit mutedChanged(this->muted());
+  player->setMuted(muted);
 }
 
-void AudioPlayer::setPosition(double position)
+void AudioPlayer::setLoopMode(Settings::LoopMode loopMode)
 {
-  _player->setPosition(duration() * position);
-  // _player emits `positionChanged`
+  _loopMode = loopMode;
+  emit loopModeChanged(loopMode);
 }
 
-void AudioPlayer::setPositionMs(qint64 positionMs)
+void AudioPlayer::setNextMode(Settings::NextMode nextMode)
 {
-  _player->setPosition(positionMs);
-  // _player emits `positionChanged`
+  _nextMode = nextMode;
+  updatePlaylistGenerator();
+  emit nextModeChanged(nextMode);
 }
 
-void AudioPlayer::_updateState(QMediaPlayer::State state)
+void AudioPlayer::_unsubscribeCurrentTrack()
 {
-  switch (state) {
-  case QMediaPlayer::PlayingState: _state = StatePlaying; break;
-  case QMediaPlayer::PausedState: _state = StatePaused; break;
-  case QMediaPlayer::StoppedState: _state = StateStopped; break;
-  }
-  if (_state == StateStopped)
-    _resetTrack();
-  emit stateChanged(_state);
-}
-
-void AudioPlayer::_onMediaChanged(std::optional<QMediaContent> media)
-{
-  if (media == std::nullopt) return _onMediaAborted();
-  _player->setMedia(media.value());
-  _player->play();
-}
-
-void AudioPlayer::_onMediaAborted()
-{
-  next();
-  // TODO: show warning
-}
-
-void AudioPlayer::_setRadio(refRadio radio)
-{
-  _radio = radio;
-  _playlist = dynamic_cast<IPlaylistRadio*>(radio.get());
-  _currentRadioQml->set(_radio);
-  if (_playlist != nullptr) {
-    _playlist->setNextMode(_nextMode);
-    _playlist->setLoopMode(_loopMode);
-  }
-  emit currentRadioChanged(_currentRadioQml);
-}
-
-void AudioPlayer::_unsubscribe()
-{
-  disconnect(nullptr, nullptr, this, SLOT(_onMediaChanged));
-  disconnect(nullptr, nullptr, this, SLOT(_onMediaAborted));
+  if (_currentTrack.isNull() || _currentTrack == noneTrack) return;
+  disconnect(_currentTrack.get(), &Track::mediaChanged, this, &AudioPlayer::setMedia);
+  disconnect(_currentTrack.get(), &Track::mediaAborted, this, &AudioPlayer::onMediaAborted);
 }
 
 void AudioPlayer::_subscribeCurrentTrack()
 {
-  connect(_track.get(), &ITrack::mediaChanged, this, &AudioPlayer::_onMediaChanged);
-  connect(_track.get(), &ITrack::mediaAborted, this, &AudioPlayer::_onMediaAborted);
+  if (_currentTrack.isNull() || _currentTrack == noneTrack) return;
+  QObject::connect(_currentTrack.get(), &Track::mediaChanged, this, &AudioPlayer::setMedia);
+  QObject::connect(_currentTrack.get(), &Track::mediaAborted, this, &AudioPlayer::onMediaAborted, Qt::QueuedConnection);
 }
 
-void AudioPlayer::_setTrack(refTrack track)
-{
-  _unsubscribe();
-  _track = track;
-  _subscribeCurrentTrack();
-  _currentTrackQml->set(_track);
-  emit currentTrackChanged(_currentTrackQml);
-}
-
-void AudioPlayer::_playTrack(refTrack track)
-{
-  _setTrack(track);
-  auto media = track->media();
-  if (media != std::nullopt) {
-    _player->setMedia(media.value());
-    _player->play();
-  }
-}
-
-void AudioPlayer::_resetTrack()
-{
-  _unsubscribe();
-  // TODO
-  emit currentTrackChanged(_currentTrackQml);
-}
-
-QString AudioPlayer::_formatTime(int t)
+QString AudioPlayer::formatTime(int t)
 {
   if (t / 60 < 10)
     return QDateTime::fromTime_t(t).toUTC().toString("m:ss");
@@ -268,9 +299,4 @@ QString AudioPlayer::_formatTime(int t)
     return QDateTime::fromTime_t(t).toUTC().toString("h:mm:ss");
   else
     return QDateTime::fromTime_t(t).toUTC().toString("hh:mm:ss");
-}
-
-void AudioPlayer::_onMediaEnded()
-{
-  next();
 }

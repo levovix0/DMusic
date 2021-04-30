@@ -7,7 +7,7 @@ class QmlTrack : public QObject
   Q_OBJECT
 public:
   explicit QmlTrack(QObject *parent = nullptr);
-  explicit QmlTrack(refTrack const& ref, QObject *parent = nullptr);
+  explicit QmlTrack(_refTrack const& ref, QObject *parent = nullptr);
 
   Q_PROPERTY(QString title READ title NOTIFY titleChanged)
   Q_PROPERTY(QString artistsStr READ artistsStr NOTIFY artistsChanged)
@@ -27,8 +27,8 @@ public:
   bool liked();
   bool isExplicit();
 
-  void set(refTrack track);
-  refTrack get();
+  void set(_refTrack track);
+  _refTrack get();
 
 signals:
   void titleChanged();
@@ -41,6 +41,6 @@ signals:
   void isExplicitChanged();
 
 private:
-  refTrack ref{};
+  _refTrack ref{};
 };
 

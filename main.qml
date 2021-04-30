@@ -116,7 +116,7 @@ Window {
 
         onClick: {
           if (_id_input.text == "") return
-          _player.player.play(_yapi.track(parseInt(_id_input.text)))
+          _player.player.play(_yapi.oneTrack(parseInt(_id_input.text)))
         }
       }
 

@@ -4,7 +4,7 @@ import DMusic 1.0
 FloatingPanel {
   id: root
 
-  property MediaPlayer target
+  property AudioPlayer target
 
   VolumeSlider {
     id: _volume

@@ -221,6 +221,11 @@ void YClient::fetchYTracks(qint64 id, const QJSValue& callback)
   do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchYTracks, id);
 }
 
+refTrack YClient::track(qint64 id)
+{
+  return refTrack(new YTrack(id, this));
+}
+
 Playlist* YClient::likedTracks()
 {
   auto a = me.call("users_likes_tracks").get("tracks_ids");
@@ -228,7 +233,7 @@ Playlist* YClient::likedTracks()
   for (int i = 0; i < PyList_Size(a.raw); ++i) {
     object p = PyList_GetItem(a.raw, i);
     if (!p.contains(":")) continue;
-    res->add(new YTrack(p.call("split", ":")[0].to<int>(), this));
+    res->add(track(p.call("split", ":")[0].to<int>()));
   }
   return res;
 }
@@ -241,15 +246,15 @@ Playlist* YClient::playlist(int id)
   for (int i = 0; i < PyList_Size(a.raw); ++i) {
     object p = PyList_GetItem(a.raw, i);
     if (!p.has("id")) continue;
-    res->add(new YTrack(p.get("id").to<int>(), this));
+    res->add(track(p.get("id").to<int>()));
   }
   return res;
 }
 
-Playlist* YClient::track(qint64 id)
+Playlist* YClient::oneTrack(qint64 id)
 {
   DPlaylist* res = new DPlaylist(this);
-  res->add(new YTrack(id, this));
+  res->add(track(id));
   return res;
 }
 
@@ -262,7 +267,7 @@ Playlist* YClient::userDailyPlaylist()
   for (int i = 0; i < PyList_Size(a.raw); ++i) {
     object p = PyList_GetItem(a.raw, i);
     if (!p.has("id")) continue;
-    res->add(new YTrack(p.get("id").to<int>(), this));
+    res->add(track(p.get("id").to<int>()));
   }
   return res;
 }
@@ -270,7 +275,7 @@ Playlist* YClient::userDailyPlaylist()
 Playlist* YClient::userTrack(int id)
 {
   DPlaylist* res = new DPlaylist(this);
-  res->add(new UserTrack(id, this));
+  res->add(refTrack(new UserTrack(id)));
   return res;
 }
 
@@ -282,14 +287,14 @@ Playlist* YClient::downloadsPlaylist()
   for (auto s : allFiles) {
     if (!s.endsWith(".json")) continue;
     s.chop(5);
-    res->add(new YTrack(s.toInt(), this));
+    res->add(track(s.toInt()));
   }
   recoredDir = QDir("user");
   allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
   for (auto s : allFiles) {
     if (!s.endsWith(".json")) continue;
     s.chop(5);
-    res->add(new UserTrack(s.toInt(), this));
+    res->add(refTrack(new UserTrack(s.toInt())));
   }
   return res;
 }
@@ -336,7 +341,7 @@ QString YTrack::title()
   return _title;
 }
 
-QString YTrack::author()
+QString YTrack::artistsStr()
 {
   if (!_checkedDisk) _loadFromDisk();
   if (_author.isEmpty() && !_noAuthor) {
@@ -424,7 +429,7 @@ bool YTrack::liked()
 {
   if (!_checkedDisk) _loadFromDisk();
   if (!_hasLiked) {
-    do_async([this](){ _fetchYandex(); saveMetadata(); });
+    do_async([this](){ _checkLiked(); saveMetadata(); });
   }
   return _liked;
 }
@@ -594,7 +599,7 @@ void YTrack::_fetchYandex(object _pys)
     }
     _author = join(artists_str, ", ");
     _noAuthor = _author.isEmpty();
-    emit authorChanged(_author);
+    emit artistsStrChanged(_author);
 
     _extra = _py.get("version").to<QString>();
     _noExtra = _extra.isEmpty();
@@ -602,19 +607,6 @@ void YTrack::_fetchYandex(object _pys)
 
     _duration = _py.get("duration_ms").to<qint64>();
     emit durationChanged(_duration);
-
-    //TODO: отдельно фетчить liked
-    auto ult = _py.get("client").call("users_likes_tracks").get("tracks_ids");
-    _liked = false;
-    for (int i = 0; i < PyList_Size(ult.raw); ++i) {
-      object p = PyList_GetItem(ult.raw, i);
-      if (!p.contains(":")) continue;
-      if (p.call("split", ":")[0].to<int>() == _id) {
-        _liked = true;
-        break;
-      }
-    }
-    emit likedChanged(_liked);
   }
 }
 
@@ -660,6 +652,29 @@ void YTrack::_downloadMedia()
         _noCover = true;
         emit mediaAborted();
       }
+    }, Settings::ym_repeatsIfError());
+    saveMetadata();
+  });
+}
+
+void YTrack::_checkLiked()
+{
+  do_async([this](){
+    QMutexLocker lock(&_mtx);
+    _fetchYandex();
+    repeat_if_error([this]() {
+      auto ult = _py.get("client").call("users_likes_tracks").get("tracks_ids");
+      _liked = false;
+      for (int i = 0; i < PyList_Size(ult.raw); ++i) {
+        object p = PyList_GetItem(ult.raw, i);
+        if (!p.contains(":")) continue;
+        if (p.call("split", ":")[0].to<int>() == _id) {
+          _liked = true;
+          break;
+        }
+      }
+    }, [this](bool success) {
+      if (success) emit likedChanged(_liked);
     }, Settings::ym_repeatsIfError());
     saveMetadata();
   });

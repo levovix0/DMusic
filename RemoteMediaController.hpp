@@ -3,7 +3,7 @@
 #include <QDBusInterface>
 #include <QDBusReply>
 #include <QDBusAbstractAdaptor>
-#include "mediaplayer.hpp"
+#include "AudioPlayer.hpp"
 #include "python.hpp"
 
 #ifdef Q_OS_WIN
@@ -49,7 +49,7 @@ class Mpris2Player : public QDBusAbstractAdaptor
     Q_OBJECT
     Q_CLASSINFO("D-Bus Interface", "org.mpris.MediaPlayer2.Player")
 public:
-    explicit Mpris2Player(MediaPlayer* player, QObject* parent = nullptr);
+    explicit Mpris2Player(AudioPlayer* player, QObject* parent = nullptr);
 
     Q_PROPERTY(QVariantMap Metadata READ metadata)
     Q_PROPERTY(bool CanControl READ canControl)
@@ -123,7 +123,7 @@ private:
 
     QString qMapToString(const QMap<QString, QVariant>& map);
     QString stateToString(QMediaPlayer::State state);
-    MediaPlayer* _player;
+    AudioPlayer* _player;
     qint64 _prevPosition = 0;
     QMap<QString, QVariant> _currentTrackMetadata;
 };
@@ -154,7 +154,7 @@ class DiscordPresence : public QObject
 {
   Q_OBJECT
 public:
-  DiscordPresence(MediaPlayer* player, QObject* parent = nullptr);
+  DiscordPresence(AudioPlayer* player, QObject* parent = nullptr);
 
   void update(Track* track);
 private slots:
@@ -162,7 +162,7 @@ private slots:
   void updateData();
 
 private:
-  MediaPlayer* _player;
+  AudioPlayer* _player;
   py::object _time;
   py::object _rpc = py::none;
 };
@@ -176,19 +176,19 @@ public:
 
   inline static const QString serviceName = "org.mpris.MediaPlayer2.DTeam.DMusic";
 
-  Q_PROPERTY(MediaPlayer* target READ target WRITE setTarget)
+  Q_PROPERTY(AudioPlayer* target READ target WRITE setTarget)
 
-  MediaPlayer* target();
+  AudioPlayer* target();
 
 public slots:
-  void setTarget(MediaPlayer* player);
+  void setTarget(AudioPlayer* player);
 
 private:
   bool _isDBusServiceCreated = false;
   Mpris2Root* _mpris2Root;
   Mpris2Player* _mpris2Player;
   DiscordPresence* _discordPresence;
-  MediaPlayer* _target;
+  AudioPlayer* _target;
 #ifdef Q_OS_WIN
   ThumbnailController* _win = nullptr;
 #endif

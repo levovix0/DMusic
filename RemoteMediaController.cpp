@@ -70,16 +70,16 @@ QStringList Mpris2Root::supportedMimeTypes()
 }
 
 
-Mpris2Player::Mpris2Player(MediaPlayer* player, QObject* parent) : QDBusAbstractAdaptor(parent), _player(player)
+Mpris2Player::Mpris2Player(AudioPlayer* player, QObject* parent) : QDBusAbstractAdaptor(parent), _player(player)
 {
-  _currentTrackMetadata = toXesam(MediaPlayer::noneTrack);
+  _currentTrackMetadata = toXesam(*AudioPlayer::noneTrack);
 
-  connect(_player, &MediaPlayer::currentTrackChanged, this, &Mpris2Player::onTrackChanged);
-  connect(_player, &MediaPlayer::stateChanged, this, &Mpris2Player::onStateChanged);
-  connect(_player, &MediaPlayer::progressChanged, this, &Mpris2Player::onProgressChanged);
-  connect(_player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
-  connect(_player, &MediaPlayer::nextModeChanged, this, &Mpris2Player::onNextModeChanged);
-  connect(_player, &MediaPlayer::loopModeChanged, this, &Mpris2Player::onLoopModeChanged);
+  connect(_player, &AudioPlayer::currentTrackChanged, this, &Mpris2Player::onTrackChanged);
+  connect(_player, &AudioPlayer::stateChanged, this, &Mpris2Player::onStateChanged);
+  connect(_player, &AudioPlayer::progressChanged, this, &Mpris2Player::onProgressChanged);
+  connect(_player, &AudioPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
+  connect(_player, &AudioPlayer::nextModeChanged, this, &Mpris2Player::onNextModeChanged);
+  connect(_player, &AudioPlayer::loopModeChanged, this, &Mpris2Player::onLoopModeChanged);
 }
 
 QString Mpris2Player::playbackStatus()
@@ -124,9 +124,9 @@ double Mpris2Player::volume()
 
 void Mpris2Player::setVolume(double value)
 {
-  disconnect(_player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
+  disconnect(_player, &AudioPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
   _player->setVolume(value);
-  connect(_player, &MediaPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
+  connect(_player, &AudioPlayer::volumeChanged, this, &Mpris2Player::onVolumeChanged);
 }
 
 QVariantMap Mpris2Player::metadata()
@@ -273,7 +273,7 @@ void Mpris2Player::onTrackChanged(Track* track)
   _currentTrackMetadata = toXesam(*track);
   signalPlayerUpdate({});
   connect(track, &Track::titleChanged, this, &Mpris2Player::onTitleChanged);
-  connect(track, &Track::authorChanged, this, &Mpris2Player::onAuthorChanged);
+  connect(track, &Track::artistsStrChanged, this, &Mpris2Player::onAuthorChanged);
   connect(track, &Track::coverChanged, this, &Mpris2Player::onCoverChanged);
   connect(track, &Track::durationChanged, this, &Mpris2Player::onDurationChanged);
 }
@@ -337,8 +337,7 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
 {
   QMap<QString, QVariant> res;
   res["origin"] = "DMusic";
-  QStringList artist;
-  artist.append(track.author());
+  QStringList artist{track.artistsStr()};
   auto title = track.title();
   res["xesam:url"] = title;
   res["xesam:artist"] = artist;
@@ -445,7 +444,7 @@ void ThumbnailController::updateToolbar()
 
 #endif
 
-DiscordPresence::DiscordPresence(MediaPlayer* player, QObject* parent) : QObject(parent), _player(player)
+DiscordPresence::DiscordPresence(AudioPlayer* player, QObject* parent) : QObject(parent), _player(player)
 {
   try {
     auto presence = py::module("pypresence", true);
@@ -456,7 +455,7 @@ DiscordPresence::DiscordPresence(MediaPlayer* player, QObject* parent) : QObject
 
     _rpc.call("connect");
 
-    connect(_player, &MediaPlayer::currentTrackChanged, this, &DiscordPresence::onTrackChanged);
+    connect(_player, &AudioPlayer::currentTrackChanged, this, &DiscordPresence::onTrackChanged);
   } catch(py_error const& e) {
     std::cerr << "failed to init discord presence: " << e.what();
   }
@@ -465,7 +464,7 @@ DiscordPresence::DiscordPresence(MediaPlayer* player, QObject* parent) : QObject
 void DiscordPresence::update(Track* track)
 {
   if (_rpc == py::none) return;
-  auto author = track->author();
+  auto author = track->artistsStr();
   auto details = track->title();
   if (author == "" || details == "") return;
 
@@ -474,7 +473,7 @@ void DiscordPresence::update(Track* track)
       _rpc.call("clear");
 
       std::map<std::string, object> args;
-      args["state"] = track->author();
+      args["state"] = track->artistsStr();
       if (track->extra() == "")
         args["details"] = track->title();
       else
@@ -492,7 +491,7 @@ void DiscordPresence::update(Track* track)
 void DiscordPresence::onTrackChanged(Track* track)
 {
   disconnect(nullptr, nullptr, this, SLOT(updateData()));
-  connect(track, &Track::authorChanged, this, &DiscordPresence::updateData);
+  connect(track, &Track::artistsStrChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::titleChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::idIntChanged, this, &DiscordPresence::updateData);
   update(track);
@@ -531,12 +530,12 @@ RemoteMediaController::RemoteMediaController(QObject *parent) : QObject(parent)
   _isDBusServiceCreated = true;
 }
 
-MediaPlayer* RemoteMediaController::target()
+AudioPlayer* RemoteMediaController::target()
 {
   return _target;
 }
 
-void RemoteMediaController::setTarget(MediaPlayer* player)
+void RemoteMediaController::setTarget(AudioPlayer* player)
 {
   _target = player;
 #ifdef Q_OS_WIN

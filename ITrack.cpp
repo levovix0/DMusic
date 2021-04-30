@@ -5,7 +5,7 @@ std::optional<QString> ITrack::title()
   return {};
 }
 
-std::optional<QVector<refArtist> > ITrack::artists()
+std::optional<QVector<_refArtist> > ITrack::artists()
 {
   return {};
 }

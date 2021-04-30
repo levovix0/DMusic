@@ -1,5 +1,4 @@
 #include "ID.hpp"
-#include "IClient.hpp"
 
 QString ID::serialize()
 {
@@ -17,6 +16,7 @@ QString ID::serialize()
 
 ID ID::deseralize(QString s)
 {
+  Q_UNUSED(s)
   return {};
   //TODO
 }

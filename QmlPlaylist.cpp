@@ -4,7 +4,7 @@ QmlPlaylist::QmlPlaylist(QObject *parent) : QObject(parent)
 {
 
 }
-QmlPlaylist::QmlPlaylist(const refPlaylist& ref, QObject *parent) : QObject(parent)
+QmlPlaylist::QmlPlaylist(const _refPlaylist& ref, QObject *parent) : QObject(parent)
 {
   set(ref);
 }
@@ -27,12 +27,12 @@ QString QmlPlaylist::cover()
   return ref->cover().value_or("qrc:/resources/player/no-cover");
 }
 
-refPlaylist QmlPlaylist::get()
+_refPlaylist QmlPlaylist::get()
 {
   return ref;
 }
 
-void QmlPlaylist::set(refPlaylist ref)
+void QmlPlaylist::set(_refPlaylist ref)
 {
   disconnect(nullptr, nullptr, this, nullptr);
   this->ref = ref;

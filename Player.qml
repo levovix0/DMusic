@@ -26,7 +26,7 @@ Rectangle {
     anchors.horizontalCenter: root.horizontalCenter
     y: 21
 
-    playing: _player.state === MediaPlayer.PlayingState
+    playing: _player.state === AudioPlayer.PlayingState
     loopMode: _player.loopMode
     nextMode: _player.nextMode
 
@@ -50,7 +50,7 @@ Rectangle {
     durationText: _player.formatDuration
   }
 
-  MediaPlayer {
+  AudioPlayer {
     id: _player
     Component.onCompleted: {
       volume = settings.volume
@@ -83,7 +83,7 @@ Rectangle {
 
     icon: _player.currentTrack.cover
     title: _player.currentTrack.title
-    author: _player.currentTrack.author
+    artists: _player.currentTrack.artistsStr
     extra: _player.currentTrack.extra
     idInt: _player.currentTrack.idInt
     liked: _player.currentTrack.liked

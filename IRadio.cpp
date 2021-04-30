@@ -1,11 +1,11 @@
 #include "IRadio.hpp"
 
-std::optional<refTrack> IRadio::getNext()
+std::optional<_refTrack> IRadio::getNext()
 {
   return {};
 }
 
-std::optional<refTrack> IRadio::getPrev()
+std::optional<_refTrack> IRadio::getPrev()
 {
   return {};
 }

@@ -8,7 +8,7 @@ class QmlPlaylist : public QObject
   Q_OBJECT
 public:
   explicit QmlPlaylist(QObject *parent = nullptr);
-  explicit QmlPlaylist(refPlaylist const& ref, QObject *parent = nullptr);
+  explicit QmlPlaylist(_refPlaylist const& ref, QObject *parent = nullptr);
   Q_ENUM(IPlaylistRadio::NextMode)
   Q_ENUM(IPlaylistRadio::LoopMode)
   Q_PROPERTY(QString name READ name NOTIFY nameChanged)
@@ -19,8 +19,8 @@ public:
   QString description();
   QString cover();
 
-  refPlaylist get();
-  void set(refPlaylist ref);
+  _refPlaylist get();
+  void set(_refPlaylist ref);
 
 public slots:
   QmlRadio* radio(int pos, IPlaylistRadio::NextMode nextMode = IPlaylistRadio::NextSequence, IPlaylistRadio::LoopMode loopMode = IPlaylistRadio::LoopNone);
@@ -33,5 +33,5 @@ signals:
   void coverChanged();
 
 private:
-  refPlaylist ref{};
+  _refPlaylist ref{};
 };

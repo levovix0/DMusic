@@ -23,10 +23,10 @@ public:
 
   QString idInt() override;
   QString title() override;
-  QString author() override;
+  QString artistsStr() override;
   QString extra() override;
   QString cover() override;
-  QMediaContent media() override; //TODO: скачивать параллельно, через c++, или вообще возвращать ссылку
+  QMediaContent media() override;
   qint64 duration() override;
   bool liked() override;
 
@@ -53,6 +53,7 @@ private:
   void _fetchYandex(py::object _pys);
   void _downloadCover();
   void _downloadMedia();
+  void _checkLiked();
 
   QString _coverUrl();
 
@@ -121,10 +122,12 @@ public:
   Q_INVOKABLE std::pair<bool, QList<YTrack*>> fetchYTracks(qint64 id);
   Q_INVOKABLE void fetchYTracks(qint64 id, QJSValue const& callback);
 
+  refTrack track(qint64 id);
+
 public slots:
   Playlist* likedTracks();
   Playlist* playlist(int id);
-  Playlist* track(qint64 id);
+  Playlist* oneTrack(qint64 id);
   Playlist* userDailyPlaylist();
   Playlist* userTrack(int id);
   Playlist* downloadsPlaylist();

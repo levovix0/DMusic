@@ -14,7 +14,7 @@ public:
   // нет.
   // плохо.
   virtual std::optional<QString> title();
-  virtual std::optional<QVector<refArtist>> artists();
+  virtual std::optional<QVector<_refArtist>> artists();
   virtual std::optional<QString> extra();
   virtual std::optional<QString> cover();
   virtual std::optional<QMediaContent> media();
@@ -24,7 +24,6 @@ public:
 
   virtual bool exists(); // when false, all getters must return `none`, and emit `xAborted`
 
-  virtual refClient client() = 0;
   virtual ID id();
 
   virtual QJsonObject serialize();
@@ -40,7 +39,7 @@ public slots:
 
 signals:
   void titleChanged(std::optional<QString> title);
-  void artistsChanged(std::optional<QVector<refArtist>> author);
+  void artistsChanged(std::optional<QVector<_refArtist>> author);
   void extraChanged(std::optional<QString> extra);
   void coverChanged(std::optional<QString> cover);
   void mediaChanged(std::optional<QMediaContent> media);
