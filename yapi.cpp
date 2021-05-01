@@ -674,9 +674,9 @@ void YTrack::_checkLiked()
         }
       }
     }, [this](bool success) {
+      _hasLiked = success;
       if (success) emit likedChanged(_liked);
     }, Settings::ym_repeatsIfError());
-    saveMetadata();
   });
 }
 

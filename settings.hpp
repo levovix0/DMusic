@@ -11,7 +11,7 @@ public:
   ~Settings();
 
   enum NextMode {
-    NextSequence, NextShuffle, NextRandomAccess
+    NextSequence, NextShuffle
   };
   Q_ENUM(NextMode)
 

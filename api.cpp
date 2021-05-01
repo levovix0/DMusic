@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QRandomGenerator>
 #include <QFileDialog>
+#include <QQmlEngine>
 
 std::random_device rd;
 std::mt19937 rnd(rd());
@@ -18,7 +19,7 @@ Playlist::~Playlist()
 
 Playlist::Playlist(QObject* parent) : QObject(parent)
 {
-
+  qmlEngine(this)->setObjectOwnership(this, QQmlEngine::CppOwnership);
 }
 
 refTrack Playlist::operator[](int index)
