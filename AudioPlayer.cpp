@@ -23,7 +23,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
         return;
       }
 
-      if (_currentPlaylist != nullptr) {
+      if (_radio != nullptr) {
         if (next()) return;
       }
       stop();
@@ -52,7 +52,12 @@ qint64 AudioPlayer::progress_ms()
   return player->position();
 }
 
-Track* AudioPlayer::currentTrack()
+refTrack AudioPlayer::currentTrack()
+{
+  return _currentTrack;
+}
+
+Track* AudioPlayer::currentTrackPtr()
 {
   return _currentTrack.get();
 }
@@ -113,17 +118,15 @@ void AudioPlayer::onMediaAborted()
 
 void AudioPlayer::updatePlaylistGenerator()
 {
-  if (_currentPlaylist == nullptr) {
-    _gen = {[]{return nullptr;}, []{return nullptr;}, nullptr};
-    return;
+  if (_radio != nullptr) {
+    _radio->setNextMode(nextMode());
   }
-  _gen = _currentPlaylist->radio(-1, nextMode());
 }
 
 void AudioPlayer::play(refTrack track)
 {
   if (track.isNull()) return play(noneTrack);
-  _currentPlaylist = nullptr;
+  _radio = nullptr;
   updatePlaylistGenerator();
 
   _unsubscribeCurrentTrack();
@@ -152,10 +155,9 @@ void AudioPlayer::play(Playlist* playlist)
   _unsubscribeCurrentTrack();
   player->stop();
 
-  _currentPlaylist = playlist;
-  updatePlaylistGenerator();
+  _radio = playlist->radio(-1, nextMode());
 
-  _currentTrack = _gen.next();
+  _currentTrack = _radio->current();
   if (_currentTrack == nullptr) return play(noneTrack);
 
   _subscribeCurrentTrack();
@@ -196,7 +198,7 @@ bool AudioPlayer::next()
   _unsubscribeCurrentTrack();
   player->stop();
 
-  _currentTrack = _gen.next();
+  _currentTrack = _radio->next();
   if (_currentTrack == nullptr) return false;
 
   _subscribeCurrentTrack();
@@ -218,7 +220,7 @@ bool AudioPlayer::prev()
   _unsubscribeCurrentTrack();
   player->stop();
 
-  _currentTrack = _gen.prev();
+  _currentTrack = _radio->prev();
   if (_currentTrack == nullptr) return false;
 
   _subscribeCurrentTrack();
@@ -229,11 +231,6 @@ bool AudioPlayer::prev()
   player->setPosition(0);
   player->play();
   return true;
-}
-
-void AudioPlayer::setCurrentTrack(Track* v)
-{
-  play(v);
 }
 
 void AudioPlayer::setProgress(float progress)

@@ -499,7 +499,7 @@ void DiscordPresence::onTrackChanged(Track* track)
 
 void DiscordPresence::updateData()
 {
-  update(_player->currentTrack());
+  update(_player->currentTrackPtr());
 }
 
 

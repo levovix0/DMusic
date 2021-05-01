@@ -17,7 +17,7 @@ public:
   Q_PROPERTY(float progress READ progress WRITE setProgress NOTIFY progressChanged)
   Q_PROPERTY(qint64 progress_ms READ progress_ms WRITE setProgress_ms NOTIFY progressChanged)
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
-  Q_PROPERTY(Track* currentTrack READ currentTrack WRITE setCurrentTrack NOTIFY currentTrackChanged)
+  Q_PROPERTY(Track* currentTrack READ currentTrackPtr NOTIFY currentTrackChanged)
   Q_PROPERTY(QString formatProgress READ formatProgress NOTIFY progressChanged)
   Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged)
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
@@ -28,7 +28,8 @@ public:
   float progress();
   qint64 progress_ms();
 
-  Track* currentTrack();
+  refTrack currentTrack();
+  Track* currentTrackPtr();
   QString formatProgress();
   QString formatDuration();
   qint64 duration();
@@ -57,7 +58,6 @@ public slots:
   bool next();
   bool prev();
 
-  void setCurrentTrack(Track* v);
   void setProgress(float progress);
   void setProgress_ms(int progress);
   void setVolume(double volume);
@@ -83,8 +83,7 @@ private:
 
   QMediaPlayer* player;
   refTrack _currentTrack;
-  Playlist* _currentPlaylist = nullptr;
-  Radio _gen;
+  refRadio _radio;
   double _volume;
   Settings::LoopMode _loopMode;
   Settings::NextMode _nextMode;

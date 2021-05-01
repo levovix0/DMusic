@@ -17,6 +17,7 @@ SOURCES += \
         QmlPlaylist.cpp \
         QmlRadio.cpp \
         QmlTrack.cpp \
+        Radio.cpp \
         RemoteMediaController.cpp \
         Track.cpp \
         _AudioPlayer.cpp \
@@ -39,6 +40,7 @@ HEADERS += \
   QmlPlaylist.hpp \
   QmlRadio.hpp \
   QmlTrack.hpp \
+  Radio.hpp \
   RemoteMediaController.hpp \
   Track.hpp \
   _AudioPlayer.hpp \

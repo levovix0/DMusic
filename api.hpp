@@ -4,16 +4,8 @@
 #include <functional>
 #include <settings.hpp>
 #include <Track.hpp>
+#include <Radio.hpp>
 #include <types.hpp>
-
-class Playlist;
-
-struct Radio
-{
-  std::function<refTrack()> next;
-  std::function<refTrack()> prev;
-  refPlaylist playlist;
-};
 
 class Playlist : public QObject
 {
@@ -22,14 +14,14 @@ public:
   virtual ~Playlist();
   Playlist(QObject* parent = nullptr);
 
-  static Playlist none;
-
   refTrack operator[](int index);
+  virtual refTrack* begin();
+  virtual refTrack* end();
 
   virtual refTrack get(int index);
-  virtual Radio radio(int index = -1, Settings::NextMode nextMode = Settings::NextSequence);
+  virtual refRadio radio(int index = -1, Settings::NextMode nextMode = Settings::NextSequence);
 
-  virtual int size(); // -1 means infinity or not determined
+  virtual int size();
 };
 
 class DPlaylist : public Playlist
@@ -40,7 +32,8 @@ public:
   DPlaylist(QObject* parent = nullptr);
 
   refTrack get(int index) override;
-  Radio radio(int index = -1, Settings::NextMode nextMode = Settings::NextSequence) override;
+  refTrack* begin() override;
+  refTrack* end() override;
 
   int size() override;
 
@@ -49,8 +42,25 @@ public slots:
 
 private:
   QVector<refTrack> _tracks;
-  QVector<int> _history;
-  int _currentIndex = 0;
+};
+
+class PlaylistRadio : public Radio
+{
+public:
+  PlaylistRadio(refPlaylist playlist, int index, Settings::NextMode nextMode);
+  void setNextMode(Settings::NextMode nextMode) override;
+  refTrack current() override;
+  refTrack next() override;
+  refTrack prev() override;
+
+private:
+  int gen();
+  void fit();
+
+  refPlaylist _playlist;
+  QVector<int> _history{};
+  int _index;
+  Settings::NextMode _nextMode;
 };
 
 struct UserTrack : Track

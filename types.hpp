@@ -9,6 +9,7 @@ class IPlaylistRadio;
 
 class Track;
 class Playlist;
+class Radio;
 
 using _refTrack = QSharedPointer<ITrack>;
 using _refArtist = QSharedPointer<IArtist>;
@@ -18,6 +19,7 @@ using _refPlaylistRadio = QSharedPointer<IPlaylistRadio>;
 
 using refTrack = QSharedPointer<Track>;
 using refPlaylist = QSharedPointer<Playlist>;
+using refRadio = QSharedPointer<Radio>;
 
 enum DataKind : quint8 {
   dkNone = 0,
