@@ -14,9 +14,6 @@ SOURCES += \
         IRadio.cpp \
         ITrack.cpp \
         Log.cpp \
-        QmlPlaylist.cpp \
-        QmlRadio.cpp \
-        QmlTrack.cpp \
         Radio.cpp \
         RemoteMediaController.cpp \
         Track.cpp \
@@ -37,9 +34,6 @@ HEADERS += \
   IRadio.hpp \
   ITrack.hpp \
   Log.hpp \
-  QmlPlaylist.hpp \
-  QmlRadio.hpp \
-  QmlTrack.hpp \
   Radio.hpp \
   RemoteMediaController.hpp \
   Track.hpp \

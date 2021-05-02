@@ -105,10 +105,8 @@ struct YClient : QObject
 {
 	Q_OBJECT
 public:
-  YClient(QObject *parent = nullptr);
-  YClient(YClient const& copy);
-  YClient& operator=(YClient const& copy);
   ~YClient();
+  YClient(QObject *parent = nullptr);
 
   Q_INVOKABLE bool isLoggined();
 
@@ -123,6 +121,8 @@ public:
   Q_INVOKABLE void fetchYTracks(qint64 id, QJSValue const& callback);
 
   refTrack track(qint64 id);
+
+  static inline YClient* instance = nullptr;
 
 public slots:
   Playlist* likedTracks();

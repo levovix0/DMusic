@@ -143,19 +143,14 @@ void AudioPlayer::play(refTrack track)
   player->play();
 }
 
-void AudioPlayer::play(Track* track)
-{
-  play(refTrack(track));
-}
-
-void AudioPlayer::play(Playlist* playlist)
+void AudioPlayer::play(refPlaylist playlist)
 {
   if (playlist == nullptr) return play(noneTrack);
 
   _unsubscribeCurrentTrack();
   player->stop();
 
-  _radio = playlist->radio(-1, nextMode());
+  _radio = radio(playlist, -1, nextMode());
 
   _currentTrack = _radio->current();
   if (_currentTrack == nullptr) return play(noneTrack);
@@ -167,6 +162,26 @@ void AudioPlayer::play(Playlist* playlist)
   player->setMedia(_currentTrack->media());
   player->setPosition(0);
   player->play();
+}
+
+void AudioPlayer::play(ID id)
+{
+  play(id.toPlaylist());
+}
+
+void AudioPlayer::play(QString id)
+{
+  play(ID::deseralize(id));
+}
+
+void AudioPlayer::play(Track* track)
+{
+  play(refTrack(track));
+}
+
+void AudioPlayer::play(Playlist* playlist)
+{
+  play(refPlaylist(playlist));
 }
 
 void AudioPlayer::pause_or_play()

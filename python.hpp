@@ -56,6 +56,7 @@ namespace py
 
     object operator[](size_t i) const;
     object contains(object a) const;
+    object len() const;
 
     object copy() const;
     object deepcopy() const;
@@ -71,15 +72,21 @@ namespace py
     bool operator!=(none_t) const;
     bool operator!=(std::nullptr_t) const;
 
+    struct Iterator;
+    struct EndIterator {};
+
+    Iterator begin() const;
+    EndIterator end() const;
+
     PyObject* raw;
   };
 
-  struct py_error : std::exception
+  struct error : std::exception
   {
     std::string type;
     object value;
 
-    py_error(object type, object value, object traceback);
+    error(object type, object value, object traceback);
 
     std::string msg;
     char const* what() const throw() override;
@@ -99,6 +106,29 @@ namespace py
     module operator/(object name) { return submodule(name); }
     static module main();
     static bool autoInstall(object name); // auto-install module using pip
+  };
+
+  struct object::Iterator
+  {
+    object iter;
+    Iterator(object iter)
+    {
+      this->iter = iter;
+      ++(*this);
+    }
+    bool end = false;
+    object v;
+    void operator++()
+    {
+      try {
+        v = iter.call("__next__");
+      }  catch (error& e) {
+        if (e.type != "StopIteration") throw e;
+        end = true;
+      }
+    }
+    object& operator*() { return v; }
+    bool operator!=(EndIterator) { return !end; }
   };
 
 
@@ -228,7 +258,7 @@ namespace py
     PyErr_Fetch(&type, &value, &traceback);
     if (type == nullptr) return;
     PyErr_Clear();
-    throw py_error(type, value? value : nullptr, traceback? traceback : nullptr);
+    throw error(type, value? value : nullptr, traceback? traceback : nullptr);
   }
 
   inline PyObject* maybe_exception(PyObject* a) {
@@ -288,7 +318,12 @@ namespace py
     if (PyLong_Check(a.raw)) {
       res = PyLong_AsLong(a.raw);
     } else if (PyUnicode_Check(a.raw)) {
-      res = PyLong_AsLong(PyLong_FromUnicodeObject(a.raw, 10));
+      auto p = PyLong_FromUnicodeObject(a.raw, 10);
+      if (p) {
+        res = PyLong_AsLong(p);
+        Py_DECREF(p);
+      }
+      else res = 0;
     } else if (a == none || a == nullptr) {
       res = 0;
     } else {
@@ -300,26 +335,25 @@ namespace py
     if (PyLong_Check(a.raw)) {
       res = PyLong_AsLong(a.raw);
     } else if (PyUnicode_Check(a.raw)) {
-      res = PyLong_AsLong(PyLong_FromUnicodeObject(a.raw, 10));
+      auto p = PyLong_FromUnicodeObject(a.raw, 10);
+      if (p) {
+        res = PyLong_AsLong(p);
+        Py_DECREF(p);
+      }
+      else res = 0;
     } else if (a == none || a == nullptr) {
       res = 0;
     } else {
-      throw std::runtime_error("unimplemented cast to long (" + a.to<std::string>() + ")");
+      throw std::runtime_error("unimplemented cast to qint64 (" + a.to<std::string>() + ")");
     }
   }
 
   template<class T>
   inline void fromPyObject(object const& a, QVector<T>& res)
   {
-    if (!PyList_Check(a.raw)) {
-      res.resize(0);
-      return;
-    }
-    res.resize(PyList_Size(a.raw));
-    size_t i = 0;
-    for (auto&& r : res) {
-      fromPyObject(PyList_GetItem(a.raw, i), r);
-      ++i;
+    res = QVector<T>();
+    for (auto&& p : a) {
+      res.append(p.to<T>());
     }
   }
 
@@ -327,13 +361,8 @@ namespace py
   inline void fromPyObject(object const& a, QList<T>& res)
   {
     res = QList<T>();
-    if (!PyList_Check(a.raw)) return;
-
-    size_t n = PyList_Size(a.raw);
-    for (size_t i = 0; i < n; ++i) {
-      T o;
-      fromPyObject(PyList_GetItem(a.raw, i), o);
-      res.append(o);
+    for (auto&& p : a) {
+      res.append(p.to<T>());
     }
   }
 
@@ -418,6 +447,11 @@ namespace py
     return call("__contains__", a);
   }
 
+  inline object object::len() const
+  {
+    return call("__len__");
+  }
+
   inline object object::copy() const
   {
     return module("copy").call("copy", *this);
@@ -460,6 +494,16 @@ namespace py
   inline bool object::operator!=(std::nullptr_t) const
   {
     return raw != nullptr;
+  }
+
+  inline object::Iterator object::begin() const
+  {
+    return {call("__iter__")};
+  }
+
+  inline object::EndIterator object::end() const
+  {
+    return {};
   }
 
 
@@ -525,7 +569,7 @@ namespace py
   }
 
 
-  inline py_error::py_error(object type, object value, object traceback)
+  inline error::error(object type, object value, object traceback)
   {
     this->type = type.get("__name__").to<std::string>();
     this->value = value;
@@ -538,7 +582,7 @@ namespace py
     }
   }
 
-  inline const char* py_error::what() const throw()
+  inline const char* error::what() const throw()
   {
     return msg.c_str();
   }

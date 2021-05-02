@@ -5,8 +5,6 @@
 #include "Log.hpp"
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
-#include "QmlTrack.hpp"
-#include "QmlPlaylist.hpp"
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>

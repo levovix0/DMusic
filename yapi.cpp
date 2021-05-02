@@ -19,7 +19,7 @@ object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "N
     while (true) {
       try {
         return f();
-      }  catch (py_error& e) {
+      }  catch (error& e) {
         --n;
         if (n <= 0) throw std::move(e);
       }
@@ -28,7 +28,7 @@ object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "N
     while (true) {
       try {
         return f();
-      }  catch (py_error& e) {
+      }  catch (error& e) {
         if (e.type != s) throw std::move(e);
         --n;
         if (n <= 0) throw std::move(e);
@@ -46,7 +46,7 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
         f();
         r(true);
         return;
-      }  catch (py_error&) {
+      }  catch (error&) {
         --tries;
         if (tries <= 0) {
           r(false);
@@ -60,7 +60,7 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
         f();
         r(true);
         return;
-      }  catch (py_error& e) {
+      }  catch (error& e) {
         if (e.type != s) {
           r(false);
           return;
@@ -88,7 +88,7 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
           f();
           r(true);
           return;
-        }  catch (py_error&) {
+        }  catch (error&) {
           --tries;
           if (tries <= 0) {
             r(false);
@@ -102,7 +102,7 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
           f();
           r(true);
           return;
-        }  catch (py_error& e) {
+        }  catch (error& e) {
           if (e.type != s) {
             r(false);
             return;
@@ -119,27 +119,14 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
 }
 
 
-YClient::YClient(QObject *parent) : QObject(parent), ym("yandex_music", true), ym_request(ym/"utils"/"request")
-{
-
-}
-
-YClient::YClient(const YClient& copy) : QObject(copy.parent()), ym(copy.ym), ym_request(copy.ym_request), me(copy.me), loggined((bool)copy.loggined)
-{
-
-}
-
-YClient& YClient::operator=(const YClient& copy)
-{
-  ym = copy.ym;
-  ym_request = copy.ym_request;
-  me = copy.me;
-  loggined = (bool)copy.loggined;
-  return *this;
-}
-
 YClient::~YClient()
 {
+  if (instance == this) instance = nullptr;
+}
+
+YClient::YClient(QObject *parent) : QObject(parent), ym("yandex_music", true), ym_request(ym/"utils"/"request")
+{
+  instance = this;
 }
 
 bool YClient::isLoggined()
@@ -230,8 +217,7 @@ Playlist* YClient::likedTracks()
 {
   auto a = me.call("users_likes_tracks").get("tracks_ids");
   DPlaylist* res = new DPlaylist(this);
-  for (int i = 0; i < PyList_Size(a.raw); ++i) {
-    object p = PyList_GetItem(a.raw, i);
+  for (auto&& p : a) {
     if (!p.contains(":")) continue;
     res->add(track(p.call("split", ":")[0].to<int>()));
   }
@@ -243,8 +229,7 @@ Playlist* YClient::playlist(int id)
   if (id == 3) return likedTracks();
   auto a = me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0].call("fetch_tracks");
   DPlaylist* res = new DPlaylist(this);
-  for (int i = 0; i < PyList_Size(a.raw); ++i) {
-    object p = PyList_GetItem(a.raw, i);
+  for (auto&& p : a) {
     if (!p.has("id")) continue;
     res->add(track(p.get("id").to<int>()));
   }

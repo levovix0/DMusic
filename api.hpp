@@ -19,10 +19,11 @@ public:
   virtual refTrack* end();
 
   virtual refTrack get(int index);
-  virtual refRadio radio(int index = -1, Settings::NextMode nextMode = Settings::NextSequence);
 
   virtual int size();
 };
+
+refRadio radio(refPlaylist self, int index = -1, Settings::NextMode nextMode = Settings::NextSequence);
 
 class DPlaylist : public Playlist
 {

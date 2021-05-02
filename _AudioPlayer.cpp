@@ -2,7 +2,7 @@
 #include <cmath>
 #include <QDateTime>
 
-_AudioPlayer::_AudioPlayer(QObject *parent) : QObject(parent), _currentTrackQml(new QmlTrack(this)), _currentRadioQml(new QmlRadio(this)), _player(new QMediaPlayer(this))
+_AudioPlayer::_AudioPlayer(QObject *parent) : QObject(parent), _player(new QMediaPlayer(this))
 {
   _player->setVolume(50); // 50%
   _player->setNotifyInterval(50); // 50ms
@@ -14,16 +14,6 @@ _AudioPlayer::_AudioPlayer(QObject *parent) : QObject(parent), _currentTrackQml(
   connect(_player, &QMediaPlayer::mediaStatusChanged, [this](QMediaPlayer::MediaStatus status) {
     if (status == QMediaPlayer::EndOfMedia) _onMediaEnded();
   });
-}
-
-QmlTrack* _AudioPlayer::currentTrack()
-{
-  return _currentTrackQml;
-}
-
-QmlRadio* _AudioPlayer::currentRadio()
-{
-  return _currentRadioQml;
 }
 
 _AudioPlayer::State _AudioPlayer::state()
@@ -125,11 +115,6 @@ void _AudioPlayer::play(_refRadio radio)
     stop();
 }
 
-void _AudioPlayer::play(QmlRadio* radio)
-{
-  play(radio->get());
-}
-
 void _AudioPlayer::setState(_AudioPlayer::State state)
 {
   if (_state == state) return;
@@ -212,12 +197,10 @@ void _AudioPlayer::_setRadio(_refRadio radio)
 {
   _radio = radio;
   _playlist = dynamic_cast<IPlaylistRadio*>(radio.get());
-  _currentRadioQml->set(_radio);
   if (_playlist != nullptr) {
     _playlist->setNextMode(_nextMode);
     _playlist->setLoopMode(_loopMode);
   }
-  emit currentRadioChanged(_currentRadioQml);
 }
 
 void _AudioPlayer::_unsubscribe()
@@ -237,8 +220,6 @@ void _AudioPlayer::_setTrack(_refTrack track)
   _unsubscribe();
   _track = track;
   _subscribeCurrentTrack();
-  _currentTrackQml->set(_track);
-  emit currentTrackChanged(_currentTrackQml);
 }
 
 void _AudioPlayer::_playTrack(_refTrack track)
@@ -255,7 +236,6 @@ void _AudioPlayer::_resetTrack()
 {
   _unsubscribe();
   // TODO
-  emit currentTrackChanged(_currentTrackQml);
 }
 
 QString _AudioPlayer::_formatTime(int t)

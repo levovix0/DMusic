@@ -1,8 +1,6 @@
 #pragma once
 #include <QMediaPlayer>
 #include "IPlaylistRadio.hpp"
-#include "QmlTrack.hpp"
-#include "QmlRadio.hpp"
 
 class _AudioPlayer : public QObject
 {
@@ -17,8 +15,6 @@ public:
   };
   Q_ENUM(State)
 
-  Q_PROPERTY(QmlTrack* currentTrack READ currentTrack NOTIFY currentTrackChanged)
-  Q_PROPERTY(QmlRadio* currentRadio READ currentRadio WRITE play NOTIFY currentRadioChanged)
   Q_PROPERTY(State state READ state WRITE setState NOTIFY stateChanged)
   Q_PROPERTY(double position READ position WRITE setPosition NOTIFY positionChanged)
   Q_PROPERTY(qint64 positionMs READ positionMs WRITE setPositionMs NOTIFY positionChanged)
@@ -31,8 +27,6 @@ public:
   Q_PROPERTY(QString formatPosition READ formatPosition NOTIFY positionChanged) // for example, "2:58"
   Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged) // for example, "3:02"
 
-  QmlTrack* currentTrack();
-  QmlRadio* currentRadio();
   State state();
   IPlaylistRadio::NextMode nextMode();
   IPlaylistRadio::LoopMode loopMode();
@@ -54,7 +48,6 @@ public slots:
   void togglePause();
 
   void play(_refRadio radio);
-  void play(QmlRadio* radio);
 
   void setState(State state);
   void setNextMode(IPlaylistRadio::NextMode nextMode);
@@ -65,8 +58,6 @@ public slots:
   void setPositionMs(qint64 positionMs);
 
 signals:
-  void currentTrackChanged(QmlTrack* currentTrack);
-  void currentRadioChanged(QmlRadio* currentRadio);
   void stateChanged(State state);
   void nextModeChanged(IPlaylistRadio::NextMode nextMode);
   void loopModeChanged(IPlaylistRadio::LoopMode loopMode);
@@ -89,9 +80,6 @@ private:
   void _resetTrack();
   QString _formatTime(int t);
   void _onMediaEnded();
-
-  QmlTrack* _currentTrackQml;
-  QmlRadio* _currentRadioQml;
 
   IPlaylistRadio* _playlist = nullptr;
   _refRadio _radio;

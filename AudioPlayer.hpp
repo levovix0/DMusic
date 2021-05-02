@@ -1,8 +1,8 @@
 #pragma once
-
-#include <api.hpp>
 #include <QObject>
 #include <QMediaPlayer>
+#include "api.hpp"
+#include "ID.hpp"
 
 class AudioPlayer : public QObject
 {
@@ -41,16 +41,14 @@ public:
 
   inline static refTrack noneTrack{new Track()};
 
-private slots:
-  void setMedia(QMediaContent media);
-  void onMediaAborted();
-  void updatePlaylistGenerator();
-
 public slots:
   void play(refTrack track);
+  void play(refPlaylist playlist);
+  void play(ID id);
+  void play(QString id);
   void play(Track* track);
   void play(Playlist* playlist);
-  void play();
+  void play(); // resume
   void pause();
   void pause_or_play();
   void stop();
@@ -74,6 +72,11 @@ signals:
   void mutedChanged(bool muted);
   void loopModeChanged(Settings::LoopMode loopMode);
   void nextModeChanged(Settings::NextMode nextMode);
+
+private slots:
+  void setMedia(QMediaContent media);
+  void onMediaAborted();
+  void updatePlaylistGenerator();
 
 private:
   void _unsubscribeCurrentTrack();

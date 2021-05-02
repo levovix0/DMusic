@@ -42,9 +42,9 @@ refTrack Playlist::get(int)
   return nullptr;
 }
 
-refRadio Playlist::radio(int index, Settings::NextMode nextMode)
+refRadio radio(refPlaylist self, int index, Settings::NextMode nextMode)
 {
-  return refRadio(new PlaylistRadio(refPlaylist(this), index, nextMode));
+  return refRadio(new PlaylistRadio(self, index, nextMode));
 }
 
 int Playlist::size()

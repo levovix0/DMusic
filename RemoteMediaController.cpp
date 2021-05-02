@@ -456,7 +456,7 @@ DiscordPresence::DiscordPresence(AudioPlayer* player, QObject* parent) : QObject
     _rpc.call("connect");
 
     connect(_player, &AudioPlayer::currentTrackChanged, this, &DiscordPresence::onTrackChanged);
-  } catch(py_error const& e) {
+  } catch(error const& e) {
     std::cerr << "failed to init discord presence: " << e.what();
   }
 }
@@ -482,7 +482,7 @@ void DiscordPresence::update(Track* track)
       args["large_image"] = "app";
       args["large_text"] = track->idInt();
       _rpc.call("update", std::initializer_list<object>{}, args);
-    }  catch (py_error const& e) {
+    }  catch (error const& e) {
       // it's normal ;)
     }
   });
