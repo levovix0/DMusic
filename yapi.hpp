@@ -1,11 +1,10 @@
 #pragma once
-#include "python.hpp"
-
-#include <api.hpp>
-#include <QObject>
 #include <atomic>
+#include <QObject>
 #include <QVariantList>
 #include <QJSValue>
+#include "python.hpp"
+#include "api.hpp"
 
 struct YArtist;
 struct YClient;
