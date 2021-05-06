@@ -189,11 +189,24 @@ Window {
       id: _openCover
       title: qsTr("Chose cover")
       nameFilters: [qsTr("Image (*.jpg *.png *.svg)")]
-      onAccepted: {
-        _yapi.addUserTrack(_openMedia.media, fileUrl.toString(), _tb_title.text, _tb_artists.text, _tb_extra.text)
-      }
-      onRejected: {
-        _yapi.addUserTrack(_openMedia.media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
+      onAccepted: _yapi.addUserTrack(_openMedia.media, fileUrl.toString(), _tb_title.text, _tb_artists.text, _tb_extra.text)
+      onRejected: _yapi.addUserTrack(_openMedia.media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
+    }
+
+    DFileDialog {
+      id: _openFile
+      function show() {
+        if (!available()) _openMedia.open()
+        else {
+          let media = sellect(qsTr("Chose media"), "*.mp3 *.wav *.ogg *.m4a", qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)"))
+          if (media == "") return
+          let cover = sellect(qsTr("Chose cover"), "*.jpg *.png *.svg", qsTr("Image (*.jpg *.png *.svg)"))
+          if (cover == "") {
+            _yapi.addUserTrack(media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
+          } else {
+            _yapi.addUserTrack(media, cover, _tb_title.text, _tb_artists.text, _tb_extra.text)
+          }
+        }
       }
     }
 
@@ -206,7 +219,7 @@ Window {
       text: qsTr("Add custom track")
 
       onClick: {
-        _openMedia.open()
+        _openFile.show()
       }
     }
 

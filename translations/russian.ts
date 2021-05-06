@@ -2,25 +2,60 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU">
 <context>
+    <name>DFileDialog</name>
+    <message>
+        <location filename="../DFileDialog.cpp" line="36"/>
+        <source>Sellect</source>
+        <translation>Выбрать</translation>
+    </message>
+    <message>
+        <location filename="../DFileDialog.cpp" line="36"/>
+        <location filename="../DFileDialog.hpp" line="12"/>
+        <source>Cancel</source>
+        <translation>Отменить</translation>
+    </message>
+    <message>
+        <location filename="../DFileDialog.hpp" line="12"/>
+        <source>Open file</source>
+        <translation>Открыть файл</translation>
+    </message>
+    <message>
+        <location filename="../DFileDialog.hpp" line="12"/>
+        <source>Open</source>
+        <translation>Открыть</translation>
+    </message>
+    <message>
+        <location filename="../DFileDialog.hpp" line="12"/>
+        <location filename="../DFileDialog.hpp" line="13"/>
+        <source>File</source>
+        <translation>Файл</translation>
+    </message>
+    <message>
+        <location filename="../DFileDialog.hpp" line="13"/>
+        <source>Sellect file</source>
+        <translation>Выбрать файл</translation>
+    </message>
+</context>
+<context>
     <name>ThumbnailController</name>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="402"/>
-        <location filename="../RemoteMediaController.cpp" line="436"/>
+        <location filename="../RemoteMediaController.cpp" line="401"/>
+        <location filename="../RemoteMediaController.cpp" line="435"/>
         <source>Play</source>
         <translation>Продолжить</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="408"/>
+        <location filename="../RemoteMediaController.cpp" line="407"/>
         <source>Next</source>
         <translation>Следующий</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="414"/>
+        <location filename="../RemoteMediaController.cpp" line="413"/>
         <source>Previous</source>
         <translation>Предыдуший</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="433"/>
+        <location filename="../RemoteMediaController.cpp" line="432"/>
         <source>Pause</source>
         <translation>Пауза</translation>
     </message>
@@ -70,26 +105,30 @@
     </message>
     <message>
         <location filename="../main.qml" line="179"/>
+        <location filename="../main.qml" line="201"/>
         <source>Chose media</source>
         <translation>Выберите медиафайл</translation>
     </message>
     <message>
         <location filename="../main.qml" line="180"/>
+        <location filename="../main.qml" line="201"/>
         <source>Audio (*.mp3 *.wav *.ogg *.m4a)</source>
         <translation>Звук (*.mp3 *.wav *.ogg *.m4a)</translation>
     </message>
     <message>
         <location filename="../main.qml" line="190"/>
+        <location filename="../main.qml" line="203"/>
         <source>Chose cover</source>
         <translation>Выберите обложку</translation>
     </message>
     <message>
         <location filename="../main.qml" line="191"/>
+        <location filename="../main.qml" line="203"/>
         <source>Image (*.jpg *.png *.svg)</source>
         <translation>Изображение (*.jpg *.png *.svg)</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="206"/>
+        <location filename="../main.qml" line="219"/>
         <source>Add custom track</source>
         <translation>Добавить трек</translation>
     </message>

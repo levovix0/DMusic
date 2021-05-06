@@ -1,3 +1,7 @@
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QIcon>
+#include <QTranslator>
 #include "yapi.hpp"
 #include "file.hpp"
 #include "settings.hpp"
@@ -5,10 +9,7 @@
 #include "Log.hpp"
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <QIcon>
-#include <QTranslator>
+#include "DFileDialog.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +31,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<Settings>("DMusic", 1, 0, "Settings");
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
   qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
+  qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
 
 #ifdef Q_OS_LINUX
   QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));
