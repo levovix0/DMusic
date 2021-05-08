@@ -29,16 +29,16 @@ public:
   qint64 duration() override;
   bool liked() override;
 
-  Q_INVOKABLE qint64 id();
-  Q_INVOKABLE bool available();
-  Q_INVOKABLE QVector<YArtist> artists();
-  Q_INVOKABLE QString coverPath();
-  Q_INVOKABLE QString metadataPath();
-  Q_INVOKABLE QString mediaPath();
+  qint64 id();
+  bool available();
+  QVector<YArtist> artists();
+  QString coverPath();
+  QString metadataPath();
+  QString mediaPath();
 
   QJsonObject jsonMetadata();
-  Q_INVOKABLE QString stringMetadata();
-  Q_INVOKABLE void saveMetadata();
+  QString stringMetadata();
+  void saveMetadata();
 
   YClient* _client;
 
@@ -81,16 +81,16 @@ public:
   YArtist& operator=(YArtist const& copy);
   PyObject* raw() { return impl.raw; }
 
-  Q_INVOKABLE int id();
-  Q_INVOKABLE QString name();
-  Q_INVOKABLE QString coverPath();
-  Q_INVOKABLE QString metadataPath();
+  int id();
+  QString name();
+  QString coverPath();
+  QString metadataPath();
 
   QJsonObject jsonMetadata();
-  Q_INVOKABLE QString stringMetadata();
-  Q_INVOKABLE void saveMetadata();
-  Q_INVOKABLE bool saveCover(int quality = 1000);
-  Q_INVOKABLE void saveCover(int quality, QJSValue const& callback);
+  QString stringMetadata();
+  void saveMetadata();
+  bool saveCover(int quality = 1000);
+  void saveCover(int quality, QJSValue const& callback);
 
 private:
   py::object impl;

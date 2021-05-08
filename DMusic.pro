@@ -15,6 +15,7 @@ SOURCES += \
         IRadio.cpp \
         ITrack.cpp \
         Log.cpp \
+        Messages.cpp \
         Radio.cpp \
         RemoteMediaController.cpp \
         Track.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
   IRadio.hpp \
   ITrack.hpp \
   Log.hpp \
+  Messages.hpp \
   Radio.hpp \
   RemoteMediaController.hpp \
   Track.hpp \

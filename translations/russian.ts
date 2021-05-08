@@ -61,6 +61,27 @@
     </message>
 </context>
 <context>
+    <name>YClient</name>
+    <message>
+        <location filename="../yapi.cpp" line="239"/>
+        <source>Can&apos;t load Yandex.Music playlist (id: %1)</source>
+        <translation>Ошибка загрузки плейлиста Яндекс.Музыки (id: %1)</translation>
+    </message>
+    <message>
+        <location filename="../yapi.cpp" line="263"/>
+        <source>Can&apos;t load Yandex.Music daily playlist</source>
+        <translation>Ошибка загрузки плейлиста дня Яндекс.Музыки</translation>
+    </message>
+</context>
+<context>
+    <name>YTrack</name>
+    <message>
+        <location filename="../yapi.cpp" line="606"/>
+        <source>Can&apos;t load Yandex.Music track (id: %1)</source>
+        <translation>Ошибка загрузки трека Яндекс.Музыки (id: %1)</translation>
+    </message>
+</context>
+<context>
     <name>main</name>
     <message>
         <location filename="../main.qml" line="115"/>

@@ -1,8 +1,8 @@
-﻿#include "AudioPlayer.hpp"
+﻿#include <cmath>
+#include "AudioPlayer.hpp"
 #include "settings.hpp"
 #include "QDateTime"
 #include "Log.hpp"
-#include <cmath>
 
 AudioPlayer::~AudioPlayer()
 {
@@ -112,7 +112,6 @@ void AudioPlayer::setMedia(QMediaContent media)
 
 void AudioPlayer::onMediaAborted()
 {
-  logging.error("media aborted");
   next();
 }
 

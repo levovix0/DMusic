@@ -1,8 +1,3 @@
-#include "yapi.hpp"
-#include "file.hpp"
-#include "settings.hpp"
-#include "utils.hpp"
-#include "Log.hpp"
 #include <thread>
 #include <functional>
 #include <QDebug>
@@ -11,6 +6,12 @@
 #include <QJsonDocument>
 #include <QGuiApplication>
 #include <QMediaPlayer>
+#include "yapi.hpp"
+#include "file.hpp"
+#include "settings.hpp"
+#include "utils.hpp"
+#include "Log.hpp"
+#include "Messages.hpp"
 
 using namespace py;
 
@@ -227,11 +228,15 @@ Playlist* YClient::likedTracks()
 Playlist* YClient::playlist(int id)
 {
   if (id == 3) return likedTracks();
-  auto a = me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0].call("fetch_tracks");
   DPlaylist* res = new DPlaylist(this);
-  for (auto&& p : a) {
-    if (!p.has("id")) continue;
-    res->add(track(p.get("id").to<int>()));
+  try {
+    auto a = me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0].call("fetch_tracks");
+    for (auto&& p : a) {
+      if (!p.has("id")) continue;
+      res->add(track(p.get("id").to<int>()));
+    }
+  }  catch (py::error& e) {
+    Messages::error(tr("Can't load Yandex.Music playlist (id: %1)").arg(id), e.what());
   }
   return res;
 }
@@ -245,14 +250,17 @@ Playlist* YClient::oneTrack(qint64 id)
 
 Playlist* YClient::userDailyPlaylist()
 {
-  auto ppb = me.call("landing", std::vector<object>{"personalplaylists"}).get("blocks")[0];
-  auto daily = ppb.get("entities")[0].get("data").get("data");
-  auto a = daily.call("fetch_tracks");
   DPlaylist* res = new DPlaylist(this);
-  for (int i = 0; i < PyList_Size(a.raw); ++i) {
-    object p = PyList_GetItem(a.raw, i);
-    if (!p.has("id")) continue;
-    res->add(track(p.get("id").to<int>()));
+  try {
+    auto ppb = me.call("landing", std::vector<object>{"personalplaylists"}).get("blocks")[0];
+    auto daily = ppb.get("entities")[0].get("data").get("data");
+    auto a = daily.call("fetch_tracks");
+    for (auto&& p : a) {
+      if (!p.has("id")) continue;
+      res->add(track(p.get("id").to<int>()));
+    }
+  } catch (py::error& e) {
+    Messages::error(tr("Can't load Yandex.Music daily playlist"), e.what());
   }
   return res;
 }
@@ -555,43 +563,47 @@ void YTrack::_fetchYandex()
 void YTrack::_fetchYandex(object _pys)
 {
   QMutexLocker lock(&_mtx);
-  if (_pys == none) {
-    _title = "";
-    _author = "";
-    _extra = "";
-    _cover = "";
-    _media = "";
-    _duration = 0;
-    _noTitle = true;
-    _noAuthor = true;
-    _noExtra = true;
-    _noCover = true;
-    _noMedia = true;
-    _liked = false;
-  } else {
-    _py = _pys;
+  try {
+    if (_pys == none) {
+      _title = "";
+      _author = "";
+      _extra = "";
+      _cover = "";
+      _media = "";
+      _duration = 0;
+      _noTitle = true;
+      _noAuthor = true;
+      _noExtra = true;
+      _noCover = true;
+      _noMedia = true;
+      _liked = false;
+    } else {
+      _py = _pys;
 
-    _title = _py.get("title").to<QString>();
-    _noTitle = _title.isEmpty();
-    emit titleChanged(_title);
+      _title = _py.get("title").to<QString>();
+      _noTitle = _title.isEmpty();
+      emit titleChanged(_title);
 
-    auto artists_py = _py.get("artists").to<QVector<py::object>>();
-    QVector<QString> artists_str;
-    artists_str.reserve(artists_py.length());
-    for (auto&& e : artists_py) {
-      artists_str.append(e.get("name").to<QString>());
-      _artists.append(e.get("id").to<qint64>());
+      auto artists_py = _py.get("artists").to<QVector<py::object>>();
+      QVector<QString> artists_str;
+      artists_str.reserve(artists_py.length());
+      for (auto&& e : artists_py) {
+        artists_str.append(e.get("name").to<QString>());
+        _artists.append(e.get("id").to<qint64>());
+      }
+      _author = join(artists_str, ", ");
+      _noAuthor = _author.isEmpty();
+      emit artistsStrChanged(_author);
+
+      _extra = _py.get("version").to<QString>();
+      _noExtra = _extra.isEmpty();
+      emit extraChanged(_extra);
+
+      _duration = _py.get("duration_ms").to<qint64>();
+      emit durationChanged(_duration);
     }
-    _author = join(artists_str, ", ");
-    _noAuthor = _author.isEmpty();
-    emit artistsStrChanged(_author);
-
-    _extra = _py.get("version").to<QString>();
-    _noExtra = _extra.isEmpty();
-    emit extraChanged(_extra);
-
-    _duration = _py.get("duration_ms").to<qint64>();
-    emit durationChanged(_duration);
+  } catch (py::error& e) {
+    Messages::error(tr("Can't load Yandex.Music track (id: %1)").arg(_id));
   }
 }
 

@@ -10,6 +10,7 @@
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
 #include "DFileDialog.hpp"
+#include "Messages.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -32,6 +33,8 @@ int main(int argc, char *argv[])
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
   qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
   qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
+
+  qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
 
 #ifdef Q_OS_LINUX
   QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));

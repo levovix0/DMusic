@@ -65,6 +65,7 @@ DPlaylist::DPlaylist(QObject* parent) : Playlist(parent)
 
 refTrack DPlaylist::get(int index)
 {
+  if (index >= _tracks.length()) return nullptr;
   return _tracks[index];
 }
 
@@ -199,7 +200,7 @@ PlaylistRadio::PlaylistRadio(refPlaylist playlist, int index, Settings::NextMode
   _index = index;
   if (_index < 0) {
     if (nextMode == Settings::NextSequence) _index = 0;
-    else _index = QRandomGenerator::global()->bounded(playlist->size());
+    else _index = QRandomGenerator::global()->bounded(qMax(1, playlist->size()));
   }
   PlaylistRadio::setNextMode(nextMode);
 }
@@ -233,6 +234,7 @@ void PlaylistRadio::setNextMode(Settings::NextMode nextMode)
 refTrack PlaylistRadio::current()
 {
   if (_nextMode == Settings::NextShuffle) {
+    if (_index >= _history.length()) return nullptr;
     return _playlist->get(_history[_index]);
   } else {
     return _playlist->get(_index);

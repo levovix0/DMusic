@@ -250,5 +250,41 @@ Window {
 
       onPlay: _player.player.play(_yapi.userDailyPlaylist())
     }
+
+    ListModel {
+      id: _messages
+    }
+
+    Column {
+      spacing: 15
+      anchors.bottom: _player.top
+      anchors.bottomMargin: 15
+      anchors.horizontalCenter: parent.horizontalCenter
+
+      add: Transition {
+        NumberAnimation { property: "opacity"; from: 0; to: 1; duration: 200 }
+      }
+
+      Repeater {
+        model: _messages
+        Message {
+          text: elementText
+          details: elementDetails
+          isError: elementIsError
+          anchors.horizontalCenter: parent.horizontalCenter
+
+          onClosed: _messages.remove(index)
+        }
+      }
+    }
+
+    Component.onCompleted: {
+      Messages.onGotMessage.connect(function(text, details) {
+        _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": false })
+      })
+      Messages.onGotError.connect(function(text, details) {
+        _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": true })
+      })
+    }
   }
 }
