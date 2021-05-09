@@ -1,21 +1,9 @@
 #pragma once
 #include <QSharedPointer>
 
-class ITrack;
-class IArtist;
-class IPlaylist;
-class IRadio;
-class IPlaylistRadio;
-
 class Track;
 class Playlist;
 class Radio;
-
-using _refTrack = QSharedPointer<ITrack>;
-using _refArtist = QSharedPointer<IArtist>;
-using _refPlaylist = QSharedPointer<IPlaylist>;
-using _refRadio = QSharedPointer<IRadio>;
-using _refPlaylistRadio = QSharedPointer<IPlaylistRadio>;
 
 using refTrack = QSharedPointer<Track>;
 using refPlaylist = QSharedPointer<Playlist>;

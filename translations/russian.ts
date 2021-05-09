@@ -37,6 +37,19 @@
     </message>
 </context>
 <context>
+    <name>QObject</name>
+    <message>
+        <location filename="../python.cpp" line="411"/>
+        <source>Failed to import python module &apos;%1&apos;, it will be auto-installed</source>
+        <translation>Не удалось импортировать модуль python &apos;%1&apos;, он будет установлен автоматически</translation>
+    </message>
+    <message>
+        <location filename="../python.cpp" line="450"/>
+        <source>Failed to auto-install python module &apos;%1&apos;</source>
+        <translation>Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
+    </message>
+</context>
+<context>
     <name>ThumbnailController</name>
     <message>
         <location filename="../RemoteMediaController.cpp" line="401"/>
@@ -63,12 +76,12 @@
 <context>
     <name>YClient</name>
     <message>
-        <location filename="../yapi.cpp" line="239"/>
+        <location filename="../yapi.cpp" line="237"/>
         <source>Can&apos;t load Yandex.Music playlist (id: %1)</source>
         <translation>Ошибка загрузки плейлиста Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="263"/>
+        <location filename="../yapi.cpp" line="261"/>
         <source>Can&apos;t load Yandex.Music daily playlist</source>
         <translation>Ошибка загрузки плейлиста дня Яндекс.Музыки</translation>
     </message>
@@ -76,7 +89,12 @@
 <context>
     <name>YTrack</name>
     <message>
-        <location filename="../yapi.cpp" line="606"/>
+        <location filename="../yapi.cpp" line="389"/>
+        <source>Can&apos;t get Yandex.Music track media (id: %1)</source>
+        <translation>Ошибка загрузки медиа для трека Яндекс.Музыки (id: %1)</translation>
+    </message>
+    <message>
+        <location filename="../yapi.cpp" line="604"/>
         <source>Can&apos;t load Yandex.Music track (id: %1)</source>
         <translation>Ошибка загрузки трека Яндекс.Музыки (id: %1)</translation>
     </message>

@@ -285,6 +285,7 @@ Window {
       Messages.onGotError.connect(function(text, details) {
         _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": true })
       })
+      Messages.reSendHistory()
     }
   }
 }

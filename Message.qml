@@ -30,6 +30,6 @@ Rectangle {
 
     hoverEnabled: true
     onReleased: if (root.details !== "") _text.showDetails = !_text.showDetails
-    onExited: closed()
+    onExited: if (!_text.showDetails) closed()
   }
 }

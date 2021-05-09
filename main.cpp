@@ -6,7 +6,6 @@
 #include "file.hpp"
 #include "settings.hpp"
 #include "AudioPlayer.hpp"
-#include "Log.hpp"
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
 #include "DFileDialog.hpp"

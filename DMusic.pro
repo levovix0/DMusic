@@ -8,20 +8,14 @@ SOURCES += \
         Clipboard.cpp \
         DFileDialog.cpp \
         Download.cpp \
-        IArtist.cpp \
         ID.cpp \
-        IPlaylist.cpp \
-        IPlaylistRadio.cpp \
-        IRadio.cpp \
-        ITrack.cpp \
-        Log.cpp \
         Messages.cpp \
         Radio.cpp \
         RemoteMediaController.cpp \
         Track.cpp \
-        _AudioPlayer.cpp \
         api.cpp \
         main.cpp \
+        python.cpp \
         settings.cpp \
         yapi.cpp
 
@@ -30,18 +24,11 @@ HEADERS += \
   Clipboard.hpp \
   DFileDialog.hpp \
   Download.hpp \
-  IArtist.hpp \
   ID.hpp \
-  IPlaylist.hpp \
-  IPlaylistRadio.hpp \
-  IRadio.hpp \
-  ITrack.hpp \
-  Log.hpp \
   Messages.hpp \
   Radio.hpp \
   RemoteMediaController.hpp \
   Track.hpp \
-  _AudioPlayer.hpp \
   api.hpp \
   file.hpp \
   python.hpp \

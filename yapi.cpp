@@ -1,6 +1,5 @@
 #include <thread>
 #include <functional>
-#include <QDebug>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -10,7 +9,6 @@
 #include "file.hpp"
 #include "settings.hpp"
 #include "utils.hpp"
-#include "Log.hpp"
 #include "Messages.hpp"
 
 using namespace py;
@@ -388,7 +386,7 @@ QMediaContent YTrack::media()
     if (_media.isEmpty()) {
       if (!_noMedia) _downloadMedia(); // async
       else {
-        logging.warning("yandex/" + QString::number(id()) + ": no media");
+        Messages::error(tr("Can't get Yandex.Music track media (id: %1)").arg(_id));
         emit mediaAborted();
       }
       return {};

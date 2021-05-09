@@ -15,9 +15,13 @@ public:
   static void message(QString text, QString details = "");
   static void error(QString text, QString details = "");
 
+  struct Message { QString text, details; bool isError; };
+  QVector<Message> history;
+
 public slots:
   void sendMessage(QString text, QString details = "");
   void sendError(QString text, QString details = "");
+  void reSendHistory();
 
 signals:
   void gotMessage(QString text, QString details);

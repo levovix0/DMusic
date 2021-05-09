@@ -2,7 +2,6 @@
 #include "AudioPlayer.hpp"
 #include "settings.hpp"
 #include "QDateTime"
-#include "Log.hpp"
 
 AudioPlayer::~AudioPlayer()
 {
