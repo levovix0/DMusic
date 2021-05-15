@@ -57,7 +57,7 @@ private:
   QString _coverUrl();
 
   py::object _py;
-  QMutex _mtx = QMutex(QMutex::Recursive);
+  QRecursiveMutex _mtx{};
   qint64 _id;
   QString _title, _author, _extra, _cover, _media;
   qint64 _duration;
@@ -90,7 +90,6 @@ public:
   QString stringMetadata();
   void saveMetadata();
   bool saveCover(int quality = 1000);
-  void saveCover(int quality, QJSValue const& callback);
 
 private:
   py::object impl;
@@ -107,23 +106,23 @@ public:
   ~YClient();
   YClient(QObject *parent = nullptr);
 
-  Q_INVOKABLE bool isLoggined();
-
-  Q_INVOKABLE QString token(QString login, QString password);
-  Q_INVOKABLE bool login(QString token);
-  Q_INVOKABLE void login(QString token, QJSValue const& callback);
-  Q_INVOKABLE bool loginViaProxy(QString token, QString proxy);
-  Q_INVOKABLE void loginViaProxy(QString token, QString proxy, QJSValue const& callback);
-
-  QVector<py::object> fetchTracks(qint64 id);
-  Q_INVOKABLE std::pair<bool, QList<YTrack*>> fetchYTracks(qint64 id);
-  Q_INVOKABLE void fetchYTracks(qint64 id, QJSValue const& callback);
-
   refTrack track(qint64 id);
 
   static inline YClient* instance = nullptr;
 
 public slots:
+  bool isLoggined();
+
+  QString token(QString login, QString password);
+  bool login(QString token);
+  void login(QString token, QJSValue const& callback);
+  bool loginViaProxy(QString token, QString proxy);
+  void loginViaProxy(QString token, QString proxy, QJSValue const& callback);
+
+  QVector<py::object> fetchTracks(qint64 id);
+  std::pair<bool, QList<YTrack*>> fetchYTracks(qint64 id);
+  void fetchYTracks(qint64 id, QJSValue const& callback);
+
   Playlist* likedTracks();
   Playlist* playlist(int id);
   Playlist* oneTrack(qint64 id);

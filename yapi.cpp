@@ -18,7 +18,7 @@ object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "N
     while (true) {
       try {
         return f();
-      }  catch (error& e) {
+      } catch (error& e) {
         --n;
         if (n <= 0) throw std::move(e);
       }
@@ -27,7 +27,7 @@ object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "N
     while (true) {
       try {
         return f();
-      }  catch (error& e) {
+      } catch (error& e) {
         if (e.type != s) throw std::move(e);
         --n;
         if (n <= 0) throw std::move(e);
@@ -45,7 +45,7 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
         f();
         r(true);
         return;
-      }  catch (error&) {
+      } catch (error&) {
         --tries;
         if (tries <= 0) {
           r(false);
@@ -59,7 +59,7 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
         f();
         r(true);
         return;
-      }  catch (error& e) {
+      } catch (error& e) {
         if (e.type != s) {
           r(false);
           return;
@@ -75,45 +75,12 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
 }
 
 void do_async(std::function<void()> f) {
-  std::thread(f).detach();
+  QtConcurrent::run(f);
 }
 
 void repeat_if_error_async(std::function<void()> f, std::function<void(bool success)> r, int n = 10, std::string s = "NetworkError") {
   do_async([=]() {
-    int tries = n;
-    if (s == "") {
-      while (true) {
-        try {
-          f();
-          r(true);
-          return;
-        }  catch (error&) {
-          --tries;
-          if (tries <= 0) {
-            r(false);
-            return;
-          }
-        }
-      }
-    } else {
-      while (true) {
-        try {
-          f();
-          r(true);
-          return;
-        }  catch (error& e) {
-          if (e.type != s) {
-            r(false);
-            return;
-          }
-          --tries;
-          if (tries <= 0) {
-            r(false);
-            return;
-          }
-        }
-      }
-    }
+    repeat_if_error(f, r, n, s);
   });
 }
 
@@ -180,8 +147,7 @@ QVector<object> YClient::fetchTracks(qint64 id)
   QVector<py::object> tracks;
   repeat_if_error([this, id, &tracks]() {
     tracks = me.call("tracks", std::vector<object>{id}).to<QVector<py::object>>();
-  }, [](bool) {
-  }, Settings::ym_repeatsIfError());
+  }, [](bool) {}, Settings::ym_repeatsIfError());
   return tracks;
 }
 
@@ -233,7 +199,7 @@ Playlist* YClient::playlist(int id)
       if (!p.has("id")) continue;
       res->add(track(p.get("id").to<int>()));
     }
-  }  catch (py::error& e) {
+  } catch (py::error& e) {
     Messages::error(tr("Can't load Yandex.Music playlist (id: %1)").arg(id), e.what());
   }
   return res;
@@ -660,8 +626,7 @@ void YTrack::_checkLiked()
     repeat_if_error([this]() {
       auto ult = _py.get("client").call("users_likes_tracks").get("tracks_ids");
       _liked = false;
-      for (int i = 0; i < PyList_Size(ult.raw); ++i) {
-        object p = PyList_GetItem(ult.raw, i);
+      for (auto&& p : ult) {
         if (!p.contains(":")) continue;
         if (p.call("split", ":")[0].to<int>() == _id) {
           _liked = true;
@@ -758,9 +723,4 @@ bool YArtist::saveCover(int quality)
     successed = success;
   }, Settings::ym_repeatsIfError());
   return successed;
-}
-
-void YArtist::saveCover(int quality, const QJSValue& callback)
-{
-  do_async<bool>(this, callback, &YArtist::saveCover, quality);
 }

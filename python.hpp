@@ -15,7 +15,7 @@
 
 namespace py
 {
-  inline QMutex mutex(QMutex::Recursive);
+  inline QRecursiveMutex mutex{};
 
   struct none_t {};
   inline static const none_t none;
