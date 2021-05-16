@@ -126,6 +126,7 @@ private:
     AudioPlayer* _player;
     qint64 _prevPosition = 0;
     QMap<QString, QVariant> _currentTrackMetadata;
+    Track* _track = nullptr;
 };
 
 #ifdef Q_OS_WIN
@@ -165,6 +166,7 @@ private:
   AudioPlayer* _player;
   py::object _time;
   py::object _rpc = py::none;
+  Track* _track = nullptr;
 };
 
 class RemoteMediaController : public QObject

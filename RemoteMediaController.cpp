@@ -2,6 +2,7 @@
 #include <QGuiApplication>
 #include <stdexcept>
 #include "utils.hpp"
+#include "Messages.hpp"
 
 using namespace py;
 
@@ -270,6 +271,13 @@ void Mpris2Player::onStateChanged(QMediaPlayer::State state)
 
 void Mpris2Player::onTrackChanged(Track* track)
 {
+  if (_track != nullptr) {
+    disconnect(_track, &Track::titleChanged, this, &Mpris2Player::onTitleChanged);
+    disconnect(_track, &Track::artistsStrChanged, this, &Mpris2Player::onAuthorChanged);
+    disconnect(_track, &Track::coverChanged, this, &Mpris2Player::onCoverChanged);
+    disconnect(_track, &Track::durationChanged, this, &Mpris2Player::onDurationChanged);
+  }
+  _track = track;
   _currentTrackMetadata = toXesam(*track);
   signalPlayerUpdate({});
   connect(track, &Track::titleChanged, this, &Mpris2Player::onTitleChanged);
@@ -346,7 +354,8 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
   res["xesam:userRating"] = track.liked()? 1 : 0;
   auto duration = track.duration();
   res["mpris:length"] = duration > 0? duration * 1000 : 1; // in microseconds
-  QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/Track/") + track.idInt();
+  auto id = track.idInt();
+  QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/track/") + (id == ""? QString::number(0) : id);
   res["mpris:trackid"] = QVariant(QDBusObjectPath(trackId).path());
   res["mpris:artUrl"] = track.cover();
   return res;
@@ -456,8 +465,8 @@ DiscordPresence::DiscordPresence(AudioPlayer* player, QObject* parent) : QObject
     _rpc.call("connect");
 
     connect(_player, &AudioPlayer::currentTrackChanged, this, &DiscordPresence::onTrackChanged);
-  } catch(error const& e) {
-    std::cerr << "failed to init discord presence: " << e.what();
+  } catch(py::error& e) {
+    Messages::error(tr("Failed to initialize discord pressence"), e.what());
   }
 }
 
@@ -490,7 +499,12 @@ void DiscordPresence::update(Track* track)
 
 void DiscordPresence::onTrackChanged(Track* track)
 {
-  disconnect(nullptr, nullptr, this, SLOT(updateData()));
+  if (_track != nullptr) {
+    disconnect(_track, &Track::artistsStrChanged, this, &DiscordPresence::updateData);
+    disconnect(_track, &Track::titleChanged, this, &DiscordPresence::updateData);
+    disconnect(_track, &Track::idIntChanged, this, &DiscordPresence::updateData);
+  }
+  _track = track;
   connect(track, &Track::artistsStrChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::titleChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::idIntChanged, this, &DiscordPresence::updateData);

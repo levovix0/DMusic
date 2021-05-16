@@ -2,7 +2,8 @@
 #include <atomic>
 #include <QObject>
 #include <QVariantList>
-#include <QJSValue>
+#include <QQmlEngine>
+#include <QJSEngine>
 #include "python.hpp"
 #include "api.hpp"
 
@@ -106,12 +107,19 @@ public:
   ~YClient();
   YClient(QObject *parent = nullptr);
 
-  refTrack track(qint64 id);
+  static YClient* instance;
+  static YClient* qmlInstance(QQmlEngine*, QJSEngine*);
 
-  static inline YClient* instance = nullptr;
+  Q_PROPERTY(bool initialized READ initialized NOTIFY initializedChanged)
+
+  bool initialized();
+
+  refTrack track(qint64 id);
 
 public slots:
   bool isLoggined();
+
+  void init();
 
   QString token(QString login, QString password);
   bool login(QString token);
@@ -120,8 +128,6 @@ public slots:
   void loginViaProxy(QString token, QString proxy, QJSValue const& callback);
 
   QVector<py::object> fetchTracks(qint64 id);
-  std::pair<bool, QList<YTrack*>> fetchYTracks(qint64 id);
-  void fetchYTracks(qint64 id, QJSValue const& callback);
 
   Playlist* likedTracks();
   Playlist* playlist(int id);
@@ -132,11 +138,15 @@ public slots:
 
   void addUserTrack(QString media, QString cover, QString title, QString artists, QString extra);
 
+signals:
+  void initializedChanged(bool initialized);
+
 private:
   py::module ym; // yandex_music module
   py::module ym_request;
 
   py::object me; // client
 
+  bool _initialized;
   std::atomic_bool loggined;
 };

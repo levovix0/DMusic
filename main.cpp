@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
   QGuiApplication app(argc, argv);
   app.installTranslator(&translator);
 
-  qmlRegisterType<YClient>("DMusic", 1, 0, "YClient");
   qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");
   qmlRegisterType<YTrack>("DMusic", 1, 0, "Track");
@@ -34,6 +33,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
 
   qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
+  qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
 
 #ifdef Q_OS_LINUX
   QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));

@@ -17,7 +17,9 @@ namespace py
 {
   inline QRecursiveMutex mutex{};
 
-  struct none_t {};
+  struct none_t {
+    constexpr operator PyObject*() const { return Py_None; }
+  };
   inline static const none_t none;
 
   struct object
@@ -95,7 +97,7 @@ namespace py
     module(module const& copy);
     module(char const* name, bool autoInstall = false);
     module(object name, bool autoInstall = false);
-    module(PyObject* raw);
+    module(PyObject* raw = none);
 
     module& operator=(module const& copy);
 

@@ -46,20 +46,17 @@ Window {
       id: _settings
 
       Component.onCompleted: {
-        _yapi.autologin()
+        YClient.init()
+        root.autologin()
       }
     }
 
-    YClient {
-      id: _yapi
-
-      function autologin() {
-        if (_settings.ym_token == "") return
-        if (_settings.ym_proxyServer == "") {
-          login(_settings.ym_token, function(_){})
-        } else {
-          loginViaProxy(_settings.ym_token, _settings.ym_proxyServer, function(_){})
-        }
+    function autologin() {
+      if (_settings.ym_token == "") return
+      if (_settings.ym_proxyServer == "") {
+        YClient.login(_settings.ym_token, function(_){})
+      } else {
+        YClient.loginViaProxy(_settings.ym_token, _settings.ym_proxyServer, function(_){})
       }
     }
 
@@ -102,7 +99,7 @@ Window {
 
         onClick: {
           if (_id_input.text == "") return
-          _player.player.play(_yapi.playlist(parseInt(_id_input.text)))
+          _player.player.play(YClient.playlist(parseInt(_id_input.text)))
         }
       }
 
@@ -116,7 +113,7 @@ Window {
 
         onClick: {
           if (_id_input.text == "") return
-          _player.player.play(_yapi.oneTrack(parseInt(_id_input.text)))
+          _player.player.play(YClient.oneTrack(parseInt(_id_input.text)))
         }
       }
 
@@ -128,7 +125,7 @@ Window {
         text: qsTr("Play downloaded")
 
         onClick: {
-          _player.player.play(_yapi.downloadsPlaylist())
+          _player.player.play(YClient.downloadsPlaylist())
         }
       }
 
@@ -140,7 +137,7 @@ Window {
         text: qsTr("Play custom")
 
         onClick: {
-          _player.player.play(_yapi.userTrack(parseInt(_id_input.text)))
+          _player.player.play(YClient.userTrack(parseInt(_id_input.text)))
         }
       }
     }
@@ -189,8 +186,8 @@ Window {
       id: _openCover
       title: qsTr("Chose cover")
       nameFilters: [qsTr("Image (*.jpg *.png *.svg)")]
-      onAccepted: _yapi.addUserTrack(_openMedia.media, fileUrl.toString(), _tb_title.text, _tb_artists.text, _tb_extra.text)
-      onRejected: _yapi.addUserTrack(_openMedia.media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
+      onAccepted: YClient.addUserTrack(_openMedia.media, fileUrl.toString(), _tb_title.text, _tb_artists.text, _tb_extra.text)
+      onRejected: YClient.addUserTrack(_openMedia.media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
     }
 
     DFileDialog {
@@ -202,9 +199,9 @@ Window {
           if (media == "") return
           let cover = sellect(qsTr("Chose cover"), "*.jpg *.png *.svg", qsTr("Image (*.jpg *.png *.svg)"))
           if (cover == "") {
-            _yapi.addUserTrack(media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
+            YClient.addUserTrack(media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
           } else {
-            _yapi.addUserTrack(media, cover, _tb_title.text, _tb_artists.text, _tb_extra.text)
+            YClient.addUserTrack(media, cover, _tb_title.text, _tb_artists.text, _tb_extra.text)
           }
         }
       }
@@ -239,7 +236,7 @@ Window {
       anchors.leftMargin: 25
       anchors.topMargin: 25
 
-      onPlay: _player.player.play(_yapi.playlist(3))
+      onPlay: _player.player.play(YClient.playlist(3))
     }
 
     PlaylistEntry {
@@ -248,7 +245,7 @@ Window {
       anchors.leftMargin: 25
       anchors.topMargin: 25
 
-      onPlay: _player.player.play(_yapi.userDailyPlaylist())
+      onPlay: _player.player.play(YClient.userDailyPlaylist())
     }
 
     ListModel {

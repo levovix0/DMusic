@@ -85,183 +85,6 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
 }
 
 
-YClient::~YClient()
-{
-  if (instance == this) instance = nullptr;
-}
-
-YClient::YClient(QObject *parent) : QObject(parent), ym("yandex_music", true), ym_request(ym/"utils"/"request")
-{
-  instance = this;
-}
-
-bool YClient::isLoggined()
-{
-  return loggined;
-}
-
-QString YClient::token(QString login, QString password)
-{
-  return ym.call("generate_token_by_username_and_password", {login, password}).to<QString>();
-}
-
-bool YClient::login(QString token)
-{
-  loggined = false;
-  repeat_if_error([this, token]() {
-    me = ym.call("Client", token);
-  }, [this](bool success) {
-    loggined = success;
-  }, Settings::ym_repeatsIfError());
-  return loggined;
-}
-
-void YClient::login(QString token, const QJSValue& callback)
-{
-  do_async<bool>(this, callback, &YClient::login, token);
-}
-
-bool YClient::loginViaProxy(QString token, QString proxy)
-{
-  loggined = false;
-  repeat_if_error([this, token, proxy]() {
-    std::map<std::string, object> kwargs;
-    kwargs["proxy_url"] = proxy;
-    object req = ym_request.call("Request", std::initializer_list<object>{}, kwargs);
-    kwargs.clear();
-    kwargs["request"] = req;
-    me = ym.call("Client", token, kwargs);
-  }, [this](bool success) {
-    loggined = success;
-  }, Settings::ym_repeatsIfError());
-  return loggined;
-}
-
-void YClient::loginViaProxy(QString token, QString proxy, const QJSValue& callback)
-{
-  do_async<bool>(this, callback, &YClient::loginViaProxy, token, proxy);
-}
-
-QVector<object> YClient::fetchTracks(qint64 id)
-{
-  QVector<py::object> tracks;
-  repeat_if_error([this, id, &tracks]() {
-    tracks = me.call("tracks", std::vector<object>{id}).to<QVector<py::object>>();
-  }, [](bool) {}, Settings::ym_repeatsIfError());
-  return tracks;
-}
-
-std::pair<bool, QList<YTrack*>> YClient::fetchYTracks(qint64 id)
-{
-  QList<YTrack*> tracks;
-  bool successed;
-  repeat_if_error([this, id, &tracks]() {
-    tracks = me.call("tracks", std::vector<object>{id}).to<QList<YTrack*>>(); // утечка памяти?
-    for (auto&& track : tracks) {
-      track->_client = this;
-      track->setParent(this);
-    }
-  }, [&successed](bool success) {
-    successed = success;
-  }, Settings::ym_repeatsIfError());
-  move_to_thread(tracks, QGuiApplication::instance()->thread());
-  return {successed, tracks};
-}
-
-void YClient::fetchYTracks(qint64 id, const QJSValue& callback)
-{
-  do_async<bool, QList<YTrack*>>(this, callback, &YClient::fetchYTracks, id);
-}
-
-refTrack YClient::track(qint64 id)
-{
-  return refTrack(new YTrack(id, this));
-}
-
-Playlist* YClient::likedTracks()
-{
-  auto a = me.call("users_likes_tracks").get("tracks_ids");
-  DPlaylist* res = new DPlaylist(this);
-  for (auto&& p : a) {
-    if (!p.contains(":")) continue;
-    res->add(track(p.call("split", ":")[0].to<int>()));
-  }
-  return res;
-}
-
-Playlist* YClient::playlist(int id)
-{
-  if (id == 3) return likedTracks();
-  DPlaylist* res = new DPlaylist(this);
-  try {
-    auto a = me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0].call("fetch_tracks");
-    for (auto&& p : a) {
-      if (!p.has("id")) continue;
-      res->add(track(p.get("id").to<int>()));
-    }
-  } catch (py::error& e) {
-    Messages::error(tr("Can't load Yandex.Music playlist (id: %1)").arg(id), e.what());
-  }
-  return res;
-}
-
-Playlist* YClient::oneTrack(qint64 id)
-{
-  DPlaylist* res = new DPlaylist(this);
-  res->add(track(id));
-  return res;
-}
-
-Playlist* YClient::userDailyPlaylist()
-{
-  DPlaylist* res = new DPlaylist(this);
-  try {
-    auto ppb = me.call("landing", std::vector<object>{"personalplaylists"}).get("blocks")[0];
-    auto daily = ppb.get("entities")[0].get("data").get("data");
-    auto a = daily.call("fetch_tracks");
-    for (auto&& p : a) {
-      if (!p.has("id")) continue;
-      res->add(track(p.get("id").to<int>()));
-    }
-  } catch (py::error& e) {
-    Messages::error(tr("Can't load Yandex.Music daily playlist"), e.what());
-  }
-  return res;
-}
-
-Playlist* YClient::userTrack(int id)
-{
-  DPlaylist* res = new DPlaylist(this);
-  res->add(refTrack(new UserTrack(id)));
-  return res;
-}
-
-Playlist* YClient::downloadsPlaylist()
-{
-  DPlaylist* res = new DPlaylist(this);
-  QDir recoredDir(Settings::ym_savePath());
-  QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
-  for (auto s : allFiles) {
-    if (!s.endsWith(".json")) continue;
-    s.chop(5);
-    res->add(track(s.toInt()));
-  }
-  recoredDir = QDir("user");
-  allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
-  for (auto s : allFiles) {
-    if (!s.endsWith(".json")) continue;
-    s.chop(5);
-    res->add(refTrack(new UserTrack(s.toInt())));
-  }
-  return res;
-}
-
-void YClient::addUserTrack(QString media, QString cover, QString title, QString artists, QString extra)
-{
-  UserTrack().setup(media, cover, title, artists, extra);
-}
-
-
 YTrack::YTrack(qint64 id, YClient* client) : Track((QObject*)client)
 {
   _id = id;
@@ -723,4 +546,196 @@ bool YArtist::saveCover(int quality)
     successed = success;
   }, Settings::ym_repeatsIfError());
   return successed;
+}
+
+
+YClient::~YClient()
+{
+  if (instance == this) instance = nullptr;
+}
+
+YClient::YClient(QObject *parent) : QObject(parent)
+{
+  instance = this;
+}
+
+YClient* YClient::instance = new YClient;
+
+YClient* YClient::qmlInstance(QQmlEngine*, QJSEngine*)
+{
+  return instance;
+}
+
+bool YClient::initialized()
+{
+  return _initialized;
+}
+
+refTrack YClient::track(qint64 id)
+{
+  return refTrack(new YTrack(id, this));
+}
+
+bool YClient::isLoggined()
+{
+  return loggined;
+}
+
+void YClient::init()
+{
+  if (_initialized) return;
+  try {
+    ym = module("yandex_music", true);
+    ym_request = ym/"utils"/"request";
+    _initialized = true;
+    emit initializedChanged(true);
+  } catch (py::error& e) {
+    Messages::error(tr("Can't initialize yandex music client"), e.what());
+    emit initializedChanged(false);
+  }
+}
+
+QString YClient::token(QString login, QString password)
+{
+  if (!initialized()) return "";
+  return ym.call("generate_token_by_username_and_password", {login, password}).to<QString>();
+}
+
+bool YClient::login(QString token)
+{
+  if (!initialized()) return false;
+  loggined = false;
+  repeat_if_error([this, token]() {
+    me = ym.call("Client", token);
+  }, [this](bool success) {
+    loggined = success;
+  }, Settings::ym_repeatsIfError());
+  return loggined;
+}
+
+void YClient::login(QString token, const QJSValue& callback)
+{
+  do_async<bool>(this, callback, &YClient::login, token);
+}
+
+bool YClient::loginViaProxy(QString token, QString proxy)
+{
+  if (!initialized()) return false;
+  loggined = false;
+  repeat_if_error([this, token, proxy]() {
+    std::map<std::string, object> kwargs;
+    kwargs["proxy_url"] = proxy;
+    object req = ym_request.call("Request", std::initializer_list<object>{}, kwargs);
+    kwargs.clear();
+    kwargs["request"] = req;
+    me = ym.call("Client", token, kwargs);
+  }, [this](bool success) {
+    loggined = success;
+  }, Settings::ym_repeatsIfError());
+  return loggined;
+}
+
+void YClient::loginViaProxy(QString token, QString proxy, const QJSValue& callback)
+{
+  do_async<bool>(this, callback, &YClient::loginViaProxy, token, proxy);
+}
+
+QVector<object> YClient::fetchTracks(qint64 id)
+{
+  if (!initialized()) return {};
+  QVector<py::object> tracks;
+  repeat_if_error([this, id, &tracks]() {
+    tracks = me.call("tracks", std::vector<object>{id}).to<QVector<py::object>>();
+  }, [](bool) {}, Settings::ym_repeatsIfError());
+  return tracks;
+}
+
+Playlist* YClient::likedTracks()
+{
+  DPlaylist* res = new DPlaylist(this);
+  if (!initialized()) return res;
+
+  auto a = me.call("users_likes_tracks").get("tracks_ids");
+  for (auto&& p : a) {
+    if (!p.contains(":")) continue;
+    res->add(track(p.call("split", ":")[0].to<int>()));
+  }
+  return res;
+}
+
+Playlist* YClient::playlist(int id)
+{
+  if (id == 3) return likedTracks();
+  DPlaylist* res = new DPlaylist(this);
+  if (!initialized()) return res;
+
+  try {
+    auto a = me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0].call("fetch_tracks");
+    for (auto&& p : a) {
+      if (!p.has("id")) continue;
+      res->add(track(p.get("id").to<int>()));
+    }
+  } catch (py::error& e) {
+    Messages::error(tr("Can't load Yandex.Music playlist (id: %1)").arg(id), e.what());
+  }
+  return res;
+}
+
+Playlist* YClient::oneTrack(qint64 id)
+{
+  DPlaylist* res = new DPlaylist(this);
+  if (!initialized()) return res;
+  res->add(track(id));
+  return res;
+}
+
+Playlist* YClient::userDailyPlaylist()
+{
+  DPlaylist* res = new DPlaylist(this);
+  if (!initialized()) return res;
+  try {
+    auto ppb = me.call("landing", std::vector<object>{"personalplaylists"}).get("blocks")[0];
+    auto daily = ppb.get("entities")[0].get("data").get("data");
+    auto a = daily.call("fetch_tracks");
+    for (auto&& p : a) {
+      if (!p.has("id")) continue;
+      res->add(track(p.get("id").to<int>()));
+    }
+  } catch (py::error& e) {
+    Messages::error(tr("Can't load Yandex.Music daily playlist"), e.what());
+  }
+  return res;
+}
+
+Playlist* YClient::userTrack(int id)
+{
+  DPlaylist* res = new DPlaylist(this);
+  res->add(refTrack(new UserTrack(id)));
+  return res;
+}
+
+Playlist* YClient::downloadsPlaylist()
+{
+  DPlaylist* res = new DPlaylist(this);
+  if (!initialized()) return res;
+  QDir recoredDir(Settings::ym_savePath());
+  QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
+  for (auto s : allFiles) {
+    if (!s.endsWith(".json")) continue;
+    s.chop(5);
+    res->add(track(s.toInt()));
+  }
+  recoredDir = QDir("user");
+  allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
+  for (auto s : allFiles) {
+    if (!s.endsWith(".json")) continue;
+    s.chop(5);
+    res->add(refTrack(new UserTrack(s.toInt())));
+  }
+  return res;
+}
+
+void YClient::addUserTrack(QString media, QString cover, QString title, QString artists, QString extra)
+{
+  UserTrack().setup(media, cover, title, artists, extra);
 }
