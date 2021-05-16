@@ -4,24 +4,25 @@ win32: QT += winextras
 CONFIG += c++17
 
 SOURCES += \
-        AudioPlayer.cpp \
-        Clipboard.cpp \
-        DFileDialog.cpp \
-        Download.cpp \
-        ID.cpp \
-        Messages.cpp \
-        Radio.cpp \
-        RemoteMediaController.cpp \
-        Track.cpp \
-        api.cpp \
-        main.cpp \
-        python.cpp \
-        settings.cpp \
-        yapi.cpp
+  AudioPlayer.cpp \
+  Clipboard.cpp \
+  DFileDialog.cpp \
+  Download.cpp \
+  ID.cpp \
+  Messages.cpp \
+  Radio.cpp \
+  RemoteMediaController.cpp \
+  Track.cpp \
+  api.cpp \
+  main.cpp \
+  python.cpp \
+  settings.cpp \
+  yapi.cpp
 
 HEADERS += \
   AudioPlayer.hpp \
   Clipboard.hpp \
+  ConsoleArgs.hpp \
   DFileDialog.hpp \
   Download.hpp \
   ID.hpp \

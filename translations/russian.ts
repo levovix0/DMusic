@@ -37,6 +37,14 @@
     </message>
 </context>
 <context>
+    <name>DiscordPresence</name>
+    <message>
+        <location filename="../RemoteMediaController.cpp" line="469"/>
+        <source>Failed to initialize discord pressence</source>
+        <translation>Не удалось инициализировать discord pressence</translation>
+    </message>
+</context>
+<context>
     <name>QObject</name>
     <message>
         <location filename="../python.cpp" line="411"/>
@@ -48,27 +56,44 @@
         <source>Failed to auto-install python module &apos;%1&apos;</source>
         <translation>Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
     </message>
+    <message>
+        <location filename="../main.cpp" line="29"/>
+        <source>DMusic - music player
+usage: %1 [options]
+
+-h --help     show help
+-v --version  show version
+-g --gui      run application
+</source>
+        <translation>DMusic - проигрыватель музыки
+использование: %1 [параметры]
+
+-h --help     показать помощь
+-v --version  показать версию
+-g --gui      запустить приложение
+</translation>
+    </message>
 </context>
 <context>
     <name>ThumbnailController</name>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="401"/>
-        <location filename="../RemoteMediaController.cpp" line="435"/>
+        <location filename="../RemoteMediaController.cpp" line="410"/>
+        <location filename="../RemoteMediaController.cpp" line="444"/>
         <source>Play</source>
         <translation>Продолжить</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="407"/>
+        <location filename="../RemoteMediaController.cpp" line="416"/>
         <source>Next</source>
         <translation>Следующий</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="413"/>
+        <location filename="../RemoteMediaController.cpp" line="422"/>
         <source>Previous</source>
         <translation>Предыдуший</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="432"/>
+        <location filename="../RemoteMediaController.cpp" line="441"/>
         <source>Pause</source>
         <translation>Пауза</translation>
     </message>
@@ -76,12 +101,17 @@
 <context>
     <name>YClient</name>
     <message>
-        <location filename="../yapi.cpp" line="237"/>
+        <location filename="../yapi.cpp" line="593"/>
+        <source>Can&apos;t initialize yandex music client</source>
+        <translation>Не удалось инициализировать клиент Яндекс.Музыки</translation>
+    </message>
+    <message>
+        <location filename="../yapi.cpp" line="679"/>
         <source>Can&apos;t load Yandex.Music playlist (id: %1)</source>
         <translation>Ошибка загрузки плейлиста Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="261"/>
+        <location filename="../yapi.cpp" line="705"/>
         <source>Can&apos;t load Yandex.Music daily playlist</source>
         <translation>Ошибка загрузки плейлиста дня Яндекс.Музыки</translation>
     </message>
@@ -89,12 +119,12 @@
 <context>
     <name>YTrack</name>
     <message>
-        <location filename="../yapi.cpp" line="389"/>
+        <location filename="../yapi.cpp" line="178"/>
         <source>Can&apos;t get Yandex.Music track media (id: %1)</source>
         <translation>Ошибка загрузки медиа для трека Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="604"/>
+        <location filename="../yapi.cpp" line="393"/>
         <source>Can&apos;t load Yandex.Music track (id: %1)</source>
         <translation>Ошибка загрузки трека Яндекс.Музыки (id: %1)</translation>
     </message>
@@ -102,72 +132,72 @@
 <context>
     <name>main</name>
     <message>
-        <location filename="../main.qml" line="115"/>
+        <location filename="../main.qml" line="112"/>
         <source>Play</source>
         <extracomment>Play button</extracomment>
         <translation>Прослушать</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="101"/>
+        <location filename="../main.qml" line="98"/>
         <source>Play playlist</source>
         <translation>Прослушать плейлист</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="88"/>
+        <location filename="../main.qml" line="85"/>
         <source>ID</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../main.qml" line="128"/>
+        <location filename="../main.qml" line="125"/>
         <source>Play downloaded</source>
         <translation>Прослушать скачанное</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="140"/>
+        <location filename="../main.qml" line="137"/>
         <source>Play custom</source>
         <translation>Прослушать добавленный</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="154"/>
+        <location filename="../main.qml" line="151"/>
         <source>Title</source>
         <translation>Заголовок</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="164"/>
+        <location filename="../main.qml" line="161"/>
         <source>Artists</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="174"/>
+        <location filename="../main.qml" line="171"/>
         <source>Extra</source>
         <translation>Дополнительная информация</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="179"/>
-        <location filename="../main.qml" line="201"/>
+        <location filename="../main.qml" line="176"/>
+        <location filename="../main.qml" line="198"/>
         <source>Chose media</source>
         <translation>Выберите медиафайл</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="180"/>
-        <location filename="../main.qml" line="201"/>
+        <location filename="../main.qml" line="177"/>
+        <location filename="../main.qml" line="198"/>
         <source>Audio (*.mp3 *.wav *.ogg *.m4a)</source>
         <translation>Звук (*.mp3 *.wav *.ogg *.m4a)</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="190"/>
-        <location filename="../main.qml" line="203"/>
+        <location filename="../main.qml" line="187"/>
+        <location filename="../main.qml" line="200"/>
         <source>Chose cover</source>
         <translation>Выберите обложку</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="191"/>
-        <location filename="../main.qml" line="203"/>
+        <location filename="../main.qml" line="188"/>
+        <location filename="../main.qml" line="200"/>
         <source>Image (*.jpg *.png *.svg)</source>
         <translation>Изображение (*.jpg *.png *.svg)</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="219"/>
+        <location filename="../main.qml" line="216"/>
         <source>Add custom track</source>
         <translation>Добавить трек</translation>
     </message>
