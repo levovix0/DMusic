@@ -43,13 +43,11 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
     while (true) {
       try {
         f();
-        r(true);
-        return;
+        return r(true);
       } catch (error&) {
         --tries;
         if (tries <= 0) {
-          r(false);
-          return;
+          return r(false);
         }
       }
     }
@@ -57,17 +55,14 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
     while (true) {
       try {
         f();
-        r(true);
-        return;
+        return r(true);
       } catch (error& e) {
         if (e.type != s) {
-          r(false);
-          return;
+          return r(false);
         }
         --tries;
         if (tries <= 0) {
-          r(false);
-          return;
+          return r(false);
         }
       }
     }
@@ -175,7 +170,7 @@ QMediaContent YTrack::media()
     if (_media.isEmpty()) {
       if (!_noMedia) _downloadMedia(); // async
       else {
-        Messages::error(tr("Can't get Yandex.Music track media (id: %1)").arg(_id));
+        Messages::error(tr("Failed to get Yandex.Music track media (id: %1)").arg(_id));
         emit mediaAborted();
       }
       return {};
@@ -390,7 +385,7 @@ void YTrack::_fetchYandex(object _pys)
       emit durationChanged(_duration);
     }
   } catch (py::error& e) {
-    Messages::error(tr("Can't load Yandex.Music track (id: %1)").arg(_id));
+    Messages::error(tr("Failed to load Yandex.Music track (id: %1)").arg(_id));
   }
 }
 
@@ -587,10 +582,11 @@ void YClient::init()
   try {
     ym = module("yandex_music", true);
     ym_request = ym/"utils"/"request";
+    ym.get("Client").set("notice_displayed", true);
     _initialized = true;
     emit initializedChanged(true);
   } catch (py::error& e) {
-    Messages::error(tr("Can't initialize yandex music client"), e.what());
+    Messages::error(tr("Failed to initialize yandex music client"), e.what());
     emit initializedChanged(false);
   }
 }
@@ -676,7 +672,7 @@ Playlist* YClient::playlist(int id)
       res->add(track(p.get("id").to<int>()));
     }
   } catch (py::error& e) {
-    Messages::error(tr("Can't load Yandex.Music playlist (id: %1)").arg(id), e.what());
+    Messages::error(tr("Failed to load Yandex.Music playlist (id: %1)").arg(id), e.what());
   }
   return res;
 }
@@ -702,7 +698,7 @@ Playlist* YClient::userDailyPlaylist()
       res->add(track(p.get("id").to<int>()));
     }
   } catch (py::error& e) {
-    Messages::error(tr("Can't load Yandex.Music daily playlist"), e.what());
+    Messages::error(tr("Failed to load Yandex.Music daily playlist"), e.what());
   }
   return res;
 }

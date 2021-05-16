@@ -47,23 +47,24 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../python.cpp" line="411"/>
+        <location filename="../python.cpp" line="437"/>
         <source>Failed to import python module &apos;%1&apos;, it will be auto-installed</source>
         <translation>Не удалось импортировать модуль python &apos;%1&apos;, он будет установлен автоматически</translation>
     </message>
     <message>
-        <location filename="../python.cpp" line="450"/>
+        <location filename="../python.cpp" line="476"/>
         <source>Failed to auto-install python module &apos;%1&apos;</source>
         <translation>Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../main.cpp" line="29"/>
+        <location filename="../main.cpp" line="34"/>
         <source>DMusic - music player
 usage: %1 [options]
 
 -h --help     show help
 -v --version  show version
 -g --gui      run application
+-verbose      show more logs
 </source>
         <translation>DMusic - проигрыватель музыки
 использование: %1 [параметры]
@@ -71,6 +72,7 @@ usage: %1 [options]
 -h --help     показать помощь
 -v --version  показать версию
 -g --gui      запустить приложение
+-verbose      показать больше логов
 </translation>
     </message>
 </context>
@@ -101,32 +103,32 @@ usage: %1 [options]
 <context>
     <name>YClient</name>
     <message>
-        <location filename="../yapi.cpp" line="593"/>
-        <source>Can&apos;t initialize yandex music client</source>
+        <location filename="../yapi.cpp" line="589"/>
+        <source>Failed to initialize yandex music client</source>
         <translation>Не удалось инициализировать клиент Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="679"/>
-        <source>Can&apos;t load Yandex.Music playlist (id: %1)</source>
-        <translation>Ошибка загрузки плейлиста Яндекс.Музыки (id: %1)</translation>
+        <location filename="../yapi.cpp" line="675"/>
+        <source>Failed to load Yandex.Music playlist (id: %1)</source>
+        <translation>Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="705"/>
-        <source>Can&apos;t load Yandex.Music daily playlist</source>
-        <translation>Ошибка загрузки плейлиста дня Яндекс.Музыки</translation>
+        <location filename="../yapi.cpp" line="701"/>
+        <source>Failed to load Yandex.Music daily playlist</source>
+        <translation>Не удалось загрузить плейлист дня Яндекс.Музыки</translation>
     </message>
 </context>
 <context>
     <name>YTrack</name>
     <message>
-        <location filename="../yapi.cpp" line="178"/>
-        <source>Can&apos;t get Yandex.Music track media (id: %1)</source>
-        <translation>Ошибка загрузки медиа для трека Яндекс.Музыки (id: %1)</translation>
+        <location filename="../yapi.cpp" line="173"/>
+        <source>Failed to get Yandex.Music track media (id: %1)</source>
+        <translation>Не удалось загрузить медиа для трека Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="393"/>
-        <source>Can&apos;t load Yandex.Music track (id: %1)</source>
-        <translation>Ошибка загрузки трека Яндекс.Музыки (id: %1)</translation>
+        <location filename="../yapi.cpp" line="388"/>
+        <source>Failed to load Yandex.Music track (id: %1)</source>
+        <translation>Не удалось загрузить трек Яндекс.Музыки (id: %1)</translation>
     </message>
 </context>
 <context>

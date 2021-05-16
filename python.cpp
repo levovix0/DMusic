@@ -93,6 +93,12 @@ PyObject* py::maybe_exception(PyObject* a) {
   return a;
 }
 
+void py::maybe_exception(int a) {
+  if (a != 0) {
+    fetchException();
+  }
+}
+
 PyObject* py::toPyObject(PyObject* o)
 {
   if (o == nullptr) {
@@ -212,6 +218,7 @@ void py::fromPyObject(const py::object& a, QString& res)
 
 void py::fromPyObject(const py::object& a, bool& res)
 {
+  QMutexLocker locker(&mutex);
   res = PyObject_IsTrue(a.raw);
 }
 
@@ -261,6 +268,18 @@ bool py::object::has(py::object name) const
 {
   QMutexLocker locker(&mutex);
   return PyObject_HasAttr(raw, name.raw);
+}
+
+void py::object::set(py::object name, py::object value)
+{
+  QMutexLocker locker(&mutex);
+  maybe_exception(PyObject_SetAttr(raw, name.raw, value.raw));
+}
+
+void py::object::del_attr(py::object name)
+{
+  QMutexLocker locker(&mutex);
+  maybe_exception(PyObject_DelAttr(raw, name.raw));
 }
 
 py::object py::object::operator()(const std::initializer_list<py::object>& args) const
@@ -346,6 +365,7 @@ py::object py::object::deepcopy() const
 
 py::object& py::object::print()
 {
+  QMutexLocker locker(&mutex);
   PyObject_Print(raw, stdout, 0);
   return *this;
 }
@@ -354,6 +374,12 @@ py::object& py::object::throw_repr()
 {
   throw std::runtime_error(to<std::string>());
   return *this;
+}
+
+py::object py::object::operator!()
+{
+  QMutexLocker locker(&mutex);
+  return PyObject_Not(raw);
 }
 
 py::object py::object::operator<(const py::object& a) const

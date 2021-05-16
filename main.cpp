@@ -37,7 +37,18 @@ int main(int argc, char *argv[])
 "-h --help     show help\n"
 "-v --version  show version\n"
 "-g --gui      run application\n"
+"-verbose      show more logs\n"
     ).arg(argv[0]) << std::endl;
+  }
+
+  if (!args.has("--verbose")) {
+    try {
+      auto logging = py::module("logging");
+      auto logger = logging.call("getLogger");
+      logger.call("setLevel", logging.get("CRITICAL"));
+    } catch (py::error& e) {
+      Messages::error("a", e.what());
+    }
   }
 
   if (!gui) return 0;

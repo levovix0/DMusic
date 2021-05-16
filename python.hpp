@@ -41,6 +41,9 @@ namespace py
     object get(object name) const { return attr(name); }
     bool has(object name) const;
 
+    void set(object name, object value);
+    void del_attr(object name);
+
     object operator()(std::initializer_list<object> const& args) const;
     object operator()(object arg) const;
     object operator()() const;
@@ -63,6 +66,7 @@ namespace py
     object& print();
     object& throw_repr();
 
+    object operator!();
     operator bool() { return to<bool>(); }
 
     object operator<(object const& a) const;
@@ -120,6 +124,7 @@ namespace py
 
   void fetchException();
   PyObject* maybe_exception(PyObject* a);
+  void maybe_exception(int a);
 
   PyObject* toPyObject(PyObject* o);
   PyObject* toPyObject(char const* s);
