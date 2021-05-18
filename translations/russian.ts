@@ -2,6 +2,14 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="ru_RU">
 <context>
+    <name>AudioPlayer</name>
+    <message>
+        <location filename="../AudioPlayer.cpp" line="115"/>
+        <source>Failed to load track</source>
+        <translation>Не удалось загрузить трек</translation>
+    </message>
+</context>
+<context>
     <name>DFileDialog</name>
     <message>
         <location filename="../DFileDialog.cpp" line="36"/>
@@ -39,7 +47,7 @@
 <context>
     <name>DiscordPresence</name>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="469"/>
+        <location filename="../RemoteMediaController.cpp" line="462"/>
         <source>Failed to initialize discord pressence</source>
         <translation>Не удалось инициализировать discord pressence</translation>
     </message>
@@ -79,23 +87,23 @@ usage: %1 [options]
 <context>
     <name>ThumbnailController</name>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="410"/>
-        <location filename="../RemoteMediaController.cpp" line="444"/>
+        <location filename="../RemoteMediaController.cpp" line="403"/>
+        <location filename="../RemoteMediaController.cpp" line="437"/>
         <source>Play</source>
         <translation>Продолжить</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="416"/>
+        <location filename="../RemoteMediaController.cpp" line="409"/>
         <source>Next</source>
         <translation>Следующий</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="422"/>
+        <location filename="../RemoteMediaController.cpp" line="415"/>
         <source>Previous</source>
         <translation>Предыдуший</translation>
     </message>
     <message>
-        <location filename="../RemoteMediaController.cpp" line="441"/>
+        <location filename="../RemoteMediaController.cpp" line="434"/>
         <source>Pause</source>
         <translation>Пауза</translation>
     </message>

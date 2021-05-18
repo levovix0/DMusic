@@ -19,3 +19,8 @@ refTrack Radio::prev()
 {
   return nullptr;
 }
+
+void Radio::markErrorCurrentTrack()
+{
+
+}

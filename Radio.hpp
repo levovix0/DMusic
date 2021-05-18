@@ -11,4 +11,6 @@ public:
   virtual refTrack current();
   virtual refTrack next();
   virtual refTrack prev();
+
+  virtual void markErrorCurrentTrack();
 };

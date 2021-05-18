@@ -21,6 +21,8 @@ public:
   virtual refTrack get(int index);
 
   virtual int size();
+
+  virtual void markErrorTrack(int index);
 };
 
 refRadio radio(refPlaylist self, int index = -1, Settings::NextMode nextMode = Settings::NextSequence);
@@ -38,8 +40,11 @@ public:
 
   int size() override;
 
+  void markErrorTrack(int index) override;
+
 public slots:
   void add(refTrack a);
+  void remove(int index);
 
 private:
   QVector<refTrack> _tracks;
@@ -53,6 +58,8 @@ public:
   refTrack current() override;
   refTrack next() override;
   refTrack prev() override;
+
+  void markErrorCurrentTrack() override;
 
 private:
   int gen();

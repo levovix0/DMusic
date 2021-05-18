@@ -2,6 +2,7 @@
 #include "AudioPlayer.hpp"
 #include "settings.hpp"
 #include "QDateTime"
+#include "Messages.hpp"
 
 AudioPlayer::~AudioPlayer()
 {
@@ -111,6 +112,10 @@ void AudioPlayer::setMedia(QMediaContent media)
 
 void AudioPlayer::onMediaAborted()
 {
+  Messages::error(tr("Failed to load track"));
+  if (_radio != nullptr) {
+    _radio->markErrorCurrentTrack();
+  }
   next();
 }
 

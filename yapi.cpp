@@ -70,7 +70,7 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
 }
 
 void do_async(std::function<void()> f) {
-  QtConcurrent::run(f);
+  std::thread(f).detach();
 }
 
 void repeat_if_error_async(std::function<void()> f, std::function<void(bool success)> r, int n = 10, std::string s = "NetworkError") {

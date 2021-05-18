@@ -52,6 +52,11 @@ int Playlist::size()
   return 0;
 }
 
+void Playlist::markErrorTrack(int)
+{
+
+}
+
 
 DPlaylist::~DPlaylist()
 {
@@ -84,9 +89,20 @@ int DPlaylist::size()
   return _tracks.length();
 }
 
+void DPlaylist::markErrorTrack(int index)
+{
+  remove(index);
+}
+
 void DPlaylist::add(refTrack a)
 {
   _tracks.append(a);
+}
+
+void DPlaylist::remove(int index)
+{
+  if (index >= _tracks.length()) return;
+  _tracks.remove(index);
 }
 
 UserTrack::UserTrack(int id, QObject* parent) : Track(parent)
@@ -285,6 +301,16 @@ refTrack PlaylistRadio::prev()
   }
 }
 
+void PlaylistRadio::markErrorCurrentTrack()
+{
+  if (_nextMode == Settings::NextShuffle) {
+    if (_index >= _history.length()) return;
+    _playlist->markErrorTrack(_history[_index]);
+  } else {
+    _playlist->markErrorTrack(_index);
+  }
+}
+
 int PlaylistRadio::gen()
 {
   QVector<int> able(_playlist->size());
@@ -298,8 +324,9 @@ int PlaylistRadio::gen()
 void PlaylistRadio::fit()
 {
   auto n = (_playlist->size() * 2 + 1) - _history.size();
-  if (n < 0)
-    for (int i = 0; i < n; ++i) _history.pop_back();
-  else if (n > 0)
-    for (int i = 0; i < n; ++i) _history.append(gen());
+  if (n != 0) {
+    // regenerate playlist
+    // TODO: save and correct history
+    setNextMode(Settings::NextShuffle);
+  }
 }
