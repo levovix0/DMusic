@@ -271,13 +271,6 @@ void Mpris2Player::onStateChanged(QMediaPlayer::State state)
 
 void Mpris2Player::onTrackChanged(Track* track)
 {
-  if (_track != nullptr) {
-    disconnect(_track, &Track::titleChanged, this, &Mpris2Player::onTitleChanged);
-    disconnect(_track, &Track::artistsStrChanged, this, &Mpris2Player::onAuthorChanged);
-    disconnect(_track, &Track::coverChanged, this, &Mpris2Player::onCoverChanged);
-    disconnect(_track, &Track::durationChanged, this, &Mpris2Player::onDurationChanged);
-  }
-  _track = track;
   _currentTrackMetadata = toXesam(*track);
   signalPlayerUpdate({});
   connect(track, &Track::titleChanged, this, &Mpris2Player::onTitleChanged);
@@ -399,7 +392,7 @@ QString Mpris2Player::stateToString(QMediaPlayer::State state)
 
 #ifdef Q_OS_WIN
 
-ThumbnailController::ThumbnailController(MediaPlayer* player, QObject* parent) : QObject(parent), _player(player)
+ThumbnailController::ThumbnailController(AudioPlayer* player, QObject* parent) : QObject(parent), _player(player)
 {
   _toolbar = new QWinThumbnailToolBar(this);
   auto windows = QGuiApplication::allWindows();
@@ -409,25 +402,25 @@ ThumbnailController::ThumbnailController(MediaPlayer* player, QObject* parent) :
   _pausePlay->setEnabled(false);
   _pausePlay->setToolTip(tr("Play"));
   _pausePlay->setIcon(QIcon(":resources/player/play.svg"));
-  connect(_pausePlay, &QWinThumbnailToolButton::clicked, _player, &MediaPlayer::pause_or_play);
+  connect(_pausePlay, &QWinThumbnailToolButton::clicked, _player, &AudioPlayer::pause_or_play);
 
   _next = new QWinThumbnailToolButton(_toolbar);
   _next->setEnabled(false);
   _next->setToolTip(tr("Next"));
   _next->setIcon(QIcon(":resources/player/next.svg"));
-  connect(_next, &QWinThumbnailToolButton::clicked, _player, &MediaPlayer::next);
+  connect(_next, &QWinThumbnailToolButton::clicked, _player, &AudioPlayer::next);
 
   _prev = new QWinThumbnailToolButton(_toolbar);
   _prev->setEnabled(false);
   _prev->setToolTip(tr("Previous"));
   _prev->setIcon(QIcon(":resources/player/prev.svg"));
-  connect(_prev, &QWinThumbnailToolButton::clicked, _player, &MediaPlayer::prev);
+  connect(_prev, &QWinThumbnailToolButton::clicked, _player, &AudioPlayer::prev);
 
   _toolbar->addButton(_prev);
   _toolbar->addButton(_pausePlay);
   _toolbar->addButton(_next);
 
-  connect(_player, &MediaPlayer::stateChanged, this, &ThumbnailController::updateToolbar);
+  connect(_player, &AudioPlayer::stateChanged, this, &ThumbnailController::updateToolbar);
 }
 
 ThumbnailController::~ThumbnailController()
@@ -499,12 +492,6 @@ void DiscordPresence::update(Track* track)
 
 void DiscordPresence::onTrackChanged(Track* track)
 {
-  if (_track != nullptr) {
-    disconnect(_track, &Track::artistsStrChanged, this, &DiscordPresence::updateData);
-    disconnect(_track, &Track::titleChanged, this, &DiscordPresence::updateData);
-    disconnect(_track, &Track::idIntChanged, this, &DiscordPresence::updateData);
-  }
-  _track = track;
   connect(track, &Track::artistsStrChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::titleChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::idIntChanged, this, &DiscordPresence::updateData);

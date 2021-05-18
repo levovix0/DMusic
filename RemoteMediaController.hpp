@@ -126,7 +126,6 @@ private:
     AudioPlayer* _player;
     qint64 _prevPosition = 0;
     QMap<QString, QVariant> _currentTrackMetadata;
-    Track* _track = nullptr;
 };
 
 #ifdef Q_OS_WIN
@@ -135,14 +134,14 @@ class ThumbnailController : public QObject
 {
   Q_OBJECT
 public:
-  explicit ThumbnailController(MediaPlayer* player, QObject* parent = nullptr);
+  explicit ThumbnailController(AudioPlayer* player, QObject* parent = nullptr);
   ~ThumbnailController();
 
 private slots:
   void updateToolbar();
 
 private:
-  MediaPlayer* _player;
+  AudioPlayer* _player;
   QWinThumbnailToolBar* _toolbar;
   QWinThumbnailToolButton* _next;
   QWinThumbnailToolButton* _prev;
@@ -166,7 +165,6 @@ private:
   AudioPlayer* _player;
   py::object _time;
   py::object _rpc = py::none;
-  Track* _track = nullptr;
 };
 
 class RemoteMediaController : public QObject

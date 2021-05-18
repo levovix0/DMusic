@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  if (!gui) return 0;
+//  if (!gui) return 0;
 
   qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");
