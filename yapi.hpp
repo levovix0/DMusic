@@ -76,7 +76,7 @@ struct YArtist : QObject
 {
   Q_OBJECT
 public:
-  YArtist(py::object impl, QObject *parent = nullptr);
+  YArtist(py::object impl, QObject* parent = nullptr);
   YArtist();
   YArtist(YArtist const& copy);
   YArtist& operator=(YArtist const& copy);
@@ -99,6 +99,19 @@ private:
 inline PyObject* toPyObject(YArtist a) { Py_INCREF(a.raw()); return a.raw(); }
 inline void fromPyObject(py::object const& o, YArtist& res) { res = YArtist(o.raw); }
 inline void fromPyObject(py::object const& o, YArtist*& res) { res = new YArtist(o.raw); }
+
+struct YPlaylist : QObject
+{
+  Q_OBJECT
+public:
+  YPlaylist(py::object impl, QObject* parent = nullptr);
+  YPlaylist();
+  PyObject* raw() { return impl.raw; }
+
+private:
+  py::object impl;
+  int _id;
+};
 
 struct YClient : QObject
 {

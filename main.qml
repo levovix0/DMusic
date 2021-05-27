@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Dialogs 1.2
+import QtGraphicalEffects 1.0
 import DMusic 1.0
 
 Window {
@@ -27,7 +28,7 @@ Window {
   function minimize() {
     _root.showMinimized()
   }
-  color: "#181818"
+  color: manualTitle? "transparent" : "#181818"
 
   Rectangle {
     id: root
@@ -283,6 +284,18 @@ Window {
         _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": true })
       })
       Messages.reSendHistory()
+    }
+
+    layer.enabled: manualTitle && visibility != 4
+    layer.effect: OpacityMask {
+      maskSource: Item {
+        width: root.width
+        height: root.height
+        Rectangle {
+          anchors.fill: parent
+          radius: 7.5
+        }
+      }
     }
   }
 }
