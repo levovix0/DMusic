@@ -147,6 +147,6 @@ private:
 
   py::object me; // client
 
-  bool _initialized;
-  std::atomic_bool loggined;
+  bool _initialized = false;
+  std::atomic_bool loggined = false;
 };

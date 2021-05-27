@@ -651,10 +651,14 @@ Playlist* YClient::likedTracks()
   DPlaylist* res = new DPlaylist(this);
   if (!initialized()) return res;
 
-  auto a = me.call("users_likes_tracks").get("tracks_ids");
-  for (auto&& p : a) {
-    if (!p.contains(":")) continue;
-    res->add(track(p.call("split", ":")[0].to<int>()));
+  try {
+    auto a = me.call("users_likes_tracks").get("tracks_ids");
+    for (auto&& p : a) {
+      if (!p.contains(":")) continue;
+      res->add(track(p.call("split", ":")[0].to<int>()));
+    }
+  } catch (py::error& e) {
+    Messages::error(tr("Failed to load Yandex.Music user liked tracks (playlist with id 3)"), e.what());
   }
   return res;
 }
