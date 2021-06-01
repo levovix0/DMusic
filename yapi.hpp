@@ -111,9 +111,9 @@ public:
   Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
   Q_PROPERTY(QUrl cover READ cover WRITE setCover NOTIFY coverChanged)
 
-  QString name();
-  QUrl cover();
-  refPlaylist toPlaylist();
+  virtual QString name();
+  virtual QUrl cover();
+  virtual refPlaylist toPlaylist();
 
 public slots:
   bool setName(QString name);
@@ -128,6 +128,20 @@ private:
 };
 inline PyObject* toPyObject(YPlaylist const& a) { Py_INCREF(a.raw()); return a.raw(); }
 inline void fromPyObject(py::object const& o, YPlaylist*& res) { res = new YPlaylist(o.raw); }
+
+struct YLikedTracks : YPlaylist
+{
+  Q_OBJECT
+public:
+  YLikedTracks(QObject* parent = nullptr);
+
+  static YLikedTracks* instance;
+  static YLikedTracks* qmlInstance(QQmlEngine*, QJSEngine*);
+
+  QString name() override;
+  QUrl cover() override;
+  refPlaylist toPlaylist() override;
+};
 
 struct YClient : QObject
 {
@@ -159,7 +173,7 @@ public slots:
   QVector<py::object> fetchTracks(qint64 id);
 
   Playlist* likedTracks();
-  YPlaylist* userLikedTracksPlaylist();
+  YLikedTracks* userLikedTracks();
   Playlist* playlist(int id);
   Playlist* oneTrack(qint64 id);
   YPlaylist* userDailyPlaylist();
@@ -173,12 +187,13 @@ public slots:
 signals:
   void initializedChanged(bool initialized);
 
-private:
+public:
   py::module ym; // yandex_music module
   py::module ym_request;
 
   py::object me; // client
 
+private:
   bool _initialized = false;
   std::atomic_bool loggined = false;
 };

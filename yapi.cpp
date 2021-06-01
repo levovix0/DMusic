@@ -545,6 +545,95 @@ bool YArtist::saveCover(int quality)
 }
 
 
+YPlaylist::YPlaylist(py::object impl, QObject* parent) : QObject(parent), impl(impl)
+{
+
+}
+
+YPlaylist::YPlaylist()
+{
+
+}
+
+QString YPlaylist::name()
+{
+  return impl.get("title").to<QString>();
+}
+
+QUrl YPlaylist::cover()
+{
+  try {
+    auto a = "http://" + impl.get("cover").get("uri").to<QString>();
+    return QUrl(a.replace("%%", "m" + Settings::ym_coverQuality()));
+  } catch (py::error& e) {
+    return QUrl("qrc:resources/player/no-cover.svg");
+  }
+}
+
+refPlaylist YPlaylist::toPlaylist()
+{
+  DPlaylist* res = new DPlaylist(this);
+  auto a = impl.call("fetch_tracks");
+  for (auto&& p : a) {
+    if (!p.has("id")) continue;
+    res->add(refTrack(new YTrack(p.get("id").to<int>(), YClient::instance)));
+  }
+  return refPlaylist(res);
+}
+
+bool YPlaylist::setName(QString name)
+{
+  Q_UNUSED(name)
+  // TODO
+  return false;
+}
+
+bool YPlaylist::setCover(QUrl cover)
+{
+  Q_UNUSED(cover)
+  // TODO
+  return false;
+}
+
+YLikedTracks::YLikedTracks(QObject* parent) : YPlaylist(py::none, parent)
+{
+
+}
+
+YLikedTracks* YLikedTracks::instance = new YLikedTracks;
+
+YLikedTracks* YLikedTracks::qmlInstance(QQmlEngine*, QJSEngine*)
+{
+  return instance;
+}
+
+QString YLikedTracks::name()
+{
+  return tr("Favorites");
+}
+
+QUrl YLikedTracks::cover()
+{
+  return QUrl("qrc:/resources/covers/like.png");
+}
+
+refPlaylist YLikedTracks::toPlaylist()
+{
+  DPlaylist* res = new DPlaylist(this);
+  try {
+    if (!YClient::instance->initialized()) throw std::runtime_error(tr("Yandex music api is not initialized").toStdString());
+    auto a = YClient::instance->me.call("users_likes_tracks").get("tracks_ids");
+    for (auto&& p : a) {
+      if (!p.contains(":")) continue;
+      res->add(refTrack(new YTrack(p.call("split", ":")[0].to<int>(), YClient::instance)));
+    }
+  } catch (std::exception& e) {
+    Messages::error(tr("Failed to load Yandex.Music user liked tracks"), e.what());
+  }
+  return refPlaylist(res);
+}
+
+
 YClient::~YClient()
 {
   if (instance == this) instance = nullptr;
@@ -659,20 +748,14 @@ Playlist* YClient::likedTracks()
       res->add(track(p.call("split", ":")[0].to<int>()));
     }
   } catch (py::error& e) {
-    Messages::error(tr("Failed to load Yandex.Music user liked tracks (playlist with id 3)"), e.what());
+    Messages::error(tr("Failed to load Yandex.Music user liked tracks"), e.what());
   }
   return res;
 }
 
-YPlaylist* YClient::userLikedTracksPlaylist()
+YLikedTracks* YClient::userLikedTracks()
 {
-  if (!initialized()) return nullptr;
-  try {
-    return new YPlaylist(me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(3))[0]);
-  } catch (py::error& e) {
-    Messages::error(tr("Failed to load Yandex.Music user liked tracks (playlist with id 3)"), e.what());
-  }
-  return nullptr;
+  return YLikedTracks::instance;
 }
 
 Playlist* YClient::playlist(int id)
@@ -750,54 +833,4 @@ void YClient::playPlaylist(YPlaylist* playlist)
 void YClient::addUserTrack(QString media, QString cover, QString title, QString artists, QString extra)
 {
   UserTrack().setup(media, cover, title, artists, extra);
-}
-
-YPlaylist::YPlaylist(py::object impl, QObject* parent) : QObject(parent), impl(impl)
-{
-
-}
-
-YPlaylist::YPlaylist()
-{
-
-}
-
-QString YPlaylist::name()
-{
-  return impl.get("title").to<QString>();
-}
-
-QUrl YPlaylist::cover()
-{
-  try {
-    auto a = "http://" + impl.get("cover").get("uri").to<QString>();
-    return QUrl(a.replace("%%", "m" + Settings::ym_coverQuality()));
-  } catch (py::error& e) {
-    return QUrl("qrc:resources/player/no-cover.svg");
-  }
-}
-
-refPlaylist YPlaylist::toPlaylist()
-{
-  DPlaylist* res = new DPlaylist(this);
-  auto a = impl.call("fetch_tracks");
-  for (auto&& p : a) {
-    if (!p.has("id")) continue;
-    res->add(refTrack(new YTrack(p.get("id").to<int>(), YClient::instance)));
-  }
-  return refPlaylist(res);
-}
-
-bool YPlaylist::setName(QString name)
-{
-  Q_UNUSED(name)
-  // TODO
-  return false;
-}
-
-bool YPlaylist::setCover(QUrl cover)
-{
-  Q_UNUSED(cover)
-  // TODO
-  return false;
 }

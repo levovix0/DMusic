@@ -63,5 +63,6 @@
         <file>resources/player/like.svg</file>
         <file>resources/player/liked.svg</file>
         <file>Message.qml</file>
+        <file>resources/covers/like.png</file>
     </qresource>
 </RCC>

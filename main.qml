@@ -54,7 +54,7 @@ Window {
 
     function afterLogin() {
       _userDailyPlaylist.playlist = YClient.userDailyPlaylist()
-      _userLikedPlaylist.playlist = YClient.userLikedTracksPlaylist()
+      _userLikedPlaylist.playlist = YClient.userLikedTracks()
     }
 
     function autologin() {
@@ -242,7 +242,6 @@ Window {
       anchors.leftMargin: 25
       anchors.topMargin: 25
 
-//      onPlay: _player.player.play(YClient.playlist(3))
       onPlay: YClient.playPlaylist(playlist)
     }
 

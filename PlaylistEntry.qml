@@ -11,7 +11,7 @@ Item {
 
   property real _anim_n: 0
   property real _anim2_n: 0
-  property YPlaylist playlist
+  property var playlist
 
   signal play()
   signal pause()
@@ -132,7 +132,7 @@ Item {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
 
-    text: playlist == null? qsTr("some playlist") : playlist.name
+    text: playlist == null? qsTr("Some playlist") : playlist.name
 
     MouseArea {
       id: _textMouse
