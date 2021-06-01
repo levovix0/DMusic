@@ -52,12 +52,17 @@ Window {
       }
     }
 
+    function afterLogin() {
+      _userDailyPlaylist.playlist = YClient.userDailyPlaylist()
+      _userLikedPlaylist.playlist = YClient.userLikedTracksPlaylist()
+    }
+
     function autologin() {
       if (_settings.ym_token == "") return
       if (_settings.ym_proxyServer == "") {
-        YClient.login(_settings.ym_token, function(_){})
+        YClient.login(_settings.ym_token, afterLogin)
       } else {
-        YClient.loginViaProxy(_settings.ym_token, _settings.ym_proxyServer, function(_){})
+        YClient.loginViaProxy(_settings.ym_token, _settings.ym_proxyServer, afterLogin)
       }
     }
 
@@ -197,9 +202,9 @@ Window {
         if (!available()) _openMedia.open()
         else {
           let media = sellect(qsTr("Chose media"), "*.mp3 *.wav *.ogg *.m4a", qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)"))
-          if (media == "") return
+          if (media === "") return
           let cover = sellect(qsTr("Chose cover"), "*.jpg *.png *.svg", qsTr("Image (*.jpg *.png *.svg)"))
-          if (cover == "") {
+          if (cover === "") {
             YClient.addUserTrack(media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
           } else {
             YClient.addUserTrack(media, cover, _tb_title.text, _tb_artists.text, _tb_extra.text)
@@ -237,16 +242,18 @@ Window {
       anchors.leftMargin: 25
       anchors.topMargin: 25
 
-      onPlay: _player.player.play(YClient.playlist(3))
+//      onPlay: _player.player.play(YClient.playlist(3))
+      onPlay: YClient.playPlaylist(playlist)
     }
 
     PlaylistEntry {
+      id: _userDailyPlaylist
       anchors.left: _userLikedPlaylist.right
       anchors.top: _title.bottom
       anchors.leftMargin: 25
       anchors.topMargin: 25
 
-      onPlay: _player.player.play(YClient.userDailyPlaylist())
+      onPlay: YClient.playPlaylist(playlist)
     }
 
     ListModel {

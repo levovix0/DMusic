@@ -10,6 +10,7 @@
 #include "settings.hpp"
 #include "utils.hpp"
 #include "Messages.hpp"
+#include "AudioPlayer.hpp"
 
 using namespace py;
 
@@ -663,6 +664,17 @@ Playlist* YClient::likedTracks()
   return res;
 }
 
+YPlaylist* YClient::userLikedTracksPlaylist()
+{
+  if (!initialized()) return nullptr;
+  try {
+    return new YPlaylist(me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(3))[0]);
+  } catch (py::error& e) {
+    Messages::error(tr("Failed to load Yandex.Music user liked tracks (playlist with id 3)"), e.what());
+  }
+  return nullptr;
+}
+
 Playlist* YClient::playlist(int id)
 {
   if (id == 3) return likedTracks();
@@ -689,22 +701,16 @@ Playlist* YClient::oneTrack(qint64 id)
   return res;
 }
 
-Playlist* YClient::userDailyPlaylist()
+YPlaylist* YClient::userDailyPlaylist()
 {
-  DPlaylist* res = new DPlaylist(this);
-  if (!initialized()) return res;
+  if (!initialized()) return nullptr;
   try {
     auto ppb = me.call("landing", std::vector<object>{"personalplaylists"}).get("blocks")[0];
-    auto daily = ppb.get("entities")[0].get("data").get("data");
-    auto a = daily.call("fetch_tracks");
-    for (auto&& p : a) {
-      if (!p.has("id")) continue;
-      res->add(track(p.get("id").to<int>()));
-    }
+    return new YPlaylist(ppb.get("entities")[0].get("data").get("data"));
   } catch (py::error& e) {
     Messages::error(tr("Failed to load Yandex.Music daily playlist"), e.what());
   }
-  return res;
+  return nullptr;
 }
 
 Playlist* YClient::userTrack(int id)
@@ -727,7 +733,7 @@ Playlist* YClient::downloadsPlaylist()
   }
   recoredDir = QDir("user");
   allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
-  for (auto s : allFiles) {
+  for (auto s : qAsConst(allFiles)) {
     if (!s.endsWith(".json")) continue;
     s.chop(5);
     res->add(refTrack(new UserTrack(s.toInt())));
@@ -735,7 +741,63 @@ Playlist* YClient::downloadsPlaylist()
   return res;
 }
 
+void YClient::playPlaylist(YPlaylist* playlist)
+{
+  if (playlist == nullptr) return;
+  AudioPlayer::instance->play(playlist->toPlaylist());
+}
+
 void YClient::addUserTrack(QString media, QString cover, QString title, QString artists, QString extra)
 {
   UserTrack().setup(media, cover, title, artists, extra);
+}
+
+YPlaylist::YPlaylist(py::object impl, QObject* parent) : QObject(parent), impl(impl)
+{
+
+}
+
+YPlaylist::YPlaylist()
+{
+
+}
+
+QString YPlaylist::name()
+{
+  return impl.get("title").to<QString>();
+}
+
+QUrl YPlaylist::cover()
+{
+  try {
+    auto a = "http://" + impl.get("cover").get("uri").to<QString>();
+    return QUrl(a.replace("%%", "m" + Settings::ym_coverQuality()));
+  } catch (py::error& e) {
+    return QUrl("qrc:resources/player/no-cover.svg");
+  }
+}
+
+refPlaylist YPlaylist::toPlaylist()
+{
+  DPlaylist* res = new DPlaylist(this);
+  auto a = impl.call("fetch_tracks");
+  for (auto&& p : a) {
+    if (!p.has("id")) continue;
+    res->add(refTrack(new YTrack(p.get("id").to<int>(), YClient::instance)));
+  }
+  return refPlaylist(res);
+}
+
+bool YPlaylist::setName(QString name)
+{
+  Q_UNUSED(name)
+  // TODO
+  return false;
+}
+
+bool YPlaylist::setCover(QUrl cover)
+{
+  Q_UNUSED(cover)
+  // TODO
+  return false;
 }

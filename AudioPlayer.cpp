@@ -9,8 +9,11 @@ AudioPlayer::~AudioPlayer()
   delete player;
 }
 
+AudioPlayer* AudioPlayer::instance = nullptr;
+
 AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), player(new QMediaPlayer(this)), _currentTrack(nullptr)
 {
+  instance = this;
   player->setNotifyInterval(50);
   player->setVolume(50);
   _volume = 0.5;

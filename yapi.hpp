@@ -106,12 +106,28 @@ struct YPlaylist : QObject
 public:
   YPlaylist(py::object impl, QObject* parent = nullptr);
   YPlaylist();
-  PyObject* raw() { return impl.raw; }
+  PyObject* raw() const { return impl.raw; }
+
+  Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+  Q_PROPERTY(QUrl cover READ cover WRITE setCover NOTIFY coverChanged)
+
+  QString name();
+  QUrl cover();
+  refPlaylist toPlaylist();
+
+public slots:
+  bool setName(QString name);
+  bool setCover(QUrl cover);
+
+signals:
+  void nameChanged(QString name);
+  void coverChanged(QUrl cover);
 
 private:
   py::object impl;
-  int _id;
 };
+inline PyObject* toPyObject(YPlaylist const& a) { Py_INCREF(a.raw()); return a.raw(); }
+inline void fromPyObject(py::object const& o, YPlaylist*& res) { res = new YPlaylist(o.raw); }
 
 struct YClient : QObject
 {
@@ -143,11 +159,14 @@ public slots:
   QVector<py::object> fetchTracks(qint64 id);
 
   Playlist* likedTracks();
+  YPlaylist* userLikedTracksPlaylist();
   Playlist* playlist(int id);
   Playlist* oneTrack(qint64 id);
-  Playlist* userDailyPlaylist();
+  YPlaylist* userDailyPlaylist();
   Playlist* userTrack(int id);
   Playlist* downloadsPlaylist();
+
+  void playPlaylist(YPlaylist* playlist);
 
   void addUserTrack(QString media, QString cover, QString title, QString artists, QString extra);
 

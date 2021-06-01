@@ -41,6 +41,8 @@ public:
 
   inline static refTrack noneTrack{new Track()};
 
+  static AudioPlayer* instance;
+
 public slots:
   void play(refTrack track);
   void play(refPlaylist playlist);

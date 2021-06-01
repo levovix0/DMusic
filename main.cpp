@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
   QGuiApplication app(argc, argv);
   app.installTranslator(&translator);
 
-  bool gui = args.count() == 0 || args.has("-g") || args.has("--gui");
+//  bool gui = args.count() == 0 || args.has("-g") || args.has("--gui");
 
   if (args.has("-v") || args.has("--version")) {
     std::cout << "DMusic 0.1" << std::endl;
@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
   qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
   qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
+  qmlRegisterType<YPlaylist>("DMusic", 1, 0, "YPlaylist");
 
   qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
   qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);

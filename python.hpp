@@ -81,7 +81,7 @@ namespace py
     Iterator begin() const;
     EndIterator end() const;
 
-    PyObject* raw;
+    PyObject* raw = nullptr;
   };
 
   struct error : std::exception
