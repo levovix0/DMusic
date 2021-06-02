@@ -53,8 +53,7 @@ Window {
     }
 
     function afterLogin() {
-      _userDailyPlaylist.playlist = YClient.userDailyPlaylist()
-      _userLikedPlaylist.playlist = YClient.userLikedTracks()
+      _yandexHomePlaylistsRepeater.model = YClient.homePlaylistsModel()
     }
 
     function autologin() {
@@ -235,24 +234,22 @@ Window {
       else if (event.key == Qt.Key_A) _player.prev()
     }
 
-    PlaylistEntry {
-      id: _userLikedPlaylist
+    Row {
+      id: _yandexHomePlaylists
+      spacing: 25
       anchors.left: root.left
       anchors.top: _title.bottom
       anchors.leftMargin: 25
       anchors.topMargin: 25
 
-      onPlay: YClient.playPlaylist(playlist)
-    }
+      Repeater {
+        id: _yandexHomePlaylistsRepeater
+        PlaylistEntry {
+          playlist: element
 
-    PlaylistEntry {
-      id: _userDailyPlaylist
-      anchors.left: _userLikedPlaylist.right
-      anchors.top: _title.bottom
-      anchors.leftMargin: 25
-      anchors.topMargin: 25
-
-      onPlay: YClient.playPlaylist(playlist)
+          onPlay: YClient.playPlaylist(playlist)
+        }
+      }
     }
 
     ListModel {

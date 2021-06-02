@@ -119,26 +119,34 @@ usage: %1 [options]
 <context>
     <name>YClient</name>
     <message>
-        <location filename="../yapi.cpp" line="679"/>
+        <location filename="../yapi.cpp" line="678"/>
         <source>Failed to initialize yandex music client</source>
         <translation>Не удалось инициализировать клиент Яндекс.Музыки</translation>
+    </message>
+    <message>
+        <location filename="../yapi.cpp" line="808"/>
+        <source>Failed to load one of Yandex.Music smart playlists</source>
+        <translation>Не удалось загрузить один из умных плейлистов Яндекс.Музыки</translation>
+    </message>
+    <message>
+        <location filename="../yapi.cpp" line="812"/>
+        <source>Failed to load Yandex.Music smart playlists</source>
+        <translation>Не удалось загрузить умные плейлисты Яндекс.Музыки</translation>
     </message>
     <message>
         <source>Failed to load Yandex.Music user liked tracks (playlist with id 3)</source>
         <translation type="vanished">Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="751"/>
         <source>Failed to load Yandex.Music user liked tracks</source>
-        <translation>Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
+        <translation type="vanished">Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="774"/>
         <source>Failed to load Yandex.Music playlist (id: %1)</source>
-        <translation>Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
+        <translation type="vanished">Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="794"/>
+        <location filename="../yapi.cpp" line="765"/>
         <source>Failed to load Yandex.Music daily playlist</source>
         <translation>Не удалось загрузить плейлист дня Яндекс.Музыки</translation>
     </message>
@@ -146,17 +154,17 @@ usage: %1 [options]
 <context>
     <name>YLikedTracks</name>
     <message>
-        <location filename="../yapi.cpp" line="612"/>
+        <location filename="../yapi.cpp" line="611"/>
         <source>Favorites</source>
         <translation>Мне нравится</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="631"/>
+        <location filename="../yapi.cpp" line="630"/>
         <source>Failed to load Yandex.Music user liked tracks</source>
         <translation>Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="624"/>
+        <location filename="../yapi.cpp" line="623"/>
         <source>Yandex music api is not initialized</source>
         <translation>Api Яндекс.Музыки не инициализировано</translation>
     </message>
@@ -168,12 +176,12 @@ usage: %1 [options]
 <context>
     <name>YTrack</name>
     <message>
-        <location filename="../yapi.cpp" line="174"/>
+        <location filename="../yapi.cpp" line="173"/>
         <source>Failed to get Yandex.Music track media (id: %1)</source>
         <translation>Не удалось загрузить медиа для трека Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="389"/>
+        <location filename="../yapi.cpp" line="388"/>
         <source>Failed to load Yandex.Music track (id: %1)</source>
         <translation>Не удалось загрузить трек Яндекс.Музыки (id: %1)</translation>
     </message>
@@ -181,72 +189,72 @@ usage: %1 [options]
 <context>
     <name>main</name>
     <message>
-        <location filename="../main.qml" line="118"/>
+        <location filename="../main.qml" line="117"/>
         <source>Play</source>
         <extracomment>Play button</extracomment>
         <translation>Прослушать</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="104"/>
+        <location filename="../main.qml" line="103"/>
         <source>Play playlist</source>
         <translation>Прослушать плейлист</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="91"/>
+        <location filename="../main.qml" line="90"/>
         <source>ID</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../main.qml" line="131"/>
+        <location filename="../main.qml" line="130"/>
         <source>Play downloaded</source>
         <translation>Прослушать скачанное</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="143"/>
+        <location filename="../main.qml" line="142"/>
         <source>Play custom</source>
         <translation>Прослушать добавленный</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="157"/>
+        <location filename="../main.qml" line="156"/>
         <source>Title</source>
         <translation>Заголовок</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="167"/>
+        <location filename="../main.qml" line="166"/>
         <source>Artists</source>
         <translation>Авторы</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="177"/>
+        <location filename="../main.qml" line="176"/>
         <source>Extra</source>
         <translation>Дополнительная информация</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="182"/>
-        <location filename="../main.qml" line="204"/>
+        <location filename="../main.qml" line="181"/>
+        <location filename="../main.qml" line="203"/>
         <source>Chose media</source>
         <translation>Выберите медиафайл</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="183"/>
-        <location filename="../main.qml" line="204"/>
+        <location filename="../main.qml" line="182"/>
+        <location filename="../main.qml" line="203"/>
         <source>Audio (*.mp3 *.wav *.ogg *.m4a)</source>
         <translation>Звук (*.mp3 *.wav *.ogg *.m4a)</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="193"/>
-        <location filename="../main.qml" line="206"/>
+        <location filename="../main.qml" line="192"/>
+        <location filename="../main.qml" line="205"/>
         <source>Chose cover</source>
         <translation>Выберите обложку</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="194"/>
-        <location filename="../main.qml" line="206"/>
+        <location filename="../main.qml" line="193"/>
+        <location filename="../main.qml" line="205"/>
         <source>Image (*.jpg *.png *.svg)</source>
         <translation>Изображение (*.jpg *.png *.svg)</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="222"/>
+        <location filename="../main.qml" line="221"/>
         <source>Add custom track</source>
         <translation>Добавить трек</translation>
     </message>

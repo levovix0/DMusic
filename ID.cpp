@@ -72,7 +72,7 @@ refPlaylist ID::toPlaylist() const
     if (client == ckYandex) {
       if (YClient::instance == nullptr) return nullptr;
       if (id == -1) return YClient::instance->userDailyPlaylist()->toPlaylist();
-      return refPlaylist(YClient::instance->playlist(id));
+      return nullptr;
     }
     if (client == ckNone) {
       if (YClient::instance == nullptr) return nullptr;

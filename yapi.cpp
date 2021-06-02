@@ -81,16 +81,15 @@ void repeat_if_error_async(std::function<void()> f, std::function<void(bool succ
 }
 
 
-YTrack::YTrack(qint64 id, YClient* client) : Track((QObject*)client)
+YTrack::YTrack(qint64 id, QObject* parent) : Track(parent)
 {
   _id = id;
-  _client = client;
 }
 
-YTrack::YTrack(object obj, YClient* client) : Track((QObject*)client)
+YTrack::YTrack(object obj, QObject* parent) : Track(parent)
 {
   _id = obj.get("id").to<qint64>();
-  _client = client;
+  _fetchYandex(obj);
 }
 
 YTrack::~YTrack()
@@ -335,7 +334,7 @@ void YTrack::_fetchYandex()
 {
   QMutexLocker lock(&_mtx);
   if (_py != py::none) return;
-  auto _pys = _client->fetchTracks(_id);
+  auto _pys = YClient::instance->fetchTracks(_id);
   if (_pys.empty()) {
     _fetchYandex(none);
   } else {
@@ -736,44 +735,16 @@ QVector<object> YClient::fetchTracks(qint64 id)
   return tracks;
 }
 
-Playlist* YClient::likedTracks()
-{
-  DPlaylist* res = new DPlaylist(this);
-  if (!initialized()) return res;
-
-  try {
-    auto a = me.call("users_likes_tracks").get("tracks_ids");
-    for (auto&& p : a) {
-      if (!p.contains(":")) continue;
-      res->add(track(p.call("split", ":")[0].to<int>()));
-    }
-  } catch (py::error& e) {
-    Messages::error(tr("Failed to load Yandex.Music user liked tracks"), e.what());
-  }
-  return res;
-}
-
-YLikedTracks* YClient::userLikedTracks()
+YLikedTracks* YClient::likedTracks()
 {
   return YLikedTracks::instance;
 }
 
-Playlist* YClient::playlist(int id)
+YPlaylist* YClient::playlist(int id)
 {
   if (id == 3) return likedTracks();
-  DPlaylist* res = new DPlaylist(this);
-  if (!initialized()) return res;
-
-  try {
-    auto a = me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0].call("fetch_tracks");
-    for (auto&& p : a) {
-      if (!p.has("id")) continue;
-      res->add(track(p.get("id").to<int>()));
-    }
-  } catch (py::error& e) {
-    Messages::error(tr("Failed to load Yandex.Music playlist (id: %1)").arg(id), e.what());
-  }
-  return res;
+  if (!initialized()) return nullptr;
+  return new YPlaylist(me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0]);
 }
 
 Playlist* YClient::oneTrack(qint64 id)
@@ -824,6 +795,25 @@ Playlist* YClient::downloadsPlaylist()
   return res;
 }
 
+YPlaylistsModel* YClient::homePlaylistsModel()
+{
+  auto res = new YPlaylistsModel(this);
+  if (!initialized()) return res;
+  res->playlists.append(likedTracks());
+  try {
+    for (auto&& p : me.call("landing", std::vector<object>{"personalplaylists"}).get("blocks")[0].get("entities")) {
+      try {
+        res->playlists.append(new YPlaylist(p.get("data").get("data")));
+      } catch (py::error& e) {
+        Messages::error(tr("Failed to load one of Yandex.Music smart playlists"), e.what());
+      }
+    }
+  } catch (py::error& e) {
+    Messages::error(tr("Failed to load Yandex.Music smart playlists"), e.what());
+  }
+  return res;
+}
+
 void YClient::playPlaylist(YPlaylist* playlist)
 {
   if (playlist == nullptr) return;
@@ -833,4 +823,33 @@ void YClient::playPlaylist(YPlaylist* playlist)
 void YClient::addUserTrack(QString media, QString cover, QString title, QString artists, QString extra)
 {
   UserTrack().setup(media, cover, title, artists, extra);
+}
+
+YPlaylistsModel::YPlaylistsModel(QObject* parent) : QAbstractListModel(parent)
+{
+
+}
+
+int YPlaylistsModel::rowCount(const QModelIndex&) const
+{
+  return playlists.length();
+}
+
+QVariant YPlaylistsModel::data(const QModelIndex& index, int) const
+{
+  if (index.row() >= playlists.length()) return QVariant::Invalid;
+  QVariant res;
+  res.setValue(playlists[index.row()]);
+  return res;
+}
+
+
+QHash<int, QByteArray> YPlaylistsModel::roleNames() const
+{
+  static QHash<int, QByteArray>* pHash = nullptr;
+  if (!pHash) {
+      pHash = new QHash<int, QByteArray>;
+      (*pHash)[Qt::UserRole + 1] = "element";
+  }
+  return *pHash;
 }

@@ -4,6 +4,7 @@
 #include <QVariantList>
 #include <QQmlEngine>
 #include <QJSEngine>
+#include <QAbstractListModel>
 #include "python.hpp"
 #include "api.hpp"
 
@@ -14,8 +15,8 @@ struct YTrack : Track
 {
   Q_OBJECT
 public:
-  YTrack(qint64 id, YClient* client);
-  YTrack(py::object obj, YClient* client);
+  YTrack(qint64 id, QObject* parent = nullptr);
+  YTrack(py::object obj, QObject* parent = nullptr);
   ~YTrack();
   YTrack(QObject* parent = nullptr);
 
@@ -40,8 +41,6 @@ public:
   QJsonObject jsonMetadata();
   QString stringMetadata();
   void saveMetadata();
-
-  YClient* _client;
 
 public slots:
   void setLiked(bool liked) override;
@@ -143,6 +142,18 @@ public:
   refPlaylist toPlaylist() override;
 };
 
+struct YPlaylistsModel : QAbstractListModel
+{
+  Q_OBJECT
+public:
+  YPlaylistsModel(QObject* parent = nullptr);
+  int rowCount(const QModelIndex& parent) const override;
+  QVariant data(const QModelIndex& index, int role) const override;
+  QHash<int, QByteArray> roleNames() const override;
+
+  QVector<YPlaylist*> playlists;
+};
+
 struct YClient : QObject
 {
 	Q_OBJECT
@@ -172,13 +183,13 @@ public slots:
 
   QVector<py::object> fetchTracks(qint64 id);
 
-  Playlist* likedTracks();
-  YLikedTracks* userLikedTracks();
-  Playlist* playlist(int id);
+  YLikedTracks* likedTracks();
+  YPlaylist* playlist(int id);
   Playlist* oneTrack(qint64 id);
   YPlaylist* userDailyPlaylist();
   Playlist* userTrack(int id);
   Playlist* downloadsPlaylist();
+  YPlaylistsModel* homePlaylistsModel();
 
   void playPlaylist(YPlaylist* playlist);
 

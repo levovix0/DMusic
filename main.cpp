@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
   qmlRegisterType<YPlaylist>("DMusic", 1, 0, "YPlaylist");
   qmlRegisterType<YLikedTracks>("DMusic", 1, 0, "YLikedTracks");
+  qmlRegisterType<YPlaylistsModel>("DMusic", 1, 0, "YPlaylistsModel");
 
   qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
   qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
