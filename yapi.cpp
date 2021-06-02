@@ -744,7 +744,12 @@ YPlaylist* YClient::playlist(int id)
 {
   if (id == 3) return likedTracks();
   if (!initialized()) return nullptr;
-  return new YPlaylist(me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0]);
+  try {
+    return new YPlaylist(me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0]);
+  } catch (py::error& e) {
+    Messages::error(tr("Failed to load Yandex.Music playlist (id: %1)").arg(id), e.what());
+  }
+  return nullptr;
 }
 
 Playlist* YClient::oneTrack(qint64 id)

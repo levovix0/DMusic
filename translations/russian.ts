@@ -124,12 +124,12 @@ usage: %1 [options]
         <translation>Не удалось инициализировать клиент Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="808"/>
+        <location filename="../yapi.cpp" line="813"/>
         <source>Failed to load one of Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить один из умных плейлистов Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="812"/>
+        <location filename="../yapi.cpp" line="817"/>
         <source>Failed to load Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить умные плейлисты Яндекс.Музыки</translation>
     </message>
@@ -142,11 +142,12 @@ usage: %1 [options]
         <translation type="vanished">Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
+        <location filename="../yapi.cpp" line="750"/>
         <source>Failed to load Yandex.Music playlist (id: %1)</source>
-        <translation type="vanished">Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
+        <translation>Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../yapi.cpp" line="765"/>
+        <location filename="../yapi.cpp" line="770"/>
         <source>Failed to load Yandex.Music daily playlist</source>
         <translation>Не удалось загрузить плейлист дня Яндекс.Музыки</translation>
     </message>
