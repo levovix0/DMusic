@@ -6,7 +6,9 @@ Rectangle {
   height: 40
 
   property Window window
-  property bool manual: true
+  property size windowSize
+  property bool clientSideDecorations
+  property bool maximized
 
   color: "#131313"
 
@@ -26,11 +28,11 @@ Rectangle {
     color: "#FFFFFF"
     image.width: 13
     image.height: 16
-    visible: root.manual
+    visible: root.clientSideDecorations
   }
 
   DragHandler {
-    enabled: root.manual
+    enabled: root.clientSideDecorations
     onActiveChanged: if (active) window.startSystemMove();
     target: null
     dragThreshold: 0
@@ -38,14 +40,14 @@ Rectangle {
 
   MouseArea {
     anchors.fill: root
-    enabled: root.manual
+    enabled: root.clientSideDecorations
 
     onDoubleClicked: root.window.maximize()
   }
 
   MouseArea {
     anchors.fill: root
-    enabled: root.manual
+    enabled: root.clientSideDecorations
     acceptedButtons: Qt.MiddleButton
 
     onClicked: root.window.close()
@@ -55,7 +57,7 @@ Rectangle {
     id: _close
     anchors.right: root.right
     anchors.verticalCenter: root.verticalCenter
-    enabled: root.manual
+    enabled: root.clientSideDecorations
 
     icon: "resources/title/close.svg"
     hoverColor: "#E03649"
@@ -67,7 +69,7 @@ Rectangle {
     id: _maximize
     anchors.right: _close.left
     anchors.verticalCenter: root.verticalCenter
-    enabled: root.manual
+    enabled: root.clientSideDecorations
 
     icon: "resources/title/maximize.svg"
 
@@ -78,7 +80,7 @@ Rectangle {
     id: _minimize
     anchors.right: _maximize.left
     anchors.verticalCenter: root.verticalCenter
-    enabled: root.manual
+    enabled: root.clientSideDecorations
 
     icon: "resources/title/minimize.svg"
 
@@ -87,10 +89,11 @@ Rectangle {
 
   ResizeArea {
     id: _lg
-    width: 6
-    height: window.height - 12
+    width: 12
+    x: -6
+    height: windowSize.height - 12
     y: 6
-    enabled: root.manual && window.visibility != 4
+    enabled: root.clientSideDecorations && !maximized
 
     window: root.window
     cursor: Qt.SizeHorCursor
@@ -100,10 +103,11 @@ Rectangle {
   ResizeArea {
     id: _rg
     anchors.right: root.right
-    width: 6
-    height: window.height - 12
+    anchors.rightMargin: -6
+    width: 12
+    height: windowSize.height - 12
     y: 6
-    enabled: root.manual && window.visibility != 4
+    enabled: root.clientSideDecorations && !maximized
 
     window: root.window
     cursor: Qt.SizeHorCursor
@@ -112,10 +116,11 @@ Rectangle {
 
   ResizeArea {
     id: _tg
-    width: window.width - 12
+    width: windowSize.width - 12
     x: 6
-    height: 6
-    enabled: root.manual && window.visibility != 4
+    height: 12
+    y: -6
+    enabled: root.clientSideDecorations && !maximized
 
     window: root.window
     cursor: Qt.SizeVerCursor
@@ -124,11 +129,11 @@ Rectangle {
 
   ResizeArea {
     id: _bg
-    y: window.height - height
-    width: window.width - 12
+    y: windowSize.height - 6
+    width: windowSize.width - 12
     x: 6
-    height: 6
-    enabled: root.manual && window.visibility != 4
+    height: 12
+    enabled: root.clientSideDecorations && !maximized
 
     window: root.window
     cursor: Qt.SizeVerCursor
@@ -138,9 +143,11 @@ Rectangle {
 
   ResizeArea {
     id: _ltg
-    width: 6
-    height: 6
-    enabled: root.manual && window.visibility != 4
+    x: -6
+    y: -6
+    width: 12
+    height: 12
+    enabled: root.clientSideDecorations && !maximized
 
     window: root.window
     cursor: Qt.SizeFDiagCursor
@@ -150,9 +157,11 @@ Rectangle {
   ResizeArea {
     id: _rtg
     anchors.right: root.right
-    width: 6
-    height: 6
-    enabled: root.manual && window.visibility != 4
+    anchors.rightMargin: -6
+    y: -6
+    width: 12
+    height: 12
+    enabled: root.clientSideDecorations && !maximized
 
     window: root.window
     cursor: Qt.SizeBDiagCursor
@@ -161,10 +170,11 @@ Rectangle {
 
   ResizeArea {
     id: _lbg
-    y: window.height - height
-    width: 6
-    height: 6
-    enabled: root.manual && window.visibility != 4
+    y: windowSize.height - 6
+    x: -6
+    width: 12
+    height: 12
+    enabled: root.clientSideDecorations && !maximized
 
     window: root.window
     cursor: Qt.SizeBDiagCursor
@@ -174,10 +184,11 @@ Rectangle {
   ResizeArea {
     id: _rbg
     anchors.right: root.right
-    y: window.height - height
-    width: 6
-    height: 6
-    enabled: root.manual && window.visibility != 4
+    anchors.rightMargin: -6
+    y: windowSize.height - 6
+    width: 12
+    height: 12
+    enabled: root.clientSideDecorations && !maximized
 
     window: root.window
     cursor: Qt.SizeFDiagCursor

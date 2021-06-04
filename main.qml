@@ -8,17 +8,19 @@ Window {
   id: _root
   visible: true
   Component.onCompleted: {
-    if (manualTitle) {
+    if (clientSideDecorations) {
       flags += Qt.FramelessWindowHint
     }
   }
 
-  width: 1280
-  height: 720
-  minimumWidth: 1040
-  minimumHeight: 600
+  width: 1280 + 20
+  height: 720 + 20
+  minimumWidth: 1040 + 20
+  minimumHeight: 600 + 20
 
-  property bool manualTitle: _settings.isClientSideDecorations
+  property bool clientSideDecorations: _settings.isClientSideDecorations
+  property real shadowRadius: (clientSideDecorations && !maximized)? 10 : 0
+  property bool maximized: visibility == 4
 
   title: "DMusic"
 
@@ -28,12 +30,29 @@ Window {
   function minimize() {
     _root.showMinimized()
   }
-  color: manualTitle? "transparent" : "#181818"
+  color: (clientSideDecorations && !maximized)? "transparent" : "#181818"
+
+  DropShadow {
+    enabled: clientSideDecorations && !maximized
+    opacity: 0.6
+    anchors.fill: root
+    radius: shadowRadius
+    samples: 20
+    color: "#000000"
+    source: Rectangle {
+      width: root.width
+      height: root.height
+      color: "#000000"
+      radius: 7.5
+    }
+  }
 
   Rectangle {
     id: root
-    width: _root.width
-    height: _root.height
+    width: _root.width - shadowRadius * 2
+    height: _root.height - shadowRadius * 2
+    x: shadowRadius
+    y: shadowRadius
 
     color: "#181818"
     focus: true
@@ -79,7 +98,9 @@ Window {
       width: root.width
 
       window: _root
-      manual: _root.manualTitle
+      windowSize: Qt.size(root.width, root.height)
+      clientSideDecorations: _root.clientSideDecorations
+      maximized: maximized
     }
 
     DTextBox {
@@ -289,15 +310,12 @@ Window {
       Messages.reSendHistory()
     }
 
-    layer.enabled: manualTitle && visibility != 4
+    layer.enabled: clientSideDecorations && visibility != 4
     layer.effect: OpacityMask {
-      maskSource: Item {
+      maskSource: Rectangle {
         width: root.width
         height: root.height
-        Rectangle {
-          anchors.fill: parent
-          radius: 7.5
-        }
+        radius: 7.5
       }
     }
   }
