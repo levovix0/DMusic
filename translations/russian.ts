@@ -45,6 +45,53 @@
     </message>
 </context>
 <context>
+    <name>DebugPanel</name>
+    <message>
+        <location filename="../DebugPanel.qml" line="22"/>
+        <source>ID</source>
+        <translation>ID</translation>
+    </message>
+    <message>
+        <location filename="../DebugPanel.qml" line="44"/>
+        <source>Title</source>
+        <translation>Название</translation>
+    </message>
+    <message>
+        <location filename="../DebugPanel.qml" line="56"/>
+        <source>Additional info</source>
+        <translation>Доп. инфо</translation>
+    </message>
+    <message>
+        <location filename="../DebugPanel.qml" line="67"/>
+        <source>Artists</source>
+        <translation>Авторы</translation>
+    </message>
+    <message>
+        <location filename="../DebugPanel.qml" line="155"/>
+        <location filename="../DebugPanel.qml" line="177"/>
+        <source>Chose media</source>
+        <translation>Выберите медиафайл</translation>
+    </message>
+    <message>
+        <location filename="../DebugPanel.qml" line="156"/>
+        <location filename="../DebugPanel.qml" line="177"/>
+        <source>Audio (*.mp3 *.wav *.ogg *.m4a)</source>
+        <translation>Звук (*.mp3 *.wav *.ogg *.m4a)</translation>
+    </message>
+    <message>
+        <location filename="../DebugPanel.qml" line="166"/>
+        <location filename="../DebugPanel.qml" line="179"/>
+        <source>Chose cover</source>
+        <translation>Выберите обложку</translation>
+    </message>
+    <message>
+        <location filename="../DebugPanel.qml" line="167"/>
+        <location filename="../DebugPanel.qml" line="179"/>
+        <source>Image (*.jpg *.png *.svg)</source>
+        <translation>Изображение (*.jpg *.png *.svg)</translation>
+    </message>
+</context>
+<context>
     <name>DiscordPresence</name>
     <message>
         <location filename="../RemoteMediaController.cpp" line="462"/>
@@ -190,74 +237,53 @@ usage: %1 [options]
 <context>
     <name>main</name>
     <message>
-        <location filename="../main.qml" line="117"/>
         <source>Play</source>
         <extracomment>Play button</extracomment>
-        <translation>Прослушать</translation>
+        <translation type="vanished">Прослушать</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="103"/>
         <source>Play playlist</source>
-        <translation>Прослушать плейлист</translation>
+        <translation type="vanished">Прослушать плейлист</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="90"/>
-        <source>ID</source>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="../main.qml" line="130"/>
         <source>Play downloaded</source>
-        <translation>Прослушать скачанное</translation>
+        <translation type="vanished">Прослушать скачанное</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="142"/>
         <source>Play custom</source>
-        <translation>Прослушать добавленный</translation>
+        <translation type="vanished">Прослушать добавленный</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="156"/>
         <source>Title</source>
-        <translation>Заголовок</translation>
+        <translation type="vanished">Заголовок</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="166"/>
         <source>Artists</source>
-        <translation>Авторы</translation>
+        <translation type="vanished">Авторы</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="176"/>
         <source>Extra</source>
-        <translation>Дополнительная информация</translation>
+        <translation type="vanished">Дополнительная информация</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="181"/>
-        <location filename="../main.qml" line="203"/>
         <source>Chose media</source>
-        <translation>Выберите медиафайл</translation>
+        <translation type="vanished">Выберите медиафайл</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="182"/>
-        <location filename="../main.qml" line="203"/>
         <source>Audio (*.mp3 *.wav *.ogg *.m4a)</source>
-        <translation>Звук (*.mp3 *.wav *.ogg *.m4a)</translation>
+        <translation type="vanished">Звук (*.mp3 *.wav *.ogg *.m4a)</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="192"/>
-        <location filename="../main.qml" line="205"/>
         <source>Chose cover</source>
-        <translation>Выберите обложку</translation>
+        <translation type="vanished">Выберите обложку</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="193"/>
-        <location filename="../main.qml" line="205"/>
         <source>Image (*.jpg *.png *.svg)</source>
-        <translation>Изображение (*.jpg *.png *.svg)</translation>
+        <translation type="vanished">Изображение (*.jpg *.png *.svg)</translation>
     </message>
     <message>
-        <location filename="../main.qml" line="221"/>
         <source>Add custom track</source>
-        <translation>Добавить трек</translation>
+        <translation type="vanished">Добавить трек</translation>
     </message>
 </context>
 </TS>

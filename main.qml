@@ -33,9 +33,9 @@ Window {
   color: (clientSideDecorations && !maximized)? "transparent" : "#181818"
 
   DropShadow {
+    anchors.fill: root
     enabled: clientSideDecorations && !maximized
     opacity: 0.6
-    anchors.fill: root
     radius: shadowRadius
     samples: 20
     color: "#000000"
@@ -84,6 +84,16 @@ Window {
       }
     }
 
+    Title {
+      id: _title
+      width: root.width
+
+      window: _root
+      windowSize: Qt.size(root.width, root.height)
+      clientSideDecorations: _root.clientSideDecorations
+      maximized: maximized
+    }
+
     DebugPanel {
       anchors.right: root.right
       anchors.bottom: _player.top
@@ -100,119 +110,6 @@ Window {
       anchors.bottom: parent.bottom
 
       settings: _settings
-    }
-
-    Title {
-      id: _title
-      width: root.width
-
-      window: _root
-      windowSize: Qt.size(root.width, root.height)
-      clientSideDecorations: _root.clientSideDecorations
-      maximized: maximized
-    }
-
-    DTextBox {
-      id: _id_input
-      anchors.centerIn: root
-      width: root.width / 3 * 2
-
-      hint: qsTr("ID")
-    }
-
-    Item {
-      anchors.top: root.verticalCenter
-      anchors.horizontalCenter: root.horizontalCenter
-      anchors.topMargin: 20
-      height: Math.max(_play_playlist.height, _play.height, _play_downloads.height)
-      width: _play_playlist.width + 10 + _play.width + 10 + _play_downloads.width + 10 + _play_user.width
-
-      DButton {
-        id: _play_playlist
-
-        text: qsTr("Play playlist")
-
-        onClick: {
-          if (_id_input.text == "") return
-          _player.player.play(YClient.playlist(parseInt(_id_input.text)))
-        }
-      }
-
-      DButton {
-        id: _play
-        anchors.left: _play_playlist.right
-        anchors.leftMargin: 10
-
-        //: Play button
-        text: qsTr("Play")
-
-        onClick: {
-          if (_id_input.text == "") return
-          _player.player.play(YClient.oneTrack(parseInt(_id_input.text)))
-        }
-      }
-
-      DButton {
-        id: _play_downloads
-        anchors.left: _play.right
-        anchors.leftMargin: 10
-
-        text: qsTr("Play downloaded")
-
-        onClick: {
-          _player.player.play(YClient.downloadsPlaylist())
-        }
-      }
-
-      DButton {
-        id: _play_user
-        anchors.left: _play_downloads.right
-        anchors.leftMargin: 10
-
-        text: qsTr("Play custom")
-
-        onClick: {
-          _player.player.play(YClient.userTrack(parseInt(_id_input.text)))
-        }
-      }
-    }
-
-    DTextBox {
-      id: _tb_title
-      anchors.centerIn: root
-      anchors.verticalCenterOffset: 80
-      width: root.width / 3
-
-      hint: qsTr("Title")
-    }
-
-    DTextBox {
-      id: _tb_artists
-      anchors.horizontalCenter: _tb_title.horizontalCenter
-      anchors.top: _tb_title.bottom
-      anchors.topMargin: 10
-      width: root.width / 3
-
-      hint: qsTr("Artists")
-    }
-
-    DTextBox {
-      id: _tb_extra
-      anchors.horizontalCenter: _tb_artists.horizontalCenter
-      anchors.top: _tb_artists.bottom
-      anchors.topMargin: 10
-      width: root.width / 3
-
-      hint: qsTr("Extra")
-    }
-
-    Keys.onSpacePressed: _player.player.pause_or_play()
-    Keys.onRightPressed: _player.next()
-    Keys.onLeftPressed: _player.prev()
-    Keys.onPressed: {
-      if (event.key == Qt.Key_L) _player.toglleLiked()
-      else if (event.key == Qt.Key_D) _player.next()
-      else if (event.key == Qt.Key_A) _player.prev()
     }
 
     Row {
