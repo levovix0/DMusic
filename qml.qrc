@@ -70,5 +70,6 @@
         <file>resources/debug/playlist.svg</file>
         <file>resources/debug/track.svg</file>
         <file>resources/debug/user.svg</file>
+        <file>IconButton.qml</file>
     </qresource>
 </RCC>

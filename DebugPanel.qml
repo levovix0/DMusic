@@ -1,4 +1,6 @@
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
+import DMusic 1.0
 
 FloatingPanel {
   id: root
@@ -6,133 +8,194 @@ FloatingPanel {
   width: 320
   height: 122
 
-  DTextBox {
-      id: dTextBox
-      width: 155
-      height: 20
-      color: "#181818"
-      anchors.left: parent.left
-      anchors.top: parent.top
-      anchors.leftMargin: 20
-      anchors.topMargin: 20
-      hint: "ID"
-  }
-
-  Rectangle {
-      id: rectangle
-      width: 52
-      height: 52
-      color: "#ffffff"
-      anchors.left: parent.left
-      anchors.top: dTextBox.bottom
-      anchors.topMargin: 10
-      anchors.leftMargin: 20
-  }
+  property Player player
 
   DTextBox {
-      id: dTextBox1
-      width: 99
-      color: "#181818"
-      anchors.left: rectangle.right
-      anchors.top: rectangle.top
-      anchors.topMargin: 0
-      anchors.leftMargin: 10
-      hint: "Заголовок"
-  }
-
-  DTextBox {
-      id: dTextBox2
-      width: 115
-      height: 20
-      color: "#181818"
-      anchors.left: dTextBox1.right
-      anchors.top: rectangle.top
-      anchors.leftMargin: 6
-      anchors.topMargin: 0
-      hint: "Доп. Инфо"
-  }
-
-  DTextBox {
-      id: dTextBox3
-      x: 82
-      width: 137
-      height: 20
-      color: "#181818"
-      anchors.top: dTextBox1.bottom
-      anchors.topMargin: 12
-      hint: "Авторы"
-  }
-
-  Rectangle {
-      id: rectangle1
-      x: 231
-      width: 49
-      height: 20
-      color: "#ffffff"
-      anchors.top: dTextBox3.top
-      anchors.topMargin: 0
-  }
-
-  Icon {
-    id: track
-    width: 20
+    id: _id
+    width: 155
     height: 20
-    anchors.left: dTextBox.right
-    anchors.top: dTextBox.top
-    image.source: "resources/debug/track.svg"
-    src: "qrc:/debug/track.svg"
-    anchors.leftMargin: 12
+    color: "#181818"
+    anchors.left: parent.left
+    anchors.top: parent.top
+    anchors.leftMargin: 20
+    anchors.topMargin: 20
+    hint: qsTr("ID")
+  }
+
+  Rectangle {
+    id: _cover
+    width: 50
+    height: 50
+    color: "#ffffff"
+    anchors.left: _id.left
+    anchors.top: _id.bottom
+    anchors.topMargin: 10
+    anchors.leftMargin: 0
+  }
+
+  DTextBox {
+    id: _title
+    width: 99
+    color: "#181818"
+    anchors.left: _cover.right
+    anchors.top: _cover.top
+    anchors.topMargin: 0
+    anchors.leftMargin: 10
+    hint: qsTr("Title")
+  }
+
+  DTextBox {
+    id: _extra
+    width: 115
+    height: 20
+    color: "#181818"
+    anchors.left: _title.right
+    anchors.top: _title.top
+    anchors.leftMargin: 10
+    anchors.topMargin: 0
+    hint: qsTr("Additional info")
+  }
+
+  DTextBox {
+    id: _artists
+    x: 82
+    width: 137
+    height: 20
+    color: "#181818"
+    anchors.top: _title.bottom
+    anchors.topMargin: 10
+    hint: qsTr("Artists")
+  }
+
+  Rectangle {
+    id: _file
+    width: 49
+    height: 20
+    color: "#ffffff"
+    anchors.left: _artists.right
+    anchors.top: _artists.top
+    anchors.leftMargin: 10
     anchors.topMargin: 0
   }
 
-  Icon {
-    id: playlist
+  IconButton {
+    id: _track
     width: 20
     height: 20
-    anchors.left: track.right
-    anchors.top: dTextBox.top
+    anchors.left: _id.right
+    anchors.top: _id.top
+    src: "resources/debug/track.svg"
+    anchors.leftMargin: 12
+    anchors.topMargin: 0
+
+    onClicked: {
+      if (_id.text === "") return
+      try {
+        player.player.play(YClient.oneTrack(parseInt(_id.text)))
+      } catch (e) {}
+    }
+  }
+
+  IconButton {
+    id: _playlist
+    width: 20
+    height: 20
+    anchors.left: _track.right
+    anchors.top: _id.top
     anchors.leftMargin: 12
     anchors.topMargin: 0
     src: "resources/debug/playlist.svg"
+
+    onClicked: {
+      if (_id.text === "") return
+      try {
+        player.player.play(YClient.playlist(parseInt(_id.text)))
+      } catch (e) {}
+    }
   }
 
-  Icon {
-    id: downloads
+  IconButton {
+    id: _downloads
     width: 20
     height: 20
-    anchors.left: playlist.right
-    anchors.top: dTextBox.top
+    anchors.left: _playlist.right
+    anchors.top: _id.top
     anchors.leftMargin: 12
     anchors.topMargin: 0
     src: "resources/debug/downloads.svg"
+
+    onClicked: {
+      if (_id.text === "") return
+      try {
+        player.player.play(YClient.downloadsPlaylist())
+      } catch (e) {}
+    }
   }
 
-  Icon {
-    id: user
+  IconButton {
+    id: _user
     width: 20
     height: 20
-    anchors.left: downloads.right
-    anchors.top: dTextBox.top
+    anchors.left: _downloads.right
+    anchors.top: _id.top
     anchors.leftMargin: 12
     anchors.topMargin: 0
     src: "resources/debug/user.svg"
+
+    onClicked: {
+      if (_id.text === "") return
+      try {
+        player.player.play(YClient.userTrack(parseInt(_id.text)))
+      } catch (e) {}
+    }
   }
 
-  Icon {
-      id: user1
-      width: 20
-      height: 20
-      anchors.left: rectangle1.right
-      anchors.top: rectangle1.top
-      anchors.leftMargin: 6
-      anchors.topMargin: 0
-      src: "resources/debug/add.svg"
+  FileDialog {
+    id: _openMedia
+    title: qsTr("Chose media")
+    nameFilters: [qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)")]
+    property string media: ""
+    onAccepted: {
+      media = fileUrl.toString()
+      _openCover.open()
+    }
+  }
+
+  FileDialog {
+    id: _openCover
+    title: qsTr("Chose cover")
+    nameFilters: [qsTr("Image (*.jpg *.png *.svg)")]
+    onAccepted: YClient.addUserTrack(_openMedia.media, fileUrl.toString(), _title.text, _artists.text, _extra.text)
+    onRejected: YClient.addUserTrack(_openMedia.media, "", _title.text, _artists.text, _extra.text)
+  }
+
+  DFileDialog {
+    id: _openFile
+    function show() {
+      if (!available()) _openMedia.open()
+      else {
+        let media = sellect(qsTr("Chose media"), "*.mp3 *.wav *.ogg *.m4a", qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)"))
+        if (media === "") return
+        let cover = sellect(qsTr("Chose cover"), "*.jpg *.png *.svg", qsTr("Image (*.jpg *.png *.svg)"))
+        if (cover === "") {
+          YClient.addUserTrack(media, "", _title.text, _artists.text, _extra.text)
+        } else {
+          YClient.addUserTrack(media, cover, _title.text, _artists.text, _extra.text)
+        }
+      }
+    }
+  }
+
+  IconButton {
+    id: _add
+    width: 20
+    height: 20
+    anchors.left: _file.right
+    anchors.top: _file.top
+    anchors.leftMargin: 6
+    anchors.topMargin: 0
+    src: "resources/debug/add.svg"
+
+    onClicked: _openFile.show()
   }
 }
-
-/*##^##
-Designer {
-    D{i:0;formeditorZoom:1.75}D{i:1}D{i:2}D{i:3}D{i:4}D{i:5}D{i:6}D{i:7}D{i:8}D{i:9}D{i:10}
-D{i:11}
-}
-##^##*/

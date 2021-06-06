@@ -84,6 +84,15 @@ Window {
       }
     }
 
+    DebugPanel {
+      anchors.right: root.right
+      anchors.bottom: _player.top
+      anchors.rightMargin: 19
+      anchors.bottomMargin: 19
+
+      player: _player
+    }
+
     Player {
       id: _player
       width: root.width
@@ -195,55 +204,6 @@ Window {
       width: root.width / 3
 
       hint: qsTr("Extra")
-    }
-
-    FileDialog {
-      id: _openMedia
-      title: qsTr("Chose media")
-      nameFilters: [qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)")]
-      property string media: ""
-      onAccepted: {
-        media = fileUrl.toString()
-        _openCover.open()
-      }
-    }
-
-    FileDialog {
-      id: _openCover
-      title: qsTr("Chose cover")
-      nameFilters: [qsTr("Image (*.jpg *.png *.svg)")]
-      onAccepted: YClient.addUserTrack(_openMedia.media, fileUrl.toString(), _tb_title.text, _tb_artists.text, _tb_extra.text)
-      onRejected: YClient.addUserTrack(_openMedia.media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
-    }
-
-    DFileDialog {
-      id: _openFile
-      function show() {
-        if (!available()) _openMedia.open()
-        else {
-          let media = sellect(qsTr("Chose media"), "*.mp3 *.wav *.ogg *.m4a", qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)"))
-          if (media === "") return
-          let cover = sellect(qsTr("Chose cover"), "*.jpg *.png *.svg", qsTr("Image (*.jpg *.png *.svg)"))
-          if (cover === "") {
-            YClient.addUserTrack(media, "", _tb_title.text, _tb_artists.text, _tb_extra.text)
-          } else {
-            YClient.addUserTrack(media, cover, _tb_title.text, _tb_artists.text, _tb_extra.text)
-          }
-        }
-      }
-    }
-
-    DButton {
-      id: _addUserTrack
-      anchors.horizontalCenter: _tb_extra.horizontalCenter
-      anchors.top: _tb_extra.bottom
-      anchors.topMargin: 10
-
-      text: qsTr("Add custom track")
-
-      onClick: {
-        _openFile.show()
-      }
     }
 
     Keys.onSpacePressed: _player.player.pause_or_play()
