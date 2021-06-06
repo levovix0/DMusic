@@ -64,5 +64,11 @@
         <file>resources/player/liked.svg</file>
         <file>Message.qml</file>
         <file>resources/covers/like.png</file>
+        <file>DebugPanel.qml</file>
+        <file>resources/debug/add.svg</file>
+        <file>resources/debug/downloads.svg</file>
+        <file>resources/debug/playlist.svg</file>
+        <file>resources/debug/track.svg</file>
+        <file>resources/debug/user.svg</file>
     </qresource>
 </RCC>

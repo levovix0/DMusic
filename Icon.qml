@@ -4,8 +4,8 @@ import QtGraphicalEffects 1.15
 Item {
   id: root
 
-  property string src: ""
-  property string color: "#C1C1C1"
+  property url src: ""
+  property color color: "#C1C1C1"
   property alias image: _img
 
   Image {
