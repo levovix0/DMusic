@@ -112,6 +112,15 @@ Window {
       settings: _settings
     }
 
+    Keys.onSpacePressed: _player.player.pause_or_play()
+    Keys.onRightPressed: _player.next()
+    Keys.onLeftPressed: _player.prev()
+    Keys.onPressed: {
+      if (event.key == Qt.Key_L) _player.toglleLiked()
+      else if (event.key == Qt.Key_D) _player.next()
+      else if (event.key == Qt.Key_A) _player.prev()
+    }
+
     Row {
       id: _yandexHomePlaylists
       spacing: 25
