@@ -4,7 +4,7 @@ import QtGraphicalEffects 1.15
 Item {
   id: root
 
-  property color color: "#262626"
+  property color color: Style.panel.background
 
   Rectangle {
     id: _background

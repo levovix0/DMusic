@@ -71,5 +71,7 @@
         <file>resources/debug/track.svg</file>
         <file>resources/debug/user.svg</file>
         <file>IconButton.qml</file>
+        <file>Style.qml</file>
+        <file>external/Border.qml</file>
     </qresource>
 </RCC>

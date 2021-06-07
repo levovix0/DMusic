@@ -4,7 +4,7 @@ import DMusic 1.0
 Rectangle {
   id: root
 
-  color: "#262626"
+  color: Style.panel.background
 
   property Settings settings
   property alias player: _player

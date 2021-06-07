@@ -30,7 +30,7 @@ Window {
   function minimize() {
     _root.showMinimized()
   }
-  color: (clientSideDecorations && !maximized)? "transparent" : "#181818"
+  color: (clientSideDecorations && !maximized)? "transparent" : Style.window.background
 
   DropShadow {
     anchors.fill: root
@@ -54,7 +54,7 @@ Window {
     x: shadowRadius
     y: shadowRadius
 
-    color: "#181818"
+    color: Style.window.background
     focus: true
 
     MouseArea {

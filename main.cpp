@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QIcon>
 #include <QTranslator>
+#include <QQuickStyle>
 #include "yapi.hpp"
 #include "file.hpp"
 #include "settings.hpp"
@@ -54,6 +55,10 @@ int main(int argc, char *argv[])
   }
 
 //  if (!gui) return 0;
+
+  QQuickStyle::setStyle("Material");
+
+  qmlRegisterSingletonType(QUrl("qrc:/Style.qml"), "DMusic", 1, 0, "Style");
 
   qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");
