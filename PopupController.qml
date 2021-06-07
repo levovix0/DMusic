@@ -5,6 +5,7 @@ Item {
 
   property Item target
   property bool opened: false
+  property bool animationEnded: true
   property real shift: 0
   property real maxShift: 20
   property real duration: 0.25
@@ -24,14 +25,17 @@ Item {
 
   function fullShow() {
     target.opacity = 1
+    animationEnded = true
     _anim_opacity.finished.disconnect(fullShow)
   }
   function fullHide() {
     target.opacity = 0
+    animationEnded = true
     _anim_opacity.finished.disconnect(fullHide)
   }
 
   onOpenedChanged: {
+    animationEnded = false
     if (opened) {
       _anim_opacity.from = 0
       _anim_opacity.to = 1

@@ -125,7 +125,6 @@ FloatingPanel {
     src: "resources/debug/downloads.svg"
 
     onClicked: {
-      if (_id.text === "") return
       try {
         player.player.play(YClient.downloadsPlaylist())
       } catch (e) {}
