@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
   QQuickStyle::setStyle("Material");
 
-  qmlRegisterSingletonType(QUrl("qrc:/Style.qml"), "DMusic", 1, 0, "Style");
+  qmlRegisterSingletonType(QUrl("qrc:/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
 
   qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");

@@ -71,7 +71,10 @@
         <file>resources/debug/track.svg</file>
         <file>resources/debug/user.svg</file>
         <file>IconButton.qml</file>
-        <file>Style.qml</file>
+        <file>StyleSingleton.qml</file>
         <file>external/Border.qml</file>
+        <file>resources/debug/drop-cover.svg</file>
+        <file>resources/debug/drop-media.svg</file>
+        <file>DropPlace.qml</file>
     </qresource>
 </RCC>

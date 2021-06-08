@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Dialogs 1.2
 import DMusic 1.0
+import "external"
 
 FloatingPanel {
   id: root
@@ -22,24 +23,27 @@ FloatingPanel {
     hint: qsTr("ID")
   }
 
-  Rectangle {
+  DropPlace {
     id: _cover
     width: 50
     height: 50
-    color: "#ffffff"
     anchors.left: _id.left
     anchors.top: _id.bottom
     anchors.topMargin: 10
-    anchors.leftMargin: 0
+
+    Icon {
+      anchors.centerIn: parent
+      src: "qrc:/resources/debug/drop-cover.svg"
+      color: Style.dropPlace.border.color
+    }
   }
 
   DTextBox {
     id: _title
-    width: 99
+    width: 100
     color: "#181818"
     anchors.left: _cover.right
     anchors.top: _cover.top
-    anchors.topMargin: 0
     anchors.leftMargin: 10
     hint: qsTr("Title")
   }
@@ -52,14 +56,13 @@ FloatingPanel {
     anchors.left: _title.right
     anchors.top: _title.top
     anchors.leftMargin: 10
-    anchors.topMargin: 0
     hint: qsTr("Additional info")
   }
 
   DTextBox {
     id: _artists
     x: 82
-    width: 137
+    width: 169
     height: 20
     color: "#181818"
     anchors.top: _title.bottom
@@ -67,15 +70,20 @@ FloatingPanel {
     hint: qsTr("Artists")
   }
 
-  Rectangle {
+  DropPlace {
     id: _file
-    width: 49
+    width: 20
     height: 20
-    color: "#ffffff"
+    antialiasing: true
     anchors.left: _artists.right
     anchors.top: _artists.top
     anchors.leftMargin: 10
-    anchors.topMargin: 0
+
+    Icon {
+      anchors.centerIn: parent
+      src: "qrc:/resources/debug/drop-media.svg"
+      color: Style.dropPlace.border.color
+    }
   }
 
   IconButton {
@@ -86,7 +94,6 @@ FloatingPanel {
     anchors.top: _id.top
     src: "resources/debug/track.svg"
     anchors.leftMargin: 12
-    anchors.topMargin: 0
 
     onClicked: {
       if (_id.text === "") return
@@ -103,7 +110,6 @@ FloatingPanel {
     anchors.left: _track.right
     anchors.top: _id.top
     anchors.leftMargin: 12
-    anchors.topMargin: 0
     src: "resources/debug/playlist.svg"
 
     onClicked: {
@@ -121,7 +127,6 @@ FloatingPanel {
     anchors.left: _playlist.right
     anchors.top: _id.top
     anchors.leftMargin: 12
-    anchors.topMargin: 0
     src: "resources/debug/downloads.svg"
 
     onClicked: {
@@ -138,7 +143,6 @@ FloatingPanel {
     anchors.left: _downloads.right
     anchors.top: _id.top
     anchors.leftMargin: 12
-    anchors.topMargin: 0
     src: "resources/debug/user.svg"
 
     onClicked: {
@@ -192,7 +196,6 @@ FloatingPanel {
     anchors.left: _file.right
     anchors.top: _file.top
     anchors.leftMargin: 6
-    anchors.topMargin: 0
     src: "resources/debug/add.svg"
 
     onClicked: _openFile.show()

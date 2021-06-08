@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtGraphicalEffects 1.15
+import DMusic 1.0
 
 Item {
   id: root

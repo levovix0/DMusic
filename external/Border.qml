@@ -208,7 +208,7 @@ Shape {
 
     When set to a negative value, no line is drawn.
 
-    The default value is 4.
+    The default value is 1.
 */
     property alias strokeWidth: path.strokeWidth
 
@@ -372,7 +372,7 @@ Shape {
         id: path
         joinStyle: ShapePath.MiterJoin
 
-        strokeWidth: 4
+        strokeWidth: 1
         strokeColor: "red"
         fillColor: "transparent"
 
