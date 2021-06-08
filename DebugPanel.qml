@@ -30,11 +30,25 @@ FloatingPanel {
     anchors.left: _id.left
     anchors.top: _id.bottom
     anchors.topMargin: 10
+    filter: qsTr("Image (*.jpg *.png *.svg)")
 
     Icon {
       anchors.centerIn: parent
+      visible: !parent.hasContent
+
       src: "qrc:/resources/debug/drop-cover.svg"
       color: Style.dropPlace.border.color
+    }
+
+    RoundedImage {
+      anchors.fill: parent
+      sourceSize: Qt.size(width, height)
+      visible: parent.hasContent
+
+      radius: Style.dropPlace.border.radius
+      source: parent.content
+      fillMode: Image.PreserveAspectCrop
+      clip: true
     }
   }
 
@@ -71,18 +85,19 @@ FloatingPanel {
   }
 
   DropPlace {
-    id: _file
+    id: _media
     width: 20
     height: 20
     antialiasing: true
     anchors.left: _artists.right
     anchors.top: _artists.top
     anchors.leftMargin: 10
+    filter: qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)")
 
     Icon {
       anchors.centerIn: parent
       src: "qrc:/resources/debug/drop-media.svg"
-      color: Style.dropPlace.border.color
+      color: parent.hasContent? "#78c0ff" : Style.dropPlace.border.color
     }
   }
 
@@ -153,51 +168,22 @@ FloatingPanel {
     }
   }
 
-  FileDialog {
-    id: _openMedia
-    title: qsTr("Chose media")
-    nameFilters: [qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)")]
-    property string media: ""
-    onAccepted: {
-      media = fileUrl.toString()
-      _openCover.open()
-    }
-  }
-
-  FileDialog {
-    id: _openCover
-    title: qsTr("Chose cover")
-    nameFilters: [qsTr("Image (*.jpg *.png *.svg)")]
-    onAccepted: YClient.addUserTrack(_openMedia.media, fileUrl.toString(), _title.text, _artists.text, _extra.text)
-    onRejected: YClient.addUserTrack(_openMedia.media, "", _title.text, _artists.text, _extra.text)
-  }
-
-  DFileDialog {
-    id: _openFile
-    function show() {
-      if (!available()) _openMedia.open()
-      else {
-        let media = sellect(qsTr("Chose media"), "*.mp3 *.wav *.ogg *.m4a", qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)"))
-        if (media === "") return
-        let cover = sellect(qsTr("Chose cover"), "*.jpg *.png *.svg", qsTr("Image (*.jpg *.png *.svg)"))
-        if (cover === "") {
-          YClient.addUserTrack(media, "", _title.text, _artists.text, _extra.text)
-        } else {
-          YClient.addUserTrack(media, cover, _title.text, _artists.text, _extra.text)
-        }
-      }
-    }
-  }
-
   IconButton {
     id: _add
     width: 20
     height: 20
-    anchors.left: _file.right
-    anchors.top: _file.top
+    anchors.left: _media.right
+    anchors.top: _media.top
     anchors.leftMargin: 6
     src: "resources/debug/add.svg"
 
-    onClicked: _openFile.show()
+    onClicked: {
+      if (!_media.hasContent) return
+      if (!_cover.hasContent) {
+        YClient.addUserTrack(_media.content.toString(), "", _title.text, _artists.text, _extra.text)
+      } else {
+        YClient.addUserTrack(_media.content.toString(), _cover.content.toString(), _title.text, _artists.text, _extra.text)
+      }
+    }
   }
 }
