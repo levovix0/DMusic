@@ -42,6 +42,7 @@ FloatingPanel {
 
     RoundedImage {
       anchors.fill: parent
+      anchors.margins: 1
       sourceSize: Qt.size(width, height)
       visible: parent.hasContent
 

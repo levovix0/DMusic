@@ -8,12 +8,35 @@
 Settings::Settings()
 {
   connect(this, SIGNAL(reload()), this, SLOT(saveToJson()));
+  if (!settingsDir().qfile("settings.json").exists()) saveToJson();  // generate default config
   reloadFromJson();
 }
 
 Settings::~Settings()
 {
   saveToJson();
+}
+
+Dir Settings::settingsDir()
+{
+#ifdef Q_OS_LINUX
+  if (!(Dir::home()/".config"/"DMusic").exists())
+    Dir::home().mkpath(".config/DMusic");
+  return Dir::home()/".config"/"DMusic";
+#else
+  return Dir::current();
+#endif
+}
+
+Dir Settings::dataDir()
+{
+#ifdef Q_OS_LINUX
+  if (!(Dir::home()/".local"/"share"/"DMusic").exists())
+    Dir::home().mkpath(".local/share/DMusic");
+  return Dir::home()/".local"/"share"/"DMusic";
+#else
+  return Dir::current();
+#endif
 }
 
 
@@ -47,11 +70,11 @@ QString Settings::ym_proxyServer()
   return _ym_proxyServer;
 }
 
-QString Settings::ym_savePath()
+Dir Settings::ym_saveDir()
 {
-  if (!QDir(_ym_savePath).exists())
-    QDir::current().mkpath(_ym_savePath);
-  return QDir(_ym_savePath).canonicalPath();
+  if (!(dataDir()/"yandex").exists())
+    Dir().mkpath((dataDir()/"yandex").path());
+  return dataDir()/"yandex";
 }
 
 int Settings::ym_repeatsIfError()
@@ -74,29 +97,29 @@ bool Settings::ym_saveInfo()
   return _ym_saveInfo;
 }
 
-QString Settings::ym_mediaPath(int id)
+File Settings::ym_media(int id)
 {
-  return QDir::cleanPath(ym_savePath() + QDir::separator() + (QString::number(id) + ".mp3"));
+  return ym_saveDir().file(QString::number(id) + ".mp3");
 }
 
-QString Settings::ym_coverPath(int id)
+File Settings::ym_cover(int id)
 {
-  return QDir::cleanPath(ym_savePath() + QDir::separator() + (QString::number(id) + ".png"));
+  return ym_saveDir().file(QString::number(id) + ".png");
 }
 
-QString Settings::ym_metadataPath(int id)
+File Settings::ym_metadata(int id)
 {
-  return QDir::cleanPath(ym_savePath() + QDir::separator() + (QString::number(id) + ".json"));
+  return ym_saveDir().file(QString::number(id) + ".json");
 }
 
-QString Settings::ym_artistCoverPath(int id)
+File Settings::ym_artistCover(int id)
 {
-  return QDir::cleanPath(ym_savePath() + QDir::separator() + ("artist-" + QString::number(id) + ".png"));
+  return ym_saveDir().file("artist-" + QString::number(id) + ".png");
 }
 
-QString Settings::ym_artistMetadataPath(int id)
+File Settings::ym_artistMetadata(int id)
 {
-  return QDir::cleanPath(ym_savePath() + QDir::separator() + ("artist-" + QString::number(id) + ".json"));
+  return ym_saveDir().file("artist-" + QString::number(id) + ".json");
 }
 
 void Settings::set_isClientSideDecorations(bool v)
@@ -135,12 +158,6 @@ void Settings::set_ym_proxyServer(QString v)
   emit reload();
 }
 
-void Settings::set_ym_savePath(QString v)
-{
-  _ym_savePath = v.toUtf8().data();
-  emit reload();
-}
-
 void Settings::set_ym_repeatsIfError(int v)
 {
   _ym_repeatsIfError = v;
@@ -168,8 +185,8 @@ void Settings::set_ym_saveInfo(bool v)
 
 void Settings::reloadFromJson()
 {
-  if (!QFileInfo::exists("settings.json")) return;
-  QJsonObject doc = File("settings.json").allJson().object();
+  if (!settingsDir().qfile("settings.json").exists()) return;
+  QJsonObject doc = settingsDir().file("settings.json").allJson().object();
 
   _isClientSideDecorations = doc["isClientSideDecorations"].toBool(true);
 
@@ -181,7 +198,6 @@ void Settings::reloadFromJson()
   _ym_token = ym["token"].toString("");
   _ym_proxyServer = ym["proxyServer"].toString("");
 
-  _ym_savePath = ym["savePath"].toString("yandex/");
   _ym_repeatsIfError = ym["repeatsIfError"].toInt(1);
   _ym_downloadMedia = ym["downloadMedia"].toBool(true);
   _ym_saveCover = ym["saveCover"].toBool(true);
@@ -206,12 +222,11 @@ void Settings::saveToJson()
   ym["token"] = _ym_token;
   ym["proxyServer"] = _ym_proxyServer;
 
-  ym["savePath"] = _ym_savePath;
   ym["repeatsIfError"] = _ym_repeatsIfError;
   ym["downloadMedia"] = _ym_downloadMedia;
   ym["saveCover"] = _ym_saveCover;
   ym["saveInfo"] = _ym_saveInfo;
   doc["yandexMusic"] = ym;
 
-  File("settings.json").writeAll(doc, QJsonDocument::Indented);
+  settingsDir().file("settings.json").writeAll(doc, QJsonDocument::Indented);
 }

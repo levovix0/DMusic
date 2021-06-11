@@ -34,6 +34,7 @@ struct File
   void close();
   void needOpen();
   void needOpen(QFile::OpenMode om);
+  bool exists();
 
   bool openned = false;
   QFile::OpenMode mode;
@@ -123,6 +124,11 @@ inline void File::needOpen(QIODevice::OpenMode om)
     fs.open(om);
     openned = true;
   }
+}
+
+inline bool File::exists()
+{
+  return fs.exists();
 }
 
 inline std::ostream& operator<<(std::ostream& o, QString const& s) {

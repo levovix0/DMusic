@@ -7,6 +7,7 @@ SOURCES += \
   AudioPlayer.cpp \
   Clipboard.cpp \
   DFileDialog.cpp \
+  Dir.cpp \
   Download.cpp \
   ID.cpp \
   Messages.cpp \
@@ -24,6 +25,7 @@ HEADERS += \
   Clipboard.hpp \
   ConsoleArgs.hpp \
   DFileDialog.hpp \
+  Dir.hpp \
   Download.hpp \
   ID.hpp \
   Messages.hpp \

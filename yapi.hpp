@@ -34,9 +34,9 @@ public:
   qint64 id();
   bool available();
   QVector<YArtist> artists();
-  QString coverPath();
-  QString metadataPath();
-  QString mediaPath();
+  File coverFile();
+  File metadataFile();
+  File mediaFile();
 
   QJsonObject jsonMetadata();
   QString stringMetadata();

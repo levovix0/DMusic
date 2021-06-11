@@ -143,7 +143,7 @@ QString YTrack::cover()
       else emit coverAborted();
       return "qrc:resources/player/no-cover.svg";
     }
-    auto s = _relativePathToCover? QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _cover) : _cover;
+    auto s = _relativePathToCover? Settings::ym_saveDir().sub(_cover) : _cover;
     if (!fileExists(s)) {
       if (_relativePathToCover)
         _downloadCover(); // async
@@ -175,7 +175,7 @@ QMediaContent YTrack::media()
       }
       return {};
     }
-    auto media = QDir::cleanPath(Settings::ym_savePath() + QDir::separator() + _media);
+    auto media = Settings::ym_saveDir().sub(_media);
     if (QFile::exists(media))
       return QMediaContent("file:" + media);
     emit mediaAborted();
@@ -226,19 +226,19 @@ QVector<YArtist> YTrack::artists()
   return _py.get("artists").to<QVector<YArtist>>();
 }
 
-QString YTrack::coverPath()
+File YTrack::coverFile()
 {
-  return Settings::ym_coverPath(id());
+  return Settings::ym_cover(id());
 }
 
-QString YTrack::metadataPath()
+File YTrack::metadataFile()
 {
-  return Settings::ym_metadataPath(id());
+  return Settings::ym_metadata(id());
 }
 
-QString YTrack::mediaPath()
+File YTrack::mediaFile()
 {
-  return Settings::ym_mediaPath(id());
+  return Settings::ym_media(id());
 }
 
 QJsonObject YTrack::jsonMetadata()
@@ -271,7 +271,7 @@ void YTrack::saveMetadata()
 {
   if (!Settings::ym_saveInfo()) return;
   if (_id <= 0) return;
-  File(metadataPath()).writeAll(jsonMetadata());
+  metadataFile().writeAll(jsonMetadata());
 }
 
 void YTrack::setLiked(bool liked)
@@ -297,10 +297,10 @@ bool YTrack::_loadFromDisk()
   _checkedDisk = true;
   if (!Settings::ym_saveInfo()) return false;
   if (_id <= 0) return false;
-  auto metadataPath = Settings::ym_metadataPath(_id);
-  if (!fileExists(metadataPath)) return false;
+  auto metadata = metadataFile();
+  if (!metadata.exists()) return false;
 
-  QJsonObject doc = File(metadataPath).allJson().object();
+  QJsonObject doc = metadata.allJson().object();
 
   _noTitle = !doc["hasTitle"].toBool(true);
   _noAuthor = !doc["hasAuthor"].toBool(true);
@@ -400,7 +400,7 @@ void YTrack::_downloadCover()
       return;
     }
     repeat_if_error([this]() {
-      _py.call("download_cover", std::initializer_list<object>{coverPath(), Settings::ym_coverQuality()});
+      _py.call("download_cover", std::initializer_list<object>{coverFile().fs.fileName(), Settings::ym_coverQuality()});
       _cover = QString::number(_id) + ".png";
     }, [this](bool success) {
       if (success) emit coverChanged(cover());
@@ -423,7 +423,7 @@ void YTrack::_downloadMedia()
       return;
     }
     repeat_if_error([this]() {
-      _py.call("download", mediaPath());
+      _py.call("download", mediaFile().fs.fileName());
       _media = QString::number(_id) + ".mp3";
     }, [this](bool success) {
       if (success) emit mediaChanged(media());
@@ -503,12 +503,12 @@ QString YArtist::name()
 
 QString YArtist::coverPath()
 {
-  return Settings::ym_artistCoverPath(id());
+  return Settings::ym_artistCover(id()).fs.fileName();
 }
 
 QString YArtist::metadataPath()
 {
-  return Settings::ym_artistMetadataPath(id());
+  return Settings::ym_artistMetadata(id()).fs.fileName();
 }
 
 QJsonObject YArtist::jsonMetadata()
@@ -783,7 +783,7 @@ Playlist* YClient::downloadsPlaylist()
 {
   DPlaylist* res = new DPlaylist(this);
   if (!initialized()) return res;
-  QDir recoredDir(Settings::ym_savePath());
+  QDir recoredDir(Settings::ym_saveDir());
   QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
   for (auto s : allFiles) {
     if (!s.endsWith(".json")) continue;
