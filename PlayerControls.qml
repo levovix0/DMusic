@@ -5,8 +5,8 @@ Item {
   id: root
 
   property bool playing: false
-  property var nextMode: Settings.NextSequence
-  property var loopMode: Settings.LoopNone
+  property int nextMode: Config.NextSequence
+  property int loopMode: Config.LoopNone
 
   signal pause_or_play()
   signal next()
@@ -52,12 +52,12 @@ Item {
     anchors.horizontalCenter: root.horizontalCenter
     anchors.horizontalCenterOffset: 50 + 50
 
-    icon: loopMode == Settings.LoopTrack? "resources/player/loop-track.svg" : "resources/player/loop-playlist.svg"
-    color: loopMode != Settings.LoopNone? "#FCE165" : "#C1C1C1"
-    hoverColor: loopMode != Settings.LoopNone? "#CDB64E" : "#FFFFFF"
+    icon: loopMode == Config.LoopTrack? "resources/player/loop-track.svg" : "resources/player/loop-playlist.svg"
+    color: loopMode != Config.LoopNone? "#FCE165" : "#C1C1C1"
+    hoverColor: loopMode != Config.LoopNone? "#CDB64E" : "#FFFFFF"
     onClick: {
-      if (loopMode == Settings.LoopNone) changeLoopMode(Settings.LoopPlaylist)
-      else if (loopMode == Settings.LoopPlaylist) changeLoopMode(Settings.LoopTrack)
+      if (loopMode == Config.LoopNone) changeLoopMode(Settings.LoopPlaylist)
+      else if (loopMode == Config.LoopPlaylist) changeLoopMode(Settings.LoopTrack)
       else changeLoopMode(Settings.LoopNone)
     }
   }
@@ -69,8 +69,8 @@ Item {
     anchors.horizontalCenterOffset: -50 - 50
 
     icon: "resources/player/shuffle.svg"
-    color: nextMode != Settings.NextSequence? "#FCE165" : "#C1C1C1"
-    hoverColor: nextMode != Settings.NextSequence? "#CDB64E" : "#FFFFFF"
-    onClick: changeNextMode(nextMode == Settings.NextSequence? Settings.NextShuffle : Settings.NextSequence)
+    color: nextMode != Config.NextSequence? "#FCE165" : "#C1C1C1"
+    hoverColor: nextMode != Config.NextSequence? "#CDB64E" : "#FFFFFF"
+    onClick: changeNextMode(nextMode == Config.NextSequence? Settings.NextShuffle : Settings.NextSequence)
   }
 }

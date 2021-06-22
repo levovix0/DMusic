@@ -22,8 +22,8 @@ public:
   Q_PROPERTY(QString formatDuration READ formatDuration NOTIFY durationChanged)
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(bool muted READ muted WRITE setMuted NOTIFY mutedChanged)
-  Q_PROPERTY(Settings::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
-  Q_PROPERTY(Settings::NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
+	Q_PROPERTY(Config::LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
+	Q_PROPERTY(Config::NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
 
   float progress();
   qint64 progress_ms();
@@ -36,8 +36,8 @@ public:
   QMediaPlayer::State state();
   double volume();
   bool muted();
-  Settings::LoopMode loopMode();
-  Settings::NextMode nextMode();
+	Config::LoopMode loopMode();
+	Config::NextMode nextMode();
 
   inline static refTrack noneTrack{new Track()};
 
@@ -62,8 +62,8 @@ public slots:
   void setProgress_ms(int progress);
   void setVolume(double volume);
   void setMuted(bool muted);
-  void setLoopMode(Settings::LoopMode loopMode);
-  void setNextMode(Settings::NextMode nextMode);
+	void setLoopMode(Config::LoopMode loopMode);
+	void setNextMode(Config::NextMode nextMode);
 
 signals:
   void progressChanged(qint64 ms);
@@ -72,8 +72,8 @@ signals:
   void stateChanged(QMediaPlayer::State state);
   void volumeChanged(double volume);
   void mutedChanged(bool muted);
-  void loopModeChanged(Settings::LoopMode loopMode);
-  void nextModeChanged(Settings::NextMode nextMode);
+	void loopModeChanged(Config::LoopMode loopMode);
+	void nextModeChanged(Config::NextMode nextMode);
 
 private slots:
   void setMedia(QMediaContent media);
@@ -90,7 +90,7 @@ private:
   refTrack _currentTrack;
   refRadio _radio;
   double _volume;
-  Settings::LoopMode _loopMode;
-  Settings::NextMode _nextMode;
+	Config::LoopMode _loopMode;
+	Config::NextMode _nextMode;
 };
 

@@ -69,9 +69,12 @@ proc function(head, body: string): string =
 
 proc fill(a: var CVar, prefix: string, isEnum = false) =
   let isEnum = isEnum or a.typ in enums.mapit(it.name)
+  let fullTypename = if a.typ in enums.mapit(it.name): &"{classname}::{a.typ}" else: a.typ
+  let capName =
+    if prefix == "": a.name.runeAt(0).toUpper.toUTF8 & a.name[a.name.runeLenAt(0)..^1]
+    else: &"_{a.name}"
 
-  let capName = a.name.runeAt(0).toUpper.toUTF8 & a.name[a.name.runeLenAt(0)..^1]
-  a.prop = &"Q_PROPERTY({a.typ} {a.name} READ {a.name} WRITE set{capName} NOTIFY on{capName}Changed)"
+  a.prop = &"Q_PROPERTY({a.typ} {a.name} READ {a.name} WRITE set{capName} NOTIFY {a.name}Changed)"
   a.decl =
     if a.def == "": &"inline static {a.typ} _{a.name};"
     else: &"inline static {a.typ} _{a.name} = {a.def};"
@@ -79,8 +82,8 @@ proc fill(a: var CVar, prefix: string, isEnum = false) =
 
   a.get = &"static {a.typ} {a.name}();"
   a.set = &"void set{capName}({a.typ} v);"
-  a.getImpl = function(&"{a.typ} {classname}::{a.name}()", &"return _{a.name};")
-  a.setImpl = function(&"void {classname}::set{capName}({a.typ} v)", &"""
+  a.getImpl = function(&"{fullTypename} {classname}::{a.name}()", &"return _{a.name};")
+  a.setImpl = function(&"void {classname}::set{capName}({fullTypename} v)", &"""
 if (_{a.name} == v) return;
 _{a.name} = v;
 emit {a.name}Changed(_{a.name});
@@ -97,7 +100,7 @@ saveToJson();""")
     of "double": &"_{a.name} = {doc}[\"{a.jsonName}\"].toDouble({a.def});"
     elif isEnum: &"_{a.name} = ({a.typ}){doc}[\"{a.jsonName}\"].toInt({a.def});"
     else: &"_{a.name} = deserialize<{a.typ}>({doc}[\"{a.jsonName}\"], {a.def});"
-  a.deserialize.add &"\nemit {a.name}Changed(_{a.jsonName});"
+  a.deserialize.add &"\nemit {a.name}Changed(_{a.name});"
 
 proc add(a: var ReadConfigResult, b: CVar) =
   a.properties.add b.prop & "\n"
@@ -128,12 +131,12 @@ proc readConfig(body: NimNode; prefix: string): ReadConfigResult =
       result.readJson.add "\n"
       result.readJson.add &"""
 QJsonObject {prefix}{prefix2}_ = {doc}["{jsonName}"].toObject();
-if (!{prefix}{prefix2}_.isNull()) {lb}
+if (!{prefix}{prefix2}_.isEmpty()) {lb}
 {res.readJson.strip(chars=newLine).indent(2)}
 {rb}"""
       result.writeJson.add &"\nQJsonObject {prefix}{prefix2}_;\n"
       result.writeJson.add res.writeJson
-      result.writeJson.add &"{doc}[\"{jsonName}\"] = {prefix}{prefix2}_\n"
+      result.writeJson.add &"{doc}[\"{jsonName}\"] = {prefix}{prefix2}_;\n"
     
     of Command[Ident(strVal: "dir"), Command[Ident(strVal: @name), StrLit(strVal: @uri)]]:
       ## dir
@@ -226,14 +229,14 @@ if (!{prefix}{prefix2}_.isNull()) {lb}
         case field
         of Ident(strVal: @fieldName):
           res.fields.add fieldName
-          res.toString.add &"{`else`}if (v == {fullName}::{fieldName}) return \"{fieldName}\"\n"
+          res.toString.add &"{`else`}if (v == {fullName}::{fieldName}) return \"{fieldName}\";\n"
         
         of EnumFieldDef[Ident(strVal: @fieldName), StrLit(strVal: @fieldStr)]:
           res.fields.add fieldName
-          res.toString.add &"{`else`}if (v == {fullName}::{fieldName}) return \"{fieldStr.escape}\"\n"
+          res.toString.add &"{`else`}if (v == {fullName}::{fieldName}) return \"{fieldStr.escape}\";\n"
       
       res.toString.add &"""return "";"""
-      var decl = "{\n" & res.fields.join(",\n").indent(2) & "\n}"
+      var decl = "{\n" & res.fields.join(",\n").indent(2) & "\n};"
       decl = &"enum {name} {decl}\nQ_ENUM({name})\n"
 
       res.toString = function(&"inline QString toString({fullName} v)", res.toString)
@@ -290,7 +293,6 @@ macro genconfig*(classname, header, source, appname: static[string]; body: untyp
 
   let hpp = &"""
 {imports}
-
 class {classname}: public QObject
 {lb}
   Q_OBJECT
@@ -360,7 +362,7 @@ Dir {classname}::dataDir() {lb}
 void {classname}::reloadFromJson() {lb}
   if (!settingsDir().qfile("config.json").exists()) return;
   QJsonObject doc = settingsDir().file("config.json").allJson().object();
-  if (doc.isNull()) return;
+  if (doc.isEmpty()) return;
 
 {res.readJson.indent(2)}
 {rb}
@@ -369,7 +371,7 @@ void {classname}::saveToJson() {lb}
   QJsonObject doc;
 
 {res.writeJson.indent(2)}
-  settingsDir().file("settings.json").writeAll(doc, QJsonDocument::Indented);
+  settingsDir().file("config.json").writeAll(doc, QJsonDocument::Indented);
 {rb}
 """
 

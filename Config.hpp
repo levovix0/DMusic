@@ -4,7 +4,6 @@
 #include <QObject>
 #include "Dir.hpp"
 
-
 class Config: public QObject
 {
   Q_OBJECT
@@ -15,14 +14,14 @@ public:
   enum NextMode {
     NextSequence,
     NextShuffle
-  }
+  };
   Q_ENUM(NextMode)
   
   enum LoopMode {
     LoopNone,
     LoopTrack,
     LoopPlaylist
-  }
+  };
   Q_ENUM(LoopMode)
   
   enum CoverQuality {
@@ -33,21 +32,21 @@ public:
     LowCoverQuality,
     VeryLowCoverQuality,
     MinimumCoverQuality
-  }
+  };
   Q_ENUM(CoverQuality)
 
-  Q_PROPERTY(bool isClientSideDecorations READ isClientSideDecorations WRITE setIsClientSideDecorations NOTIFY onIsClientSideDecorationsChanged)
-  Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY onVolumeChanged)
-  Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY onNextModeChanged)
-  Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY onLoopModeChanged)
+  Q_PROPERTY(bool isClientSideDecorations READ isClientSideDecorations WRITE setIsClientSideDecorations NOTIFY isClientSideDecorationsChanged)
+  Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
+  Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
+  Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
   
-  Q_PROPERTY(QString ym_token READ ym_token WRITE setYm_token NOTIFY onYm_tokenChanged)
-  Q_PROPERTY(QString ym_proxyServer READ ym_proxyServer WRITE setYm_proxyServer NOTIFY onYm_proxyServerChanged)
-  Q_PROPERTY(int ym_repeatsIfError READ ym_repeatsIfError WRITE setYm_repeatsIfError NOTIFY onYm_repeatsIfErrorChanged)
-  Q_PROPERTY(bool ym_downloadMedia READ ym_downloadMedia WRITE setYm_downloadMedia NOTIFY onYm_downloadMediaChanged)
-  Q_PROPERTY(bool ym_saveCover READ ym_saveCover WRITE setYm_saveCover NOTIFY onYm_saveCoverChanged)
-  Q_PROPERTY(bool ym_saveInfo READ ym_saveInfo WRITE setYm_saveInfo NOTIFY onYm_saveInfoChanged)
-  Q_PROPERTY(CoverQuality ym_coverQuality READ ym_coverQuality WRITE setYm_coverQuality NOTIFY onYm_coverQualityChanged)
+  Q_PROPERTY(QString ym_token READ ym_token WRITE set_ym_token NOTIFY ym_tokenChanged)
+  Q_PROPERTY(QString ym_proxyServer READ ym_proxyServer WRITE set_ym_proxyServer NOTIFY ym_proxyServerChanged)
+  Q_PROPERTY(int ym_repeatsIfError READ ym_repeatsIfError WRITE set_ym_repeatsIfError NOTIFY ym_repeatsIfErrorChanged)
+  Q_PROPERTY(bool ym_downloadMedia READ ym_downloadMedia WRITE set_ym_downloadMedia NOTIFY ym_downloadMediaChanged)
+  Q_PROPERTY(bool ym_saveCover READ ym_saveCover WRITE set_ym_saveCover NOTIFY ym_saveCoverChanged)
+  Q_PROPERTY(bool ym_saveInfo READ ym_saveInfo WRITE set_ym_saveInfo NOTIFY ym_saveInfoChanged)
+  Q_PROPERTY(CoverQuality ym_coverQuality READ ym_coverQuality WRITE set_ym_coverQuality NOTIFY ym_coverQualityChanged)
 
   static Dir settingsDir();
   static Dir dataDir();
@@ -77,13 +76,13 @@ public slots:
   void setNextMode(NextMode v);
   void setLoopMode(LoopMode v);
   
-  void setYm_token(QString v);
-  void setYm_proxyServer(QString v);
-  void setYm_repeatsIfError(int v);
-  void setYm_downloadMedia(bool v);
-  void setYm_saveCover(bool v);
-  void setYm_saveInfo(bool v);
-  void setYm_coverQuality(CoverQuality v);
+  void set_ym_token(QString v);
+  void set_ym_proxyServer(QString v);
+  void set_ym_repeatsIfError(int v);
+  void set_ym_downloadMedia(bool v);
+  void set_ym_saveCover(bool v);
+  void set_ym_saveInfo(bool v);
+  void set_ym_coverQuality(CoverQuality v);
 
   void reloadFromJson();
   void saveToJson();
@@ -118,25 +117,25 @@ private:
 };
 
 inline QString toString(Config::NextMode v) {
-  if (v == Config::NextMode::NextSequence) return "NextSequence"
-  else if (v == Config::NextMode::NextShuffle) return "NextShuffle"
+  if (v == Config::NextMode::NextSequence) return "NextSequence";
+  else if (v == Config::NextMode::NextShuffle) return "NextShuffle";
   return "";
 }
 
 inline QString toString(Config::LoopMode v) {
-  if (v == Config::LoopMode::LoopNone) return "LoopNone"
-  else if (v == Config::LoopMode::LoopTrack) return "LoopTrack"
-  else if (v == Config::LoopMode::LoopPlaylist) return "LoopPlaylist"
+  if (v == Config::LoopMode::LoopNone) return "LoopNone";
+  else if (v == Config::LoopMode::LoopTrack) return "LoopTrack";
+  else if (v == Config::LoopMode::LoopPlaylist) return "LoopPlaylist";
   return "";
 }
 
 inline QString toString(Config::CoverQuality v) {
-  if (v == Config::CoverQuality::MaximumCoverQuality) return "1000x1000"
-  else if (v == Config::CoverQuality::VeryHighCoverQuality) return "700x700"
-  else if (v == Config::CoverQuality::HighCoverQuality) return "600x600"
-  else if (v == Config::CoverQuality::MediumCoverQuality) return "400x400"
-  else if (v == Config::CoverQuality::LowCoverQuality) return "200x200"
-  else if (v == Config::CoverQuality::VeryLowCoverQuality) return "100x100"
-  else if (v == Config::CoverQuality::MinimumCoverQuality) return "50x50"
+  if (v == Config::CoverQuality::MaximumCoverQuality) return "1000x1000";
+  else if (v == Config::CoverQuality::VeryHighCoverQuality) return "700x700";
+  else if (v == Config::CoverQuality::HighCoverQuality) return "600x600";
+  else if (v == Config::CoverQuality::MediumCoverQuality) return "400x400";
+  else if (v == Config::CoverQuality::LowCoverQuality) return "200x200";
+  else if (v == Config::CoverQuality::VeryLowCoverQuality) return "100x100";
+  else if (v == Config::CoverQuality::MinimumCoverQuality) return "50x50";
   return "";
 }

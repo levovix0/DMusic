@@ -9,7 +9,7 @@ Track::Track(QObject* parent) : QObject(parent)
   qmlEngine(this)->setObjectOwnership(this, QQmlEngine::CppOwnership);
 }
 
-QString Track::idInt()
+QString Track::idStr()
 {
   return "";
 }

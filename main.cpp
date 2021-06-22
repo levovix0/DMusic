@@ -5,7 +5,7 @@
 #include <QQuickStyle>
 #include "yapi.hpp"
 #include "file.hpp"
-#include "settings.hpp"
+#include "Config.hpp"
 #include "AudioPlayer.hpp"
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<Playlist>("DMusic", 1, 0, "Playlist");
   qmlRegisterType<DPlaylist>("DMusic", 1, 0, "DPlaylist");
   qmlRegisterType<AudioPlayer>("DMusic", 1, 0, "AudioPlayer");
-  qmlRegisterType<Settings>("DMusic", 1, 0, "Settings");
+	qmlRegisterType<Config>("DMusic", 1, 0, "Config");
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
   qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
   qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");

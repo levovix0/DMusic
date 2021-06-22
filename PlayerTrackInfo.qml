@@ -7,7 +7,7 @@ Item {
   property string title: ""
   property string artists: ""
   property string extra: ""
-  property string idInt: ""
+  property string idStr: ""
   property bool liked: false
 
   signal toggleLiked(bool liked)
@@ -35,7 +35,7 @@ Item {
           id: _clipboard
         }
 
-        onClicked: _clipboard.copy(root.idInt);
+        onClicked: _clipboard.copy(root.idStr);
 
         onEntered: _full_titleAndExtra.show()
         onExited: _full_titleAndExtra.hide()
@@ -130,7 +130,7 @@ Item {
     anchors.bottom: parent.verticalCenter
     x: Math.round(Math.min(_title.width + (_extra.text == ""? 0 : _extra.width + 2) + 5, root.width + 2))
     anchors.bottomMargin: -1
-    visible: idInt != ""
+    visible: idStr != ""
 
     icon: liked? "resources/player/liked.svg" : "resources/player/like.svg"
 

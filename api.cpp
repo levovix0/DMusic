@@ -42,7 +42,7 @@ refTrack Playlist::get(int)
   return nullptr;
 }
 
-refRadio radio(refPlaylist self, int index, Settings::NextMode nextMode)
+refRadio radio(refPlaylist self, int index, Config::NextMode nextMode)
 {
   return refRadio(new PlaylistRadio(self, index, nextMode));
 }
@@ -210,24 +210,24 @@ void UserTrack::setup(QString media, QString cover, QString title, QString artis
   save();
 }
 
-PlaylistRadio::PlaylistRadio(refPlaylist playlist, int index, Settings::NextMode nextMode)
+PlaylistRadio::PlaylistRadio(refPlaylist playlist, int index, Config::NextMode nextMode)
 {
   this->_playlist = playlist;
   _index = index;
   if (_index < 0) {
-    if (nextMode == Settings::NextSequence) _index = 0;
+		if (nextMode == Config::NextSequence) _index = 0;
     else _index = QRandomGenerator::global()->bounded(qMax(1, playlist->size()));
   }
   PlaylistRadio::setNextMode(nextMode);
 }
 
-void PlaylistRadio::setNextMode(Settings::NextMode nextMode)
+void PlaylistRadio::setNextMode(Config::NextMode nextMode)
 {
-  if (_nextMode == Settings::NextShuffle && nextMode == Settings::NextSequence) {
+	if (_nextMode == Config::NextShuffle && nextMode == Config::NextSequence) {
     _index = _history[_index];
   }
   _nextMode = nextMode;
-  if (nextMode == Settings::NextShuffle) {
+	if (nextMode == Config::NextShuffle) {
     _history.resize(_playlist->size());
 
     if (_playlist->size() != 0) {
@@ -249,7 +249,7 @@ void PlaylistRadio::setNextMode(Settings::NextMode nextMode)
 
 refTrack PlaylistRadio::current()
 {
-  if (_nextMode == Settings::NextShuffle) {
+	if (_nextMode == Config::NextShuffle) {
     if (_index >= _history.length()) return nullptr;
     return _playlist->get(_history[_index]);
   } else {
@@ -259,7 +259,7 @@ refTrack PlaylistRadio::current()
 
 refTrack PlaylistRadio::next()
 {
-  if (_nextMode == Settings::NextSequence) {
+	if (_nextMode == Config::NextSequence) {
     if (_index + 1 >= _playlist->size() || _index < -1) return nullptr;
     return _playlist->get(++_index);
   } else {
@@ -281,8 +281,8 @@ refTrack PlaylistRadio::next()
 
 refTrack PlaylistRadio::prev()
 {
-  if (_nextMode == Settings::NextSequence) {
-    if (_index - 1 >= _playlist->size() || _index < 1) return nullptr;
+	if (_nextMode == Config::NextSequence) {
+		if (_index - 1 >= _playlist->size() || _index < 1) return nullptr;
     return _playlist->get(--_index);
   } else {
     if (_playlist->size() == 0) {
@@ -303,12 +303,12 @@ refTrack PlaylistRadio::prev()
 
 void PlaylistRadio::markErrorCurrentTrack()
 {
-  if (_nextMode == Settings::NextShuffle) {
+	if (_nextMode == Config::NextShuffle) {
     if (_index >= _history.length()) return;
     _playlist->markErrorTrack(_history[_index]);
   } else {
     _playlist->markErrorTrack(_index);
-  }
+	}
 }
 
 int PlaylistRadio::gen()
@@ -327,6 +327,6 @@ void PlaylistRadio::fit()
   if (n != 0) {
     // regenerate playlist
     // TODO: save and correct history
-    setNextMode(Settings::NextShuffle);
+		setNextMode(Config::NextShuffle);
   }
 }

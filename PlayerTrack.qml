@@ -7,7 +7,7 @@ Item {
   property string title: ""
   property string artists: ""
   property string extra: ""
-  property string idInt: ""
+  property string idStr: ""
   property bool liked: false
 
   signal toggleLiked(bool liked)
@@ -29,7 +29,7 @@ Item {
     title: root.title
     artists: root.artists
     extra: root.extra
-    idInt: root.idInt
+    idStr: root.idStr
     liked: root.liked
 
     onToggleLiked: root.toggleLiked(liked)

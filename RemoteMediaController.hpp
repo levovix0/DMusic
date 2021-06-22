@@ -107,8 +107,8 @@ private slots:
     void onTrackChanged(Track* track);
     void onProgressChanged(qint64 ms);
     void onVolumeChanged(double volume);
-    void onLoopModeChanged(Settings::LoopMode mode);
-    void onNextModeChanged(Settings::NextMode mode);
+		void onLoopModeChanged(Config::LoopMode mode);
+		void onNextModeChanged(Config::NextMode mode);
 
     void onTitleChanged(QString title);
     void onAuthorChanged(QString author);

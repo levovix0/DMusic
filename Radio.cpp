@@ -1,6 +1,6 @@
 #include "Radio.hpp"
 
-void Radio::setNextMode(Settings::NextMode)
+void Radio::setNextMode(Config::NextMode)
 {
 
 }

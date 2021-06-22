@@ -7,7 +7,7 @@
 #include <QMediaPlayer>
 #include "yapi.hpp"
 #include "file.hpp"
-#include "settings.hpp"
+#include "Config.hpp"
 #include "utils.hpp"
 #include "Messages.hpp"
 #include "AudioPlayer.hpp"
@@ -137,13 +137,13 @@ QString YTrack::extra()
 QString YTrack::cover()
 {
   if (!_checkedDisk) _loadFromDisk();
-  if (Settings::ym_saveCover()) {
+	if (Config::ym_saveCover()) {
     if (_cover.isEmpty()) {
       if (!_noCover) _downloadCover(); // async
       else emit coverAborted();
       return "qrc:resources/player/no-cover.svg";
     }
-    auto s = _relativePathToCover? Settings::ym_saveDir().sub(_cover) : _cover;
+		auto s = _relativePathToCover? Config::ym_saveDir().sub(_cover) : _cover;
     if (!fileExists(s)) {
       if (_relativePathToCover)
         _downloadCover(); // async
@@ -166,7 +166,7 @@ QString YTrack::cover()
 QMediaContent YTrack::media()
 {
   if (!_checkedDisk) _loadFromDisk();
-  if (Settings::ym_downloadMedia()) {
+	if (Config::ym_downloadMedia()) {
     if (_media.isEmpty()) {
       if (!_noMedia) _downloadMedia(); // async
       else {
@@ -175,7 +175,7 @@ QMediaContent YTrack::media()
       }
       return {};
     }
-    auto media = Settings::ym_saveDir().sub(_media);
+		auto media = Config::ym_saveDir().sub(_media);
     if (QFile::exists(media))
       return QMediaContent("file:" + media);
     emit mediaAborted();
@@ -228,17 +228,17 @@ QVector<YArtist> YTrack::artists()
 
 File YTrack::coverFile()
 {
-  return Settings::ym_cover(id());
+	return Config::ym_cover(id());
 }
 
 File YTrack::metadataFile()
 {
-  return Settings::ym_metadata(id());
+	return Config::ym_metadata(id());
 }
 
 File YTrack::mediaFile()
 {
-  return Settings::ym_media(id());
+	return Config::ym_media(id());
 }
 
 QJsonObject YTrack::jsonMetadata()
@@ -269,7 +269,7 @@ QString YTrack::stringMetadata()
 
 void YTrack::saveMetadata()
 {
-  if (!Settings::ym_saveInfo()) return;
+	if (!Config::ym_saveInfo()) return;
   if (_id <= 0) return;
   metadataFile().writeAll(jsonMetadata());
 }
@@ -287,7 +287,7 @@ void YTrack::setLiked(bool liked)
       }
       _liked = liked;
       emit likedChanged(liked);
-    }, [](bool) {}, Settings::ym_repeatsIfError());
+		}, [](bool) {}, Config::ym_repeatsIfError());
     saveMetadata();
   });
 }
@@ -295,7 +295,7 @@ void YTrack::setLiked(bool liked)
 bool YTrack::_loadFromDisk()
 {
   _checkedDisk = true;
-  if (!Settings::ym_saveInfo()) return false;
+	if (!Config::ym_saveInfo()) return false;
   if (_id <= 0) return false;
   auto metadata = metadataFile();
   if (!metadata.exists()) return false;
@@ -400,7 +400,7 @@ void YTrack::_downloadCover()
       return;
     }
     repeat_if_error([this]() {
-      _py.call("download_cover", std::initializer_list<object>{coverFile().fs.fileName(), Settings::ym_coverQuality()});
+			_py.call("download_cover", std::initializer_list<object>{coverFile().fs.fileName(), Config::ym_coverQuality()});
       _cover = QString::number(_id) + ".png";
     }, [this](bool success) {
       if (success) emit coverChanged(cover());
@@ -408,7 +408,7 @@ void YTrack::_downloadCover()
         _noCover = true;
         emit coverAborted();
       }
-    }, Settings::ym_repeatsIfError());
+		}, Config::ym_repeatsIfError());
     saveMetadata();
   });
 }
@@ -431,7 +431,7 @@ void YTrack::_downloadMedia()
         _noCover = true;
         emit mediaAborted();
       }
-    }, Settings::ym_repeatsIfError());
+		}, Config::ym_repeatsIfError());
     saveMetadata();
   });
 }
@@ -454,7 +454,7 @@ void YTrack::_checkLiked()
     }, [this](bool success) {
       _hasLiked = success;
       if (success) emit likedChanged(_liked);
-    }, Settings::ym_repeatsIfError());
+		}, Config::ym_repeatsIfError());
   });
 }
 
@@ -463,7 +463,7 @@ QString YTrack::_coverUrl()
   if (!_py.has("cover_uri")) return "";
   auto a = "http://" + _py.get("cover_uri").to<QString>();
   a.remove(a.length() - 2, 2);
-  a += "m" + Settings::ym_coverQuality();
+	a += "m" + toString(Config::ym_coverQuality());
   return a;
 }
 
@@ -503,12 +503,12 @@ QString YArtist::name()
 
 QString YArtist::coverPath()
 {
-  return Settings::ym_artistCover(id()).fs.fileName();
+	return Config::ym_artistCover(id()).fs.fileName();
 }
 
 QString YArtist::metadataPath()
 {
-  return Settings::ym_artistMetadata(id()).fs.fileName();
+	return Config::ym_artistMetadata(id()).fs.fileName();
 }
 
 QJsonObject YArtist::jsonMetadata()
@@ -539,7 +539,7 @@ bool YArtist::saveCover(int quality)
     impl.call("download_og_image", std::initializer_list<object>{coverPath(), size});
   }, [&successed](bool success) {
     successed = success;
-  }, Settings::ym_repeatsIfError());
+	}, Config::ym_repeatsIfError());
   return successed;
 }
 
@@ -563,7 +563,7 @@ QUrl YPlaylist::cover()
 {
   try {
     auto a = "http://" + impl.get("cover").get("uri").to<QString>();
-    return QUrl(a.replace("%%", "m" + Settings::ym_coverQuality()));
+		return QUrl(a.replace("%%", "m" + toString(Config::ym_coverQuality())));
   } catch (py::error& e) {
     return QUrl("qrc:resources/player/no-cover.svg");
   }
@@ -694,7 +694,7 @@ bool YClient::login(QString token)
     me = ym.call("Client", token);
   }, [this](bool success) {
     loggined = success;
-  }, Settings::ym_repeatsIfError());
+	}, Config::ym_repeatsIfError());
   return loggined;
 }
 
@@ -716,7 +716,7 @@ bool YClient::loginViaProxy(QString token, QString proxy)
     me = ym.call("Client", token, kwargs);
   }, [this](bool success) {
     loggined = success;
-  }, Settings::ym_repeatsIfError());
+	}, Config::ym_repeatsIfError());
   return loggined;
 }
 
@@ -731,7 +731,7 @@ QVector<object> YClient::fetchTracks(qint64 id)
   QVector<py::object> tracks;
   repeat_if_error([this, id, &tracks]() {
     tracks = me.call("tracks", std::vector<object>{id}).to<QVector<py::object>>();
-  }, [](bool) {}, Settings::ym_repeatsIfError());
+	}, [](bool) {}, Config::ym_repeatsIfError());
   return tracks;
 }
 
@@ -783,7 +783,7 @@ Playlist* YClient::downloadsPlaylist()
 {
   DPlaylist* res = new DPlaylist(this);
   if (!initialized()) return res;
-  QDir recoredDir(Settings::ym_saveDir());
+	QDir recoredDir(Config::ym_saveDir());
   QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
   for (auto s : allFiles) {
     if (!s.endsWith(".json")) continue;

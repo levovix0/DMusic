@@ -94,28 +94,28 @@ QString Mpris2Player::playbackStatus()
 
 bool Mpris2Player::shuffle()
 {
-  return _player->nextMode() != Settings::NextSequence;
+	return _player->nextMode() != Config::NextSequence;
 }
 
 void Mpris2Player::setShuffle(bool value)
 {
-  _player->setNextMode(value? Settings::NextShuffle : Settings::NextSequence);
+	_player->setNextMode(value? Config::NextShuffle : Config::NextSequence);
 }
 
 QString Mpris2Player::loopStatus()
 {
   switch (_player->loopMode()) {
-  case Settings::LoopPlaylist: return "Playlist";
-  case Settings::LoopTrack: return "Track";
+	case Config::LoopPlaylist: return "Playlist";
+	case Config::LoopTrack: return "Track";
   default: return "None";
   }
 }
 
 void Mpris2Player::setLoopStatus(const QString& value)
 {
-  if (value == "Playlist") _player->setLoopMode(Settings::LoopPlaylist);
-  else if (value == "Track") _player->setLoopMode(Settings::LoopTrack);
-  else _player->setLoopMode(Settings::LoopNone);
+	if (value == "Playlist") _player->setLoopMode(Config::LoopPlaylist);
+	else if (value == "Track") _player->setLoopMode(Config::LoopTrack);
+	else _player->setLoopMode(Config::LoopNone);
 }
 
 double Mpris2Player::volume()
@@ -320,14 +320,14 @@ void Mpris2Player::onVolumeChanged(double volume)
   signalUpdate(map, "org.mpris.MediaPlayer2.Player");
 }
 
-void Mpris2Player::onLoopModeChanged(Settings::LoopMode)
+void Mpris2Player::onLoopModeChanged(Config::LoopMode)
 {
   QVariantMap map;
   map["LoopStatus"] = loopStatus();
   signalUpdate(map, "org.mpris.MediaPlayer2.Player");
 }
 
-void Mpris2Player::onNextModeChanged(Settings::NextMode)
+void Mpris2Player::onNextModeChanged(Config::NextMode)
 {
   QVariantMap map;
   map["Shuffle"] = shuffle();

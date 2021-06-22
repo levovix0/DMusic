@@ -6,6 +6,7 @@ CONFIG += c++17
 SOURCES += \
   AudioPlayer.cpp \
   Clipboard.cpp \
+  Config.cpp \
   DFileDialog.cpp \
   Dir.cpp \
   Download.cpp \
@@ -17,12 +18,12 @@ SOURCES += \
   api.cpp \
   main.cpp \
   python.cpp \
-  settings.cpp \
   yapi.cpp
 
 HEADERS += \
   AudioPlayer.hpp \
   Clipboard.hpp \
+  Config.hpp \
   ConsoleArgs.hpp \
   DFileDialog.hpp \
   Dir.hpp \
@@ -35,7 +36,6 @@ HEADERS += \
   api.hpp \
   file.hpp \
   python.hpp \
-  settings.hpp \
   types.hpp \
   utils.hpp \
   yapi.hpp

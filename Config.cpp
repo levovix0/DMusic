@@ -57,22 +57,22 @@ void Config::setVolume(double v) {
   saveToJson();
 }
 
-NextMode Config::nextMode() {
+Config::NextMode Config::nextMode() {
   return _nextMode;
 }
 
-void Config::setNextMode(NextMode v) {
+void Config::setNextMode(Config::NextMode v) {
   if (_nextMode == v) return;
   _nextMode = v;
   emit nextModeChanged(_nextMode);
   saveToJson();
 }
 
-LoopMode Config::loopMode() {
+Config::LoopMode Config::loopMode() {
   return _loopMode;
 }
 
-void Config::setLoopMode(LoopMode v) {
+void Config::setLoopMode(Config::LoopMode v) {
   if (_loopMode == v) return;
   _loopMode = v;
   emit loopModeChanged(_loopMode);
@@ -83,7 +83,7 @@ QString Config::ym_token() {
   return _ym_token;
 }
 
-void Config::setYm_token(QString v) {
+void Config::set_ym_token(QString v) {
   if (_ym_token == v) return;
   _ym_token = v;
   emit ym_tokenChanged(_ym_token);
@@ -94,7 +94,7 @@ QString Config::ym_proxyServer() {
   return _ym_proxyServer;
 }
 
-void Config::setYm_proxyServer(QString v) {
+void Config::set_ym_proxyServer(QString v) {
   if (_ym_proxyServer == v) return;
   _ym_proxyServer = v;
   emit ym_proxyServerChanged(_ym_proxyServer);
@@ -129,7 +129,7 @@ int Config::ym_repeatsIfError() {
   return _ym_repeatsIfError;
 }
 
-void Config::setYm_repeatsIfError(int v) {
+void Config::set_ym_repeatsIfError(int v) {
   if (_ym_repeatsIfError == v) return;
   _ym_repeatsIfError = v;
   emit ym_repeatsIfErrorChanged(_ym_repeatsIfError);
@@ -140,7 +140,7 @@ bool Config::ym_downloadMedia() {
   return _ym_downloadMedia;
 }
 
-void Config::setYm_downloadMedia(bool v) {
+void Config::set_ym_downloadMedia(bool v) {
   if (_ym_downloadMedia == v) return;
   _ym_downloadMedia = v;
   emit ym_downloadMediaChanged(_ym_downloadMedia);
@@ -151,7 +151,7 @@ bool Config::ym_saveCover() {
   return _ym_saveCover;
 }
 
-void Config::setYm_saveCover(bool v) {
+void Config::set_ym_saveCover(bool v) {
   if (_ym_saveCover == v) return;
   _ym_saveCover = v;
   emit ym_saveCoverChanged(_ym_saveCover);
@@ -162,18 +162,18 @@ bool Config::ym_saveInfo() {
   return _ym_saveInfo;
 }
 
-void Config::setYm_saveInfo(bool v) {
+void Config::set_ym_saveInfo(bool v) {
   if (_ym_saveInfo == v) return;
   _ym_saveInfo = v;
   emit ym_saveInfoChanged(_ym_saveInfo);
   saveToJson();
 }
 
-CoverQuality Config::ym_coverQuality() {
+Config::CoverQuality Config::ym_coverQuality() {
   return _ym_coverQuality;
 }
 
-void Config::setYm_coverQuality(CoverQuality v) {
+void Config::set_ym_coverQuality(Config::CoverQuality v) {
   if (_ym_coverQuality == v) return;
   _ym_coverQuality = v;
   emit ym_coverQualityChanged(_ym_coverQuality);
@@ -183,7 +183,7 @@ void Config::setYm_coverQuality(CoverQuality v) {
 void Config::reloadFromJson() {
   if (!settingsDir().qfile("config.json").exists()) return;
   QJsonObject doc = settingsDir().file("config.json").allJson().object();
-  if (doc.isNull()) return;
+  if (doc.isEmpty()) return;
 
   _isClientSideDecorations = doc["isClientSideDecorations"].toBool(true);
   emit isClientSideDecorationsChanged(_isClientSideDecorations);
@@ -195,21 +195,21 @@ void Config::reloadFromJson() {
   emit loopModeChanged(_loopMode);
   
   QJsonObject ym_ = doc["Yandex.Music"].toObject();
-  if (!ym_.isNull()) {
+  if (!ym_.isEmpty()) {
     _ym_token = ym_["token"].toString("");
-    emit ym_tokenChanged(_token);
+    emit ym_tokenChanged(_ym_token);
     _ym_proxyServer = ym_["proxyServer"].toString("");
-    emit ym_proxyServerChanged(_proxyServer);
+    emit ym_proxyServerChanged(_ym_proxyServer);
     _ym_repeatsIfError = ym_["repeatsIfError"].toInt(1);
-    emit ym_repeatsIfErrorChanged(_repeatsIfError);
+    emit ym_repeatsIfErrorChanged(_ym_repeatsIfError);
     _ym_downloadMedia = ym_["downloadMedia"].toBool(true);
-    emit ym_downloadMediaChanged(_downloadMedia);
+    emit ym_downloadMediaChanged(_ym_downloadMedia);
     _ym_saveCover = ym_["saveCover"].toBool(true);
-    emit ym_saveCoverChanged(_saveCover);
+    emit ym_saveCoverChanged(_ym_saveCover);
     _ym_saveInfo = ym_["saveInfo"].toBool(true);
-    emit ym_saveInfoChanged(_saveInfo);
+    emit ym_saveInfoChanged(_ym_saveInfo);
     _ym_coverQuality = (CoverQuality)ym_["coverQuality"].toInt(MaximumCoverQuality);
-    emit ym_coverQualityChanged(_coverQuality);
+    emit ym_coverQualityChanged(_ym_coverQuality);
   }
 }
 
@@ -229,7 +229,7 @@ void Config::saveToJson() {
   ym_["saveCover"] = _ym_saveCover;
   ym_["saveInfo"] = _ym_saveInfo;
   ym_["coverQuality"] = _ym_coverQuality;
-  doc["Yandex.Music"] = ym_
+  doc["Yandex.Music"] = ym_;
   
-  settingsDir().file("settings.json").writeAll(doc, QJsonDocument::Indented);
+  settingsDir().file("config.json").writeAll(doc, QJsonDocument::Indented);
 }

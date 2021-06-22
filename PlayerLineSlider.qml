@@ -1,5 +1,6 @@
 import QtQuick 2.0
 //TODO: scroll
+//TODO: таймкоды
 
 Rectangle {
   id: root

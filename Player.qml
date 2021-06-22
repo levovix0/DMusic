@@ -6,7 +6,7 @@ Rectangle {
 
   color: Style.panel.background
 
-  property Settings settings
+  property Config settings
   property alias player: _player
   property alias track: _track
 
@@ -85,7 +85,7 @@ Rectangle {
     title: _player.currentTrack.title
     artists: _player.currentTrack.artistsStr
     extra: _player.currentTrack.extra
-    idInt: _player.currentTrack.idInt
+    idStr: _player.currentTrack.idStr
     liked: _player.currentTrack.liked
 
     onToggleLiked: _player.currentTrack.setLiked(liked)

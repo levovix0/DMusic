@@ -2,7 +2,7 @@
 #include <QObject>
 #include <QMediaContent>
 #include <functional>
-#include <settings.hpp>
+#include "Config.hpp"
 #include <Track.hpp>
 #include <Radio.hpp>
 #include <types.hpp>
@@ -25,7 +25,7 @@ public:
   virtual void markErrorTrack(int index);
 };
 
-refRadio radio(refPlaylist self, int index = -1, Settings::NextMode nextMode = Settings::NextSequence);
+refRadio radio(refPlaylist self, int index = -1, Config::NextMode nextMode = Config::NextSequence);
 
 class DPlaylist : public Playlist
 {
@@ -53,8 +53,8 @@ private:
 class PlaylistRadio : public Radio
 {
 public:
-  PlaylistRadio(refPlaylist playlist, int index, Settings::NextMode nextMode);
-  void setNextMode(Settings::NextMode nextMode) override;
+	PlaylistRadio(refPlaylist playlist, int index, Config::NextMode nextMode);
+	void setNextMode(Config::NextMode nextMode) override;
   refTrack current() override;
   refTrack next() override;
   refTrack prev() override;
@@ -68,7 +68,7 @@ private:
   refPlaylist _playlist;
   QVector<int> _history{};
   int _index;
-  Settings::NextMode _nextMode;
+	Config::NextMode _nextMode;
 };
 
 struct UserTrack : Track

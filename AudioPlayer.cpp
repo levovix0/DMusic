@@ -1,6 +1,6 @@
 ﻿#include <cmath>
 #include "AudioPlayer.hpp"
-#include "settings.hpp"
+#include "Config.hpp"
 #include "QDateTime"
 #include "Messages.hpp"
 
@@ -21,7 +21,7 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
 
   QObject::connect(player, &QMediaPlayer::mediaStatusChanged, [this](QMediaPlayer::MediaStatus status) {
     if (status == QMediaPlayer::EndOfMedia) {
-      if (_loopMode == Settings::LoopTrack) {
+			if (_loopMode == Config::LoopTrack) {
         player->play();
         return;
       }
@@ -95,12 +95,12 @@ bool AudioPlayer::muted()
   return player->isMuted();
 }
 
-Settings::LoopMode AudioPlayer::loopMode()
+Config::LoopMode AudioPlayer::loopMode()
 {
   return _loopMode;
 }
 
-Settings::NextMode AudioPlayer::nextMode()
+Config::NextMode AudioPlayer::nextMode()
 {
   return _nextMode;
 }
@@ -280,13 +280,13 @@ void AudioPlayer::setMuted(bool muted)
   player->setMuted(muted);
 }
 
-void AudioPlayer::setLoopMode(Settings::LoopMode loopMode)
+void AudioPlayer::setLoopMode(Config::LoopMode loopMode)
 {
   _loopMode = loopMode;
   emit loopModeChanged(loopMode);
 }
 
-void AudioPlayer::setNextMode(Settings::NextMode nextMode)
+void AudioPlayer::setNextMode(Config::NextMode nextMode)
 {
   _nextMode = nextMode;
   updatePlaylistGenerator();

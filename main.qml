@@ -62,7 +62,7 @@ Window {
       onClicked: root.focus = true
     }
 
-    Settings {
+    Config {
       id: _settings
 
       Component.onCompleted: {
