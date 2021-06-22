@@ -102,7 +102,7 @@ YTrack::YTrack(QObject* parent) : Track(parent)
 
 }
 
-QString YTrack::idInt()
+QString YTrack::idStr()
 {
   return QString::number(_id);
 }

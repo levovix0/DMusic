@@ -1,48 +1,54 @@
 import codegen/genconfig
 
-genconfig "Config", "Config.hpp", "Config.cpp":
-  imports:
-    "IPlaylistRadio.hpp"
-  srcimports:
-    QDir
-  
+genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":  
   bool isClientSideDecorations true
   double volume 0.5
-  NextMode {.enum.} nextMode
-  LoopMode {.enum.} loopMode
 
-  config "YandexMusicConfig" ym, "Yandex.Music":
-    type CoverQuality {.extendNames.} = enum
-      Maximum ## "1000x1000"
-      VeryHigh ## "700x700"
-      High ## "600x600"
-      Medium ## "400x400"
-      Low ## "200x200"
-      VeryLow ## "100x100"
-      Minimum ## "50x50"
+  type NextMode = enum
+    NextSequence
+    NextShuffle
+  
+  type LoopMode = enum
+    LoopNone
+    LoopTrack
+    LoopPlaylist
+  
+  NextMode nextMode NextSequence
+  LoopMode loopMode LoopNone
+
+  config ym, "Yandex.Music":
+    type CoverQuality = enum
+      MaximumCoverQuality  = "1000x1000"
+      VeryHighCoverQuality = "700x700"
+      HighCoverQuality     = "600x600"
+      MediumCoverQuality   = "400x400"
+      LowCoverQuality      = "200x200"
+      VeryLowCoverQuality  = "100x100"
+      MinimumCoverQuality  = "50x50"
 
     string token
     string proxyServer
-    string savePath "yandex/":
-      get: """
-        if (!QDir(`val`).exists())
-          QDir::current().mkpath(`val`);
-        return QDir(`val`).canonicalPath();
-      """
-      get rawSavePath: """
-        return `val`;
-      """
-      get mediaPath(int id): """
-        return QDir::cleanPath(`get` + QDir::separator() + (QString::number(id) + ".mp3"));
-      """
-      get coverPath(int id): """
-        return QDir::cleanPath(`get` + QDir::separator() + (QString::number(id) + ".png"));
-      """
-      get metadataPath(int id): """
-        return QDir::cleanPath(`get` + QDir::separator() + (QString::number(id) + ".json"));
-      """
+
+    dir saveDir "data:yandex"
+
+    get File media(int id): """
+      return ym_saveDir().file(QString::number(id) + ".mp3");
+    """
+    get File cover(int id): """
+      return ym_saveDir().file(QString::number(id) + ".png");
+    """
+    get File metadata(int id): """
+      return ym_saveDir().file(QString::number(id) + ".json");
+    """
+    get File artistCover(int id): """
+      return ym_saveDir().file("artist-" + QString::number(id) + ".png");
+    """
+    get File artistMetadata(int id): """
+      return ym_saveDir().file("artist-" + QString::number(id) + ".json");
+    """
+
     int repeatsIfError 1
     bool downloadMedia true
     bool saveCover true
     bool saveInfo true
-    CoverQuality coverQuality {.stringGetter.} Maximum
+    CoverQuality coverQuality MaximumCoverQuality

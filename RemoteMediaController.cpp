@@ -347,7 +347,7 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
   res["xesam:userRating"] = track.liked()? 1 : 0;
   auto duration = track.duration();
   res["mpris:length"] = duration > 0? duration * 1000 : 1; // in microseconds
-  auto id = track.idInt();
+  auto id = track.idStr();
   QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/track/") + (id == ""? QString::number(0) : id);
   res["mpris:trackid"] = QVariant(QDBusObjectPath(trackId).path());
   res["mpris:artUrl"] = track.cover();
@@ -482,7 +482,7 @@ void DiscordPresence::update(Track* track)
         args["details"] = track->title() + " (" + track->extra() + ")";
       args["start"] = _time.call("time");
       args["large_image"] = "app";
-      args["large_text"] = track->idInt();
+      args["large_text"] = track->idStr();
       _rpc.call("update", std::initializer_list<object>{}, args);
     }  catch (error const& e) {
       // it's normal ;)

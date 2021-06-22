@@ -1,0 +1,235 @@
+// This file was generated, don't edit it
+#include "Config.hpp"
+#include <QFile>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+
+
+Config::Config() {
+  if (!settingsDir().qfile("config.json").exists())
+    saveToJson();  // generate default config
+  else
+    reloadFromJson();
+}
+
+Config::~Config() {}
+
+Dir Config::settingsDir() {
+#ifdef Q_OS_LINUX
+  if (!(Dir::home()/".config"/"DMusic").exists())
+    Dir::home().mkpath(".config/DMusic");
+  return Dir::home()/".config"/"DMusic";
+#else
+  return Dir::current();
+#endif
+}
+
+Dir Config::dataDir() {
+#ifdef Q_OS_LINUX
+  if (!(Dir::home()/".local"/"share"/"DMusic").exists())
+    Dir::home().mkpath(".local/share/DMusic");
+  return Dir::home()/".local"/"share"/"DMusic";
+#else
+  return Dir::current();
+#endif
+}
+
+bool Config::isClientSideDecorations() {
+  return _isClientSideDecorations;
+}
+
+void Config::setIsClientSideDecorations(bool v) {
+  if (_isClientSideDecorations == v) return;
+  _isClientSideDecorations = v;
+  emit isClientSideDecorationsChanged(_isClientSideDecorations);
+  saveToJson();
+}
+
+double Config::volume() {
+  return _volume;
+}
+
+void Config::setVolume(double v) {
+  if (_volume == v) return;
+  _volume = v;
+  emit volumeChanged(_volume);
+  saveToJson();
+}
+
+NextMode Config::nextMode() {
+  return _nextMode;
+}
+
+void Config::setNextMode(NextMode v) {
+  if (_nextMode == v) return;
+  _nextMode = v;
+  emit nextModeChanged(_nextMode);
+  saveToJson();
+}
+
+LoopMode Config::loopMode() {
+  return _loopMode;
+}
+
+void Config::setLoopMode(LoopMode v) {
+  if (_loopMode == v) return;
+  _loopMode = v;
+  emit loopModeChanged(_loopMode);
+  saveToJson();
+}
+
+QString Config::ym_token() {
+  return _ym_token;
+}
+
+void Config::setYm_token(QString v) {
+  if (_ym_token == v) return;
+  _ym_token = v;
+  emit ym_tokenChanged(_ym_token);
+  saveToJson();
+}
+
+QString Config::ym_proxyServer() {
+  return _ym_proxyServer;
+}
+
+void Config::setYm_proxyServer(QString v) {
+  if (_ym_proxyServer == v) return;
+  _ym_proxyServer = v;
+  emit ym_proxyServerChanged(_ym_proxyServer);
+  saveToJson();
+}
+
+Dir Config::ym_saveDir() {
+  return dataDir()/"yandex";
+}
+
+File Config::ym_media(int id) {
+  return ym_saveDir().file(QString::number(id) + ".mp3");
+}
+
+File Config::ym_cover(int id) {
+  return ym_saveDir().file(QString::number(id) + ".png");
+}
+
+File Config::ym_metadata(int id) {
+  return ym_saveDir().file(QString::number(id) + ".json");
+}
+
+File Config::ym_artistCover(int id) {
+  return ym_saveDir().file("artist-" + QString::number(id) + ".png");
+}
+
+File Config::ym_artistMetadata(int id) {
+  return ym_saveDir().file("artist-" + QString::number(id) + ".json");
+}
+
+int Config::ym_repeatsIfError() {
+  return _ym_repeatsIfError;
+}
+
+void Config::setYm_repeatsIfError(int v) {
+  if (_ym_repeatsIfError == v) return;
+  _ym_repeatsIfError = v;
+  emit ym_repeatsIfErrorChanged(_ym_repeatsIfError);
+  saveToJson();
+}
+
+bool Config::ym_downloadMedia() {
+  return _ym_downloadMedia;
+}
+
+void Config::setYm_downloadMedia(bool v) {
+  if (_ym_downloadMedia == v) return;
+  _ym_downloadMedia = v;
+  emit ym_downloadMediaChanged(_ym_downloadMedia);
+  saveToJson();
+}
+
+bool Config::ym_saveCover() {
+  return _ym_saveCover;
+}
+
+void Config::setYm_saveCover(bool v) {
+  if (_ym_saveCover == v) return;
+  _ym_saveCover = v;
+  emit ym_saveCoverChanged(_ym_saveCover);
+  saveToJson();
+}
+
+bool Config::ym_saveInfo() {
+  return _ym_saveInfo;
+}
+
+void Config::setYm_saveInfo(bool v) {
+  if (_ym_saveInfo == v) return;
+  _ym_saveInfo = v;
+  emit ym_saveInfoChanged(_ym_saveInfo);
+  saveToJson();
+}
+
+CoverQuality Config::ym_coverQuality() {
+  return _ym_coverQuality;
+}
+
+void Config::setYm_coverQuality(CoverQuality v) {
+  if (_ym_coverQuality == v) return;
+  _ym_coverQuality = v;
+  emit ym_coverQualityChanged(_ym_coverQuality);
+  saveToJson();
+}
+
+void Config::reloadFromJson() {
+  if (!settingsDir().qfile("config.json").exists()) return;
+  QJsonObject doc = settingsDir().file("config.json").allJson().object();
+  if (doc.isNull()) return;
+
+  _isClientSideDecorations = doc["isClientSideDecorations"].toBool(true);
+  emit isClientSideDecorationsChanged(_isClientSideDecorations);
+  _volume = doc["volume"].toDouble(0.5);
+  emit volumeChanged(_volume);
+  _nextMode = (NextMode)doc["nextMode"].toInt(NextSequence);
+  emit nextModeChanged(_nextMode);
+  _loopMode = (LoopMode)doc["loopMode"].toInt(LoopNone);
+  emit loopModeChanged(_loopMode);
+  
+  QJsonObject ym_ = doc["Yandex.Music"].toObject();
+  if (!ym_.isNull()) {
+    _ym_token = ym_["token"].toString("");
+    emit ym_tokenChanged(_token);
+    _ym_proxyServer = ym_["proxyServer"].toString("");
+    emit ym_proxyServerChanged(_proxyServer);
+    _ym_repeatsIfError = ym_["repeatsIfError"].toInt(1);
+    emit ym_repeatsIfErrorChanged(_repeatsIfError);
+    _ym_downloadMedia = ym_["downloadMedia"].toBool(true);
+    emit ym_downloadMediaChanged(_downloadMedia);
+    _ym_saveCover = ym_["saveCover"].toBool(true);
+    emit ym_saveCoverChanged(_saveCover);
+    _ym_saveInfo = ym_["saveInfo"].toBool(true);
+    emit ym_saveInfoChanged(_saveInfo);
+    _ym_coverQuality = (CoverQuality)ym_["coverQuality"].toInt(MaximumCoverQuality);
+    emit ym_coverQualityChanged(_coverQuality);
+  }
+}
+
+void Config::saveToJson() {
+  QJsonObject doc;
+
+  doc["isClientSideDecorations"] = _isClientSideDecorations;
+  doc["volume"] = _volume;
+  doc["nextMode"] = _nextMode;
+  doc["loopMode"] = _loopMode;
+  
+  QJsonObject ym_;
+  ym_["token"] = _ym_token;
+  ym_["proxyServer"] = _ym_proxyServer;
+  ym_["repeatsIfError"] = _ym_repeatsIfError;
+  ym_["downloadMedia"] = _ym_downloadMedia;
+  ym_["saveCover"] = _ym_saveCover;
+  ym_["saveInfo"] = _ym_saveInfo;
+  ym_["coverQuality"] = _ym_coverQuality;
+  doc["Yandex.Music"] = ym_
+  
+  settingsDir().file("settings.json").writeAll(doc, QJsonDocument::Indented);
+}

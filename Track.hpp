@@ -9,7 +9,7 @@ public:
   virtual ~Track();
   explicit Track(QObject *parent = nullptr);
 
-  Q_PROPERTY(QString idInt READ idInt NOTIFY idIntChanged)
+  Q_PROPERTY(QString idStr READ idStr NOTIFY idIntChanged)
   Q_PROPERTY(QString title READ title NOTIFY titleChanged)
   Q_PROPERTY(QString artistsStr READ artistsStr NOTIFY artistsStrChanged)
   Q_PROPERTY(QString extra READ extra NOTIFY extraChanged)
@@ -18,7 +18,7 @@ public:
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
   Q_PROPERTY(bool liked READ liked NOTIFY likedChanged)
 
-  virtual QString idInt();
+  virtual QString idStr();
   virtual QString title();
   virtual QString artistsStr();
   virtual QString extra();
