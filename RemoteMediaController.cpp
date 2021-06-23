@@ -241,7 +241,7 @@ void Mpris2Player::onStateChanged(QMediaPlayer::State state)
 
   switch (_player->state()) {
   case QMediaPlayer::PlayingState:
-    map["CanPlay"] = false;
+    map["CanPlay"] = true;
     map["CanStop"] = true;
     map["CanPause"] = true;
     map["CanSeek"] = true;
@@ -338,7 +338,9 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
 {
   QMap<QString, QVariant> res;
   res["origin"] = "DMusic";
-  QStringList artist{track.artistsStr()};
+  QStringList artist;
+  for (auto& x : track.artistsStr().split(", "))
+    artist.append(x);
   auto title = track.title();
   res["xesam:url"] = title;
   res["xesam:artist"] = artist;
