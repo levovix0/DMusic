@@ -22,6 +22,8 @@ public:
   Dir dir(QString const& subdirPath) const;
   File file(QString const& filename) const;
   QFile qfile(QString const& filename) const;
+  QUrl qurl(QString const& filename) const;
+  QUrl qurl() const;
 
   static Dir home();
 };

@@ -29,10 +29,10 @@ QString Track::extra()
   return "";
 }
 
-QString Track::cover()
+QUrl Track::cover()
 {
   emit coverAborted();
-  return "qrc:resources/player/no-cover.svg";
+  return {"qrc:resources/player/no-cover.svg"};
 }
 
 QMediaContent Track::media()

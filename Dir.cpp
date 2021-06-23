@@ -72,6 +72,16 @@ QFile Dir::qfile(const QString& filename) const
   return QFile(sub(filename));
 }
 
+QUrl Dir::qurl(const QString& filename) const
+{
+  return QUrl(sub(filename));
+}
+
+QUrl Dir::qurl() const
+{
+  return QUrl(path());
+}
+
 Dir Dir::home()
 {
   return QDir::home();

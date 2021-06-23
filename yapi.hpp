@@ -26,7 +26,7 @@ public:
   QString title() override;
   QString artistsStr() override;
   QString extra() override;
-  QString cover() override;
+  QUrl cover() override;
   QMediaContent media() override;
   qint64 duration() override;
   bool liked() override;
@@ -193,7 +193,7 @@ public slots:
 
   void playPlaylist(YPlaylist* playlist);
 
-  void addUserTrack(QString media, QString cover, QString title, QString artists, QString extra);
+  void addUserTrack(QUrl media, QUrl cover, QString title, QString artists, QString extra);
 
 signals:
   void initializedChanged(bool initialized);

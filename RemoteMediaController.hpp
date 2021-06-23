@@ -112,7 +112,7 @@ private slots:
 
     void onTitleChanged(QString title);
     void onAuthorChanged(QString author);
-    void onCoverChanged(QString cover);
+    void onCoverChanged(QUrl cover);
     void onDurationChanged(qint64 duration);
 
 private:

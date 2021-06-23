@@ -80,14 +80,14 @@ public:
   QString title() override;
   QString artistsStr() override;
   QString extra() override;
-  QString cover() override;
+  QUrl cover() override;
   QMediaContent media() override;
 
 public slots:
   void save();
   bool load();
 
-  void setup(QString media, QString cover, QString title, QString artists, QString extra);
+  void setup(QUrl media, QUrl cover, QString title, QString artists, QString extra);
 
 private:
   int id;

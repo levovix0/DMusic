@@ -301,7 +301,7 @@ void Mpris2Player::onAuthorChanged(QString author)
   signalPlayerUpdate({});
 }
 
-void Mpris2Player::onCoverChanged(QString cover)
+void Mpris2Player::onCoverChanged(QUrl cover)
 {
   _currentTrackMetadata["mpris:artUrl"] = cover;
   signalPlayerUpdate({});

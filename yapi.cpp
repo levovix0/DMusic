@@ -134,20 +134,20 @@ QString YTrack::extra()
   return _extra;
 }
 
-QString YTrack::cover()
+QUrl YTrack::cover()
 {
   if (!_checkedDisk) _loadFromDisk();
 	if (Config::ym_saveCover()) {
     if (_cover.isEmpty()) {
       if (!_noCover) _downloadCover(); // async
       else emit coverAborted();
-      return "qrc:resources/player/no-cover.svg";
+      return {"qrc:resources/player/no-cover.svg"};
     }
 		auto s = _relativePathToCover? Config::ym_saveDir().sub(_cover) : _cover;
     if (!fileExists(s)) {
       if (_relativePathToCover)
         _downloadCover(); // async
-      return "qrc:resources/player/no-cover.svg";
+      return {"qrc:resources/player/no-cover.svg"};
     }
     return "file:" + s;
   } else {
@@ -160,7 +160,7 @@ QString YTrack::cover()
     else
       return _coverUrl();
   }
-  return "qrc:resources/player/no-cover.svg";
+  return {"qrc:resources/player/no-cover.svg"};
 }
 
 QMediaContent YTrack::media()
@@ -825,7 +825,7 @@ void YClient::playPlaylist(YPlaylist* playlist)
   AudioPlayer::instance->play(playlist->toPlaylist());
 }
 
-void YClient::addUserTrack(QString media, QString cover, QString title, QString artists, QString extra)
+void YClient::addUserTrack(QUrl media, QUrl cover, QString title, QString artists, QString extra)
 {
   UserTrack().setup(media, cover, title, artists, extra);
 }

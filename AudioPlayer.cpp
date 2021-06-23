@@ -219,6 +219,7 @@ bool AudioPlayer::next()
   _unsubscribeCurrentTrack();
   player->stop();
 
+  if (_radio == nullptr) return false;
   _currentTrack = _radio->next();
   if (_currentTrack == nullptr) return false;
 
@@ -241,6 +242,7 @@ bool AudioPlayer::prev()
   _unsubscribeCurrentTrack();
   player->stop();
 
+  if (_radio == nullptr) return false;
   _currentTrack = _radio->prev();
   if (_currentTrack == nullptr) return false;
 
