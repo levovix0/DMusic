@@ -129,9 +129,9 @@ QString UserTrack::extra()
 QUrl UserTrack::cover()
 {
   auto ids = QString::number(id);
-  if (Config::dataDir().file(ids + ".png").exists()) return Config::dataDir().qurl(ids + ".png");
-  if (Config::dataDir().file(ids + ".jpg").exists()) return Config::dataDir().qurl(ids + ".jpg");
-  if (Config::dataDir().file(ids + ".svg").exists()) return Config::dataDir().qurl(ids + ".svg");
+  if (userDir().file(ids + ".png").exists()) return userDir().qurl(ids + ".png");
+  if (userDir().file(ids + ".jpg").exists()) return userDir().qurl(ids + ".jpg");
+  if (userDir().file(ids + ".svg").exists()) return userDir().qurl(ids + ".svg");
   emit coverAborted();
   return {"qrc:resources/player/no-cover.svg"};
 }
@@ -139,12 +139,17 @@ QUrl UserTrack::cover()
 QMediaContent UserTrack::media()
 {
   auto ids = QString::number(id);
-  if (Config::dataDir().file(ids + ".mp3").exists()) return Config::dataDir().qurl(ids + ".mp3");
-  if (Config::dataDir().file(ids + ".wav").exists()) return Config::dataDir().qurl(ids + ".wav");
-  if (Config::dataDir().file(ids + ".ogg").exists()) return Config::dataDir().qurl(ids + ".ogg");
-  if (Config::dataDir().file(ids + ".m4a").exists()) return Config::dataDir().qurl(ids + ".m4a");
+  if (userDir().file(ids + ".mp3").exists()) return userDir().qurl(ids + ".mp3");
+  if (userDir().file(ids + ".wav").exists()) return userDir().qurl(ids + ".wav");
+  if (userDir().file(ids + ".ogg").exists()) return userDir().qurl(ids + ".ogg");
+  if (userDir().file(ids + ".m4a").exists()) return userDir().qurl(ids + ".m4a");
   emit coverAborted();
   return QMediaContent();
+}
+
+Dir UserTrack::userDir()
+{
+  return Config::user_saveDir();
 }
 
 void UserTrack::save()
@@ -154,15 +159,14 @@ void UserTrack::save()
   info["extra"] = _extra;
   info["artists"] = _artists;
 
-  if (!(Config::dataDir() / "user").exists()) Config::dataDir().mkdir("user");
   auto json = QJsonDocument(info).toJson(QJsonDocument::Compact);
-  (Config::dataDir() / "user").file(QString::number(id) + ".json").writeAll(json);
+  userDir().file(QString::number(id) + ".json").writeAll(json);
 }
 
 bool UserTrack::load()
 {
-  if (!(Config::dataDir() / "user").file(QString::number(id) + ".json").exists()) return false;
-  QJsonObject doc = (Config::dataDir() / "user").file(QString::number(id) + ".json").allJson().object();
+  if (!userDir().file(QString::number(id) + ".json").exists()) return false;
+  QJsonObject doc = userDir().file(QString::number(id) + ".json").allJson().object();
 
   _title = doc["title"].toString("");
   _artists = doc["artists"].toString("");
@@ -178,7 +182,7 @@ void UserTrack::setup(QUrl media, QUrl cover, QString title, QString artists, QS
   _extra = extra;
 
   int maxId = 0;
-  QStringList allFiles = (Config::dataDir() / "user").entryList(QDir::Files, QDir::SortFlag::Name);
+  QStringList allFiles = userDir().entryList(QDir::Files, QDir::SortFlag::Name);
   for (auto& s : allFiles) {
     if (!s.endsWith(".json")) continue;
     try {
@@ -188,9 +192,9 @@ void UserTrack::setup(QUrl media, QUrl cover, QString title, QString artists, QS
   }
   id = maxId + 1;
 
-  QFile::copy(media.toLocalFile(), (Config::dataDir() / "user" / (QString::number(id) + "." + media.toLocalFile().right(3))).path());
+  QFile::copy(media.toLocalFile(), (userDir() / (QString::number(id) + "." + media.toLocalFile().right(3))).path());
   if (!cover.isEmpty()) {
-    QFile::copy(cover.toLocalFile(), (Config::dataDir() / "user" / (QString::number(id) + "." + cover.toLocalFile().right(3))).path());
+    QFile::copy(cover.toLocalFile(), (userDir() / (QString::number(id) + "." + cover.toLocalFile().right(3))).path());
   }
   save();
 }

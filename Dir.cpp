@@ -41,6 +41,16 @@ bool Dir::exists(Dir a)
   return a.exists();
 }
 
+void Dir::create()
+{
+  Dir().mkpath(path());
+}
+
+void Dir::create(QString subPath)
+{
+  mkpath(subPath);
+}
+
 QString Dir::sub(const QString& path) const
 {
   return Dir::cleanPath(this->path() + separator() + path);
@@ -74,12 +84,12 @@ QFile Dir::qfile(const QString& filename) const
 
 QUrl Dir::qurl(const QString& filename) const
 {
-  return QUrl(sub(filename));
+  return QUrl("file:" + sub(filename));
 }
 
 QUrl Dir::qurl() const
 {
-  return QUrl(path());
+  return QUrl("file:" + path());
 }
 
 Dir Dir::home()

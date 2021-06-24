@@ -6,7 +6,6 @@ Rectangle {
 
   color: Style.panel.background
 
-  property Config settings
   property alias player: _player
   property alias track: _track
 
@@ -53,14 +52,14 @@ Rectangle {
   AudioPlayer {
     id: _player
     Component.onCompleted: {
-      volume = settings.volume
-      nextMode = settings.nextMode
-      loopMode = settings.loopMode
+      volume = Config.volume
+      nextMode = Config.nextMode
+      loopMode = Config.loopMode
     }
 
-    onVolumeChanged: settings.volume = volume
-    onNextModeChanged: settings.nextMode = nextMode
-    onLoopModeChanged: settings.loopMode = loopMode
+    onVolumeChanged: Config.volume = volume
+    onNextModeChanged: Config.nextMode = nextMode
+    onLoopModeChanged: Config.loopMode = loopMode
   }
 
   RemoteMediaController {

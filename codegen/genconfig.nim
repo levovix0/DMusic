@@ -143,7 +143,7 @@ if (!{prefix}{prefix2}_.isEmpty()) {lb}
       [@protocol, @path, .._] := uri.split(":")
       let cpath = &"{protocol}Dir()" & "/" & path.split("/").mapit(&"\"{it.escape}\"").join("/")
       result.getters.add &"static Dir {prefix}{name}();\n"
-      result.impls.add function(&"Dir {classname}::{prefix}{name}()", &"return {cpath};")
+      result.impls.add function(&"Dir {classname}::{prefix}{name}()", &"auto dir = {cpath};\nif (!dir.exists()) dir.create();\nreturn dir;")
     
     of Command[
       Ident(strVal: "get"),
@@ -253,6 +253,8 @@ macro genconfig*(classname, header, source, appname: static[string]; body: untyp
 #pragma once
 #include <QString>
 #include <QObject>
+#include <QQmlEngine>
+#include <QJSEngine>
 #include "Dir.hpp"
 """
   var srcImports = &"""
@@ -297,8 +299,11 @@ class {classname}: public QObject
 {lb}
   Q_OBJECT
 public:
-  {classname}();
+  {classname}(QObject* parent = nullptr);
   ~{classname}();
+
+  static {classname}* instance;
+  static {classname}* qmlInstance(QQmlEngine*, QJSEngine*);
 
 {types.strip(chars=newLine).indent(2)}
 
@@ -328,7 +333,9 @@ private:
   let cpp = &"""
 {srcimports}
 
-{classname}::{classname}() {lb}
+{classname}* {classname}::instance = new {classname}();
+
+{classname}::{classname}(QObject* parent) : QObject(parent) {lb}
   if (!settingsDir().qfile("config.json").exists())
     saveToJson();  // generate default config
   else
@@ -336,6 +343,10 @@ private:
 {rb}
 
 {classname}::~{classname}() {lb}{rb}
+
+{classname}* {classname}::qmlInstance(QQmlEngine*, QJSEngine*) {lb}
+  return instance;
+{rb}
 
 Dir {classname}::settingsDir() {lb}
 #ifdef Q_OS_LINUX

@@ -209,9 +209,14 @@ bool YTrack::liked()
   return _liked;
 }
 
-qint64 YTrack::id()
+int YTrack::id()
 {
   return _id;
+}
+
+Config::Client YTrack::clientKind()
+{
+  return Config::YandexClient;
 }
 
 bool YTrack::available()
@@ -783,19 +788,17 @@ Playlist* YClient::downloadsPlaylist()
 {
   DPlaylist* res = new DPlaylist(this);
   if (!initialized()) return res;
-	QDir recoredDir(Config::ym_saveDir());
-  QStringList allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
-  for (auto s : allFiles) {
+  for (auto&& s : Config::ym_saveDir().entryList(QDir::Files, QDir::SortFlag::Name)) {
     if (!s.endsWith(".json")) continue;
     s.chop(5);
     res->add(track(s.toInt()));
   }
-  recoredDir = QDir("user");
-  allFiles = recoredDir.entryList(QDir::Files, QDir::SortFlag::Name);
-  for (auto s : qAsConst(allFiles)) {
+  for (auto&& s : Config::user_saveDir().entryList(QDir::Files, QDir::SortFlag::Name)) {
     if (!s.endsWith(".json")) continue;
-    s.chop(5);
-    res->add(refTrack(new UserTrack(s.toInt())));
+    try {
+      s.chop(5);
+      res->add(refTrack(new UserTrack(s.toInt())));
+    }  catch (...) {}
   }
   return res;
 }

@@ -8,7 +8,7 @@ Window {
   id: _root
   visible: true
   Component.onCompleted: {
-    if (clientSideDecorations) {
+    if (Config.isClientSideDecorations) {
       flags += Qt.FramelessWindowHint
     }
   }
@@ -18,8 +18,7 @@ Window {
   minimumWidth: 1040 + 20
   minimumHeight: 600 + 20
 
-  property bool clientSideDecorations: _settings.isClientSideDecorations
-  property real shadowRadius: (clientSideDecorations && !maximized)? 10 : 0
+  property real shadowRadius: (Config.isClientSideDecorations && !maximized)? 10 : 0
   property bool maximized: visibility == 4
 
   title: "DMusic"
@@ -30,11 +29,11 @@ Window {
   function minimize() {
     _root.showMinimized()
   }
-  color: (clientSideDecorations && !maximized)? "transparent" : Style.window.background
+  color: (Config.isClientSideDecorations && !maximized)? "transparent" : Style.window.background
 
   DropShadow {
     anchors.fill: root
-    enabled: clientSideDecorations && !maximized
+    enabled: Config.isClientSideDecorations && !maximized
     opacity: 0.6
     radius: shadowRadius
     samples: 20
@@ -62,25 +61,16 @@ Window {
       onClicked: root.focus = true
     }
 
-    Config {
-      id: _settings
-
-      Component.onCompleted: {
-        YClient.init()
-        root.autologin()
-      }
-    }
-
     function afterLogin() {
       _yandexHomePlaylistsRepeater.model = YClient.homePlaylistsModel()
     }
 
     function autologin() {
-      if (_settings.ym_token == "") return
-      if (_settings.ym_proxyServer == "") {
-        YClient.login(_settings.ym_token, afterLogin)
+      if (Config.ym_token == "") return
+      if (Config.ym_proxyServer == "") {
+        YClient.login(Config.ym_token, afterLogin)
       } else {
-        YClient.loginViaProxy(_settings.ym_token, _settings.ym_proxyServer, afterLogin)
+        YClient.loginViaProxy(Config.ym_token, Config.ym_proxyServer, afterLogin)
       }
     }
 
@@ -90,7 +80,7 @@ Window {
 
       window: _root
       windowSize: Qt.size(root.width, root.height)
-      clientSideDecorations: _root.clientSideDecorations
+      clientSideDecorations: Config.isClientSideDecorations
       maximized: maximized
     }
 
@@ -108,8 +98,6 @@ Window {
       width: root.width
       height: 66
       anchors.bottom: parent.bottom
-
-      settings: _settings
     }
 
     Keys.onSpacePressed: _player.player.pause_or_play()
@@ -174,9 +162,12 @@ Window {
         _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": true })
       })
       Messages.reSendHistory()
+
+      YClient.init()
+      root.autologin()
     }
 
-    layer.enabled: clientSideDecorations && visibility != 4
+    layer.enabled: Config.isClientSideDecorations && visibility != 4
     layer.effect: OpacityMask {
       maskSource: Rectangle {
         width: root.width

@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
   qmlRegisterType<Playlist>("DMusic", 1, 0, "Playlist");
   qmlRegisterType<DPlaylist>("DMusic", 1, 0, "DPlaylist");
   qmlRegisterType<AudioPlayer>("DMusic", 1, 0, "AudioPlayer");
-	qmlRegisterType<Config>("DMusic", 1, 0, "Config");
   qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
   qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
   qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
@@ -74,6 +73,7 @@ int main(int argc, char *argv[])
   qmlRegisterType<YLikedTracks>("DMusic", 1, 0, "YLikedTracks");
   qmlRegisterType<YPlaylistsModel>("DMusic", 1, 0, "YPlaylistsModel");
 
+  qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
   qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
   qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
 

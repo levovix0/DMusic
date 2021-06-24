@@ -2,14 +2,19 @@
 #pragma once
 #include <QString>
 #include <QObject>
+#include <QQmlEngine>
+#include <QJSEngine>
 #include "Dir.hpp"
 
 class Config: public QObject
 {
   Q_OBJECT
 public:
-  Config();
+  Config(QObject* parent = nullptr);
   ~Config();
+
+  static Config* instance;
+  static Config* qmlInstance(QQmlEngine*, QJSEngine*);
 
   enum NextMode {
     NextSequence,
@@ -40,6 +45,7 @@ public:
   Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
   Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
   
+  
   Q_PROPERTY(QString ym_token READ ym_token WRITE set_ym_token NOTIFY ym_tokenChanged)
   Q_PROPERTY(QString ym_proxyServer READ ym_proxyServer WRITE set_ym_proxyServer NOTIFY ym_proxyServerChanged)
   Q_PROPERTY(int ym_repeatsIfError READ ym_repeatsIfError WRITE set_ym_repeatsIfError NOTIFY ym_repeatsIfErrorChanged)
@@ -55,6 +61,8 @@ public:
   static double volume();
   static NextMode nextMode();
   static LoopMode loopMode();
+  
+  static Dir user_saveDir();
   
   static QString ym_token();
   static QString ym_proxyServer();
@@ -76,6 +84,7 @@ public slots:
   void setNextMode(NextMode v);
   void setLoopMode(LoopMode v);
   
+  
   void set_ym_token(QString v);
   void set_ym_proxyServer(QString v);
   void set_ym_repeatsIfError(int v);
@@ -93,6 +102,7 @@ signals:
   void nextModeChanged(NextMode nextMode);
   void loopModeChanged(LoopMode loopMode);
   
+  
   void ym_tokenChanged(QString ym_token);
   void ym_proxyServerChanged(QString ym_proxyServer);
   void ym_repeatsIfErrorChanged(int ym_repeatsIfError);
@@ -106,6 +116,7 @@ private:
   inline static double _volume = 0.5;
   inline static NextMode _nextMode = NextSequence;
   inline static LoopMode _loopMode = LoopNone;
+  
   
   inline static QString _ym_token = "";
   inline static QString _ym_proxyServer = "";

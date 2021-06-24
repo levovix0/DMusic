@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QMediaContent>
+#include "Config.hpp"
 
 struct Track : public QObject
 {
@@ -18,6 +19,8 @@ public:
   Q_PROPERTY(qint64 duration READ duration NOTIFY durationChanged)
   Q_PROPERTY(bool liked READ liked NOTIFY likedChanged)
 
+  virtual int id();
+  virtual Config::Client clientKind();
   virtual QString idStr();
   virtual QString title();
   virtual QString artistsStr();

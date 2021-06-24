@@ -83,6 +83,8 @@ public:
   QUrl cover() override;
   QMediaContent media() override;
 
+  static Dir userDir();
+
 public slots:
   void save();
   bool load();

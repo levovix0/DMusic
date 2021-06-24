@@ -17,6 +17,9 @@ public:
   bool exists();
   static bool exists(Dir);
 
+  void create();
+  void create(QString subPath);
+
   QString sub(QString const& path) const;
   Dir operator/(QString const& subdirPath) const;
   Dir dir(QString const& subdirPath) const;

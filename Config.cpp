@@ -6,7 +6,9 @@
 #include <QJsonDocument>
 
 
-Config::Config() {
+Config* Config::instance = new Config();
+
+Config::Config(QObject* parent) : QObject(parent) {
   if (!settingsDir().qfile("config.json").exists())
     saveToJson();  // generate default config
   else
@@ -14,6 +16,10 @@ Config::Config() {
 }
 
 Config::~Config() {}
+
+Config* Config::qmlInstance(QQmlEngine*, QJSEngine*) {
+  return instance;
+}
 
 Dir Config::settingsDir() {
 #ifdef Q_OS_LINUX
@@ -79,6 +85,12 @@ void Config::setLoopMode(Config::LoopMode v) {
   saveToJson();
 }
 
+Dir Config::user_saveDir() {
+  auto dir = dataDir()/"user";
+  if (!dir.exists()) dir.create();
+  return dir;
+}
+
 QString Config::ym_token() {
   return _ym_token;
 }
@@ -102,7 +114,9 @@ void Config::set_ym_proxyServer(QString v) {
 }
 
 Dir Config::ym_saveDir() {
-  return dataDir()/"yandex";
+  auto dir = dataDir()/"yandex";
+  if (!dir.exists()) dir.create();
+  return dir;
 }
 
 File Config::ym_media(int id) {
@@ -194,6 +208,10 @@ void Config::reloadFromJson() {
   _loopMode = (LoopMode)doc["loopMode"].toInt(LoopNone);
   emit loopModeChanged(_loopMode);
   
+  QJsonObject user_ = doc["User"].toObject();
+  if (!user_.isEmpty()) {
+    
+  }
   QJsonObject ym_ = doc["Yandex.Music"].toObject();
   if (!ym_.isEmpty()) {
     _ym_token = ym_["token"].toString("");
@@ -220,6 +238,9 @@ void Config::saveToJson() {
   doc["volume"] = _volume;
   doc["nextMode"] = _nextMode;
   doc["loopMode"] = _loopMode;
+  
+  QJsonObject user_;
+  doc["User"] = user_;
   
   QJsonObject ym_;
   ym_["token"] = _ym_token;

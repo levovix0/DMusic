@@ -303,7 +303,7 @@ void Mpris2Player::onAuthorChanged(QString author)
 
 void Mpris2Player::onCoverChanged(QUrl cover)
 {
-  _currentTrackMetadata["mpris:artUrl"] = cover;
+  _currentTrackMetadata["mpris:artUrl"] = cover.path();
   signalPlayerUpdate({});
 }
 
@@ -352,7 +352,7 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
   auto id = track.idStr();
   QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/track/") + (id == ""? QString::number(0) : id);
   res["mpris:trackid"] = QVariant(QDBusObjectPath(trackId).path());
-  res["mpris:artUrl"] = track.cover();
+  res["mpris:artUrl"] = track.cover().path();
   return res;
 }
 
@@ -461,7 +461,7 @@ DiscordPresence::DiscordPresence(AudioPlayer* player, QObject* parent) : QObject
 
     connect(_player, &AudioPlayer::currentTrackChanged, this, &DiscordPresence::onTrackChanged);
   } catch(py::error& e) {
-    Messages::error(tr("Failed to initialize discord pressence"), e.what());
+    // OK
   }
 }
 
@@ -487,7 +487,7 @@ void DiscordPresence::update(Track* track)
       args["large_text"] = track->idStr();
       _rpc.call("update", std::initializer_list<object>{}, args);
     }  catch (error const& e) {
-      // it's normal ;)
+      // OK
     }
   });
 }

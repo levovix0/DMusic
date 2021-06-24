@@ -22,6 +22,8 @@ public:
 
   PyObject* raw() const { return _py.raw; }
 
+  int id() override;
+  Config::Client clientKind() override;
 	QString idStr() override;
   QString title() override;
   QString artistsStr() override;
@@ -31,7 +33,6 @@ public:
   qint64 duration() override;
   bool liked() override;
 
-  qint64 id();
   bool available();
   QVector<YArtist> artists();
   File coverFile();
@@ -182,7 +183,7 @@ public slots:
   void loginViaProxy(QString token, QString proxy, QJSValue const& callback);
 
   QVector<py::object> fetchTracks(qint64 id);
-
+  
   YLikedTracks* likedTracks();
   YPlaylist* playlist(int id);
   Playlist* oneTrack(qint64 id);

@@ -16,6 +16,9 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
   NextMode nextMode NextSequence
   LoopMode loopMode LoopNone
 
+  config user, "User":
+    dir saveDir "data:user"
+
   config ym, "Yandex.Music":
     type CoverQuality = enum
       MaximumCoverQuality  = "1000x1000"

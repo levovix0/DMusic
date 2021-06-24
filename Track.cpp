@@ -9,6 +9,16 @@ Track::Track(QObject* parent) : QObject(parent)
   qmlEngine(this)->setObjectOwnership(this, QQmlEngine::CppOwnership);
 }
 
+int Track::id()
+{
+  return 0;
+}
+
+Config::Client Track::clientKind()
+{
+  return Config::UserClient;
+}
+
 QString Track::idStr()
 {
   return "";
