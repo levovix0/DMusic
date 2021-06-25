@@ -14,11 +14,6 @@ int Track::id()
   return 0;
 }
 
-Config::Client Track::clientKind()
-{
-  return Config::UserClient;
-}
-
 QString Track::idStr()
 {
   return "";

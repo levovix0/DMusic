@@ -23,7 +23,6 @@ public:
   PyObject* raw() const { return _py.raw; }
 
   int id() override;
-  Config::Client clientKind() override;
 	QString idStr() override;
   QString title() override;
   QString artistsStr() override;

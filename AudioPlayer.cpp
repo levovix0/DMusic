@@ -258,7 +258,7 @@ bool AudioPlayer::prev()
 
 void AudioPlayer::setProgress(float progress)
 {
-  player->setPosition(player->duration() * progress);
+  player->setPosition(player->duration() * std::max(std::min(progress, 1.f), 0.f));
 }
 
 void AudioPlayer::setProgress_ms(int progress)

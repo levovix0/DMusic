@@ -214,11 +214,6 @@ int YTrack::id()
   return _id;
 }
 
-Config::Client YTrack::clientKind()
-{
-  return Config::YandexClient;
-}
-
 bool YTrack::available()
 {
   //TODO: check _py is not nil

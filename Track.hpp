@@ -20,7 +20,6 @@ public:
   Q_PROPERTY(bool liked READ liked NOTIFY likedChanged)
 
   virtual int id();
-  virtual Config::Client clientKind();
   virtual QString idStr();
   virtual QString title();
   virtual QString artistsStr();

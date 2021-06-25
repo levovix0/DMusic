@@ -1,5 +1,4 @@
 import QtQuick 2.0
-//TODO: scroll
 //TODO: таймкоды
 
 Rectangle {
@@ -51,6 +50,9 @@ Rectangle {
         progress = Math.max(0, Math.min(1, progress))
         root.seek(progress)
       }
+    }
+    onWheel: {
+      root.seek(progress - 0.025 * wheel.angleDelta.y / 120)
     }
   }
 }
