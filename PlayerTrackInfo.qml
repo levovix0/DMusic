@@ -27,8 +27,9 @@ Item {
 
       MouseArea {
         anchors.fill: parent
+        enabled: root.idStr != ""
 
-        cursorShape: Qt.PointingHandCursor
+        cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
         hoverEnabled: true
 
         Clipboard {

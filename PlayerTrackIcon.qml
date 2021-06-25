@@ -5,7 +5,7 @@ Item {
   width: 50
   height: 50
 
-  property string src: ""
+  property url src: ""
 
   RoundedImage {
     id: _icon
@@ -17,5 +17,13 @@ Item {
     fillMode: Image.PreserveAspectCrop
     clip: true
     radius: 8
+  }
+
+  MouseArea {
+    anchors.fill: _icon
+    enabled: (src.toString().length > 0) && (src.toString().slice(0, 4) !== "qrc:")
+
+    cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
+    onClicked: Qt.openUrlExternally(src)
   }
 }
