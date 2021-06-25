@@ -9,6 +9,7 @@ Rectangle {
   property bool sellected: _mouse.containsMouse | _mouse.pressed
 
   signal seek(real progress)
+  signal appendMs(real delta)
 
   color: "#404040"
   radius: height / 2
@@ -52,7 +53,7 @@ Rectangle {
       }
     }
     onWheel: {
-      root.seek(progress - 0.025 * wheel.angleDelta.y / 120)
+      root.appendMs(-5 * wheel.angleDelta.y / 120)
     }
   }
 }

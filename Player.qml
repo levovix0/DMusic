@@ -44,6 +44,7 @@ Rectangle {
 
     progress: _player.progress
     onSeek: _player.progress = progress
+    onAppendMs: _player.progress_ms += delta * 1000
 
     positionText: _player.formatProgress
     durationText: _player.formatDuration

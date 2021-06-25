@@ -12,6 +12,7 @@ Item {
   property real rightWidth: width / 2 + 14 + _duration.width
 
   signal seek(real progress)
+  signal appendMs(real delta)
 
   PlayerLineSlider {
     progress: root.progress
@@ -19,6 +20,7 @@ Item {
     width: root.width
 
     onSeek: root.seek(progress)
+    onAppendMs: root.appendMs(delta)
   }
 
   DText {
