@@ -76,5 +76,11 @@
         <file>resources/debug/drop-cover.svg</file>
         <file>resources/debug/drop-media.svg</file>
         <file>DropPlace.qml</file>
+        <file>pages/MainPage.qml</file>
+        <file>pages/PageSwitcher.qml</file>
+        <file>resources/title/home.svg</file>
+        <file>resources/title/settings.svg</file>
+        <file>pages/DPage.qml</file>
+        <file>pages/SettingsPage.qml</file>
     </qresource>
 </RCC>

@@ -3,6 +3,7 @@ import QtQuick.Window 2.15
 import QtQuick.Dialogs 1.2
 import QtGraphicalEffects 1.0
 import DMusic 1.0
+import "pages"
 
 Window {
   id: _root
@@ -61,17 +62,8 @@ Window {
       onClicked: root.focus = true
     }
 
-    function afterLogin() {
-      _yandexHomePlaylistsRepeater.model = YClient.homePlaylistsModel()
-    }
-
     function autologin() {
-      if (Config.ym_token == "") return
-      if (Config.ym_proxyServer == "") {
-        YClient.login(Config.ym_token, afterLogin)
-      } else {
-        YClient.loginViaProxy(Config.ym_token, Config.ym_proxyServer, afterLogin)
-      }
+      YClient.login(Config.ym_token, Config.ym_proxyServer)
     }
 
     Title {
@@ -79,52 +71,18 @@ Window {
       width: root.width
 
       window: _root
+      pages: _pages
       windowSize: Qt.size(root.width, root.height)
       clientSideDecorations: Config.isClientSideDecorations
       maximized: maximized
     }
 
-    DebugPanel {
-      anchors.right: root.right
-      anchors.bottom: _player.top
-      anchors.rightMargin: 19
-      anchors.bottomMargin: 19
-
-      player: _player
-    }
-
-    Player {
-      id: _player
-      width: root.width
-      height: 66
-      anchors.bottom: parent.bottom
-    }
-
-    Keys.onSpacePressed: _player.player.pause_or_play()
-    Keys.onRightPressed: _player.next()
-    Keys.onLeftPressed: _player.prev()
-    Keys.onPressed: {
-      if (event.key == Qt.Key_L) _player.toglleLiked()
-      else if (event.key == Qt.Key_D) _player.next()
-      else if (event.key == Qt.Key_A) _player.prev()
-    }
-
-    Row {
-      id: _yandexHomePlaylists
-      spacing: 25
+    PageSwitcher {
+      id: _pages
       anchors.left: root.left
       anchors.top: _title.bottom
-      anchors.leftMargin: 25
-      anchors.topMargin: 25
-
-      Repeater {
-        id: _yandexHomePlaylistsRepeater
-        PlaylistEntry {
-          playlist: element
-
-          onPlay: YClient.playPlaylist(playlist)
-        }
-      }
+      anchors.right: root.right
+      anchors.bottom: _player.top
     }
 
     ListModel {
@@ -152,6 +110,31 @@ Window {
           onClosed: _messages.remove(index)
         }
       }
+    }
+
+    DebugPanel {
+      anchors.right: root.right
+      anchors.bottom: _player.top
+      anchors.rightMargin: 19
+      anchors.bottomMargin: 19
+
+      player: _player
+    }
+
+    Player {
+      id: _player
+      width: root.width
+      height: 66
+      anchors.bottom: parent.bottom
+    }
+
+    Keys.onSpacePressed: _player.player.pause_or_play()
+    Keys.onRightPressed: _player.next()
+    Keys.onLeftPressed: _player.prev()
+    Keys.onPressed: {
+      if (event.key === Qt.Key_L) _player.toglleLiked()
+      else if (event.key === Qt.Key_D) _player.next()
+      else if (event.key === Qt.Key_A) _player.prev()
     }
 
     Component.onCompleted: {

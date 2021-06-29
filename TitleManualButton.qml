@@ -3,8 +3,9 @@ import QtQuick 2.0
 Rectangle {
   id: root
 
-  property string icon: ""
-  property string hoverColor: "#303030"
+  property url icon: ""
+  property color hoverColor: "#303030"
+  property color pressedColor: "#202020"
   signal click()
   signal pressed()
 
@@ -13,21 +14,20 @@ Rectangle {
   width: enabled? 50 : 0
   height: 40
 
-  color: "transparent"
+  color: _mouse.containsPress? pressedColor : _mouse.containsMouse? hoverColor : "transparent"
 
   Icon {
     anchors.centerIn: root
+    visible: root.enabled
     src: icon
     color: "#FFFFFF"
   }
 
   MouseArea {
+    id: _mouse
     anchors.fill: root
 
     hoverEnabled: true
-
-    onEntered: root.color = root.hoverColor
-    onExited: root.color = "transparent"
 
     onClicked: if (enabled) root.click()
     onPressed: if (enabled) root.pressed()

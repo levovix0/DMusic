@@ -1,11 +1,13 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
+import "pages"
 
 Rectangle {
   id: root
   height: 40
 
   property Window window
+  property PageSwitcher pages
   property size windowSize
   property bool clientSideDecorations
   property bool maximized
@@ -18,17 +20,6 @@ Rectangle {
     visible: false
 
     color: "#404040"
-  }
-
-  Icon {
-    anchors.verticalCenter: root.verticalCenter
-    anchors.leftMargin: 25
-    anchors.left: root.left
-    src: "resources/logo.svg"
-    color: "#FFFFFF"
-    image.width: 13
-    image.height: 16
-    visible: root.clientSideDecorations
   }
 
   DragHandler {
@@ -54,6 +45,16 @@ Rectangle {
   }
 
   TitleManualButton {
+    id: _home
+    anchors.verticalCenter: root.verticalCenter
+    anchors.left: root.left
+    icon: "resources/title/home.svg"
+
+    onClick: pages.gotoMainPage()
+  }
+
+
+  TitleManualButton {
     id: _close
     anchors.right: root.right
     anchors.verticalCenter: root.verticalCenter
@@ -61,6 +62,7 @@ Rectangle {
 
     icon: "resources/title/close.svg"
     hoverColor: "#E03649"
+    pressedColor: "#C11B2D"
 
     onClick: root.window.close()
   }
@@ -85,6 +87,15 @@ Rectangle {
     icon: "resources/title/minimize.svg"
 
     onClick: root.window.minimize()
+  }
+
+  TitleManualButton {
+    id: _settings
+    anchors.verticalCenter: root.verticalCenter
+    anchors.right: _minimize.left
+    icon: "resources/title/settings.svg"
+
+    onClick: pages.gotoSettingsPage()
   }
 
   ResizeArea {

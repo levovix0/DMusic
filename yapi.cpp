@@ -660,9 +660,9 @@ refTrack YClient::track(qint64 id)
   return refTrack(new YTrack(id, this));
 }
 
-bool YClient::isLoggined()
+bool YClient::loggined()
 {
-  return loggined;
+  return _loggined;
 }
 
 void YClient::init()
@@ -686,43 +686,48 @@ QString YClient::token(QString login, QString password)
   return ym.call("generate_token_by_username_and_password", {login, password}).to<QString>();
 }
 
-bool YClient::login(QString token)
+void YClient::login(QString token)
 {
-  if (!initialized()) return false;
-  loggined = false;
-  repeat_if_error([this, token]() {
-    me = ym.call("Client", token);
-  }, [this](bool success) {
-    loggined = success;
-	}, Config::ym_repeatsIfError());
-  return loggined;
-}
+  if (!initialized()) return;
+  if (token == "") return;
+  do_async([this, token](){
+    try {
+      me = ym.call("Client", token);
 
-void YClient::login(QString token, const QJSValue& callback)
-{
-  do_async<bool>(this, callback, &YClient::login, token);
+      _loggined = true;
+      emit logginedChanged(_loggined);
+    }  catch (std::exception& e) {
+      _loggined = false;
+      emit logginedChanged(_loggined);
+      Messages::error(tr("Failed to login to Yandex.Music"), e.what());
+    }
+  });
 }
-
-bool YClient::loginViaProxy(QString token, QString proxy)
+void YClient::login(QString token, QString proxy)
 {
-  if (!initialized()) return false;
-  loggined = false;
-  repeat_if_error([this, token, proxy]() {
-    std::map<std::string, object> kwargs;
-    kwargs["proxy_url"] = proxy;
-    object req = ym_request.call("Request", std::initializer_list<object>{}, kwargs);
-    kwargs.clear();
-    kwargs["request"] = req;
-    me = ym.call("Client", token, kwargs);
-  }, [this](bool success) {
-    loggined = success;
-	}, Config::ym_repeatsIfError());
-  return loggined;
-}
+  if (!initialized()) return;
+  if (token == "") return;
+  if (proxy == "") {
+    login(token);
+    return;
+  }
+  do_async([this, token, proxy](){
+    try {
+      std::map<std::string, object> kwargs;
+      kwargs["proxy_url"] = proxy;
+      object req = ym_request.call("Request", std::initializer_list<object>{}, kwargs);
+      kwargs.clear();
+      kwargs["request"] = req;
+      me = ym.call("Client", token);
 
-void YClient::loginViaProxy(QString token, QString proxy, const QJSValue& callback)
-{
-  do_async<bool>(this, callback, &YClient::loginViaProxy, token, proxy);
+      _loggined = true;
+      emit logginedChanged(_loggined);
+    }  catch (std::exception& e) {
+      _loggined = false;
+      emit logginedChanged(_loggined);
+      Messages::error(tr("Failed to login to Yandex.Music"), e.what());
+    }
+  });
 }
 
 QVector<object> YClient::fetchTracks(qint64 id)

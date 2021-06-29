@@ -171,15 +171,13 @@ public:
   refTrack track(qint64 id);
 
 public slots:
-  bool isLoggined();
+  bool loggined();
 
   void init();
 
   QString token(QString login, QString password);
-  bool login(QString token);
-  void login(QString token, QJSValue const& callback);
-  bool loginViaProxy(QString token, QString proxy);
-  void loginViaProxy(QString token, QString proxy, QJSValue const& callback);
+  void login(QString token);
+  void login(QString token, QString proxy);
 
   QVector<py::object> fetchTracks(qint64 id);
   
@@ -197,6 +195,7 @@ public slots:
 
 signals:
   void initializedChanged(bool initialized);
+  void logginedChanged(bool loggined);
 
 public:
   py::module ym; // yandex_music module
@@ -206,5 +205,5 @@ public:
 
 private:
   bool _initialized = false;
-  std::atomic_bool loggined = false;
+  std::atomic_bool _loggined = false;
 };
