@@ -11,21 +11,7 @@ Item {
     anchors.centerIn: root
 
     src: (target.volume <= 0.01 ||  target.muted)? "qrc:/resources/player/vol-muted.svg" : target.volume < 0.5? "qrc:/resources/player/vol-quiet.svg" : "qrc:/resources/player/vol.svg"
-    color: (_mouse.containsMouse || _mouse2.containsMouse)? "#FFFFFF" : "#C1C1C1"
-  }
-
-  MouseArea {
-    id: _mouse
-    anchors.centerIn: _icon
-    anchors.horizontalCenterOffset: -4
-    width: 32
-    height: 32
-
-    hoverEnabled: true
-
-    onEntered: _ppc.opened = true
-    onPressed: target.muted = !target.muted
-    onWheel: target.volume += 0.05 * wheel.angleDelta.y / 120
+    color: (_mouse.containsMouse)? "#FFFFFF" : "#C1C1C1"
   }
 
   MouseArea {
@@ -37,8 +23,8 @@ Item {
     height: 50 + 39 + _panel.height
 
     hoverEnabled: true
+    visible: _ppc.opened || _ppc.running
 
-    visible: _ppc.opened || !_ppc.animationEnded
     onExited: _ppc.opened = false
 
     VolumeControlPanel {
@@ -53,24 +39,24 @@ Item {
 
       target: root.target
     }
+  }
 
-    PopupController {
-      id: _ppc
-      target: _panel
-    }
+  PopupController {
+    id: _ppc
+    target: _panel
+  }
 
-    MouseArea {
-      id: _mouse2
-      anchors.bottom: parent.bottom
-      anchors.bottomMargin: 9
-      anchors.horizontalCenter: parent.horizontalCenter
-      width: 32
-      height: 32
+  MouseArea {
+    id: _mouse
+    anchors.centerIn: _icon
+    anchors.horizontalCenterOffset: -4
+    width: 32
+    height: 32
 
-      hoverEnabled: true
+    hoverEnabled: true
 
-      onPressed: target.muted = !target.muted
-      onWheel: target.volume += 0.05 * wheel.angleDelta.y / 120
-    }
+    onEntered: _ppc.opened = true
+    onPressed: target.muted = !target.muted
+    onWheel: target.volume += 0.05 * wheel.angleDelta.y / 120
   }
 }

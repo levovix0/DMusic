@@ -82,5 +82,6 @@
         <file>resources/title/settings.svg</file>
         <file>pages/DPage.qml</file>
         <file>pages/SettingsPage.qml</file>
+        <file>resources/player/debug.svg</file>
     </qresource>
 </RCC>
