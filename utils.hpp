@@ -38,6 +38,11 @@ void move_to_current_thread(T& a) {
 }
 
 
+inline void do_async(std::function<void()> f) {
+  std::thread(f).detach();
+}
+
+
 template<class T, class C, class... Args>
 void do_async(C* obj, QJSValue const& callback, T(C::* f)(Args...), Args... args) {
   auto *watcher = new QFutureWatcher<T>;

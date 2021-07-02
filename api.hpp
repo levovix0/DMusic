@@ -23,6 +23,9 @@ public:
   virtual int size();
 
   virtual void markErrorTrack(int index);
+
+signals:
+  void trackRemoved(int index);
 };
 
 refRadio radio(refPlaylist self, int index = -1, Config::NextMode nextMode = Config::NextSequence);
@@ -52,14 +55,19 @@ private:
 
 class PlaylistRadio : public Radio
 {
+  Q_OBJECT
 public:
-	PlaylistRadio(refPlaylist playlist, int index, Config::NextMode nextMode);
+  PlaylistRadio(QObject* parent = nullptr);
+  PlaylistRadio(refPlaylist playlist, int index, Config::NextMode nextMode, QObject* parent = nullptr);
 	void setNextMode(Config::NextMode nextMode) override;
   refTrack current() override;
   refTrack next() override;
   refTrack prev() override;
 
-  void markErrorCurrentTrack() override;
+  refTrack markErrorCurrentTrack() override;
+
+private slots:
+  void handleTrackRemoved(int index);
 
 private:
   int gen();
@@ -75,6 +83,7 @@ struct UserTrack : Track
 {
   Q_OBJECT
 public:
+  //TODO: сжимать обложку в размерах, если она больше 1000x1000
   UserTrack(int id = 0, QObject *parent = nullptr);
 
   QString title() override;

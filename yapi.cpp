@@ -70,10 +70,6 @@ void repeat_if_error(std::function<void()> f, std::function<void(bool success)> 
   }
 }
 
-void do_async(std::function<void()> f) {
-  std::thread(f).detach();
-}
-
 void repeat_if_error_async(std::function<void()> f, std::function<void(bool success)> r, int n = 10, std::string s = "NetworkError") {
   do_async([=]() {
     repeat_if_error(f, r, n, s);
@@ -441,7 +437,7 @@ void YTrack::_checkLiked()
   do_async([this](){
     QMutexLocker lock(&_mtx);
     _fetchYandex();
-    repeat_if_error([this]() {
+    try {
       auto ult = _py.get("client").call("users_likes_tracks").get("tracks_ids");
       _liked = false;
       for (auto&& p : ult) {
@@ -451,10 +447,10 @@ void YTrack::_checkLiked()
           break;
         }
       }
-    }, [this](bool success) {
-      _hasLiked = success;
-      if (success) emit likedChanged(_liked);
-		}, Config::ym_repeatsIfError());
+      emit likedChanged(_liked);
+    }  catch (std::exception& e) {
+      Messages::error(tr("Failed to check like state of track", e.what()));
+    }
   });
 }
 

@@ -472,19 +472,19 @@ void DiscordPresence::update(Track* track)
   auto details = track->title();
   if (author == "" || details == "") return;
 
-  QtConcurrent::run([track, author, details, this]() {
+  std::map<std::string, object> args;
+  args["state"] = track->artistsStr();
+  if (track->extra() == "")
+    args["details"] = track->title();
+  else
+    args["details"] = track->title() + " (" + track->extra() + ")";
+  args["start"] = _time.call("time");
+  args["large_image"] = "app";
+  args["large_text"] = track->idStr();
+
+  do_async([args, author, details, this]() {
     try {
       _rpc.call("clear");
-
-      std::map<std::string, object> args;
-      args["state"] = track->artistsStr();
-      if (track->extra() == "")
-        args["details"] = track->title();
-      else
-        args["details"] = track->title() + " (" + track->extra() + ")";
-      args["start"] = _time.call("time");
-      args["large_image"] = "app";
-      args["large_text"] = track->idStr();
       _rpc.call("update", std::initializer_list<object>{}, args);
     }  catch (error const& e) {
       // OK

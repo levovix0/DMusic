@@ -2,15 +2,16 @@
 #include "types.hpp"
 #include "Config.hpp"
 
-class Radio
+class Radio : public QObject
 {
+  Q_OBJECT
 public:
   virtual ~Radio() {}
-  Radio() {}
+  Radio(QObject* parent = nullptr) : QObject(parent) {}
 	virtual void setNextMode(Config::NextMode nextMode);
   virtual refTrack current();
   virtual refTrack next();
   virtual refTrack prev();
 
-  virtual void markErrorCurrentTrack();
+  virtual refTrack markErrorCurrentTrack();
 };

@@ -103,6 +103,7 @@ void DPlaylist::remove(int index)
 {
   if (index >= _tracks.length()) return;
   _tracks.remove(index);
+  emit trackRemoved(index);
 }
 
 UserTrack::UserTrack(int id, QObject* parent) : Track(parent)
@@ -199,7 +200,10 @@ void UserTrack::setup(QUrl media, QUrl cover, QString title, QString artists, QS
   save();
 }
 
-PlaylistRadio::PlaylistRadio(refPlaylist playlist, int index, Config::NextMode nextMode)
+PlaylistRadio::PlaylistRadio(QObject* parent) : Radio(parent)
+{}
+
+PlaylistRadio::PlaylistRadio(refPlaylist playlist, int index, Config::NextMode nextMode, QObject* parent) : Radio(parent)
 {
   this->_playlist = playlist;
   _index = index;
@@ -208,6 +212,7 @@ PlaylistRadio::PlaylistRadio(refPlaylist playlist, int index, Config::NextMode n
     else _index = QRandomGenerator::global()->bounded(qMax(1, playlist->size()));
   }
   PlaylistRadio::setNextMode(nextMode);
+  connect(playlist.get(), &Playlist::trackRemoved, this, &PlaylistRadio::handleTrackRemoved, Qt::DirectConnection);
 }
 
 void PlaylistRadio::setNextMode(Config::NextMode nextMode)
@@ -290,14 +295,24 @@ refTrack PlaylistRadio::prev()
   }
 }
 
-void PlaylistRadio::markErrorCurrentTrack()
+refTrack PlaylistRadio::markErrorCurrentTrack()
 {
 	if (_nextMode == Config::NextShuffle) {
-    if (_index >= _history.length()) return;
+    if (_index >= _history.length()) return nullptr;
     _playlist->markErrorTrack(_history[_index]);
   } else {
     _playlist->markErrorTrack(_index);
-	}
+  }
+  return current();
+}
+
+void PlaylistRadio::handleTrackRemoved(int index)
+{
+  for (auto it = _history.begin(); it != _history.end(); ++it) {
+    if (*it == index) it = _history.erase(it);
+    else if (*it > index) --*it;
+    _index = _playlist->size();
+  }
 }
 
 int PlaylistRadio::gen()

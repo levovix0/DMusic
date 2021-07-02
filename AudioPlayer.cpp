@@ -116,10 +116,23 @@ void AudioPlayer::setMedia(QMediaContent media)
 void AudioPlayer::onMediaAborted()
 {
   Messages::error(tr("Failed to load track"));
-  if (_radio != nullptr) {
-    _radio->markErrorCurrentTrack();
+  if (_radio != nullptr) {    
+    _unsubscribeCurrentTrack();
+    player->stop();
+
+    _currentTrack = _radio->markErrorCurrentTrack();
+    if (_currentTrack == nullptr) return;
+
+    _subscribeCurrentTrack();
+
+    emit currentTrackChanged(_currentTrack.get());
+
+    player->setMedia(_currentTrack->media());
+    player->setPosition(0);
+    player->play();
+  } else {
+    next();
   }
-  next();
 }
 
 void AudioPlayer::updatePlaylistGenerator()
