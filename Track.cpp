@@ -36,13 +36,13 @@ QString Track::extra()
 
 QUrl Track::cover()
 {
-  emit coverAborted();
+  emit coverAborted(tr("Empty track"));
   return {"qrc:resources/player/no-cover.svg"};
 }
 
 QMediaContent Track::media()
 {
-  emit mediaAborted();
+  emit mediaAborted(tr("Empty track"));
   return {};
 }
 

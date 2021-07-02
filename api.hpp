@@ -53,6 +53,8 @@ private:
   QVector<refTrack> _tracks;
 };
 
+//TODO: DownloadsPlaylist, удаляющий треки с диска, если их не удалось загрузить
+
 class PlaylistRadio : public Radio
 {
   Q_OBJECT

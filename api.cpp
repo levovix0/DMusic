@@ -133,7 +133,7 @@ QUrl UserTrack::cover()
   if (userDir().file(ids + ".png").exists()) return userDir().qurl(ids + ".png");
   if (userDir().file(ids + ".jpg").exists()) return userDir().qurl(ids + ".jpg");
   if (userDir().file(ids + ".svg").exists()) return userDir().qurl(ids + ".svg");
-  emit coverAborted();
+  emit coverAborted(tr("File not found"));
   return {"qrc:resources/player/no-cover.svg"};
 }
 
@@ -144,7 +144,7 @@ QMediaContent UserTrack::media()
   if (userDir().file(ids + ".wav").exists()) return userDir().qurl(ids + ".wav");
   if (userDir().file(ids + ".ogg").exists()) return userDir().qurl(ids + ".ogg");
   if (userDir().file(ids + ".m4a").exists()) return userDir().qurl(ids + ".m4a");
-  emit coverAborted();
+  emit coverAborted(tr("File not found"));
   return QMediaContent();
 }
 

@@ -136,7 +136,7 @@ QUrl YTrack::cover()
 	if (Config::ym_saveCover()) {
     if (_cover.isEmpty()) {
       if (!_noCover) _downloadCover(); // async
-      else emit coverAborted();
+      else emit coverAborted(tr("No cover"));
       return {"qrc:resources/player/no-cover.svg"};
     }
 		auto s = _relativePathToCover? Config::ym_saveDir().sub(_cover) : _cover;
@@ -166,15 +166,15 @@ QMediaContent YTrack::media()
     if (_media.isEmpty()) {
       if (!_noMedia) _downloadMedia(); // async
       else {
-        Messages::error(tr("Failed to get Yandex.Music track media (id: %1)").arg(_id));
-        emit mediaAborted();
+        Messages::error(tr("Failed to get Yandex.Music track media (id: %1)").arg(_id), tr("No media"));
+        emit mediaAborted(tr("No media"));
       }
       return {};
     }
 		auto media = Config::ym_saveDir().sub(_media);
     if (QFile::exists(media))
       return QMediaContent("file:" + media);
-    emit mediaAborted();
+    emit mediaAborted(tr("Media file does not exist"));
   } else {
     if (_py == none) do_async([this](){
       _fetchYandex();
@@ -392,19 +392,17 @@ void YTrack::_downloadCover()
     _fetchYandex();
     if (_noCover) {
       _cover = "";
-      emit coverAborted();
+      emit coverAborted(tr("No cover"));
       return;
     }
-    repeat_if_error([this]() {
-			_py.call("download_cover", std::initializer_list<object>{coverFile().fs.fileName(), Config::ym_coverQuality()});
+    try {
+      _py.call("download_cover", std::initializer_list<object>{coverFile().fs.fileName(), Config::ym_coverQuality()});
       _cover = QString::number(_id) + ".png";
-    }, [this](bool success) {
-      if (success) emit coverChanged(cover());
-      else {
-        _noCover = true;
-        emit coverAborted();
-      }
-		}, Config::ym_repeatsIfError());
+      emit coverChanged(cover());
+    } catch (std::exception& e) {
+      _noCover = true;
+      emit coverAborted(e.what());
+    }
     saveMetadata();
   });
 }
@@ -415,19 +413,17 @@ void YTrack::_downloadMedia()
     QMutexLocker lock(&_mtx);
     _fetchYandex();
     if (_noMedia) {
-      emit mediaAborted();
+      emit mediaAborted(tr("No media"));
       return;
     }
-    repeat_if_error([this]() {
+    try {
       _py.call("download", mediaFile().fs.fileName());
       _media = QString::number(_id) + ".mp3";
-    }, [this](bool success) {
-      if (success) emit mediaChanged(media());
-      else {
-        _noCover = true;
-        emit mediaAborted();
-      }
-		}, Config::ym_repeatsIfError());
+      emit mediaChanged(media());
+    } catch (std::exception& e) {
+      _noCover = true;
+      emit mediaAborted(e.what());
+    }
     saveMetadata();
   });
 }
@@ -449,6 +445,7 @@ void YTrack::_checkLiked()
       }
       emit likedChanged(_liked);
     }  catch (std::exception& e) {
+      //TODO: отправляется дважды
       Messages::error(tr("Failed to check like state of track", e.what()));
     }
   });

@@ -42,6 +42,6 @@ signals:
   void durationChanged(qint64 duration);
   void likedChanged(bool liked);
 
-  void coverAborted(); //TODO: reason
-  void mediaAborted(); //TODO: reason
+  void coverAborted(QString reason);
+  void mediaAborted(QString reason);
 };

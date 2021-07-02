@@ -77,7 +77,7 @@ signals:
 
 private slots:
   void setMedia(QMediaContent media);
-  void onMediaAborted();
+  void onMediaAborted(QString reason);
   void updatePlaylistGenerator();
 
 private:

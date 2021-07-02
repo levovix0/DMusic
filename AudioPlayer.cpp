@@ -113,9 +113,9 @@ void AudioPlayer::setMedia(QMediaContent media)
   player->play();
 }
 
-void AudioPlayer::onMediaAborted()
+void AudioPlayer::onMediaAborted(QString reason)
 {
-  Messages::error(tr("Failed to load track"));
+  Messages::error(tr("Failed to load track"), reason);
   if (_radio != nullptr) {    
     _unsubscribeCurrentTrack();
     player->stop();
