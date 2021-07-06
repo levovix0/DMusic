@@ -56,11 +56,11 @@ private:
 
   QString _coverUrl();
 
-  py::object _py;
-  QRecursiveMutex _mtx{};
-  qint64 _id;
+  py::object _py{py::none};
+  QMutex _fetchMtx{}, _coverMtx{}, _mediaMtx{}, _likedMtx;
+  int _id{0};
   QString _title, _author, _extra, _cover, _media;
-  qint64 _duration;
+  int _duration{0};
   bool _liked = false;
   QVector<qint64> _artists;
   bool _noTitle = false, _noAuthor = false, _noExtra = false, _noCover = false, _noMedia = false;

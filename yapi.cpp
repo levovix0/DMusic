@@ -14,69 +14,6 @@
 
 using namespace py;
 
-object repeat_if_error(std::function<object()> f, int n = 10, std::string s = "NetworkError") {
-  if (s == "") {
-    while (true) {
-      try {
-        return f();
-      } catch (error& e) {
-        --n;
-        if (n <= 0) throw std::move(e);
-      }
-    }
-  } else {
-    while (true) {
-      try {
-        return f();
-      } catch (error& e) {
-        if (e.type != s) throw std::move(e);
-        --n;
-        if (n <= 0) throw std::move(e);
-      }
-    }
-  }
-  return nullptr;
-}
-
-void repeat_if_error(std::function<void()> f, std::function<void(bool success)> r, int n = 10, std::string s = "NetworkError") {
-  int tries = n;
-  if (s == "") {
-    while (true) {
-      try {
-        f();
-        return r(true);
-      } catch (error&) {
-        --tries;
-        if (tries <= 0) {
-          return r(false);
-        }
-      }
-    }
-  } else {
-    while (true) {
-      try {
-        f();
-        return r(true);
-      } catch (error& e) {
-        if (e.type != s) {
-          return r(false);
-        }
-        --tries;
-        if (tries <= 0) {
-          return r(false);
-        }
-      }
-    }
-  }
-}
-
-void repeat_if_error_async(std::function<void()> f, std::function<void(bool success)> r, int n = 10, std::string s = "NetworkError") {
-  do_async([=]() {
-    repeat_if_error(f, r, n, s);
-  });
-}
-
-
 YTrack::YTrack(qint64 id, QObject* parent) : Track(parent)
 {
   _id = id;
@@ -149,8 +86,7 @@ QUrl YTrack::cover()
   } else {
     if (_py == none) do_async([this](){
       _fetchYandex();
-      saveMetadata();
-      if (!_py.has("cover_uri")) return;
+      if (_py == none || _py == nullptr || !_py.has("cover_uri")) return;
       emit coverChanged(_coverUrl());
     });
     else
@@ -164,22 +100,27 @@ QMediaContent YTrack::media()
   if (!_checkedDisk) _loadFromDisk();
 	if (Config::ym_downloadMedia()) {
     if (_media.isEmpty()) {
-      if (!_noMedia) _downloadMedia(); // async
+      if (!_noMedia) do_async([this](){ QMutexLocker lock(&_mediaMtx); _downloadMedia(); });
       else {
         Messages::error(tr("Failed to get Yandex.Music track media (id: %1)").arg(_id), tr("No media"));
         emit mediaAborted(tr("No media"));
       }
       return {};
     }
-		auto media = Config::ym_saveDir().sub(_media);
-    if (QFile::exists(media))
-      return QMediaContent("file:" + media);
-    emit mediaAborted(tr("Media file does not exist"));
+    if (mediaFile().exists()) return QMediaContent(QUrl(mediaFile().fs.fileName()));
+    else {
+      Messages::message(tr("media file not found (id: %1), it will be re-downloaded").arg(_id), tr("File %1 not exist").arg(mediaFile().fs.fileName()));
+      do_async([this](){ QMutexLocker lock(&_mediaMtx); _downloadMedia(); });
+      return {};
+    }
   } else {
     if (_py == none) do_async([this](){
       _fetchYandex();
-      saveMetadata();
-      emit mediaChanged(QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>())));
+      if (_py == none || _py == nullptr || !_py.has("cover_uri")) {
+        emit mediaAborted(tr("Failed to fetch Yandex.Music track (id: %1)").arg(_id));
+      } else {
+        emit mediaChanged(QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>())));
+      }
     });
     else
       return QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>()));
@@ -200,7 +141,7 @@ bool YTrack::liked()
 {
   if (!_checkedDisk) _loadFromDisk();
   if (!_hasLiked) {
-    do_async([this](){ _checkLiked(); saveMetadata(); });
+    do_async([this](){ QMutexLocker lock(&_likedMtx); _checkLiked(); saveMetadata(); });
   }
   return _liked;
 }
@@ -273,9 +214,9 @@ void YTrack::saveMetadata()
 void YTrack::setLiked(bool liked)
 {
   do_async([this, liked](){
-    QMutexLocker lock(&_mtx);
+    QMutexLocker lock(&_likedMtx);
     _fetchYandex();
-    repeat_if_error([this, liked]() {
+    try {
       if (liked) {
         _py.call("like");
       } else {
@@ -283,7 +224,11 @@ void YTrack::setLiked(bool liked)
       }
       _liked = liked;
       emit likedChanged(liked);
-		}, [](bool) {}, Config::ym_repeatsIfError());
+    } catch(std::exception& e) {
+      if (liked) Messages::error(tr("Failed to like track"), e.what());
+      else Messages::error(tr("Failed to unlike track"), e.what());
+    }
+
     saveMetadata();
   });
 }
@@ -291,7 +236,7 @@ void YTrack::setLiked(bool liked)
 bool YTrack::_loadFromDisk()
 {
   _checkedDisk = true;
-	if (!Config::ym_saveInfo()) return false;
+//	if (!Config::ym_saveInfo()) return false;
   if (_id <= 0) return false;
   auto metadata = metadataFile();
   if (!metadata.exists()) return false;
@@ -328,7 +273,7 @@ bool YTrack::_loadFromDisk()
 
 void YTrack::_fetchYandex()
 {
-  QMutexLocker lock(&_mtx);
+  QMutexLocker lock(&_fetchMtx);
   if (_py != py::none) return;
   auto _pys = YClient::instance->fetchTracks(_id);
   if (_pys.empty()) {
@@ -340,9 +285,11 @@ void YTrack::_fetchYandex()
 
 void YTrack::_fetchYandex(object _pys)
 {
-  QMutexLocker lock(&_mtx);
+  bool needUnlock = _fetchMtx.tryLock();
+  if (_py != py::none) return;
   try {
-    if (_pys == none) {
+    if (_pys == none || _pys == nullptr) {
+      _py = nullptr;
       _title = "";
       _author = "";
       _extra = "";
@@ -379,81 +326,77 @@ void YTrack::_fetchYandex(object _pys)
 
       _duration = _py.get("duration_ms").to<qint64>();
       emit durationChanged(_duration);
+
+      saveMetadata();
     }
-  } catch (py::error& e) {
-    Messages::error(tr("Failed to load Yandex.Music track (id: %1)").arg(_id));
+  } catch (std::exception& e) {
+    Messages::error(tr("Failed to load Yandex.Music track (id: %1)").arg(_id), e.what());
   }
+  if (needUnlock) _fetchMtx.unlock();
 }
 
 void YTrack::_downloadCover()
 {
-  do_async([this](){
-    QMutexLocker lock(&_mtx);
-    _fetchYandex();
-    if (_noCover) {
-      _cover = "";
-      emit coverAborted(tr("No cover"));
-      return;
-    }
-    try {
-      _py.call("download_cover", std::initializer_list<object>{coverFile().fs.fileName(), Config::ym_coverQuality()});
-      _cover = QString::number(_id) + ".png";
-      emit coverChanged(cover());
-    } catch (std::exception& e) {
-      _noCover = true;
-      emit coverAborted(e.what());
-    }
-    saveMetadata();
-  });
+  _fetchYandex();
+  if (_py == none || _py == nullptr) {
+    emit coverAborted(tr("Null python object"));
+    return;
+  }
+  try {
+    _py.call("download_cover", std::initializer_list<object>{coverFile().fs.fileName(), Config::ym_coverQuality()});
+    _cover = QString::number(_id) + ".png";
+    emit coverChanged(cover());
+  } catch (std::exception& e) {
+    _noCover = true;
+    emit coverAborted(e.what());
+  }
+  saveMetadata();
 }
 
 void YTrack::_downloadMedia()
 {
-  do_async([this](){
-    QMutexLocker lock(&_mtx);
-    _fetchYandex();
-    if (_noMedia) {
-      emit mediaAborted(tr("No media"));
-      return;
-    }
-    try {
-      _py.call("download", mediaFile().fs.fileName());
-      _media = QString::number(_id) + ".mp3";
-      emit mediaChanged(media());
-    } catch (std::exception& e) {
-      _noCover = true;
-      emit mediaAborted(e.what());
-    }
-    saveMetadata();
-  });
+  _fetchYandex();
+  if (_py == none || _py == nullptr) {
+    emit mediaAborted(tr("Null python object"));
+    return;
+  }
+  try {
+    _py.call("download", mediaFile().fs.fileName());
+    _media = QString::number(_id) + ".mp3";
+    emit mediaChanged(media());
+  } catch (std::exception& e) {
+    _noCover = true;
+    emit mediaAborted(e.what());
+  }
+  saveMetadata();
 }
 
 void YTrack::_checkLiked()
 {
-  do_async([this](){
-    QMutexLocker lock(&_mtx);
-    _fetchYandex();
-    try {
-      auto ult = _py.get("client").call("users_likes_tracks").get("tracks_ids");
-      _liked = false;
-      for (auto&& p : ult) {
-        if (!p.contains(":")) continue;
-        if (p.call("split", ":")[0].to<int>() == _id) {
-          _liked = true;
-          break;
-        }
+  _fetchYandex();
+  if (_py == none || _py == nullptr) return;
+  try {
+    auto ult = _py.get("client").call("users_likes_tracks").get("tracks_ids");
+    bool liked = false;
+    for (auto&& p : ult) {
+      if (!p.contains(":")) continue;
+      if (p.call("split", ":")[0].to<int>() == _id) {
+        liked = true;
+        break;
       }
-      emit likedChanged(_liked);
-    }  catch (std::exception& e) {
-      //TODO: отправляется дважды
-      Messages::error(tr("Failed to check like state of track", e.what()));
     }
-  });
+    if (liked != _liked) {
+      _liked = liked;
+      emit likedChanged(_liked);
+    }
+  }  catch (std::exception& e) {
+    Messages::error(tr("Failed to check like state of track", e.what()));
+  }
 }
 
 QString YTrack::_coverUrl()
 {
-  if (!_py.has("cover_uri")) return "";
+  if (_py == none || _py == nullptr || !_py.has("cover_uri")) return "";
   auto a = "http://" + _py.get("cover_uri").to<QString>();
   a.remove(a.length() - 2, 2);
 	a += "m" + toString(Config::ym_coverQuality());
@@ -526,14 +469,13 @@ void YArtist::saveMetadata()
 
 bool YArtist::saveCover(int quality)
 {
-  bool successed;
   QString size = QString::number(quality) + "x" + QString::number(quality);
-  repeat_if_error([this, size]() {
+  try {
     impl.call("download_og_image", std::initializer_list<object>{coverPath(), size});
-  }, [&successed](bool success) {
-    successed = success;
-	}, Config::ym_repeatsIfError());
-  return successed;
+    return true;
+  } catch (std::exception& e) {
+    return false;
+  }
 }
 
 
@@ -727,9 +669,9 @@ QVector<object> YClient::fetchTracks(qint64 id)
 {
   if (!initialized()) return {};
   QVector<py::object> tracks;
-  repeat_if_error([this, id, &tracks]() {
+  try {
     tracks = me.call("tracks", std::vector<object>{id}).to<QVector<py::object>>();
-	}, [](bool) {}, Config::ym_repeatsIfError());
+  } catch (...) {}
   return tracks;
 }
 

@@ -35,6 +35,7 @@ HEADERS += \
   Track.hpp \
   api.hpp \
   file.hpp \
+  nimfs.hpp \
   python.hpp \
   types.hpp \
   utils.hpp \

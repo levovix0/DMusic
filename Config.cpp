@@ -212,6 +212,7 @@ void Config::reloadFromJson() {
   if (!user_.isEmpty()) {
     
   }
+  
   QJsonObject ym_ = doc["Yandex.Music"].toObject();
   if (!ym_.isEmpty()) {
     _ym_token = ym_["token"].toString("");
@@ -251,6 +252,6 @@ void Config::saveToJson() {
   ym_["saveInfo"] = _ym_saveInfo;
   ym_["coverQuality"] = _ym_coverQuality;
   doc["Yandex.Music"] = ym_;
-  
+
   settingsDir().file("config.json").writeAll(doc, QJsonDocument::Indented);
 }

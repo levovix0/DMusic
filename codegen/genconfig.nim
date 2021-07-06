@@ -133,7 +133,8 @@ proc readConfig(body: NimNode; prefix: string): ReadConfigResult =
 QJsonObject {prefix}{prefix2}_ = {doc}["{jsonName}"].toObject();
 if (!{prefix}{prefix2}_.isEmpty()) {lb}
 {res.readJson.strip(chars=newLine).indent(2)}
-{rb}"""
+{rb}
+"""
       result.writeJson.add &"\nQJsonObject {prefix}{prefix2}_;\n"
       result.writeJson.add res.writeJson
       result.writeJson.add &"{doc}[\"{jsonName}\"] = {prefix}{prefix2}_;\n"
@@ -375,13 +376,14 @@ void {classname}::reloadFromJson() {lb}
   QJsonObject doc = settingsDir().file("config.json").allJson().object();
   if (doc.isEmpty()) return;
 
-{res.readJson.indent(2)}
+{res.readJson.strip(chars=newLine).indent(2)}
 {rb}
 
 void {classname}::saveToJson() {lb}
   QJsonObject doc;
 
-{res.writeJson.indent(2)}
+{res.writeJson.strip(chars=newLine).indent(2)}
+
   settingsDir().file("config.json").writeAll(doc, QJsonDocument::Indented);
 {rb}
 """
