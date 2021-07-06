@@ -507,10 +507,14 @@ QUrl YPlaylist::cover()
 refPlaylist YPlaylist::toPlaylist()
 {
   DPlaylist* res = new DPlaylist(this);
-  auto a = impl.call("fetch_tracks");
-  for (auto&& p : a) {
-    if (!p.has("id")) continue;
-    res->add(refTrack(new YTrack(p.get("id").to<int>(), YClient::instance)));
+  try {
+    auto a = impl.call("fetch_tracks");
+    for (auto&& p : a) {
+      if (!p.has("id")) continue;
+      res->add(refTrack(new YTrack(p.get("id").to<int>(), YClient::instance)));
+    }
+  } catch (std::exception& e) {
+    Messages::error(tr("Failed to convert Yandex.Music playlist to list of tracks"), e.what());
   }
   return refPlaylist(res);
 }
