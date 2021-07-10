@@ -281,7 +281,7 @@ void Mpris2Player::onTrackChanged(Track* track)
 
 void Mpris2Player::onProgressChanged(qint64 ms)
 {
-  if (std::abs(ms - _prevPosition) > 100 || ms == 0 || _prevPosition == 0) //TODO: seek minimum by Settings
+  if (std::abs(ms - _prevPosition) > 100 || ms == 0 || _prevPosition == 0) //TODO: seek minimum by Config
     emit Seeked(ms * 1000);
   _prevPosition = ms;
 }

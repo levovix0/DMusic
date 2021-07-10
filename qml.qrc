@@ -83,5 +83,6 @@
         <file>pages/DPage.qml</file>
         <file>pages/SettingsPage.qml</file>
         <file>resources/player/debug.svg</file>
+        <file>components/SettingsBlock.qml</file>
     </qresource>
 </RCC>

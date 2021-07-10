@@ -56,9 +56,9 @@ Item {
     color: loopMode != Config.LoopNone? "#FCE165" : "#C1C1C1"
     hoverColor: loopMode != Config.LoopNone? "#CDB64E" : "#FFFFFF"
     onClick: {
-      if (loopMode == Config.LoopNone) changeLoopMode(Settings.LoopPlaylist)
-      else if (loopMode == Config.LoopPlaylist) changeLoopMode(Settings.LoopTrack)
-      else changeLoopMode(Settings.LoopNone)
+      if (loopMode == Config.LoopNone) changeLoopMode(Config.LoopPlaylist)
+      else if (loopMode == Config.LoopPlaylist) changeLoopMode(Config.LoopTrack)
+      else changeLoopMode(Config.LoopNone)
     }
   }
 
@@ -71,6 +71,6 @@ Item {
     icon: "resources/player/shuffle.svg"
     color: nextMode != Config.NextSequence? "#FCE165" : "#C1C1C1"
     hoverColor: nextMode != Config.NextSequence? "#CDB64E" : "#FFFFFF"
-    onClick: changeNextMode(nextMode == Config.NextSequence? Settings.NextShuffle : Settings.NextSequence)
+    onClick: changeNextMode(nextMode == Config.NextSequence? Config.NextShuffle : Config.NextSequence)
   }
 }
