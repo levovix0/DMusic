@@ -2,6 +2,7 @@
 #include <fstream>
 #include <QFile>
 #include <QFileDialog>
+#include <QRegExpValidator>
 
 DFileDialog::DFileDialog(QObject *parent) : QObject(parent)
 {
@@ -41,4 +42,22 @@ QList<QUrl> DFileDialog::openFiles(QString filter, QString title)
 	dlg.setWindowTitle(title);
 
 	return dlg.exec()? dlg.selectedUrls() : QList<QUrl>{};
+}
+
+bool DFileDialog::checkFilter(QString file, QString filter)
+{
+	auto filters = filter.split("|");
+	QStringList masks;
+
+	for (auto& f : filters) {
+		f.remove(0, f.indexOf("(") + 1);
+		f.truncate(f.indexOf(")"));
+		masks.append(f.split(" "));
+	}
+
+	for (auto& mask : masks) {
+		mask.replace(".", "\\.").replace("*", ".*").replace("?", ".");
+		if (QRegExp("^" + mask + "$").exactMatch(file)) return true;
+	}
+	return false;
 }

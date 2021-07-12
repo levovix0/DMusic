@@ -20,7 +20,7 @@ Rectangle {
     width: root.width
 
     radius: root.radius
-    color: sellected? "#FCE165" : "#AAAAAA"
+    color: sellected? Style.accent : "#AAAAAA"
   }
 
   Rectangle {

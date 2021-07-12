@@ -98,7 +98,7 @@ FloatingPanel {
     Icon {
       anchors.centerIn: parent
       src: "qrc:/resources/debug/drop-media.svg"
-      color: parent.hasContent? "#78c0ff" : Style.dropPlace.border.color
+      color: parent.hasContent? Style.accent : Style.dropPlace.border.color
     }
   }
 

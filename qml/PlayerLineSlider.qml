@@ -21,7 +21,7 @@ Rectangle {
     width: root.width * progress
 
     radius: root.radius
-    color: sellected? "#FCE165" : "#AAAAAA"
+    color: sellected? Style.accent : "#AAAAAA"
   }
 
   Rectangle {

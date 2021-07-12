@@ -1,8 +1,8 @@
-import QtQuick 2.0
+import QtQuick 2.15
 import "../external"
 import DMusic 1.0
 
-// Перетаскивание ИЗ DropPlace
+//TODO: Перетаскивание ИЗ DropPlace
 
 DropArea {
   id: root
@@ -14,14 +14,15 @@ DropArea {
 
   property url content
   onEntered: {
-    if (!drag.hasUrls) return
-    var a = drag.urls[0]
-    //TODO: filter
     drag.accept(Qt.LinkAction)
   }
   onDropped: {
+    if (!drop.hasUrls) return
+    var a = drop.urls[0]
+    if (!_dialog.checkFilter(a, filter)) return
+
     hasContent = true
-    content = drop.urls[0]
+    content = a
   }
 
   MouseArea {

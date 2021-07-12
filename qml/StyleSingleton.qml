@@ -24,4 +24,5 @@ QtObject {
       property color drop: "#507A7A7A"
     }
   }
+  property color accent: "#FCE165"
 }
