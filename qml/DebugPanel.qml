@@ -108,7 +108,7 @@ FloatingPanel {
     height: 20
     anchors.left: _id.right
     anchors.top: _id.top
-    src: "resources/debug/track.svg"
+    src: "qrc:/resources/debug/track.svg"
     anchors.leftMargin: 12
 
     onClicked: {
@@ -126,7 +126,7 @@ FloatingPanel {
     anchors.left: _track.right
     anchors.top: _id.top
     anchors.leftMargin: 12
-    src: "resources/debug/playlist.svg"
+    src: "qrc:/resources/debug/playlist.svg"
 
     onClicked: {
       if (_id.text === "") return
@@ -143,7 +143,7 @@ FloatingPanel {
     anchors.left: _playlist.right
     anchors.top: _id.top
     anchors.leftMargin: 12
-    src: "resources/debug/downloads.svg"
+    src: "qrc:/resources/debug/downloads.svg"
 
     onClicked: {
       try {
@@ -159,7 +159,7 @@ FloatingPanel {
     anchors.left: _downloads.right
     anchors.top: _id.top
     anchors.leftMargin: 12
-    src: "resources/debug/user.svg"
+    src: "qrc:/resources/debug/user.svg"
 
     onClicked: {
       if (_id.text === "") return
@@ -176,7 +176,7 @@ FloatingPanel {
     anchors.left: _media.right
     anchors.top: _media.top
     anchors.leftMargin: 6
-    src: "resources/debug/add.svg"
+    src: "qrc:/resources/debug/add.svg"
 
     onClicked: {
       if (!_media.hasContent) return

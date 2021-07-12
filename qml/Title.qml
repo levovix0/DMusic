@@ -48,7 +48,7 @@ Rectangle {
     id: _home
     anchors.verticalCenter: root.verticalCenter
     anchors.left: root.left
-    icon: "resources/title/home.svg"
+    icon: "qrc:/resources/title/home.svg"
 
     onClick: pages.gotoMainPage()
   }
@@ -60,7 +60,7 @@ Rectangle {
     anchors.verticalCenter: root.verticalCenter
     enabled: root.clientSideDecorations
 
-    icon: "resources/title/close.svg"
+    icon: "qrc:/resources/title/close.svg"
     hoverColor: "#E03649"
     pressedColor: "#C11B2D"
 
@@ -73,7 +73,7 @@ Rectangle {
     anchors.verticalCenter: root.verticalCenter
     enabled: root.clientSideDecorations
 
-    icon: "resources/title/maximize.svg"
+    icon: "qrc:/resources/title/maximize.svg"
 
     onClick: root.window.maximize()
   }
@@ -84,7 +84,7 @@ Rectangle {
     anchors.verticalCenter: root.verticalCenter
     enabled: root.clientSideDecorations
 
-    icon: "resources/title/minimize.svg"
+    icon: "qrc:/resources/title/minimize.svg"
 
     onClick: root.window.minimize()
   }
@@ -93,7 +93,7 @@ Rectangle {
     id: _settings
     anchors.verticalCenter: root.verticalCenter
     anchors.right: _minimize.left
-    icon: "resources/title/settings.svg"
+    icon: "qrc:/resources/title/settings.svg"
 
     onClick: pages.gotoSettingsPage()
   }

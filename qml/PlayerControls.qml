@@ -20,7 +20,7 @@ Item {
     width: 30
     height: 30
 
-    icon: playing? "resources/player/pause.svg" : "resources/player/play.svg"
+    icon: playing? "qrc:/resources/player/pause.svg" : "qrc:/resources/player/play.svg"
     onClick: pause_or_play()
   }
 
@@ -30,7 +30,7 @@ Item {
     anchors.horizontalCenter: root.horizontalCenter
     anchors.horizontalCenterOffset: 50
 
-    icon: "resources/player/next.svg"
+    icon: "qrc:/resources/player/next.svg"
 
     onClick: next()
   }
@@ -41,7 +41,7 @@ Item {
     anchors.horizontalCenter: root.horizontalCenter
     anchors.horizontalCenterOffset: -50
 
-    icon: "resources/player/prev.svg"
+    icon: "qrc:/resources/player/prev.svg"
 
     onClick: prev()
   }
@@ -52,7 +52,7 @@ Item {
     anchors.horizontalCenter: root.horizontalCenter
     anchors.horizontalCenterOffset: 50 + 50
 
-    icon: loopMode == Config.LoopTrack? "resources/player/loop-track.svg" : "resources/player/loop-playlist.svg"
+    icon: loopMode == Config.LoopTrack? "qrc:/resources/player/loop-track.svg" : "qrc:/resources/player/loop-playlist.svg"
     color: loopMode != Config.LoopNone? "#FCE165" : "#C1C1C1"
     hoverColor: loopMode != Config.LoopNone? "#CDB64E" : "#FFFFFF"
     onClick: {
@@ -68,7 +68,7 @@ Item {
     anchors.horizontalCenter: root.horizontalCenter
     anchors.horizontalCenterOffset: -50 - 50
 
-    icon: "resources/player/shuffle.svg"
+    icon: "qrc:/resources/player/shuffle.svg"
     color: nextMode != Config.NextSequence? "#FCE165" : "#C1C1C1"
     hoverColor: nextMode != Config.NextSequence? "#CDB64E" : "#FFFFFF"
     onClick: changeNextMode(nextMode == Config.NextSequence? Config.NextShuffle : Config.NextSequence)

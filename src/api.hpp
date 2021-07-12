@@ -3,9 +3,9 @@
 #include <QMediaContent>
 #include <functional>
 #include "Config.hpp"
-#include <Track.hpp>
-#include <Radio.hpp>
-#include <types.hpp>
+#include "Track.hpp"
+#include "Radio.hpp"
+#include "types.hpp"
 
 class Playlist : public QObject
 {

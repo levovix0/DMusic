@@ -4,42 +4,44 @@ win32: QT += winextras
 CONFIG += c++17
 
 SOURCES += \
-  AudioPlayer.cpp \
-  Clipboard.cpp \
-  Config.cpp \
-  DFileDialog.cpp \
-  Dir.cpp \
-  Download.cpp \
-  ID.cpp \
-  Messages.cpp \
-  Radio.cpp \
-  RemoteMediaController.cpp \
-  Track.cpp \
-  api.cpp \
-  main.cpp \
-  python.cpp \
-  yapi.cpp
+  src/AudioPlayer.cpp \
+  src/Clipboard.cpp \
+  src/Config.cpp \
+  src/DFileDialog.cpp \
+  src/Dir.cpp \
+  src/Download.cpp \
+  src/ID.cpp \
+  src/MediaDownloader.cpp \
+  src/Messages.cpp \
+  src/Radio.cpp \
+  src/RemoteMediaController.cpp \
+  src/Track.cpp \
+  src/api.cpp \
+  src/main.cpp \
+  src/python.cpp \
+  src/yapi.cpp
 
 HEADERS += \
-  AudioPlayer.hpp \
-  Clipboard.hpp \
-  Config.hpp \
-  ConsoleArgs.hpp \
-  DFileDialog.hpp \
-  Dir.hpp \
-  Download.hpp \
-  ID.hpp \
-  Messages.hpp \
-  Radio.hpp \
-  RemoteMediaController.hpp \
-  Track.hpp \
-  api.hpp \
-  file.hpp \
-  nimfs.hpp \
-  python.hpp \
-  types.hpp \
-  utils.hpp \
-  yapi.hpp
+  src/AudioPlayer.hpp \
+  src/Clipboard.hpp \
+  src/Config.hpp \
+  src/ConsoleArgs.hpp \
+  src/DFileDialog.hpp \
+  src/Dir.hpp \
+  src/Download.hpp \
+  src/ID.hpp \
+  src/MediaDownloader.hpp \
+  src/Messages.hpp \
+  src/Radio.hpp \
+  src/RemoteMediaController.hpp \
+  src/Track.hpp \
+  src/api.hpp \
+  src/file.hpp \
+  src/nimfs.hpp \
+  src/python.hpp \
+  src/types.hpp \
+  src/utils.hpp \
+  src/yapi.hpp
 
 RESOURCES += qml.qrc translations.qrc
 win32:RC_ICONS += resources/app.ico
@@ -100,3 +102,7 @@ unix {
   INCLUDEPATH += /usr/include/python3.9
   DEPENDPATH += /usr/include/python3.9
 }
+
+DISTFILES += \
+  src/codegen/genconfig.nim \
+  src/config.nim

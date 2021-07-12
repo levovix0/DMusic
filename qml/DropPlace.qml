@@ -1,7 +1,8 @@
 import QtQuick 2.0
-import QtQuick.Dialogs 1.2
 import "external"
 import DMusic 1.0
+
+// Перетаскивание ИЗ DropPlace
 
 DropArea {
   id: root
@@ -30,7 +31,10 @@ DropArea {
 
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
-    onClicked: _dialog.open()
+    onClicked: {
+      content = _dialog.openFile(root.filter)
+      hasContent = content != ""
+    }
   }
 
   Rectangle {
@@ -52,16 +56,7 @@ DropArea {
     dashPattern: [3, 3 + (((width + height) * 2 - radius) % 3)]
   }
 
-  FileDialog {
+  DFileDialog {
     id: _dialog
-    nameFilters: [root.filter]
-    onAccepted: {
-      hasContent = true
-      content = fileUrl
-    }
-    onRejected: {
-      hasContent = false
-      content = ""
-    }
   }
 }

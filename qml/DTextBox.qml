@@ -12,13 +12,13 @@ Rectangle {
   property alias text: _input.text
 
   MouseArea {
-    anchors.centerIn: root
-    width: root.width - 10
-    height: root.height
-
-    cursorShape: Qt.IBeamCursor
+    anchors.fill: parent
+    anchors.leftMargin: 5
+    anchors.rightMargin: 5
 
     clip: true
+
+    cursorShape: Qt.IBeamCursor
 
     TextInput {
       id: _input

@@ -1,11 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>main.qml</file>
-        <file>Player.qml</file>
-        <file>PlayerLine.qml</file>
-        <file>PlayerControls.qml</file>
-        <file>PlayerLineSlider.qml</file>
-        <file>Icon.qml</file>
         <file>resources/player/dislike.svg</file>
         <file>resources/player/download.svg</file>
         <file>resources/player/shuffle.svg</file>
@@ -16,14 +10,6 @@
         <file>resources/player/pause.svg</file>
         <file>resources/player/play.svg</file>
         <file>resources/player/prev.svg</file>
-        <file>PlayerTrack.qml</file>
-        <file>PlayerTrackIcon.qml</file>
-        <file>PlayerTrackInfo.qml</file>
-        <file>RoundedImage.qml</file>
-        <file>DText.qml</file>
-        <file>Title.qml</file>
-        <file>TitleManualButton.qml</file>
-        <file>PlayerControlsButton.qml</file>
         <file>resources/logo.svg</file>
         <file>resources/title/back.svg</file>
         <file>resources/title/close.svg</file>
@@ -34,11 +20,7 @@
         <file>resources/title/radio.svg</file>
         <file>resources/title/recommendation.svg</file>
         <file>resources/title/subscriptions.svg</file>
-        <file>DButton.qml</file>
-        <file>DTextBox.qml</file>
-        <file>ResizeArea.qml</file>
         <file>resources/player/no-cover.svg</file>
-        <file>VolumeControl.qml</file>
         <file>resources/player/vol-muted.svg</file>
         <file>resources/player/vol-quiet.svg</file>
         <file>resources/player/eq/default.svg</file>
@@ -48,41 +30,59 @@
         <file>resources/player/eq/low-boost.svg</file>
         <file>resources/player/eq/low-pass.svg</file>
         <file>resources/player/eq/mid-pass.svg</file>
-        <file>VolumeControlPanel.qml</file>
         <file>resources/tri.svg</file>
-        <file>Triangle.qml</file>
-        <file>VolumeSlider.qml</file>
-        <file>FloatingPanel.qml</file>
-        <file>PopupController.qml</file>
         <file>resources/app.svg</file>
         <file>resources/app.ico</file>
         <file>resources/app-papirus.svg</file>
-        <file>PlaylistEntry.qml</file>
-        <file>RoundMask.qml</file>
         <file>resources/player/share.svg</file>
         <file>resources/player/like.svg</file>
         <file>resources/player/liked.svg</file>
-        <file>Message.qml</file>
         <file>resources/covers/like.png</file>
-        <file>DebugPanel.qml</file>
         <file>resources/debug/add.svg</file>
         <file>resources/debug/downloads.svg</file>
         <file>resources/debug/playlist.svg</file>
         <file>resources/debug/track.svg</file>
         <file>resources/debug/user.svg</file>
-        <file>IconButton.qml</file>
-        <file>StyleSingleton.qml</file>
-        <file>external/Border.qml</file>
         <file>resources/debug/drop-cover.svg</file>
         <file>resources/debug/drop-media.svg</file>
-        <file>DropPlace.qml</file>
-        <file>pages/MainPage.qml</file>
-        <file>pages/PageSwitcher.qml</file>
         <file>resources/title/home.svg</file>
         <file>resources/title/settings.svg</file>
-        <file>pages/DPage.qml</file>
-        <file>pages/SettingsPage.qml</file>
         <file>resources/player/debug.svg</file>
-        <file>components/SettingsBlock.qml</file>
+        <file>qml/DButton.qml</file>
+        <file>qml/DebugPanel.qml</file>
+        <file>qml/DropPlace.qml</file>
+        <file>qml/DText.qml</file>
+        <file>qml/DTextBox.qml</file>
+        <file>qml/FloatingPanel.qml</file>
+        <file>qml/Icon.qml</file>
+        <file>qml/IconButton.qml</file>
+        <file>qml/main.qml</file>
+        <file>qml/Message.qml</file>
+        <file>qml/Player.qml</file>
+        <file>qml/PlayerControls.qml</file>
+        <file>qml/PlayerControlsButton.qml</file>
+        <file>qml/PlayerLine.qml</file>
+        <file>qml/PlayerLineSlider.qml</file>
+        <file>qml/PlayerTrack.qml</file>
+        <file>qml/PlayerTrackIcon.qml</file>
+        <file>qml/PlayerTrackInfo.qml</file>
+        <file>qml/PlaylistEntry.qml</file>
+        <file>qml/PopupController.qml</file>
+        <file>qml/ResizeArea.qml</file>
+        <file>qml/RoundedImage.qml</file>
+        <file>qml/RoundMask.qml</file>
+        <file>qml/StyleSingleton.qml</file>
+        <file>qml/Title.qml</file>
+        <file>qml/TitleManualButton.qml</file>
+        <file>qml/Triangle.qml</file>
+        <file>qml/VolumeControl.qml</file>
+        <file>qml/VolumeControlPanel.qml</file>
+        <file>qml/VolumeSlider.qml</file>
+        <file>qml/pages/DPage.qml</file>
+        <file>qml/pages/MainPage.qml</file>
+        <file>qml/pages/PageSwitcher.qml</file>
+        <file>qml/pages/SettingsPage.qml</file>
+        <file>qml/components/SettingsBlock.qml</file>
+        <file>qml/external/Border.qml</file>
     </qresource>
 </RCC>

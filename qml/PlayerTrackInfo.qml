@@ -133,7 +133,7 @@ Item {
     anchors.bottomMargin: -1
     visible: idStr != ""
 
-    icon: liked? "resources/player/liked.svg" : "resources/player/like.svg"
+    icon: liked? "qrc:/resources/player/liked.svg" : "qrc:/resources/player/like.svg"
 
     onClick: toggleLiked(!liked)
   }

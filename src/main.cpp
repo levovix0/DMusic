@@ -1,8 +1,11 @@
 #include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>
 #include <QTranslator>
 #include <QQuickStyle>
+#include <QQuickView>
+#include <QWidget>
 #include "yapi.hpp"
 #include "file.hpp"
 #include "Config.hpp"
@@ -26,8 +29,8 @@ int main(int argc, char *argv[])
   QTranslator translator;
   translator.load(":translations/russian");
 
-  QGuiApplication app(argc, argv);
-  app.installTranslator(&translator);
+	QApplication app(argc, argv);
+	app.installTranslator(&translator);
 
 //  bool gui = args.count() == 0 || args.has("-g") || args.has("--gui");
 
@@ -60,7 +63,7 @@ int main(int argc, char *argv[])
 
   QQuickStyle::setStyle("Material");
 
-  qmlRegisterSingletonType(QUrl("qrc:/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
+	qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
 
   qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");
@@ -90,8 +93,8 @@ int main(int argc, char *argv[])
   app.setOrganizationName("DTeam");
   app.setOrganizationDomain("zxx.ru");
 
-  QQmlApplicationEngine engine;
-  engine.load(QUrl("qrc:/main.qml"));
+	QQmlApplicationEngine engine;
+	engine.load(QUrl("qrc:/qml/main.qml"));
 
   auto r = app.exec();
   Py_Finalize();
