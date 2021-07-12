@@ -1,7 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Dialogs 1.2
 import DMusic 1.0
-import "external"
+import "components"
 
 FloatingPanel {
   id: root

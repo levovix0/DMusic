@@ -48,14 +48,7 @@
         <file>resources/title/home.svg</file>
         <file>resources/title/settings.svg</file>
         <file>resources/player/debug.svg</file>
-        <file>qml/DButton.qml</file>
         <file>qml/DebugPanel.qml</file>
-        <file>qml/DropPlace.qml</file>
-        <file>qml/DText.qml</file>
-        <file>qml/DTextBox.qml</file>
-        <file>qml/FloatingPanel.qml</file>
-        <file>qml/Icon.qml</file>
-        <file>qml/IconButton.qml</file>
         <file>qml/main.qml</file>
         <file>qml/Message.qml</file>
         <file>qml/Player.qml</file>
@@ -67,14 +60,10 @@
         <file>qml/PlayerTrackIcon.qml</file>
         <file>qml/PlayerTrackInfo.qml</file>
         <file>qml/PlaylistEntry.qml</file>
-        <file>qml/PopupController.qml</file>
         <file>qml/ResizeArea.qml</file>
-        <file>qml/RoundedImage.qml</file>
-        <file>qml/RoundMask.qml</file>
         <file>qml/StyleSingleton.qml</file>
         <file>qml/Title.qml</file>
         <file>qml/TitleManualButton.qml</file>
-        <file>qml/Triangle.qml</file>
         <file>qml/VolumeControl.qml</file>
         <file>qml/VolumeControlPanel.qml</file>
         <file>qml/VolumeSlider.qml</file>
@@ -84,5 +73,16 @@
         <file>qml/pages/SettingsPage.qml</file>
         <file>qml/components/SettingsBlock.qml</file>
         <file>qml/external/Border.qml</file>
+        <file>qml/components/DButton.qml</file>
+        <file>qml/components/DropPlace.qml</file>
+        <file>qml/components/DText.qml</file>
+        <file>qml/components/DTextBox.qml</file>
+        <file>qml/components/FloatingPanel.qml</file>
+        <file>qml/components/Icon.qml</file>
+        <file>qml/components/IconButton.qml</file>
+        <file>qml/components/PopupController.qml</file>
+        <file>qml/components/RoundedImage.qml</file>
+        <file>qml/components/RoundMask.qml</file>
+        <file>qml/components/Triangle.qml</file>
     </qresource>
 </RCC>

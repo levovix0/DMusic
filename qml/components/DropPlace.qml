@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import "external"
+import "../external"
 import DMusic 1.0
 
 // Перетаскивание ИЗ DropPlace

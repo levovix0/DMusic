@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import "components"
 //TODO: делать многострочными слишком большие сообщения
 
 Rectangle {
