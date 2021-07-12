@@ -1,15 +1,18 @@
-import QtQuick 2.0
+import QtQuick 2.15
+import DMusic 1.0
 
 Rectangle {
   id: root
-  height: 20
+  height: 24
   width: _text.width + 20
-  radius: 3
+  radius: 4
 
   property alias text: _text.text
+  property bool onPanel: false
   signal click()
 
-  color: _mouse.containsPress? "#404040" : (_mouse.containsMouse? "#303030" : "#262626")
+  property var cs: onPanel? Style.button.background.panel : Style.button.background.normal
+  color: _mouse.containsPress? cs.press : (_mouse.containsMouse? cs.hover : cs.normal)
 
   DText {
     id: _text

@@ -17,7 +17,7 @@ DPage {
       id: _yandexHomePlaylistsRepeater
 
       Component.onCompleted: {
-        if (YClient.loggined()) {
+        if (YClient.loggined) {
           model = YClient.homePlaylistsModel()
         } else {
           YClient.logginedChanged.connect(function(loggined) {

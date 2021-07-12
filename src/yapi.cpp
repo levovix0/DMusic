@@ -666,7 +666,13 @@ void YClient::login(QString token, QString proxy)
       emit logginedChanged(_loggined);
       Messages::error(tr("Failed to login to Yandex.Music"), e.what());
     }
-  });
+	});
+}
+
+void YClient::unlogin()
+{
+	_loggined = false;
+	emit logginedChanged(_loggined);
 }
 
 QVector<object> YClient::fetchTracks(qint64 id)

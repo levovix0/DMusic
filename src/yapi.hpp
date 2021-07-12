@@ -164,20 +164,23 @@ public:
   static YClient* instance;
   static YClient* qmlInstance(QQmlEngine*, QJSEngine*);
 
-  Q_PROPERTY(bool initialized READ initialized NOTIFY initializedChanged)
+	Q_PROPERTY(bool initialized READ initialized NOTIFY initializedChanged)
+	Q_PROPERTY(bool loggined READ loggined NOTIFY logginedChanged)
 
   bool initialized();
+	bool loggined();
 
   refTrack track(qint64 id);
 
 public slots:
-  bool loggined();
 
   void init();
 
   QString token(QString login, QString password);
   void login(QString token);
   void login(QString token, QString proxy);
+
+	void unlogin();
 
   QVector<py::object> fetchTracks(qint64 id);
   

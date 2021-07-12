@@ -1,37 +1,72 @@
 import QtQuick 2.0
 import DMusic 1.0
+import QtQuick.Layouts 1.15
 import ".."
 import "../components"
 
 DPage {
   id: root
 
-  Icon {
-    anchors.centerIn: root
-    image.width: 48
-    image.height: 48
-    image.sourceSize: Qt.size(48, 48)
-    anchors.verticalCenterOffset: -60
-    src: "qrc:/resources/title/settings.svg"
+  SettingsBlock {
+    x: 20
+    y: 20
+    title: qsTr("Accounts")
 
-    color: "#a0a0a0"
-  }
+    contentItem: ColumnLayout {
+      spacing: 10
 
-  DText {
-    anchors.centerIn: root
-    anchors.verticalCenterOffset: 0
+      DText {
+        Layout.alignment: Qt.AlignCenter
 
-    color: "#a0a0a0"
-    font.pixelSize: 20
-    text: "Здесь должны быть настройки"
-  }
+        text: qsTr("Yandex account")
+        color: Style.text.categoryColor
+        font.bold: true
+      }
 
-  DText {
-    anchors.centerIn: root
-    anchors.verticalCenterOffset: 30
+      Loader {
+        Layout.alignment: Qt.AlignCenter
 
-    color: "#909090"
-    font.pixelSize: 11
-    text: "Но их тут нет"
+        sourceComponent: YClient.loggined? _token : _login
+        onLoaded: {
+          Layout.preferredWidth = item.width
+          Layout.preferredHeight = item.height
+        }
+      }
+    }
+
+    Component {
+      id: _token
+      DText {
+        text: Config.ym_token
+        color: _tokenMouse.containsMouse? Style.text.darkColor : Style.text.color
+
+        Rectangle {
+          visible: _tokenMouse.containsMouse
+          height: 1
+          width: parent.width
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.verticalCenterOffset: 1
+          color: Style.text.color
+        }
+
+        MouseArea {
+          id: _tokenMouse
+          anchors.fill: parent
+
+          cursorShape: Qt.PointingHandCursor
+          hoverEnabled: true
+          onClicked: YClient.unlogin()
+        }
+      }
+    }
+
+    Component {
+      id: _login
+      DButton {
+        id: _loginButton
+        text: qsTr("Login")
+        onPanel: true
+      }
+    }
   }
 }
