@@ -1,4 +1,5 @@
-import QtQuick 2.0
+import QtQuick 2.15
+import DMusic 1.0
 //TODO: таймкоды
 
 Rectangle {

@@ -44,13 +44,13 @@ namespace py
     void set(object name, object value);
     void del_attr(object name);
 
-    object operator()(std::initializer_list<object> const& args) const;
+		object operator()(std::initializer_list<object> const& args) const;
     object operator()(object arg) const;
     object operator()() const;
     object operator()(std::initializer_list<object> const& args, std::map<std::string, object> const& kwargs) const;
     object operator()(object arg, std::map<std::string, object> const& kwargs) const;
 
-    object call(object name, std::initializer_list<object> const& args) const;
+		object call(object name, std::initializer_list<object> const& args) const;
     object call(object name, object arg) const;
     object call(object name) const;
     object call(object name, std::initializer_list<object> const& args, std::map<std::string, object> const& kwargs) const;
@@ -130,8 +130,8 @@ namespace py
   PyObject* toPyObject(char const* s);
   PyObject* toPyObject(std::string const& s);
   PyObject* toPyObject(QString const& s);
-  PyObject* toPyObject(std::initializer_list<object> const& tuple);
-  PyObject* toPyObject(long long v);
+	PyObject* toPyObject(std::initializer_list<object> const& tuple);
+	PyObject* toPyObject(long long v);
   PyObject* toPyObject(int v);
   PyObject* toPyObject(bool v);
   PyObject* toPyObject(std::nullptr_t);
@@ -178,4 +178,13 @@ namespace py
       res.append(p.to<T>());
     }
   }
+
+	inline object tuple(std::vector<object> o)
+	{
+		PyObject* res = PyTuple_New(o.size());
+		for (size_t i = 0; i < o.size(); ++i) {
+			PyTuple_SetItem(res, i, o[i].raw);
+		}
+		return res;
+	}
 }

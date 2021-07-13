@@ -102,6 +102,17 @@ void Config::set_ym_token(QString v) {
   saveToJson();
 }
 
+QString Config::ym_email() {
+  return _ym_email;
+}
+
+void Config::set_ym_email(QString v) {
+  if (_ym_email == v) return;
+  _ym_email = v;
+  emit ym_emailChanged(_ym_email);
+  saveToJson();
+}
+
 QString Config::ym_proxyServer() {
   return _ym_proxyServer;
 }
@@ -217,6 +228,8 @@ void Config::reloadFromJson() {
   if (!ym_.isEmpty()) {
     _ym_token = ym_["token"].toString("");
     emit ym_tokenChanged(_ym_token);
+    _ym_email = ym_["email"].toString("");
+    emit ym_emailChanged(_ym_email);
     _ym_proxyServer = ym_["proxyServer"].toString("");
     emit ym_proxyServerChanged(_ym_proxyServer);
     _ym_repeatsIfError = ym_["repeatsIfError"].toInt(1);
@@ -245,6 +258,7 @@ void Config::saveToJson() {
   
   QJsonObject ym_;
   ym_["token"] = _ym_token;
+  ym_["email"] = _ym_email;
   ym_["proxyServer"] = _ym_proxyServer;
   ym_["repeatsIfError"] = _ym_repeatsIfError;
   ym_["downloadMedia"] = _ym_downloadMedia;

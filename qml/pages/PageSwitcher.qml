@@ -1,22 +1,22 @@
 import QtQuick 2.0
 
-Item {
+Loader {
   id: root
 
-  property Component mainPage: Qt.createComponent("MainPage.qml")
-  property Component settingsPage: Qt.createComponent("SettingsPage.qml")
+  function gotoPage(src) {
+    source = src
+  }
 
-  function gotoPage(component) {
-    if (page) page.destroy()
-    page = component.createObject(root)
+  onLoaded: {
+    item.switcher = gotoPage
   }
 
   function gotoMainPage() {
-    gotoPage(mainPage)
+    gotoPage("qrc:/qml/pages/MainPage.qml")
   }
 
   function gotoSettingsPage() {
-    gotoPage(settingsPage)
+    gotoPage("qrc:/qml/pages/SettingsPage.qml")
   }
 
   property DPage page

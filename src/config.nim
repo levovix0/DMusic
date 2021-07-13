@@ -30,6 +30,7 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
       MinimumCoverQuality  = "50x50"
 
     string token
+    string email
     string proxyServer
 
     dir saveDir "data:yandex"

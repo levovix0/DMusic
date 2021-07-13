@@ -284,8 +284,8 @@ void py::object::del_attr(py::object name)
 
 py::object py::object::operator()(const std::initializer_list<py::object>& args) const
 {
-  QMutexLocker locker(&mutex);
-  return maybe_exception(PyObject_Call(raw, object(args).raw, nullptr));
+	QMutexLocker locker(&mutex);
+	return maybe_exception(PyObject_Call(raw, object(args).raw, nullptr));
 }
 
 py::object py::object::operator()(py::object arg) const
@@ -314,7 +314,7 @@ py::object py::object::operator()(py::object arg, const std::map<std::string, py
 
 py::object py::object::call(py::object name, const std::initializer_list<py::object>& args) const
 {
-  return attr(name)(args);
+	return attr(name)(args);
 }
 
 py::object py::object::call(py::object name, py::object arg) const

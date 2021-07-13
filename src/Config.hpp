@@ -47,6 +47,7 @@ public:
   
   
   Q_PROPERTY(QString ym_token READ ym_token WRITE set_ym_token NOTIFY ym_tokenChanged)
+  Q_PROPERTY(QString ym_email READ ym_email WRITE set_ym_email NOTIFY ym_emailChanged)
   Q_PROPERTY(QString ym_proxyServer READ ym_proxyServer WRITE set_ym_proxyServer NOTIFY ym_proxyServerChanged)
   Q_PROPERTY(int ym_repeatsIfError READ ym_repeatsIfError WRITE set_ym_repeatsIfError NOTIFY ym_repeatsIfErrorChanged)
   Q_PROPERTY(bool ym_downloadMedia READ ym_downloadMedia WRITE set_ym_downloadMedia NOTIFY ym_downloadMediaChanged)
@@ -65,6 +66,7 @@ public:
   static Dir user_saveDir();
   
   static QString ym_token();
+  static QString ym_email();
   static QString ym_proxyServer();
   static Dir ym_saveDir();
   static File ym_media(int id);
@@ -86,6 +88,7 @@ public slots:
   
   
   void set_ym_token(QString v);
+  void set_ym_email(QString v);
   void set_ym_proxyServer(QString v);
   void set_ym_repeatsIfError(int v);
   void set_ym_downloadMedia(bool v);
@@ -104,6 +107,7 @@ signals:
   
   
   void ym_tokenChanged(QString ym_token);
+  void ym_emailChanged(QString ym_email);
   void ym_proxyServerChanged(QString ym_proxyServer);
   void ym_repeatsIfErrorChanged(int ym_repeatsIfError);
   void ym_downloadMediaChanged(bool ym_downloadMedia);
@@ -119,6 +123,7 @@ private:
   
   
   inline static QString _ym_token = "";
+  inline static QString _ym_email = "";
   inline static QString _ym_proxyServer = "";
   inline static int _ym_repeatsIfError = 1;
   inline static bool _ym_downloadMedia = true;

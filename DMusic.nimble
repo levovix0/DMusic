@@ -8,7 +8,8 @@ requires "nim >= 1.4.4"
 requires "fusion"
 
 task codegen, "Generate additional C++ code":
-  exec "nim c -r src/config.nim"
+  exec "cd src/"
+  exec "nim c -r config.nim"
   when defined(windows):
     exec "rm config.exe"
   else:

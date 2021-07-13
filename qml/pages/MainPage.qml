@@ -1,6 +1,6 @@
 import QtQuick 2.0
 import DMusic 1.0
-import ".."
+import "qrc:/qml"
 
 DPage {
   id: root
@@ -24,7 +24,7 @@ DPage {
             if (loggined) {
               model = YClient.homePlaylistsModel()
             } else {
-              model = 0
+              model = []
             }
           })
         }

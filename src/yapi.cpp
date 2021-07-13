@@ -621,8 +621,8 @@ void YClient::init()
 
 QString YClient::token(QString login, QString password)
 {
-  if (!initialized()) return "";
-  return ym.call("generate_token_by_username_and_password", {login, password}).to<QString>();
+	if (!initialized()) return "";
+	return ym.get("Client")().call("generate_token_by_username_and_password", {login, password}).to<QString>();
 }
 
 void YClient::login(QString token)

@@ -84,5 +84,12 @@
         <file>qml/components/RoundedImage.qml</file>
         <file>qml/components/RoundMask.qml</file>
         <file>qml/components/Triangle.qml</file>
+        <file>qml/pages/settings/AccountsSettingsBlock.qml</file>
+        <file>qml/pages/YandexLoginPage.qml</file>
+        <file>resources/settings/login-background.png</file>
+        <file>resources/settings/andex.svg</file>
+        <file>resources/settings/Y.svg</file>
+        <file>resources/settings/ндекс.svg</file>
+        <file>resources/settings/Я.svg</file>
     </qresource>
 </RCC>
