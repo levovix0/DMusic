@@ -19,7 +19,7 @@ SettingsBlock {
       Layout.alignment: Qt.AlignCenter
 
       text: qsTr("Yandex account")
-      color: Style.text.categoryColor
+      color: Style.block.text.categoryColor
       font.bold: true
     }
 
@@ -41,7 +41,7 @@ SettingsBlock {
       DText {
         id: _token_text
         text: Config.ym_email
-        color: _tokenMouse.containsMouse? Style.text.darkColor : Style.text.color
+        color: _tokenMouse.containsMouse? Style.block.text.darkColor : Style.block.text.color
 
         Rectangle {
           visible: _tokenMouse.containsMouse
@@ -49,7 +49,7 @@ SettingsBlock {
           width: parent.width
           anchors.verticalCenter: parent.verticalCenter
           anchors.verticalCenterOffset: 1
-          color: Style.text.color
+          color: Style.block.text.color
         }
 
         MouseArea {

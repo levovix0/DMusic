@@ -61,9 +61,7 @@ int main(int argc, char *argv[])
 
 //  if (!gui) return 0;
 
-  QQuickStyle::setStyle("Material");
-
-	qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
+	QQuickStyle::setStyle("Material");
 
   qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");
@@ -80,9 +78,12 @@ int main(int argc, char *argv[])
   qmlRegisterType<YLikedTracks>("DMusic", 1, 0, "YLikedTracks");
   qmlRegisterType<YPlaylistsModel>("DMusic", 1, 0, "YPlaylistsModel");
 
-  qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
+	qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
+	qmlRegisterSingletonType<Config>("Config", 1, 0, "Config", &Config::qmlInstance);
   qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
   qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
+
+	qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
 
 #ifdef Q_OS_LINUX
   QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));

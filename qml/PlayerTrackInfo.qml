@@ -101,7 +101,7 @@ Item {
       gradient: Gradient {
         orientation: Gradient.Horizontal
         GradientStop { position: 0.0; color: "transparent" }
-        GradientStop { position: 1.0; color: "#262626" }
+        GradientStop { position: 1.0; color: Style.panel.background }
       }
     }
 
@@ -122,7 +122,7 @@ Item {
       gradient: Gradient {
         orientation: Gradient.Horizontal
         GradientStop { position: 0.0; color: "transparent" }
-        GradientStop { position: 1.0; color: "#262626" }
+        GradientStop { position: 1.0; color: Style.panel.background }
       }
     }
   }
@@ -151,7 +151,7 @@ Item {
 
     clip: true
     opacity: 0
-    color: "#262626"
+    color: Style.panel.background
 
     OpacityAnimator {
       target: _full_titleAndExtra
@@ -215,7 +215,7 @@ Item {
 
     clip: true
     opacity: 0
-    color: "#262626"
+    color: Style.panel.background
 
     OpacityAnimator {
       target: _full_artists_box

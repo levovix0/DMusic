@@ -157,24 +157,36 @@ usage: %1 [options]
         <translation>Разработчики</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="49"/>
         <source>Theme</source>
-        <translation>Тема</translation>
+        <translation type="vanished">Тема</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="54"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
         <source>General</source>
         <translation>Общие</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="66"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="63"/>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="71"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="68"/>
         <source>Color</source>
         <translation>Цвет</translation>
+    </message>
+</context>
+<context>
+    <name>ThemeSettingsBlock</name>
+    <message>
+        <location filename="../qml/pages/settings/ThemeSettingsBlock.qml" line="8"/>
+        <source>Theme</source>
+        <translation>Тема</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/ThemeSettingsBlock.qml" line="59"/>
+        <source>Client-side decorations</source>
+        <translation>Декорации со стороны приложения</translation>
     </message>
 </context>
 <context>

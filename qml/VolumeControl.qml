@@ -23,6 +23,8 @@ Item {
     width: 50
     height: 50 + 39 + _panel.height
 
+    onExited: _ppc.opened = false
+
     hoverEnabled: true
     visible: _ppc.opened || _ppc.running
 
@@ -43,8 +45,6 @@ Item {
   PopupController {
     id: _ppc
     target: _panel
-
-    opened: _bg_mouse.containsMouse || _mouse.containsMouse
   }
 
   MouseArea {
@@ -55,6 +55,8 @@ Item {
     height: 32
 
     hoverEnabled: true
+
+    onEntered: _ppc.opened = true
 
     onPressed: target.muted = !target.muted
     onWheel: target.volume += 0.05 * wheel.angleDelta.y / 120

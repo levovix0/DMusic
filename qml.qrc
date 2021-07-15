@@ -91,5 +91,9 @@
         <file>resources/settings/Y.svg</file>
         <file>resources/settings/ндекс.svg</file>
         <file>resources/settings/Я.svg</file>
+        <file>qml/pages/settings/ThemeSettingsBlock.qml</file>
+        <file>qml/pages/settings/ThemeSelect.qml</file>
+        <file>qml/components/DCheckBox.qml</file>
+        <file>resources/checkbox.svg</file>
     </qresource>
 </RCC>

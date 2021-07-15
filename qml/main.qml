@@ -8,11 +8,7 @@ import "pages"
 Window {
   id: _root
   visible: true
-  Component.onCompleted: {
-    if (Config.isClientSideDecorations) {
-      flags += Qt.FramelessWindowHint
-    }
-  }
+  flags: Config.isClientSideDecorations? Qt.FramelessWindowHint | Qt.Window : Qt.Window
 
   width: 1280 + 20
   height: 720 + 20
@@ -126,6 +122,25 @@ Window {
       width: root.width
       height: 66
       anchors.bottom: parent.bottom
+    }
+
+    Rectangle {
+      visible: !Style.darkHeader
+      height: Style.window.border.width
+      anchors.left: _title.left
+      anchors.right: _title.right
+      anchors.verticalCenter: _title.bottom
+
+      color: Style.window.border.color
+    }
+
+    Rectangle {
+      height: Style.window.border.width
+      anchors.left: _player.left
+      anchors.right: _player.right
+      anchors.verticalCenter: _player.top
+
+      color: Style.window.border.color
     }
 
     Keys.onSpacePressed: _player.player.pause_or_play()

@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
+import DMusic 1.0
 import "pages"
 
 Rectangle {
@@ -12,7 +13,7 @@ Rectangle {
   property bool clientSideDecorations
   property bool maximized
 
-  color: "#131313"
+  color: Style.header.background
 
   Rectangle {
     width: root.width
@@ -61,8 +62,7 @@ Rectangle {
     enabled: root.clientSideDecorations
 
     icon: "qrc:/resources/title/close.svg"
-    hoverColor: "#E03649"
-    pressedColor: "#C11B2D"
+    style: Style.header.closeButton
 
     onClick: root.window.close()
   }

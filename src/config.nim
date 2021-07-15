@@ -16,6 +16,9 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
   NextMode nextMode NextSequence
   LoopMode loopMode LoopNone
 
+  bool darkTheme true
+  bool darkHeader true
+
   config user, "User":
     dir saveDir "data:user"
 

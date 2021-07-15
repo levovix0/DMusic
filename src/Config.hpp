@@ -44,6 +44,8 @@ public:
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
   Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
+  Q_PROPERTY(bool darkTheme READ darkTheme WRITE setDarkTheme NOTIFY darkThemeChanged)
+  Q_PROPERTY(bool darkHeader READ darkHeader WRITE setDarkHeader NOTIFY darkHeaderChanged)
   
   
   Q_PROPERTY(QString ym_token READ ym_token WRITE set_ym_token NOTIFY ym_tokenChanged)
@@ -62,6 +64,8 @@ public:
   static double volume();
   static NextMode nextMode();
   static LoopMode loopMode();
+  static bool darkTheme();
+  static bool darkHeader();
   
   static Dir user_saveDir();
   
@@ -85,6 +89,8 @@ public slots:
   void setVolume(double v);
   void setNextMode(NextMode v);
   void setLoopMode(LoopMode v);
+  void setDarkTheme(bool v);
+  void setDarkHeader(bool v);
   
   
   void set_ym_token(QString v);
@@ -104,6 +110,8 @@ signals:
   void volumeChanged(double volume);
   void nextModeChanged(NextMode nextMode);
   void loopModeChanged(LoopMode loopMode);
+  void darkThemeChanged(bool darkTheme);
+  void darkHeaderChanged(bool darkHeader);
   
   
   void ym_tokenChanged(QString ym_token);
@@ -120,6 +128,8 @@ private:
   inline static double _volume = 0.5;
   inline static NextMode _nextMode = NextSequence;
   inline static LoopMode _loopMode = LoopNone;
+  inline static bool _darkTheme = true;
+  inline static bool _darkHeader = true;
   
   
   inline static QString _ym_token = "";

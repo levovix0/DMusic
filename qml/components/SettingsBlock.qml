@@ -18,6 +18,8 @@ Control {
   background: Rectangle {
     color: Style.block.background
     radius: Style.block.radius
+    border.color: Style.block.border.color
+    border.width: Style.block.border.width
 
     DText {
       id: _title

@@ -45,10 +45,7 @@ DPage {
       Layout.maximumWidth: 600
       spacing: 20
 
-      SettingsBlock {
-        title: qsTr("Theme")
-        Layout.fillWidth: true
-      }
+      ThemeSettingsBlock {}
 
       SettingsBlock {
         title: qsTr("General")

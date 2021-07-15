@@ -1,12 +1,12 @@
-import QtQuick 2.0
+import QtQuick 2.15
+import DMusic 1.0
 import "components"
 
 Rectangle {
   id: root
 
   property url icon: ""
-  property color hoverColor: "#303030"
-  property color pressedColor: "#202020"
+  property var style: Style.header.button
   signal click()
   signal pressed()
 
@@ -15,13 +15,13 @@ Rectangle {
   width: enabled? 50 : 0
   height: 40
 
-  color: _mouse.containsPress? pressedColor : _mouse.containsMouse? hoverColor : "transparent"
+  color: _mouse.containsPress? style.background.pressed: _mouse.containsMouse? style.background.hover : style.background.normal
 
   Icon {
     anchors.centerIn: root
     visible: root.enabled
     src: icon
-    color: "#FFFFFF"
+    color: _mouse.containsPress? style.color.pressed: _mouse.containsMouse? style.color.hover : style.color.normal
   }
 
   MouseArea {

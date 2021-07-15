@@ -85,6 +85,28 @@ void Config::setLoopMode(Config::LoopMode v) {
   saveToJson();
 }
 
+bool Config::darkTheme() {
+  return _darkTheme;
+}
+
+void Config::setDarkTheme(bool v) {
+  if (_darkTheme == v) return;
+  _darkTheme = v;
+  emit darkThemeChanged(_darkTheme);
+  saveToJson();
+}
+
+bool Config::darkHeader() {
+  return _darkHeader;
+}
+
+void Config::setDarkHeader(bool v) {
+  if (_darkHeader == v) return;
+  _darkHeader = v;
+  emit darkHeaderChanged(_darkHeader);
+  saveToJson();
+}
+
 Dir Config::user_saveDir() {
   auto dir = dataDir()/"user";
   if (!dir.exists()) dir.create();
@@ -218,6 +240,10 @@ void Config::reloadFromJson() {
   emit nextModeChanged(_nextMode);
   _loopMode = (LoopMode)doc["loopMode"].toInt(LoopNone);
   emit loopModeChanged(_loopMode);
+  _darkTheme = doc["darkTheme"].toBool(true);
+  emit darkThemeChanged(_darkTheme);
+  _darkHeader = doc["darkHeader"].toBool(true);
+  emit darkHeaderChanged(_darkHeader);
   
   QJsonObject user_ = doc["User"].toObject();
   if (!user_.isEmpty()) {
@@ -252,6 +278,8 @@ void Config::saveToJson() {
   doc["volume"] = _volume;
   doc["nextMode"] = _nextMode;
   doc["loopMode"] = _loopMode;
+  doc["darkTheme"] = _darkTheme;
+  doc["darkHeader"] = _darkHeader;
   
   QJsonObject user_;
   doc["User"] = user_;
