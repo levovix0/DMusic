@@ -8,7 +8,7 @@ SettingsBlock {
   title: qsTr("Theme")
   Layout.fillWidth: true
 
-  contentItem: ColumnLayout {
+  ColumnLayout {
     spacing: 10
     Layout.maximumWidth: 600
 

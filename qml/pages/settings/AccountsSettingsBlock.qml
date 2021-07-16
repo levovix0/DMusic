@@ -10,7 +10,7 @@ SettingsBlock {
 
   property var switcher
 
-  contentItem: ColumnLayout {
+  ColumnLayout {
     spacing: 10
     Layout.maximumWidth: 250
     clip: true
@@ -28,67 +28,67 @@ SettingsBlock {
       Layout.preferredWidth: item.width
 
       sourceComponent: YClient.loggined? _token : _login
-    }
-  }
 
-  Component {
-    id: _token
-    Item {
-      clip: true
-      height: _token_text.height
-      width: Math.min(250, _token_text.width)
+      Component {
+        id: _token
+        Item {
+          clip: true
+          height: _token_text.height
+          width: Math.min(250, _token_text.width)
 
-      DText {
-        id: _token_text
-        text: Config.ym_email
-        color: _tokenMouse.containsMouse? Style.block.text.darkColor : Style.block.text.color
+          DText {
+            id: _token_text
+            text: Config.ym_email
+            color: _tokenMouse.containsMouse? Style.block.text.darkColor : Style.block.text.color
 
-        Rectangle {
-          visible: _tokenMouse.containsMouse
-          height: 1
-          width: parent.width
-          anchors.verticalCenter: parent.verticalCenter
-          anchors.verticalCenterOffset: 1
-          color: Style.block.text.color
-        }
+            Rectangle {
+              visible: _tokenMouse.containsMouse
+              height: 1
+              width: parent.width
+              anchors.verticalCenter: parent.verticalCenter
+              anchors.verticalCenterOffset: 1
+              color: Style.block.text.color
+            }
 
-        MouseArea {
-          id: _tokenMouse
-          anchors.fill: parent
+            MouseArea {
+              id: _tokenMouse
+              anchors.fill: parent
 
-          cursorShape: Qt.PointingHandCursor
-          hoverEnabled: true
-          onClicked: {
-            Config.ym_token = ""
-            YClient.unlogin()
+              cursorShape: Qt.PointingHandCursor
+              hoverEnabled: true
+              onClicked: {
+                Config.ym_token = ""
+                YClient.unlogin()
+              }
+            }
+          }
+
+          Rectangle {
+            id: _shade
+            width: 10
+            height: _token_text.height
+            anchors.right: parent.right
+            visible: parent.width >= 250
+
+            gradient: Gradient {
+              orientation: Gradient.Horizontal
+              GradientStop { position: 0.0; color: "transparent" }
+              GradientStop { position: 1.0; color: Style.block.background }
+            }
           }
         }
       }
 
-      Rectangle {
-        id: _shade
-        width: 10
-        height: _token_text.height
-        anchors.right: parent.right
-        visible: parent.width >= 250
+      Component {
+        id: _login
+        DButton {
+          id: _loginButton
+          text: qsTr("Login")
+          onPanel: true
 
-        gradient: Gradient {
-          orientation: Gradient.Horizontal
-          GradientStop { position: 0.0; color: "transparent" }
-          GradientStop { position: 1.0; color: Style.block.background }
+          onClick: switcher("qrc:/qml/pages/YandexLoginPage.qml")
         }
       }
-    }
-  }
-
-  Component {
-    id: _login
-    DButton {
-      id: _loginButton
-      text: qsTr("Login")
-      onPanel: true
-
-      onClick: switcher("qrc:/qml/pages/YandexLoginPage.qml")
     }
   }
 }

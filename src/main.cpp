@@ -2,7 +2,6 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QIcon>
-#include <QTranslator>
 #include <QQuickStyle>
 #include <QQuickView>
 #include <QWidget>
@@ -15,6 +14,7 @@
 #include "DFileDialog.hpp"
 #include "Messages.hpp"
 #include "ConsoleArgs.hpp"
+#include "Translator.hpp"
 
 // TODO: dislike
 // TODO: Память течёт, хоть и понемногу (потоковый режим)
@@ -26,11 +26,13 @@ int main(int argc, char *argv[])
 
   Py_Initialize();
 
-  QTranslator translator;
-  translator.load(":translations/russian");
-
 	QApplication app(argc, argv);
-	app.installTranslator(&translator);
+
+	Translator::setApp(&app);
+	Translator::instance->setLanguage(Config::language());
+	QObject::connect(Config::instance, &Config::languageChanged, [](Config::Language language) {
+		Translator::instance->setLanguage(language);
+	});
 
 //  bool gui = args.count() == 0 || args.has("-g") || args.has("--gui");
 
@@ -80,6 +82,7 @@ int main(int argc, char *argv[])
 
 	qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
 	qmlRegisterSingletonType<Config>("Config", 1, 0, "Config", &Config::qmlInstance);
+	qmlRegisterSingletonType<Translator>("DMusic", 1, 0, "Translator", &Config::qmlInstance);
   qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
   qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
 
@@ -95,6 +98,7 @@ int main(int argc, char *argv[])
   app.setOrganizationDomain("zxx.ru");
 
 	QQmlApplicationEngine engine;
+	Translator::setEngine(&engine);
 	engine.load(QUrl("qrc:/qml/main.qml"));
 
   auto r = app.exec();

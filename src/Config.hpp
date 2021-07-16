@@ -16,6 +16,12 @@ public:
   static Config* instance;
   static Config* qmlInstance(QQmlEngine*, QJSEngine*);
 
+  enum Language {
+    EnglishLanguage,
+    RussianLanguage
+  };
+  Q_ENUM(Language)
+  
   enum NextMode {
     NextSequence,
     NextShuffle
@@ -40,6 +46,7 @@ public:
   };
   Q_ENUM(CoverQuality)
 
+  Q_PROPERTY(Language language READ language WRITE setLanguage NOTIFY languageChanged)
   Q_PROPERTY(bool isClientSideDecorations READ isClientSideDecorations WRITE setIsClientSideDecorations NOTIFY isClientSideDecorationsChanged)
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
@@ -60,6 +67,7 @@ public:
   static Dir settingsDir();
   static Dir dataDir();
 
+  static Language language();
   static bool isClientSideDecorations();
   static double volume();
   static NextMode nextMode();
@@ -85,6 +93,7 @@ public:
   static CoverQuality ym_coverQuality();
 
 public slots:
+  void setLanguage(Language v);
   void setIsClientSideDecorations(bool v);
   void setVolume(double v);
   void setNextMode(NextMode v);
@@ -106,6 +115,7 @@ public slots:
   void saveToJson();
 
 signals:
+  void languageChanged(Language language);
   void isClientSideDecorationsChanged(bool isClientSideDecorations);
   void volumeChanged(double volume);
   void nextModeChanged(NextMode nextMode);
@@ -124,6 +134,7 @@ signals:
   void ym_coverQualityChanged(CoverQuality ym_coverQuality);
 
 private:
+  inline static Language _language = EnglishLanguage;
   inline static bool _isClientSideDecorations = true;
   inline static double _volume = 0.5;
   inline static NextMode _nextMode = NextSequence;
@@ -141,6 +152,12 @@ private:
   inline static bool _ym_saveInfo = true;
   inline static CoverQuality _ym_coverQuality = MaximumCoverQuality;
 };
+
+inline QString toString(Config::Language v) {
+  if (v == Config::Language::EnglishLanguage) return "";
+  else if (v == Config::Language::RussianLanguage) return ":translations/russian";
+  return "";
+}
 
 inline QString toString(Config::NextMode v) {
   if (v == Config::NextMode::NextSequence) return "NextSequence";

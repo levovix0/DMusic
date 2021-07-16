@@ -7,8 +7,6 @@ Rectangle {
   id: root
   height: 40
 
-  property Window window
-  property PageSwitcher pages
   property size windowSize
   property bool clientSideDecorations
   property bool maximized
@@ -25,7 +23,7 @@ Rectangle {
 
   DragHandler {
     enabled: root.clientSideDecorations
-    onActiveChanged: if (active) window.startSystemMove();
+    onActiveChanged: if (active) _window.startSystemMove();
     target: null
     dragThreshold: 0
   }
@@ -34,7 +32,7 @@ Rectangle {
     anchors.fill: root
     enabled: root.clientSideDecorations
 
-    onDoubleClicked: root.window.maximize()
+    onDoubleClicked: _window.maximize()
   }
 
   MouseArea {
@@ -42,7 +40,7 @@ Rectangle {
     enabled: root.clientSideDecorations
     acceptedButtons: Qt.MiddleButton
 
-    onClicked: root.window.close()
+    onClicked: _window.close()
   }
 
   TitleManualButton {
@@ -51,7 +49,7 @@ Rectangle {
     anchors.left: root.left
     icon: "qrc:/resources/title/home.svg"
 
-    onClick: pages.gotoMainPage()
+    onClick: _pages.gotoMainPage()
   }
 
 
@@ -64,7 +62,7 @@ Rectangle {
     icon: "qrc:/resources/title/close.svg"
     style: Style.header.closeButton
 
-    onClick: root.window.close()
+    onClick: _window.close()
   }
 
   TitleManualButton {
@@ -75,7 +73,7 @@ Rectangle {
 
     icon: "qrc:/resources/title/maximize.svg"
 
-    onClick: root.window.maximize()
+    onClick: _window.maximize()
   }
 
   TitleManualButton {
@@ -86,7 +84,7 @@ Rectangle {
 
     icon: "qrc:/resources/title/minimize.svg"
 
-    onClick: root.window.minimize()
+    onClick: _window.minimize()
   }
 
   TitleManualButton {
@@ -95,7 +93,7 @@ Rectangle {
     anchors.right: _minimize.left
     icon: "qrc:/resources/title/settings.svg"
 
-    onClick: pages.gotoSettingsPage()
+    onClick: _pages.gotoSettingsPage()
   }
 
   ResizeArea {
@@ -106,7 +104,6 @@ Rectangle {
     y: 6
     enabled: root.clientSideDecorations && !maximized
 
-    window: root.window
     cursor: Qt.SizeHorCursor
     edge: Qt.LeftEdge
   }
@@ -120,7 +117,6 @@ Rectangle {
     y: 6
     enabled: root.clientSideDecorations && !maximized
 
-    window: root.window
     cursor: Qt.SizeHorCursor
     edge: Qt.RightEdge
   }
@@ -133,7 +129,6 @@ Rectangle {
     y: -6
     enabled: root.clientSideDecorations && !maximized
 
-    window: root.window
     cursor: Qt.SizeVerCursor
     edge: Qt.TopEdge
   }
@@ -146,7 +141,6 @@ Rectangle {
     height: 12
     enabled: root.clientSideDecorations && !maximized
 
-    window: root.window
     cursor: Qt.SizeVerCursor
     edge: Qt.BottomEdge
   }
@@ -160,7 +154,6 @@ Rectangle {
     height: 12
     enabled: root.clientSideDecorations && !maximized
 
-    window: root.window
     cursor: Qt.SizeFDiagCursor
     edge: Qt.LeftEdge | Qt.TopEdge
   }
@@ -174,7 +167,6 @@ Rectangle {
     height: 12
     enabled: root.clientSideDecorations && !maximized
 
-    window: root.window
     cursor: Qt.SizeBDiagCursor
     edge: Qt.RightEdge | Qt.TopEdge
   }
@@ -187,7 +179,6 @@ Rectangle {
     height: 12
     enabled: root.clientSideDecorations && !maximized
 
-    window: root.window
     cursor: Qt.SizeBDiagCursor
     edge: Qt.LeftEdge | Qt.BottomEdge
   }
@@ -201,7 +192,6 @@ Rectangle {
     height: 12
     enabled: root.clientSideDecorations && !maximized
 
-    window: root.window
     cursor: Qt.SizeFDiagCursor
     edge: Qt.RightEdge | Qt.BottomEdge
   }

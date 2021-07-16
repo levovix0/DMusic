@@ -3,7 +3,6 @@ import QtQuick 2.15
 Item {
   id: root
 
-  property var window
   property var cursor
   property var edge
 
@@ -11,7 +10,7 @@ Item {
     enabled: root.enabled
     target: null
 
-    onActiveChanged: if (active) window.startSystemResize(edge);
+    onActiveChanged: if (active) _window.startSystemResize(edge);
     cursorShape: if (enabled) cursorShape = cursor
     dragThreshold: 0
   }

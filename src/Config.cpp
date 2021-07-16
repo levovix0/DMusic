@@ -41,6 +41,17 @@ Dir Config::dataDir() {
 #endif
 }
 
+Config::Language Config::language() {
+  return _language;
+}
+
+void Config::setLanguage(Config::Language v) {
+  if (_language == v) return;
+  _language = v;
+  emit languageChanged(_language);
+  saveToJson();
+}
+
 bool Config::isClientSideDecorations() {
   return _isClientSideDecorations;
 }
@@ -232,6 +243,8 @@ void Config::reloadFromJson() {
   QJsonObject doc = settingsDir().file("config.json").allJson().object();
   if (doc.isEmpty()) return;
 
+  _language = (Language)doc["language"].toInt(EnglishLanguage);
+  emit languageChanged(_language);
   _isClientSideDecorations = doc["isClientSideDecorations"].toBool(true);
   emit isClientSideDecorationsChanged(_isClientSideDecorations);
   _volume = doc["volume"].toDouble(0.5);
@@ -274,6 +287,7 @@ void Config::reloadFromJson() {
 void Config::saveToJson() {
   QJsonObject doc;
 
+  doc["language"] = _language;
   doc["isClientSideDecorations"] = _isClientSideDecorations;
   doc["volume"] = _volume;
   doc["nextMode"] = _nextMode;

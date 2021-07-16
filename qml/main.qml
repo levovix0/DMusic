@@ -6,7 +6,7 @@ import DMusic 1.0
 import "pages"
 
 Window {
-  id: _root
+  id: _window
   visible: true
   flags: Config.isClientSideDecorations? Qt.FramelessWindowHint | Qt.Window : Qt.Window
 
@@ -24,7 +24,7 @@ Window {
     visibility = visibility == 2 ? 4 : 2
   }
   function minimize() {
-    _root.showMinimized()
+    _window.showMinimized()
   }
   color: (Config.isClientSideDecorations && !maximized)? "transparent" : Style.window.background
 
@@ -45,10 +45,8 @@ Window {
 
   Rectangle {
     id: root
-    width: _root.width - shadowRadius * 2
-    height: _root.height - shadowRadius * 2
-    x: shadowRadius
-    y: shadowRadius
+    anchors.fill: parent
+    anchors.margins: shadowRadius
 
     color: Style.window.background
     focus: true
@@ -66,8 +64,6 @@ Window {
       id: _title
       width: root.width
 
-      window: _root
-      pages: _pages
       windowSize: Qt.size(root.width, root.height)
       clientSideDecorations: Config.isClientSideDecorations
       maximized: maximized

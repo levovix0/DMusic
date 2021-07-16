@@ -16,6 +16,7 @@ SOURCES += \
   src/Radio.cpp \
   src/RemoteMediaController.cpp \
   src/Track.cpp \
+  src/Translator.cpp \
   src/api.cpp \
   src/main.cpp \
   src/python.cpp \
@@ -35,6 +36,7 @@ HEADERS += \
   src/Radio.hpp \
   src/RemoteMediaController.hpp \
   src/Track.hpp \
+  src/Translator.hpp \
   src/api.hpp \
   src/file.hpp \
   src/nimfs.hpp \

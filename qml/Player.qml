@@ -7,17 +7,17 @@ Rectangle {
 
   color: Style.panel.background
 
-  property alias player: _player
+  property alias player: _audio_player
   property alias track: _track
 
   function toglleLiked() {
-    _player.currentTrack.setLiked(!_player.currentTrack.liked)
+    _audio_player.currentTrack.setLiked(!_audio_player.currentTrack.liked)
   }
   function next() {
-    _player.next()
+    _audio_player.next()
   }
   function prev() {
-    _player.prev()
+    _audio_player.prev()
   }
 
   PlayerControls {
@@ -26,15 +26,15 @@ Rectangle {
     anchors.horizontalCenter: root.horizontalCenter
     y: 21
 
-    playing: _player.state === AudioPlayer.PlayingState
-    loopMode: _player.loopMode
-    nextMode: _player.nextMode
+    playing: _audio_player.state === AudioPlayer.PlayingState
+    loopMode: _audio_player.loopMode
+    nextMode: _audio_player.nextMode
 
-    onPause_or_play: _player.pause_or_play()
-    onNext: _player.next()
-    onPrev: _player.prev()
-    onChangeLoopMode: _player.loopMode = mode
-    onChangeNextMode: _player.nextMode = mode
+    onPause_or_play: _audio_player.pause_or_play()
+    onNext: _audio_player.next()
+    onPrev: _audio_player.prev()
+    onChangeLoopMode: _audio_player.loopMode = mode
+    onChangeNextMode: _audio_player.nextMode = mode
   }
 
   PlayerLine {
@@ -43,16 +43,16 @@ Rectangle {
     y: 48
     width: root.width / 2.7
 
-    progress: _player.progress
-    onSeek: _player.progress = progress
-    onAppendMs: _player.progress_ms += delta * 1000
+    progress: _audio_player.progress
+    onSeek: _audio_player.progress = progress
+    onAppendMs: _audio_player.progress_ms += delta * 1000
 
-    positionText: _player.formatProgress
-    durationText: _player.formatDuration
+    positionText: _audio_player.formatProgress
+    durationText: _audio_player.formatDuration
   }
 
   AudioPlayer {
-    id: _player
+    id: _audio_player
     Component.onCompleted: {
       volume = Config.volume
       nextMode = Config.nextMode
@@ -65,18 +65,18 @@ Rectangle {
   }
 
   RemoteMediaController {
-    target: _player
+    target: _audio_player
   }
 
   Row {
-    spacing: 32
+    spacing: 20
     anchors.right: root.right
     anchors.verticalCenter: root.verticalCenter
-    anchors.rightMargin: 27
+    anchors.rightMargin: 24
 
     IconButton {
-      width: 20
-      height: 20
+      width: 32
+      height: 32
       src: "qrc:/resources/player/debug.svg"
       onClicked: _dpc.opened = !_dpc.opened
 
@@ -90,17 +90,13 @@ Rectangle {
         anchors.right: parent.right
         anchors.bottom: parent.top
         anchors.rightMargin: -58
-        anchors.bottomMargin: 42 - _dpc.shift
+        anchors.bottomMargin: 30 - _dpc.shift
 
         player: root
       }
     }
 
-    VolumeControl {
-      width: 20
-      height: 20
-      target: _player
-    }
+    VolumeControl {}
   }
 
   PlayerTrack {
@@ -110,13 +106,13 @@ Rectangle {
     width: root.width / 2 - _playerLine.leftWidth - 14 - x
     height: root.height
 
-    icon: _player.currentTrack.cover
-    title: _player.currentTrack.title
-    artists: _player.currentTrack.artistsStr
-    extra: _player.currentTrack.extra
-    idStr: _player.currentTrack.idStr
-    liked: _player.currentTrack.liked
+    icon: _audio_player.currentTrack.cover
+    title: _audio_player.currentTrack.title
+    artists: _audio_player.currentTrack.artistsStr
+    extra: _audio_player.currentTrack.extra
+    idStr: _audio_player.currentTrack.idStr
+    liked: _audio_player.currentTrack.liked
 
-    onToggleLiked: _player.currentTrack.setLiked(liked)
+    onToggleLiked: _audio_player.currentTrack.setLiked(liked)
   }
 }

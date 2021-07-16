@@ -18,7 +18,7 @@
         <translation type="vanished">Аккаунт Яндекс</translation>
     </message>
     <message>
-        <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="88"/>
+        <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="86"/>
         <source>Login</source>
         <translation>Войти</translation>
     </message>
@@ -109,6 +109,24 @@
     </message>
 </context>
 <context>
+    <name>LanguageSettingsBlock</name>
+    <message>
+        <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="8"/>
+        <source>Language</source>
+        <translation>Язык</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="17"/>
+        <source>English</source>
+        <translation>Английский</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="23"/>
+        <source>Russian</source>
+        <translation>Русский</translation>
+    </message>
+</context>
+<context>
     <name>PlaylistEntry</name>
     <message>
         <location filename="../qml/PlaylistEntry.qml" line="136"/>
@@ -129,7 +147,7 @@
         <translation>Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="42"/>
+        <location filename="../src/main.cpp" line="44"/>
         <source>DMusic - music player
 usage: %1 [options]
 
@@ -170,12 +188,11 @@ usage: %1 [options]
         <translation>Общие</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="63"/>
         <source>Language</source>
-        <translation>Язык</translation>
+        <translation type="vanished">Язык</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="68"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="65"/>
         <source>Color</source>
         <translation>Цвет</translation>
     </message>

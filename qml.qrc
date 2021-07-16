@@ -96,5 +96,7 @@
         <file>qml/components/DCheckBox.qml</file>
         <file>resources/checkbox.svg</file>
         <file>qml/components/Popup.qml</file>
+        <file>qml/pages/settings/LanguageSettingsBlock.qml</file>
+        <file>qml/pages/settings/LanguageSelect.qml</file>
     </qresource>
 </RCC>

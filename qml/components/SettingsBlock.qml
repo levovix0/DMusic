@@ -10,6 +10,8 @@ Control {
   topPadding: _title.height + 30
   bottomPadding: 20
 
+  default property Item item
+
   implicitWidth: Math.max(
     _title.width + leftPadding + rightPadding,
     implicitContentWidth + leftPadding + rightPadding
@@ -32,4 +34,6 @@ Control {
       font.pixelSize: 18
     }
   }
+
+  contentItem: item
 }

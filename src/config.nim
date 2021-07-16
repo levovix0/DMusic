@@ -1,8 +1,9 @@
 import codegen/genconfig
 
-genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":  
-  bool isClientSideDecorations true
-  double volume 0.5
+genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
+  type Language = enum
+    EnglishLanguage = ""
+    RussianLanguage = ":translations/russian"
 
   type NextMode = enum
     NextSequence
@@ -12,6 +13,11 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
     LoopNone
     LoopTrack
     LoopPlaylist
+
+  Language language EnglishLanguage
+
+  bool isClientSideDecorations true
+  double volume 0.5
   
   NextMode nextMode NextSequence
   LoopMode loopMode LoopNone

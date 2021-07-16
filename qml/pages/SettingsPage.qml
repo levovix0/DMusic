@@ -59,10 +59,7 @@ DPage {
       Layout.maximumWidth: 250
       spacing: 20
 
-      SettingsBlock {
-        title: qsTr("Language")
-        Layout.fillWidth: true
-      }
+      LanguageSettingsBlock {}
 
       SettingsBlock {
         title: qsTr("Color")
