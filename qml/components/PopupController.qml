@@ -10,6 +10,8 @@ Item {
   property real maxShift: 20
   property real duration: 0.25
 
+  Binding { target: root.target; property: "visible"; value: root.opened || root.running }
+
   states: [
     State {
       name: "closed"; when: !root.opened

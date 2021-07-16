@@ -10,8 +10,12 @@
     </message>
     <message>
         <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="21"/>
+        <source>Yandex</source>
+        <translation>Яндекс</translation>
+    </message>
+    <message>
         <source>Yandex account</source>
-        <translation>Аккаунт Яндекс</translation>
+        <translation type="vanished">Аккаунт Яндекс</translation>
     </message>
     <message>
         <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="88"/>

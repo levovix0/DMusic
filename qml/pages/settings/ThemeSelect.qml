@@ -13,7 +13,7 @@ Rectangle {
   property color background
   property bool sellected: (darkTheme === Config.darkTheme && darkHeader === Config.darkHeader)
 
-  color: sellected? Style.accent : "transparent"
+  color: sellected? Style.block.accent : "transparent"
   radius: 9
 
   DropShadow {

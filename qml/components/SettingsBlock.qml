@@ -23,6 +23,7 @@ Control {
 
     DText {
       id: _title
+      style: Style.block.text
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.top: parent.top
       anchors.topMargin: 15

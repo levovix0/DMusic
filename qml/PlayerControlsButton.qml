@@ -1,4 +1,5 @@
-import QtQuick 2.0
+import QtQuick 2.15
+import DMusic 1.0
 import "components"
 
 Item {
@@ -9,8 +10,7 @@ Item {
 
   property string icon: ""
   property alias image: _icon.image
-  property string color: "#C1C1C1"
-  property string hoverColor: "#FFFFFF"
+  property var style: Style.panel.icon.normal
 
   signal click()
 
@@ -19,7 +19,7 @@ Item {
     anchors.centerIn: root
 
     src: icon
-    color: _mouse.containsMouse? root.hoverColor : root.color
+    color: _mouse.containsMouse? root.style.hoverColor : root.style.color
   }
 
   MouseArea {

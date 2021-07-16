@@ -1,14 +1,14 @@
-import QtQuick 2.0
+import QtQuick 2.15
+import DMusic 1.0
 
 Icon {
   id: root
 
-  property color hoverColor: "#FFFFFF"
-  property color normalColor: "#C1C1C1"
+  property var style: Style.panel.icon.normal
 
   signal clicked()
 
-  color: _mouse.containsMouse? hoverColor : normalColor
+  color: _mouse.containsMouse? style.hoverColor : style.color
   opacity: _mouse.containsPress? 0.7 : 1
 
   MouseArea {

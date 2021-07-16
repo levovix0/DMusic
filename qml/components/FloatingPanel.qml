@@ -7,6 +7,8 @@ Item {
 
   property color color: Style.panel.background
 
+  opacity: 0
+
   Rectangle {
     id: _background
     anchors.fill: root

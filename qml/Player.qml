@@ -1,5 +1,6 @@
-import QtQuick 2.0
+import QtQuick 2.15
 import DMusic 1.0
+import "components"
 
 Rectangle {
   id: root
@@ -67,11 +68,39 @@ Rectangle {
     target: _player
   }
 
-  VolumeControl {
-    target: _player
+  Row {
+    spacing: 32
     anchors.right: root.right
     anchors.verticalCenter: root.verticalCenter
-    anchors.rightMargin: 36
+    anchors.rightMargin: 27
+
+    IconButton {
+      width: 20
+      height: 20
+      src: "qrc:/resources/player/debug.svg"
+      onClicked: _dpc.opened = !_dpc.opened
+
+      PopupController {
+        id: _dpc
+        target: _debug
+      }
+
+      DebugPanel {
+        id: _debug
+        anchors.right: parent.right
+        anchors.bottom: parent.top
+        anchors.rightMargin: -58
+        anchors.bottomMargin: 42 - _dpc.shift
+
+        player: root
+      }
+    }
+
+    VolumeControl {
+      width: 20
+      height: 20
+      target: _player
+    }
   }
 
   PlayerTrack {

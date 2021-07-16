@@ -3,47 +3,62 @@ import QtQuick 2.15
 import Config 1.0
 
 QtObject {
+  id: root
   property bool darkTheme: Config.darkTheme
   property bool darkHeader: Config.darkHeader
 
   property color accent: "#FCE165"
+  property color lightAccent: "#FFA800"
+
+  property color white: "#FFFFFF"
+  property color c40: "#404040"
+  property color cBorder: "#D9D9D9"
 
   property QtObject window: QtObject {
-    property color background: darkTheme? "#181818" : "#FFFFFF"
+    property color background: darkTheme? "#181818" : white
+    property color accent: darkTheme? root.accent : root.lightAccent
 
     property QtObject border: QtObject {
-      property color color: darkTheme? "transparent" : "#D9D9D9"
+      property color color: darkTheme? "transparent" : cBorder
       property real width: darkTheme? 0 : 2
     }
 
     property QtObject text: QtObject {
-      property color color: darkTheme? "#FFFFFF" : "#404040"
+      property color color: darkTheme? white : c40
       property color darkColor: "#808080"
       property string font: "Roboto"
     }
 
     property QtObject icon: QtObject {
-      property color color: darkTheme? "#FFFFFF" : "#404040"
+      property QtObject normal: QtObject {
+        property color color: darkTheme? "#C1C1C1" : c40
+        property color hoverColor: darkTheme? white : "#808080"
+      }
+      property QtObject accent: QtObject {
+        property color color: window.accent
+        property color hoverColor: Qt.darker(color, 1.5)
+      }
     }
   }
 
   property QtObject header: QtObject {
-    property color background: darkHeader? "#151515" : "#FFFFFF"
+    property color background: darkHeader? "#151515" : white
+    property color accent: darkHeader? root.accent : root.lightAccent
 
     property QtObject border: QtObject {
-      property color color: darkHeader? "transparent" : "#D9D9D9"
+      property color color: darkHeader? "transparent" : cBorder
       property real width: darkHeader? 0 : 2
     }
 
     property QtObject text: QtObject {
-      property color color: darkHeader? "#FFFFFF" : "#404040"
+      property color color: darkHeader? white : c40
       property color darkColor: "#808080"
       property string font: "Roboto"
     }
 
     property QtObject button: QtObject {
       property QtObject color: QtObject {
-        property color normal: darkHeader? "#FFFFFF" : "#404040"
+        property color normal: darkHeader? white : c40
         property color hover: normal
         property color pressed: normal
       }
@@ -56,9 +71,9 @@ QtObject {
 
     property QtObject closeButton: QtObject {
       property QtObject color: QtObject {
-        property color normal: darkHeader? "#FFFFFF" : "#404040"
-        property color hover: "#FFFFFF"
-        property color pressed: "#FFFFFF"
+        property color normal: darkHeader? white : c40
+        property color hover: white
+        property color pressed: white
       }
       property QtObject background: QtObject {
         property color normal: "transparent"
@@ -69,7 +84,8 @@ QtObject {
   }
 
   property QtObject panel: QtObject {
-    property color background: darkTheme? "#262626" : "#FFFFFF"
+    property color background: darkHeader? "#262626" : white
+    property color accent: darkHeader? root.accent : root.lightAccent
     property bool shadow: true
     property real radius: 10
 
@@ -79,35 +95,50 @@ QtObject {
     }
 
     property QtObject text: QtObject {
-      property color color: darkTheme? "#FFFFFF" : "#404040"
+      property color color: darkHeader? white : c40
       property color darkColor: "#808080"
       property string font: "Roboto"
     }
 
     property QtObject icon: QtObject {
-      property color color: darkTheme? "#FFFFFF" : "#404040"
+      property QtObject normal: QtObject {
+        property color color: darkHeader? "#C1C1C1" : c40
+        property color hoverColor: darkHeader? white : "#808080"
+      }
+      property QtObject accent: QtObject {
+        property color color: panel.accent
+        property color hoverColor: Qt.darker(color, 1.5)
+      }
     }
   }
 
   property QtObject block: QtObject {
-    property color background: darkTheme? "#262626" : "#FFFFFF"
+    property color background: darkTheme? "#262626" : white
+    property color accent: darkTheme? root.accent : root.lightAccent
     property bool shadow: true
     property real radius: 10
 
     property QtObject border: QtObject {
-      property color color: darkTheme? "transparent" : "#D9D9D9"
+      property color color: darkTheme? "transparent" : cBorder
       property real width: darkTheme? 0 : 2
     }
 
     property QtObject text: QtObject {
-      property color color: darkTheme? "#FFFFFF" : "#404040"
+      property color color: darkTheme? white : c40
       property color categoryColor: "#829297"
       property color darkColor: "#808080"
       property string font: "Roboto"
     }
 
     property QtObject icon: QtObject {
-      property color color: darkTheme? "#FFFFFF" : "#404040"
+      property QtObject normal: QtObject {
+        property color color: darkTheme? "#C1C1C1" : c40
+        property color hoverColor: darkTheme? white : "#808080"
+      }
+      property QtObject accent: QtObject {
+        property color color: block.accent
+        property color hoverColor: Qt.darker(color, 1.5)
+      }
     }
   }
 
@@ -120,14 +151,14 @@ QtObject {
       }
       property QtObject panel: QtObject {
         property color normal: "#363636"
-        property color hover: "#404040"
+        property color hover: c40
         property color press: "#303030"
       }
     }
   }
 
   property QtObject login: QtObject {
-    property color background: "#FFFFFF"
+    property color background: white
     property real backgroundRadius: 30
     property color text: "#000000"
 

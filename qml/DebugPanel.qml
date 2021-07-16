@@ -9,7 +9,7 @@ FloatingPanel {
   width: 320
   height: 122
 
-  property Player player
+  property var player
 
   DTextBox {
     id: _id

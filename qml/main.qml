@@ -108,15 +108,6 @@ Window {
       }
     }
 
-    DebugPanel {
-      anchors.right: root.right
-      anchors.bottom: _player.top
-      anchors.rightMargin: 19
-      anchors.bottomMargin: 19
-
-      player: _player
-    }
-
     Player {
       id: _player
       width: root.width
@@ -135,6 +126,7 @@ Window {
     }
 
     Rectangle {
+      visible: !Style.darkHeader
       height: Style.window.border.width
       anchors.left: _player.left
       anchors.right: _player.right

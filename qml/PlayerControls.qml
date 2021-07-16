@@ -53,8 +53,7 @@ Item {
     anchors.horizontalCenterOffset: 50 + 50
 
     icon: loopMode == Config.LoopTrack? "qrc:/resources/player/loop-track.svg" : "qrc:/resources/player/loop-playlist.svg"
-    color: loopMode != Config.LoopNone? "#FCE165" : "#C1C1C1"
-    hoverColor: loopMode != Config.LoopNone? "#CDB64E" : "#FFFFFF"
+    style: loopMode != Config.LoopNone? Style.panel.icon.accent : Style.panel.icon.normal
     onClick: {
       if (loopMode == Config.LoopNone) changeLoopMode(Config.LoopPlaylist)
       else if (loopMode == Config.LoopPlaylist) changeLoopMode(Config.LoopTrack)
@@ -69,8 +68,7 @@ Item {
     anchors.horizontalCenterOffset: -50 - 50
 
     icon: "qrc:/resources/player/shuffle.svg"
-    color: nextMode != Config.NextSequence? "#FCE165" : "#C1C1C1"
-    hoverColor: nextMode != Config.NextSequence? "#CDB64E" : "#FFFFFF"
+    style: nextMode != Config.NextSequence? Style.panel.icon.accent : Style.panel.icon.normal
     onClick: changeNextMode(nextMode == Config.NextSequence? Config.NextShuffle : Config.NextSequence)
   }
 }

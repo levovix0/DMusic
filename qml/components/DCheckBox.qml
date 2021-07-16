@@ -35,7 +35,7 @@ RowLayout {
       visible: root.checked
 
       src: "qrc:/resources/checkbox.svg"
-      color: Style.accent
+      color: style.accent
     }
   }
 

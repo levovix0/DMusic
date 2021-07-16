@@ -18,7 +18,7 @@ SettingsBlock {
     DText {
       Layout.alignment: Qt.AlignCenter
 
-      text: qsTr("Yandex account")
+      text: qsTr("Yandex")
       color: Style.block.text.categoryColor
       font.bold: true
     }
