@@ -7,8 +7,8 @@ QtObject {
   property bool darkTheme: Config.darkTheme
   property bool darkHeader: Config.darkHeader
 
-  property color accent: "#FCE165"
-  property color lightAccent: "#FFA800"
+  property color accent: Config.colorAccentDark
+  property color lightAccent: Config.colorAccentLight
 
   property color white: "#FFFFFF"
   property color c40: "#404040"

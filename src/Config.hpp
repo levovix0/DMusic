@@ -47,6 +47,8 @@ public:
   Q_ENUM(CoverQuality)
 
   Q_PROPERTY(Language language READ language WRITE setLanguage NOTIFY languageChanged)
+  Q_PROPERTY(QString colorAccentDark READ colorAccentDark WRITE setColorAccentDark NOTIFY colorAccentDarkChanged)
+  Q_PROPERTY(QString colorAccentLight READ colorAccentLight WRITE setColorAccentLight NOTIFY colorAccentLightChanged)
   Q_PROPERTY(bool isClientSideDecorations READ isClientSideDecorations WRITE setIsClientSideDecorations NOTIFY isClientSideDecorationsChanged)
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
@@ -68,6 +70,8 @@ public:
   static Dir dataDir();
 
   static Language language();
+  static QString colorAccentDark();
+  static QString colorAccentLight();
   static bool isClientSideDecorations();
   static double volume();
   static NextMode nextMode();
@@ -94,6 +98,8 @@ public:
 
 public slots:
   void setLanguage(Language v);
+  void setColorAccentDark(QString v);
+  void setColorAccentLight(QString v);
   void setIsClientSideDecorations(bool v);
   void setVolume(double v);
   void setNextMode(NextMode v);
@@ -116,6 +122,8 @@ public slots:
 
 signals:
   void languageChanged(Language language);
+  void colorAccentDarkChanged(QString colorAccentDark);
+  void colorAccentLightChanged(QString colorAccentLight);
   void isClientSideDecorationsChanged(bool isClientSideDecorations);
   void volumeChanged(double volume);
   void nextModeChanged(NextMode nextMode);
@@ -135,6 +143,8 @@ signals:
 
 private:
   inline static Language _language = EnglishLanguage;
+  inline static QString _colorAccentDark = "#FCE165";
+  inline static QString _colorAccentLight = "#FFA800";
   inline static bool _isClientSideDecorations = true;
   inline static double _volume = 0.5;
   inline static NextMode _nextMode = NextSequence;

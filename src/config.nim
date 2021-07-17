@@ -15,6 +15,8 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
     LoopPlaylist
 
   Language language EnglishLanguage
+  string colorAccentDark "#FCE165"
+  string colorAccentLight "#FFA800"
 
   bool isClientSideDecorations true
   double volume 0.5

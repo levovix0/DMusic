@@ -60,11 +60,7 @@ DPage {
       spacing: 20
 
       LanguageSettingsBlock {}
-
-      SettingsBlock {
-        title: qsTr("Color")
-        Layout.fillWidth: true
-      }
+      ColorSettingsBlock {}
     }
   }
 }

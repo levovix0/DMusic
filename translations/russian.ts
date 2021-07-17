@@ -32,6 +32,14 @@
     </message>
 </context>
 <context>
+    <name>ColorSettingsBlock</name>
+    <message>
+        <location filename="../qml/pages/settings/ColorSettingsBlock.qml" line="8"/>
+        <source>Color</source>
+        <translation>Цвет</translation>
+    </message>
+</context>
+<context>
     <name>DFileDialog</name>
     <message>
         <source>Sellect</source>
@@ -192,9 +200,8 @@ usage: %1 [options]
         <translation type="vanished">Язык</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="65"/>
         <source>Color</source>
-        <translation>Цвет</translation>
+        <translation type="vanished">Цвет</translation>
     </message>
 </context>
 <context>

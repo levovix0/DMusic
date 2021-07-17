@@ -98,5 +98,8 @@
         <file>qml/components/Popup.qml</file>
         <file>qml/pages/settings/LanguageSettingsBlock.qml</file>
         <file>qml/pages/settings/LanguageSelect.qml</file>
+        <file>qml/pages/settings/ColorSettingsBlock.qml</file>
+        <file>qml/pages/settings/ColorSelect.qml</file>
+        <file>resources/settings/selected.svg</file>
     </qresource>
 </RCC>

@@ -52,6 +52,28 @@ void Config::setLanguage(Config::Language v) {
   saveToJson();
 }
 
+QString Config::colorAccentDark() {
+  return _colorAccentDark;
+}
+
+void Config::setColorAccentDark(QString v) {
+  if (_colorAccentDark == v) return;
+  _colorAccentDark = v;
+  emit colorAccentDarkChanged(_colorAccentDark);
+  saveToJson();
+}
+
+QString Config::colorAccentLight() {
+  return _colorAccentLight;
+}
+
+void Config::setColorAccentLight(QString v) {
+  if (_colorAccentLight == v) return;
+  _colorAccentLight = v;
+  emit colorAccentLightChanged(_colorAccentLight);
+  saveToJson();
+}
+
 bool Config::isClientSideDecorations() {
   return _isClientSideDecorations;
 }
@@ -245,6 +267,10 @@ void Config::reloadFromJson() {
 
   _language = (Language)doc["language"].toInt(EnglishLanguage);
   emit languageChanged(_language);
+  _colorAccentDark = doc["colorAccentDark"].toString("#FCE165");
+  emit colorAccentDarkChanged(_colorAccentDark);
+  _colorAccentLight = doc["colorAccentLight"].toString("#FFA800");
+  emit colorAccentLightChanged(_colorAccentLight);
   _isClientSideDecorations = doc["isClientSideDecorations"].toBool(true);
   emit isClientSideDecorationsChanged(_isClientSideDecorations);
   _volume = doc["volume"].toDouble(0.5);
@@ -288,6 +314,8 @@ void Config::saveToJson() {
   QJsonObject doc;
 
   doc["language"] = _language;
+  doc["colorAccentDark"] = _colorAccentDark;
+  doc["colorAccentLight"] = _colorAccentLight;
   doc["isClientSideDecorations"] = _isClientSideDecorations;
   doc["volume"] = _volume;
   doc["nextMode"] = _nextMode;
