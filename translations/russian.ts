@@ -110,6 +110,49 @@
     </message>
 </context>
 <context>
+    <name>DevelopersBlock</name>
+    <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="8"/>
+        <source>Developers</source>
+        <translation>Разработчики</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="22"/>
+        <source>levovix</source>
+        <translation>levovix</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="31"/>
+        <source> - code, design</source>
+        <translation> - код, дизайн</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="38"/>
+        <source>LightFly</source>
+        <translation>LightFly</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="47"/>
+        <source> - design, code</source>
+        <translation> - дизайн, код</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="54"/>
+        <source>Elidder</source>
+        <translation>Elidder</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="58"/>
+        <source> - design</source>
+        <translation> - дизайн</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="81"/>
+        <source>GitHub</source>
+        <translation>GitHub</translation>
+    </message>
+</context>
+<context>
     <name>DiscordPresence</name>
     <message>
         <source>Failed to initialize discord pressence</source>
@@ -182,16 +225,15 @@ usage: %1 [options]
         <translation>Настройки</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="37"/>
         <source>Developers</source>
-        <translation>Разработчики</translation>
+        <translation type="vanished">Разработчики</translation>
     </message>
     <message>
         <source>Theme</source>
         <translation type="vanished">Тема</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="51"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="47"/>
         <source>General</source>
         <translation>Общие</translation>
     </message>

@@ -32,11 +32,7 @@ DPage {
       spacing: 20
 
       AccountsSettingsBlock { switcher: root.switcher }
-
-      SettingsBlock {
-        title: qsTr("Developers")
-        Layout.fillWidth: true
-      }
+      ColorSettingsBlock {}
     }
 
     ColumnLayout {
@@ -60,7 +56,7 @@ DPage {
       spacing: 20
 
       LanguageSettingsBlock {}
-      ColorSettingsBlock {}
+      DevelopersBlock {}
     }
   }
 }

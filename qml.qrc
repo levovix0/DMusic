@@ -101,5 +101,7 @@
         <file>qml/pages/settings/ColorSettingsBlock.qml</file>
         <file>qml/pages/settings/ColorSelect.qml</file>
         <file>resources/settings/selected.svg</file>
+        <file>qml/pages/settings/DevelopersBlock.qml</file>
+        <file>resources/settings/GitHub.svg</file>
     </qresource>
 </RCC>
