@@ -15,7 +15,7 @@ QtObject {
   property color cBorder: "#D9D9D9"
 
   property QtObject window: QtObject {
-    property color background: darkTheme? "#181818" : white
+    property color background: darkTheme? "#202020" : white
     property color accent: darkTheme? root.accent : root.lightAccent
 
     property QtObject border: QtObject {
@@ -42,7 +42,7 @@ QtObject {
   }
 
   property QtObject header: QtObject {
-    property color background: darkHeader? "#151515" : white
+    property color background: darkHeader? "#202020" : white
     property color accent: darkHeader? root.accent : root.lightAccent
 
     property QtObject border: QtObject {
@@ -65,7 +65,7 @@ QtObject {
       property QtObject background: QtObject {
         property color normal: "transparent"
         property color hover: darkHeader? "#303030" : "#F0F0F0"
-        property color pressed: darkHeader? "#202020" : "#D0D0D0"
+        property color pressed: darkHeader? "#262626" : "#D0D0D0"
       }
     }
 

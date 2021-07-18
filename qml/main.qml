@@ -45,8 +45,10 @@ Window {
 
   Rectangle {
     id: root
-    anchors.fill: parent
-    anchors.margins: shadowRadius
+    width: _window.width - shadowRadius * 2
+    height: _window.height - shadowRadius * 2
+    x: shadowRadius
+    y: shadowRadius
 
     color: Style.window.background
     focus: true
@@ -109,16 +111,6 @@ Window {
       width: root.width
       height: 66
       anchors.bottom: parent.bottom
-    }
-
-    Rectangle {
-      visible: !Style.darkHeader
-      height: Style.window.border.width
-      anchors.left: _title.left
-      anchors.right: _title.right
-      anchors.verticalCenter: _title.bottom
-
-      color: Style.window.border.color
     }
 
     Rectangle {
