@@ -160,6 +160,29 @@
     </message>
 </context>
 <context>
+    <name>GeneralSettingsBlock</name>
+    <message>
+        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="8"/>
+        <source>General</source>
+        <translation>Общие</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="17"/>
+        <source>Download all track&apos;s audios</source>
+        <translation>Скачивать аудио всех треков</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="24"/>
+        <source>Download all track&apos;s covers</source>
+        <translation>Скачивать обложки всех треков</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="31"/>
+        <source>Download all track&apos;s metadata</source>
+        <translation>Скачивать метаданные всех треков</translation>
+    </message>
+</context>
+<context>
     <name>LanguageSettingsBlock</name>
     <message>
         <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="8"/>
@@ -233,9 +256,8 @@ usage: %1 [options]
         <translation type="vanished">Тема</translation>
     </message>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="47"/>
         <source>General</source>
-        <translation>Общие</translation>
+        <translation type="vanished">Общие</translation>
     </message>
     <message>
         <source>Language</source>

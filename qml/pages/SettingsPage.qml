@@ -42,11 +42,7 @@ DPage {
       spacing: 20
 
       ThemeSettingsBlock {}
-
-      SettingsBlock {
-        title: qsTr("General")
-        Layout.fillWidth: true
-      }
+      GeneralSettingsBlock {}
     }
 
     ColumnLayout {

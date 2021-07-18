@@ -103,5 +103,6 @@
         <file>resources/settings/selected.svg</file>
         <file>qml/pages/settings/DevelopersBlock.qml</file>
         <file>resources/settings/GitHub.svg</file>
+        <file>qml/pages/settings/GeneralSettingsBlock.qml</file>
     </qresource>
 </RCC>
