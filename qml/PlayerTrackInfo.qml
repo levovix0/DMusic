@@ -53,7 +53,7 @@ Item {
 
       text: extra
       font.pixelSize: 14
-      color: "#999999"
+      color: Style.darkHeader? "#999999" : "#999999"
 
       MouseArea {
         anchors.fill: parent
@@ -72,7 +72,7 @@ Item {
 
       text: artists
       font.pixelSize: 12
-      color: "#CCCCCC"
+      color: Style.darkHeader? "#CCCCCC" : "#515151"
 
       MouseArea {
         anchors.fill: parent
@@ -198,7 +198,7 @@ Item {
 
       text: extra
       font.pixelSize: 14
-      color: "#999999"
+      color: Style.darkHeader? "#999999" : "#999999"
     }
   }
 
@@ -252,7 +252,7 @@ Item {
 
       text: artists
       font.pixelSize: 12
-      color: "#CCCCCC"
+      color: Style.darkHeader? "#CCCCCC" : "#515151"
     }
   }
 }

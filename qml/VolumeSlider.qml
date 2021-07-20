@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtGraphicalEffects 1.15
 import DMusic 1.0
 
 Rectangle {
@@ -10,7 +11,7 @@ Rectangle {
 
   signal seek(real value)
 
-  color: "#404040"
+  color: Style.panel.item.background
   radius: width / 2
 
   Rectangle {
@@ -21,7 +22,18 @@ Rectangle {
     width: root.width
 
     radius: root.radius
-    color: sellected? Style.accent : "#AAAAAA"
+    color: sellected? Style.panel.accent : Style.panel.item.foreground
+  }
+
+  DropShadow {
+    visible: root.sellected && Style.panel.item.dropShadow
+    anchors.fill: _point
+
+    radius: 3.0
+    samples: 7
+    opacity: 0.3
+    color: "#000000"
+    source: _point
   }
 
   Rectangle {
@@ -45,7 +57,7 @@ Rectangle {
     anchors.left: _point.right
     anchors.leftMargin: 1
 
-    color: Math.abs(value - 0.5) > 0.04? "#C4C4C4" : "#505050"
+    color: Math.abs(value - 0.5) > 0.04? (Style.darkHeader? "#C4C4C4" : "#505050") : (Style.darkHeader? "#505050" : "#AAAAAA")
   }
 
   Rectangle {
@@ -55,7 +67,7 @@ Rectangle {
     anchors.right: _point.left
     anchors.rightMargin: 1
 
-    color: Math.abs(value - 0.5) > 0.04? "#C4C4C4" : "#505050"
+    color: Math.abs(value - 0.5) > 0.04? (Style.darkHeader? "#C4C4C4" : "#505050") : (Style.darkHeader? "#505050" : "#AAAAAA")
   }
 
   MouseArea {

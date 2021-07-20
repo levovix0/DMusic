@@ -12,7 +12,7 @@ DPage {
     id: _label
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.top: root.top
-    anchors.topMargin: 40
+    anchors.topMargin: 30
 
     font.pointSize: 28
 

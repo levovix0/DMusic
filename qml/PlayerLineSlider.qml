@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtGraphicalEffects 1.15
 import DMusic 1.0
 //TODO: таймкоды
 
@@ -12,7 +13,7 @@ Rectangle {
   signal seek(real progress)
   signal appendMs(real delta)
 
-  color: "#404040"
+  color: Style.panel.item.background
   radius: height / 2
 
   Rectangle {
@@ -22,7 +23,18 @@ Rectangle {
     width: root.width * progress
 
     radius: root.radius
-    color: sellected? Style.accent : "#AAAAAA"
+    color: sellected? Style.panel.accent : Style.panel.item.foreground
+  }
+
+  DropShadow {
+    visible: root.sellected && Style.panel.item.dropShadow
+    anchors.fill: _point
+
+    radius: 3.0
+    samples: 7
+    opacity: 0.3
+    color: "#000000"
+    source: _point
   }
 
   Rectangle {

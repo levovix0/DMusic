@@ -100,6 +100,12 @@ QtObject {
       property string font: "Roboto"
     }
 
+    property QtObject item: QtObject {
+      property color background: darkHeader? "#404040" : "#E2E2E2"
+      property color foreground: darkHeader? "#AAAAAA" : "#808080"
+      property bool dropShadow: darkHeader? false : true
+    }
+
     property QtObject icon: QtObject {
       property QtObject normal: QtObject {
         property color color: darkHeader? "#C1C1C1" : c40
