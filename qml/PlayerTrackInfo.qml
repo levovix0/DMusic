@@ -24,7 +24,8 @@ Item {
       anchors.bottomMargin: 2
 
       text: title
-      font.pixelSize: 14
+      font.pointSize: 10.5
+      color: Style.panel.text.color
 
       MouseArea {
         anchors.fill: parent
@@ -52,7 +53,7 @@ Item {
       anchors.leftMargin: 5
 
       text: extra
-      font.pixelSize: 14
+      font.pointSize: 10.5
       color: Style.darkHeader? "#999999" : "#999999"
 
       MouseArea {
@@ -71,7 +72,7 @@ Item {
       anchors.topMargin: 2
 
       text: artists
-      font.pixelSize: 12
+      font.pointSize: 9
       color: Style.darkHeader? "#CCCCCC" : "#515151"
 
       MouseArea {
@@ -187,7 +188,8 @@ Item {
       x: -root.width
 
       text: title
-      font.pixelSize: 14
+      font.pointSize: 10.5
+      color: Style.panel.text.color
     }
 
     DText {
@@ -197,7 +199,7 @@ Item {
       anchors.leftMargin: 5
 
       text: extra
-      font.pixelSize: 14
+      font.pointSize: 10.5
       color: Style.darkHeader? "#999999" : "#999999"
     }
   }
@@ -251,7 +253,7 @@ Item {
       x: -root.width
 
       text: artists
-      font.pixelSize: 12
+      font.pointSize: 9
       color: Style.darkHeader? "#CCCCCC" : "#515151"
     }
   }
