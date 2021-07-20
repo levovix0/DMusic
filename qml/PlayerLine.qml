@@ -29,7 +29,7 @@ Item {
     anchors.verticalCenter: root.verticalCenter
     x: -width - 14
 
-    font.pixelSize: 12
+    font.pointSize: 9
     color: "#A8A8A8"
     text: positionText
   }
@@ -39,7 +39,7 @@ Item {
     anchors.verticalCenter: root.verticalCenter
     x: root.width + 14
 
-    font.pixelSize: 12
+    font.pointSize: 9
     color: "#A8A8A8"
     text: durationText
   }

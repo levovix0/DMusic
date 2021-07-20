@@ -92,6 +92,8 @@ Rectangle {
         anchors.rightMargin: -58
         anchors.bottomMargin: 30 - _dpc.shift
 
+        triangle.anchors.horizontalCenterOffset: 85
+
         player: root
       }
     }

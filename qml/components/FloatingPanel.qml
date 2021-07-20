@@ -6,6 +6,7 @@ Item {
   id: root
 
   property color color: Style.panel.background
+  property alias triangle: _triangle
 
   opacity: 0
 
@@ -25,6 +26,7 @@ Item {
   }
 
   Triangle {
+    id: _triangle
     anchors.top: root.bottom
     anchors.horizontalCenter: root.horizontalCenter
 
