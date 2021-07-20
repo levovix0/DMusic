@@ -31,7 +31,7 @@ Control {
       anchors.topMargin: 15
 
       text: root.title
-      font.pixelSize: 18
+      font.pointSize: 13.5
     }
   }
 

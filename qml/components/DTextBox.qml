@@ -1,15 +1,20 @@
-import QtQuick 2.0
+import QtQuick 2.15
+import DMusic 1.0
 
 Rectangle {
   id: root
-  height: 20
+  height: style.height
   width: 200
-  radius: 3
+  radius: style.radius
 
-  color: "#262626"
+  color: style.background
+  border.width: style.border.width
+  border.color: style.border.color
 
   property string hint: ""
   property alias text: _input.text
+
+  property QtObject style: Style.panel.textBox
 
   MouseArea {
     anchors.fill: parent
@@ -24,8 +29,9 @@ Rectangle {
       id: _input
       anchors.fill: parent
 
-      color: "#FFFFFF"
-      font.pixelSize: root.height * 0.8
+      color: root.style.text.color
+      font.family: root.style.text.font
+      font.pointSize: root.height * 0.75 * root.style.textScale
       selectByMouse: true
       selectionColor: "#627FAA"
     }
@@ -34,9 +40,10 @@ Rectangle {
       anchors.verticalCenter: parent.verticalCenter
       visible: _input.text == ""
 
-      font.pixelSize: root.height * 0.7
+      font.family: root.style.text.font
+      font.pointSize: root.height * 0.75 * root.style.hintScale
       text: root.hint
-      color: "#999999"
+      color: root.style.text.darkColor
     }
   }
 }

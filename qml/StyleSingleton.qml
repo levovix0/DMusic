@@ -106,6 +106,26 @@ QtObject {
       property bool dropShadow: darkHeader? false : true
     }
 
+    property QtObject textBox: QtObject {
+      property real height: 20
+      property real radius: 3
+      property color background: darkHeader? "#202020" : "transparent"
+
+      property QtObject text: QtObject {
+        property color color: darkHeader? white : c40
+        property color darkColor: "#808080"
+        property string font: "Roboto"
+      }
+
+      property QtObject border: QtObject {
+        property color color: darkHeader? "transparent" : cBorder
+        property real width: darkHeader? 0 : 2
+      }
+
+      property real textScale: 0.8
+      property real hintScale: 0.7
+    }
+
     property QtObject icon: QtObject {
       property QtObject normal: QtObject {
         property color color: darkHeader? "#C1C1C1" : c40

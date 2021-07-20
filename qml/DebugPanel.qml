@@ -15,7 +15,6 @@ FloatingPanel {
     id: _id
     width: 155
     height: 20
-    color: "#181818"
     anchors.left: parent.left
     anchors.top: parent.top
     anchors.leftMargin: 20
@@ -56,7 +55,6 @@ FloatingPanel {
   DTextBox {
     id: _title
     width: 100
-    color: "#181818"
     anchors.left: _cover.right
     anchors.top: _cover.top
     anchors.leftMargin: 10
@@ -67,7 +65,6 @@ FloatingPanel {
     id: _extra
     width: 115
     height: 20
-    color: "#181818"
     anchors.left: _title.right
     anchors.top: _title.top
     anchors.leftMargin: 10
@@ -79,7 +76,6 @@ FloatingPanel {
     x: 82
     width: 169
     height: 20
-    color: "#181818"
     anchors.top: _title.bottom
     anchors.topMargin: 10
     hint: qsTr("Artists")
