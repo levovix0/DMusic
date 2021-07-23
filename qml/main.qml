@@ -29,22 +29,22 @@ Window {
   color: (Config.isClientSideDecorations && !maximized)? "transparent" : Style.window.background
 
   DropShadow {
-    anchors.fill: root
+    anchors.fill: _root
     enabled: Config.isClientSideDecorations && !maximized
     opacity: 0.6
     radius: shadowRadius
     samples: 20
     color: "#000000"
     source: Rectangle {
-      width: root.width
-      height: root.height
+      width: _root.width
+      height: _root.height
       color: "#000000"
       radius: 7.5
     }
   }
 
   Rectangle {
-    id: root
+    id: _root
     width: _window.width - shadowRadius * 2
     height: _window.height - shadowRadius * 2
     x: shadowRadius
@@ -55,7 +55,7 @@ Window {
 
     MouseArea {
       anchors.fill: parent
-      onClicked: root.focus = true
+      onClicked: _root.focus = true
     }
 
     function autologin() {
@@ -64,18 +64,18 @@ Window {
 
     Title {
       id: _title
-      width: root.width
+      width: _root.width
 
-      windowSize: Qt.size(root.width, root.height)
+      windowSize: Qt.size(_root.width, _root.height)
       clientSideDecorations: Config.isClientSideDecorations
       maximized: maximized
     }
 
     PageSwitcher {
       id: _pages
-      anchors.left: root.left
+      anchors.left: _root.left
       anchors.top: _title.bottom
-      anchors.right: root.right
+      anchors.right: _root.right
       anchors.bottom: _player.top
     }
 
@@ -108,7 +108,7 @@ Window {
 
     Player {
       id: _player
-      width: root.width
+      width: _root.width
       height: 66
       anchors.bottom: parent.bottom
     }
@@ -123,15 +123,6 @@ Window {
       color: Style.window.border.color
     }
 
-    Keys.onSpacePressed: _player.player.pause_or_play()
-    Keys.onRightPressed: _player.next()
-    Keys.onLeftPressed: _player.prev()
-    Keys.onPressed: {
-      if (event.key === Qt.Key_L) _player.toglleLiked()
-      else if (event.key === Qt.Key_D) _player.next()
-      else if (event.key === Qt.Key_A) _player.prev()
-    }
-
     Component.onCompleted: {
       Messages.onGotMessage.connect(function(text, details) {
         _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": false })
@@ -142,14 +133,23 @@ Window {
       Messages.reSendHistory()
 
       YClient.init()
-      root.autologin()
+      _root.autologin()
+    }
+
+    Keys.onSpacePressed: _player.player.pause_or_play()
+    Keys.onRightPressed: _player.next()
+    Keys.onLeftPressed: _player.prev()
+    Keys.onPressed: {
+      if (event.key === Qt.Key_L) _player.toglleLiked()
+      else if (event.key === Qt.Key_D) _player.next()
+      else if (event.key === Qt.Key_A) _player.prev()
     }
 
     layer.enabled: Config.isClientSideDecorations && visibility != 4
     layer.effect: OpacityMask {
       maskSource: Rectangle {
-        width: root.width
-        height: root.height
+        width: _root.width
+        height: _root.height
         radius: 7.5
       }
     }

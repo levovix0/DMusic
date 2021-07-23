@@ -30,7 +30,7 @@ Rectangle {
 
     hoverEnabled: true
 
-    onClicked: if (enabled) root.click()
+    onClicked: if (enabled) { root.click(); _root.focus = true }
     onPressed: if (enabled) root.pressed()
   }
 }

@@ -71,22 +71,22 @@
 <context>
     <name>DebugPanel</name>
     <message>
-        <location filename="../qml/DebugPanel.qml" line="23"/>
+        <location filename="../qml/DebugPanel.qml" line="22"/>
         <source>ID</source>
         <translation>ID</translation>
     </message>
     <message>
-        <location filename="../qml/DebugPanel.qml" line="63"/>
+        <location filename="../qml/DebugPanel.qml" line="61"/>
         <source>Title</source>
         <translation>Название</translation>
     </message>
     <message>
-        <location filename="../qml/DebugPanel.qml" line="74"/>
+        <location filename="../qml/DebugPanel.qml" line="71"/>
         <source>Additional info</source>
         <translation>Доп. инфо</translation>
     </message>
     <message>
-        <location filename="../qml/DebugPanel.qml" line="85"/>
+        <location filename="../qml/DebugPanel.qml" line="81"/>
         <source>Artists</source>
         <translation>Авторы</translation>
     </message>
@@ -95,7 +95,7 @@
         <translation type="vanished">Выберите медиафайл</translation>
     </message>
     <message>
-        <location filename="../qml/DebugPanel.qml" line="96"/>
+        <location filename="../qml/DebugPanel.qml" line="92"/>
         <source>Audio (*.mp3 *.wav *.ogg *.m4a)</source>
         <translation>Звук (*.mp3 *.wav *.ogg *.m4a)</translation>
     </message>
@@ -104,7 +104,7 @@
         <translation type="vanished">Выберите обложку</translation>
     </message>
     <message>
-        <location filename="../qml/DebugPanel.qml" line="33"/>
+        <location filename="../qml/DebugPanel.qml" line="32"/>
         <source>Image (*.jpg *.png *.svg)</source>
         <translation>Изображение (*.jpg *.png *.svg)</translation>
     </message>
@@ -303,6 +303,14 @@ usage: %1 [options]
         <location filename="../src/RemoteMediaController.cpp" line="436"/>
         <source>Pause</source>
         <translation>Пауза</translation>
+    </message>
+</context>
+<context>
+    <name>Title</name>
+    <message>
+        <location filename="../qml/Title.qml" line="63"/>
+        <source>search</source>
+        <translation>поиск</translation>
     </message>
 </context>
 <context>

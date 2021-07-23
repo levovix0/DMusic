@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import DMusic 1.0
 import "pages"
+import "components"
 
 Rectangle {
   id: root
@@ -23,77 +24,79 @@ Rectangle {
 
   DragHandler {
     enabled: root.clientSideDecorations
-    onActiveChanged: if (active) _window.startSystemMove();
+    onActiveChanged: if (active) { _window.startSystemMove(); _root.focus = true }
     target: null
-    dragThreshold: 0
   }
 
   MouseArea {
     anchors.fill: root
     enabled: root.clientSideDecorations
+    acceptedButtons: Qt.LeftButton | Qt.MiddleButton
 
-    onDoubleClicked: _window.maximize()
+    onDoubleClicked: if (mouse.button == Qt.LeftButton) _window.maximize()
+    onClicked: if (mouse.button == Qt.MiddleButton) { _window.close() } else { _root.focus = true }
+
+    TitleManualButton {
+      id: _home
+      anchors.verticalCenter: parent.verticalCenter
+      anchors.left: parent.left
+      icon: "qrc:/resources/title/home.svg"
+
+      onClick: _pages.gotoMainPage()
+    }
+
+    TitleManualButton {
+      id: _close
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      enabled: root.clientSideDecorations
+
+      icon: "qrc:/resources/title/close.svg"
+      style: Style.header.closeButton
+
+      onClick: _window.close()
+    }
+
+    TitleManualButton {
+      id: _maximize
+      anchors.right: _close.left
+      anchors.verticalCenter: parent.verticalCenter
+      enabled: root.clientSideDecorations
+
+      icon: "qrc:/resources/title/maximize.svg"
+
+      onClick: _window.maximize()
+    }
+
+    TitleManualButton {
+      id: _minimize
+      anchors.right: _maximize.left
+      anchors.verticalCenter: parent.verticalCenter
+      enabled: root.clientSideDecorations
+
+      icon: "qrc:/resources/title/minimize.svg"
+
+      onClick: _window.minimize()
+    }
+
+    TitleManualButton {
+      id: _settings
+      anchors.verticalCenter: parent.verticalCenter
+      anchors.right: _minimize.left
+      icon: "qrc:/resources/title/settings.svg"
+
+      onClick: _pages.gotoSettingsPage()
+    }
   }
 
-  MouseArea {
-    anchors.fill: root
-    enabled: root.clientSideDecorations
-    acceptedButtons: Qt.MiddleButton
+  DTextBox {
+    id: _search
+    anchors.centerIn: parent
+    width: 300
 
-    onClicked: _window.close()
-  }
-
-  TitleManualButton {
-    id: _home
-    anchors.verticalCenter: root.verticalCenter
-    anchors.left: root.left
-    icon: "qrc:/resources/title/home.svg"
-
-    onClick: _pages.gotoMainPage()
-  }
-
-
-  TitleManualButton {
-    id: _close
-    anchors.right: root.right
-    anchors.verticalCenter: root.verticalCenter
-    enabled: root.clientSideDecorations
-
-    icon: "qrc:/resources/title/close.svg"
-    style: Style.header.closeButton
-
-    onClick: _window.close()
-  }
-
-  TitleManualButton {
-    id: _maximize
-    anchors.right: _close.left
-    anchors.verticalCenter: root.verticalCenter
-    enabled: root.clientSideDecorations
-
-    icon: "qrc:/resources/title/maximize.svg"
-
-    onClick: _window.maximize()
-  }
-
-  TitleManualButton {
-    id: _minimize
-    anchors.right: _maximize.left
-    anchors.verticalCenter: root.verticalCenter
-    enabled: root.clientSideDecorations
-
-    icon: "qrc:/resources/title/minimize.svg"
-
-    onClick: _window.minimize()
-  }
-
-  TitleManualButton {
-    id: _settings
-    anchors.verticalCenter: root.verticalCenter
-    anchors.right: _minimize.left
-    icon: "qrc:/resources/title/settings.svg"
-
-    onClick: _pages.gotoSettingsPage()
+    style: Style.header.searchBox
+    Binding { target: _search; property: "style.background"; value: Config.darkHeader? (_search.text == ""? "#1C1C1C" : Style.panel.background) : "transparent" }
+    hint: qsTr("search")
   }
 
   ResizeArea {

@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import DMusic 1.0
 import "components"
 
 Item {
@@ -30,7 +31,7 @@ Item {
     x: -width - 14
 
     font.pointSize: 9
-    color: "#A8A8A8"
+    color: Style.darkHeader? "#A8A8A8" : "#808080"
     text: positionText
   }
 
@@ -40,7 +41,7 @@ Item {
     x: root.width + 14
 
     font.pointSize: 9
-    color: "#A8A8A8"
+    color: Style.darkHeader? "#A8A8A8" : "#808080"
     text: durationText
   }
 }

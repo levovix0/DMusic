@@ -69,6 +69,30 @@ QtObject {
       }
     }
 
+    property QtObject searchBox: QtObject {
+      property real height: 24
+      property real radius: height / 2
+      property QtObject background: QtObject {
+        property color normal: darkHeader? "#1C1C1C" : "transparent"
+        property color input: darkHeader? "#262626" : "transparent"
+      }
+
+      property QtObject text: QtObject {
+        property color color: darkHeader? white : c40
+        property color darkColor: "#808080"
+        property string font: "Roboto"
+        property int hAlign: Text.AlignHCenter
+      }
+
+      property QtObject border: QtObject {
+        property color color: darkHeader? "transparent" : cBorder
+        property real width: darkHeader? 0 : 2
+      }
+
+      property real textScale: 0.55
+      property real hintScale: 0.55
+    }
+
     property QtObject closeButton: QtObject {
       property QtObject color: QtObject {
         property color normal: darkHeader? white : c40
@@ -109,12 +133,16 @@ QtObject {
     property QtObject textBox: QtObject {
       property real height: 20
       property real radius: 3
-      property color background: darkHeader? "#202020" : "transparent"
+      property QtObject background: QtObject {
+        property color normal: darkHeader? "#202020" : "transparent"
+        property color input: normal
+      }
 
       property QtObject text: QtObject {
         property color color: darkHeader? white : c40
         property color darkColor: "#808080"
         property string font: "Roboto"
+        property int hAlign: Text.AlignLeft
       }
 
       property QtObject border: QtObject {
