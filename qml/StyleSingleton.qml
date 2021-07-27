@@ -73,19 +73,22 @@ QtObject {
       property real height: 24
       property real radius: height / 2
       property QtObject background: QtObject {
-        property color normal: darkHeader? "#1C1C1C" : "transparent"
-        property color input: darkHeader? "#262626" : "transparent"
+        property color normal: header.background
+        property color input: darkHeader? "#262626" : header.background
       }
 
       property QtObject text: QtObject {
         property color color: darkHeader? white : c40
-        property color darkColor: "#808080"
+        property color darkColor: color
         property string font: "Roboto"
         property int hAlign: Text.AlignHCenter
       }
 
       property QtObject border: QtObject {
-        property color color: darkHeader? "transparent" : cBorder
+        property QtObject color: QtObject {
+          property color normal: "#00D9D9D9"
+          property color input: darkHeader? "transparent" : cBorder
+        }
         property real width: darkHeader? 0 : 2
       }
 
@@ -146,7 +149,10 @@ QtObject {
       }
 
       property QtObject border: QtObject {
-        property color color: darkHeader? "transparent" : cBorder
+        property QtObject color: QtObject {
+          property color normal: darkHeader? "transparent" : cBorder
+          property color input: darkHeader? "transparent" : cBorder
+        }
         property real width: darkHeader? 0 : 2
       }
 

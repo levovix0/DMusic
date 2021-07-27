@@ -1,8 +1,10 @@
-version       = "0.1.0"
+version       = "0.3"
 author        = "DTeam"
 description   = "Music player"
 license       = "MIT"
 srcDir        = "src"
+bin           = @["DMusic"]
+backend       = "cpp"
 
 requires "nim >= 1.4.4"
 requires "fusion"

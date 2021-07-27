@@ -9,7 +9,7 @@ Rectangle {
 
   color: style.background.normal
   border.width: style.border.width
-  border.color: style.border.color
+  border.color: style.border.color.normal
 
   property string hint: ""
   property alias text: _input.text
@@ -59,11 +59,12 @@ Rectangle {
       PropertyChanges {
         target: root
         color: root.style.background.input
+        border.color: style.border.color.input
       }
     }
   ]
 
   transitions: Transition {
-    ColorAnimation { properties: "color"; duration: 500; easing.type: Easing.OutCubic }
+    ColorAnimation { properties: "color"; duration: 250; easing.type: Easing.OutCubic }
   }
 }

@@ -82,11 +82,10 @@ QUrl YTrack::cover()
         _downloadCover(); // async
       return {"qrc:resources/player/no-cover.svg"};
     }
-    return "file:" + s;
+		return QUrl::fromLocalFile(s);
   } else {
     if (_py == none) do_async([this](){
       _fetchYandex();
-      if (_py == none || _py == nullptr || !_py.has("cover_uri")) return;
       emit coverChanged(_coverUrl());
     });
     else
@@ -394,11 +393,11 @@ void YTrack::_checkLiked()
   }
 }
 
-QString YTrack::_coverUrl()
+QUrl YTrack::_coverUrl()
 {
-  if (_py == none || _py == nullptr || !_py.has("cover_uri")) return "";
+	if (_py == none || _py == nullptr || !_py.has("cover_uri")) return {"qrc:/resources/player/no-cover.svg"};
   auto a = "http://" + _py.get("cover_uri").to<QString>();
-  a.remove(a.length() - 2, 2);
+	a.truncate(a.length() - 2);
 	a += "m" + toString(Config::ym_coverQuality());
   return a;
 }

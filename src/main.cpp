@@ -20,7 +20,11 @@
 // TODO: Память течёт, хоть и понемногу (потоковый режим)
 // TODO: Добавить возможность отменять загрузку обложки и аудио для трека (например, при переключении на следующий)
 
+#if build_using_nim
+int cppmain(int argc, char *argv[])
+#else
 int main(int argc, char *argv[])
+#endif
 {
   ConsoleArgs args(argc, argv);
 
@@ -37,7 +41,7 @@ int main(int argc, char *argv[])
 //  bool gui = args.count() == 0 || args.has("-g") || args.has("--gui");
 
   if (args.has("-v") || args.has("--version")) {
-    std::cout << "DMusic 0.1" << std::endl;
+    std::cout << "DMusic 0.3" << std::endl;
   }
 
   if (args.has("-h") || args.has("--help")) {

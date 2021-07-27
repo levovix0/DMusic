@@ -1,6 +1,7 @@
 /.vscode
 /build-*
 *.user
+/DMusic
 
 # Qt translation binaries
 *.qm

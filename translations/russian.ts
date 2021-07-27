@@ -221,7 +221,7 @@
         <translation>Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="44"/>
+        <location filename="../src/main.cpp" line="48"/>
         <source>DMusic - music player
 usage: %1 [options]
 
@@ -308,7 +308,7 @@ usage: %1 [options]
 <context>
     <name>Title</name>
     <message>
-        <location filename="../qml/Title.qml" line="63"/>
+        <location filename="../qml/Title.qml" line="99"/>
         <source>search</source>
         <translation>поиск</translation>
     </message>
@@ -334,23 +334,23 @@ usage: %1 [options]
 <context>
     <name>YClient</name>
     <message>
-        <location filename="../src/yapi.cpp" line="617"/>
+        <location filename="../src/yapi.cpp" line="616"/>
         <source>Failed to initialize yandex music client</source>
         <translation>Не удалось инициализировать клиент Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="641"/>
-        <location filename="../src/yapi.cpp" line="667"/>
+        <location filename="../src/yapi.cpp" line="640"/>
+        <location filename="../src/yapi.cpp" line="666"/>
         <source>Failed to login to Yandex.Music</source>
         <translation>Не удалось войти в Яндекс.Музыку</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="761"/>
+        <location filename="../src/yapi.cpp" line="760"/>
         <source>Failed to load one of Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить один из умных плейлистов Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="765"/>
+        <location filename="../src/yapi.cpp" line="764"/>
         <source>Failed to load Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить умные плейлисты Яндекс.Музыки</translation>
     </message>
@@ -363,12 +363,12 @@ usage: %1 [options]
         <translation type="vanished">Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="700"/>
+        <location filename="../src/yapi.cpp" line="699"/>
         <source>Failed to load Yandex.Music playlist (id: %1)</source>
         <translation>Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="720"/>
+        <location filename="../src/yapi.cpp" line="719"/>
         <source>Failed to load Yandex.Music daily playlist</source>
         <translation>Не удалось загрузить плейлист дня Яндекс.Музыки</translation>
     </message>
@@ -376,17 +376,17 @@ usage: %1 [options]
 <context>
     <name>YLikedTracks</name>
     <message>
-        <location filename="../src/yapi.cpp" line="550"/>
+        <location filename="../src/yapi.cpp" line="549"/>
         <source>Favorites</source>
         <translation>Мне нравится</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="569"/>
+        <location filename="../src/yapi.cpp" line="568"/>
         <source>Failed to load Yandex.Music user liked tracks</source>
         <translation>Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="562"/>
+        <location filename="../src/yapi.cpp" line="561"/>
         <source>Yandex music api is not initialized</source>
         <translation>Api Яндекс.Музыки не инициализировано</translation>
     </message>
@@ -398,7 +398,7 @@ usage: %1 [options]
 <context>
     <name>YPlaylist</name>
     <message>
-        <location filename="../src/yapi.cpp" line="517"/>
+        <location filename="../src/yapi.cpp" line="516"/>
         <source>Failed to convert Yandex.Music playlist to list of tracks</source>
         <translation>Не удалось преобразовать плейлист Яндекс.Музыки в список треков</translation>
     </message>
@@ -411,38 +411,38 @@ usage: %1 [options]
         <translation>Нет обложки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="105"/>
+        <location filename="../src/yapi.cpp" line="104"/>
         <source>Failed to get Yandex.Music track media (id: %1)</source>
         <translation>Не удалось загрузить медиа для трека Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
+        <location filename="../src/yapi.cpp" line="104"/>
         <location filename="../src/yapi.cpp" line="105"/>
-        <location filename="../src/yapi.cpp" line="106"/>
         <source>No media</source>
         <translation>Нет аудио</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="112"/>
+        <location filename="../src/yapi.cpp" line="111"/>
         <source>media file not found (id: %1), it will be re-downloaded</source>
         <translation>Аудиофайл не найден (id: %1), он будет скачан заново</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="112"/>
+        <location filename="../src/yapi.cpp" line="111"/>
         <source>File %1 not exist</source>
         <translation>Файл %1 не существует</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="120"/>
+        <location filename="../src/yapi.cpp" line="119"/>
         <source>Failed to fetch Yandex.Music track (id: %1)</source>
         <translation>Не удалось загрузить трек Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="228"/>
+        <location filename="../src/yapi.cpp" line="227"/>
         <source>Failed to like track</source>
         <translation>Не удалось лайкнуть трек</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="229"/>
+        <location filename="../src/yapi.cpp" line="228"/>
         <source>Failed to unlike track</source>
         <translation>Не удалось убрать лайк с трека</translation>
     </message>
@@ -451,18 +451,18 @@ usage: %1 [options]
         <translation type="vanished">Аудиофайл не существует</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="333"/>
+        <location filename="../src/yapi.cpp" line="332"/>
         <source>Failed to load Yandex.Music track (id: %1)</source>
         <translation>Не удалось загрузить трек Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="342"/>
-        <location filename="../src/yapi.cpp" line="360"/>
+        <location filename="../src/yapi.cpp" line="341"/>
+        <location filename="../src/yapi.cpp" line="359"/>
         <source>Null python object</source>
         <translation>Null объект python</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="393"/>
+        <location filename="../src/yapi.cpp" line="392"/>
         <source>Failed to check like state of track</source>
         <translation>Не удалось получить состояние лайка для трека</translation>
     </message>

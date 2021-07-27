@@ -54,7 +54,7 @@ private:
   void _downloadMedia();
   void _checkLiked();
 
-  QString _coverUrl();
+	QUrl _coverUrl();
 
   py::object _py{py::none};
   QMutex _fetchMtx{}, _coverMtx{}, _mediaMtx{}, _likedMtx;

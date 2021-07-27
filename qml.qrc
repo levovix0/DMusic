@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file>translations/russian.qm</file>
         <file>resources/player/dislike.svg</file>
         <file>resources/player/download.svg</file>
         <file>resources/player/shuffle.svg</file>

@@ -1,4 +1,4 @@
-﻿#include <cmath>
+#include <cmath>
 #include "AudioPlayer.hpp"
 #include "Config.hpp"
 #include "QDateTime"
