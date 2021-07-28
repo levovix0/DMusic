@@ -303,7 +303,7 @@ void Mpris2Player::onAuthorChanged(QString author)
 
 void Mpris2Player::onCoverChanged(QUrl cover)
 {
-  _currentTrackMetadata["mpris:artUrl"] = cover.path();
+	_currentTrackMetadata["mpris:artUrl"] = cover.url();
   signalPlayerUpdate({});
 }
 
@@ -352,7 +352,7 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
   auto id = track.idStr();
   QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/track/") + (id == ""? QString::number(0) : id);
   res["mpris:trackid"] = QVariant(QDBusObjectPath(trackId).path());
-  res["mpris:artUrl"] = track.cover().path();
+	res["mpris:artUrl"] = track.cover().url();
   return res;
 }
 
