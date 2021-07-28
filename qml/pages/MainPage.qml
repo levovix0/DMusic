@@ -8,8 +8,8 @@ DPage {
   Row {
     id: _yandexHomePlaylists
     spacing: 25
-    anchors.left: root.left
-    anchors.top: root.top
+    anchors.left: parent.left
+    anchors.top: parent.top
     anchors.leftMargin: 25
     anchors.topMargin: 25
 

@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtGraphicalEffects 1.12
+import QtGraphicalEffects 1.15
 import DMusic 1.0
 import "components"
 
@@ -19,35 +19,40 @@ Item {
   signal showOrHide()
   signal showFull()
 
-  NumberAnimation on _anim_n {
-    id: _anim
-    duration: 250
-    easing.type: Easing.OutQuad
-  }
-  function processHover() {
-    _anim.from = 0
-    _anim.to = 1
-    _anim.restart()
-  }
-  function processLeave() {
-    _anim.from = 1
-    _anim.to = 0
-    _anim.restart()
-  }
-  NumberAnimation on _anim2_n {
-    id: _anim2
-    duration: 250
-    easing.type: Easing.OutQuad
-  }
-  function processHover2() {
-    _anim2.from = 0
-    _anim2.to = 1
-    _anim2.restart()
-  }
-  function processLeave2() {
-    _anim2.from = 1
-    _anim2.to = 0
-    _anim2.restart()
+  states: [
+    State {
+      name: "hover"
+      when: _imageMouse.containsMouse && !_playMouse.containsMouse
+      PropertyChanges {
+        target: root
+        _anim_n: 1
+      }
+
+      PropertyChanges {
+        target: _play
+        scale: 0.8
+      }
+    },
+    State {
+      name: "hoverPlay"
+      when: _playMouse.containsMouse
+      PropertyChanges {
+        target: root
+        _anim_n: 1
+        _anim2_n: 1
+      }
+
+      PropertyChanges {
+        target: _play
+        color: Style.accent
+        scale: 1
+      }
+    }
+  ]
+
+  transitions: Transition {
+    NumberAnimation { properties: "_anim_n, _anim2_n, scale"; duration: 250; easing.type: Easing.OutQuad; }
+    ColorAnimation { target: _play; properties: "color"; duration: 250; easing.type: Easing.OutQuad; }
   }
 
   Image {
@@ -57,7 +62,7 @@ Item {
     height: root.width
     sourceSize: Qt.size(root.width, root.width)
 
-    source: playlist == null? "qrc:/resources/player/no-cover.svg" : playlist.cover
+    source: playlist === null? "qrc:/resources/player/no-cover.svg" : playlist.cover
     fillMode: Image.PreserveAspectCrop
 
     Rectangle {
@@ -80,8 +85,6 @@ Item {
 
       hoverEnabled: true
       cursorShape: Qt.PointingHandCursor
-      onEntered: root.processHover()
-      onExited: root.processLeave()
 
       onPressed: showOrHide()
 
@@ -93,8 +96,6 @@ Item {
 
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onEntered: root.processHover2()
-        onExited: root.processLeave2()
 
         onPressed: playing? pause() : play()
       }
@@ -107,9 +108,9 @@ Item {
     opacity: _anim_n
 
     src: playing? "qrc:/resources/player/pause.svg" : "qrc:/resources/player/play.svg"
-    color: Qt.hsla(0.14, 0.7 + _anim2_n * 0.3, 1 - _anim2_n * 0.3, 1)
+    color: "#FFFFFF"
     image.sourceSize: Qt.size(25, 30)
-    scale: 0.7 + _anim_n * 0.1 + _anim2_n * 0.2
+    scale: 0.7
   }
 
   DropShadow {
@@ -133,7 +134,7 @@ Item {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
 
-    text: playlist == null? qsTr("Some playlist") : playlist.name
+    text: playlist === null? qsTr("Some playlist") : playlist.name
 
     MouseArea {
       id: _textMouse

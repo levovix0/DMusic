@@ -61,7 +61,7 @@ Rectangle {
       id: _maximize
       anchors.right: _close.left
       anchors.verticalCenter: parent.verticalCenter
-      enabled: root.clientSideDecorations
+      enabled: root.clientSideDecorations && root.width >= 715
 
       icon: "qrc:/resources/title/maximize.svg"
 
@@ -72,7 +72,7 @@ Rectangle {
       id: _minimize
       anchors.right: _maximize.left
       anchors.verticalCenter: parent.verticalCenter
-      enabled: root.clientSideDecorations
+      enabled: root.clientSideDecorations && root.width >= 620
 
       icon: "qrc:/resources/title/minimize.svg"
 

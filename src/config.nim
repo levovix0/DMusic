@@ -19,8 +19,11 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
   string colorAccentLight "#FFA800"
 
   bool isClientSideDecorations true
-  double volume 0.5
+
+  double width 1280
+  double height 720
   
+  double volume 0.5
   NextMode nextMode NextSequence
   LoopMode loopMode LoopNone
 

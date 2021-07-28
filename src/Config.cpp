@@ -85,6 +85,28 @@ void Config::setIsClientSideDecorations(bool v) {
   saveToJson();
 }
 
+double Config::width() {
+  return _width;
+}
+
+void Config::setWidth(double v) {
+  if (_width == v) return;
+  _width = v;
+  emit widthChanged(_width);
+  saveToJson();
+}
+
+double Config::height() {
+  return _height;
+}
+
+void Config::setHeight(double v) {
+  if (_height == v) return;
+  _height = v;
+  emit heightChanged(_height);
+  saveToJson();
+}
+
 double Config::volume() {
   return _volume;
 }
@@ -273,6 +295,10 @@ void Config::reloadFromJson() {
   emit colorAccentLightChanged(_colorAccentLight);
   _isClientSideDecorations = doc["isClientSideDecorations"].toBool(true);
   emit isClientSideDecorationsChanged(_isClientSideDecorations);
+  _width = doc["width"].toDouble(1280);
+  emit widthChanged(_width);
+  _height = doc["height"].toDouble(720);
+  emit heightChanged(_height);
   _volume = doc["volume"].toDouble(0.5);
   emit volumeChanged(_volume);
   _nextMode = (NextMode)doc["nextMode"].toInt(NextSequence);
@@ -317,6 +343,8 @@ void Config::saveToJson() {
   doc["colorAccentDark"] = _colorAccentDark;
   doc["colorAccentLight"] = _colorAccentLight;
   doc["isClientSideDecorations"] = _isClientSideDecorations;
+  doc["width"] = _width;
+  doc["height"] = _height;
   doc["volume"] = _volume;
   doc["nextMode"] = _nextMode;
   doc["loopMode"] = _loopMode;

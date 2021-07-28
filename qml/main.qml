@@ -12,13 +12,18 @@ Window {
 
   width: 1280 + 20
   height: 720 + 20
-  minimumWidth: 1040 + 20
-  minimumHeight: 600 + 20
+  minimumWidth: 520 + shadowRadius * 2
+  minimumHeight: 300 + shadowRadius * 2
 
   property real shadowRadius: (Config.isClientSideDecorations && !maximized)? 10 : 0
   property bool maximized: visibility == 4
 
+  property bool needReadWH: false
+
   title: "DMusic"
+
+  function updateConfigWidth() { Config.width = _window.width - _window.shadowRadius * 2 }
+  function updateConfigHeight() { Config.height = _window.height - _window.shadowRadius * 2 }
 
   function maximize() {
     visibility = visibility == 2 ? 4 : 2
@@ -26,7 +31,19 @@ Window {
   function minimize() {
     _window.showMinimized()
   }
-  color: (Config.isClientSideDecorations && !maximized)? "transparent" : Style.window.background
+  color: "transparent"
+
+  Component.onCompleted: {
+    if (Config.width == Screen.desktopAvailableWidth && Config.height == Screen.desktopAvailableHeight) {
+      visibility = 4
+    } else {
+      _window.width = Config.width + shadowRadius * 2
+      _window.height = Config.height + shadowRadius * 2
+    }
+
+    widthChanged.connect(updateConfigWidth)
+    heightChanged.connect(updateConfigHeight)
+  }
 
   DropShadow {
     anchors.fill: _root

@@ -50,6 +50,8 @@ public:
   Q_PROPERTY(QString colorAccentDark READ colorAccentDark WRITE setColorAccentDark NOTIFY colorAccentDarkChanged)
   Q_PROPERTY(QString colorAccentLight READ colorAccentLight WRITE setColorAccentLight NOTIFY colorAccentLightChanged)
   Q_PROPERTY(bool isClientSideDecorations READ isClientSideDecorations WRITE setIsClientSideDecorations NOTIFY isClientSideDecorationsChanged)
+  Q_PROPERTY(double width READ width WRITE setWidth NOTIFY widthChanged)
+  Q_PROPERTY(double height READ height WRITE setHeight NOTIFY heightChanged)
   Q_PROPERTY(double volume READ volume WRITE setVolume NOTIFY volumeChanged)
   Q_PROPERTY(NextMode nextMode READ nextMode WRITE setNextMode NOTIFY nextModeChanged)
   Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
@@ -73,6 +75,8 @@ public:
   static QString colorAccentDark();
   static QString colorAccentLight();
   static bool isClientSideDecorations();
+  static double width();
+  static double height();
   static double volume();
   static NextMode nextMode();
   static LoopMode loopMode();
@@ -101,6 +105,8 @@ public slots:
   void setColorAccentDark(QString v);
   void setColorAccentLight(QString v);
   void setIsClientSideDecorations(bool v);
+  void setWidth(double v);
+  void setHeight(double v);
   void setVolume(double v);
   void setNextMode(NextMode v);
   void setLoopMode(LoopMode v);
@@ -125,6 +131,8 @@ signals:
   void colorAccentDarkChanged(QString colorAccentDark);
   void colorAccentLightChanged(QString colorAccentLight);
   void isClientSideDecorationsChanged(bool isClientSideDecorations);
+  void widthChanged(double width);
+  void heightChanged(double height);
   void volumeChanged(double volume);
   void nextModeChanged(NextMode nextMode);
   void loopModeChanged(LoopMode loopMode);
@@ -146,6 +154,8 @@ private:
   inline static QString _colorAccentDark = "#FCE165";
   inline static QString _colorAccentLight = "#FFA800";
   inline static bool _isClientSideDecorations = true;
+  inline static double _width = 1280;
+  inline static double _height = 720;
   inline static double _volume = 0.5;
   inline static NextMode _nextMode = NextSequence;
   inline static LoopMode _loopMode = LoopNone;

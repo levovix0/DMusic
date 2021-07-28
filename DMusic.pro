@@ -1,5 +1,4 @@
 QT += quick quickcontrols2 widgets multimedia dbus svg network
-win32: QT += winextras
 
 CONFIG += c++17
 
