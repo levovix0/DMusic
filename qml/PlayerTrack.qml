@@ -3,7 +3,7 @@ import QtQuick 2.0
 Item {
   id: root
 
-  property string icon: ""
+  property url icon: ""
   property string title: ""
   property string artists: ""
   property string extra: ""

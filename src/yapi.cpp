@@ -70,19 +70,21 @@ QString YTrack::extra()
 QUrl YTrack::cover()
 {
   if (!_checkedDisk) _loadFromDisk();
-	if (Config::ym_saveCover()) {
+  if (Config::ym_saveCover()) {
     if (_cover.isEmpty()) {
-      if (!_noCover) _downloadCover(); // async
-      else emit coverAborted(tr("No cover"));
+      if (!_noCover)
+        do_async([this](){ _downloadCover(); });
+      else
+        emit coverAborted(tr("No cover"));
       return {"qrc:resources/player/no-cover.svg"};
     }
-		auto s = _relativePathToCover? Config::ym_saveDir().sub(_cover) : _cover;
+    auto s = coverFile();
     if (!fileExists(s)) {
       if (_relativePathToCover)
-        _downloadCover(); // async
+        do_async([this](){ _downloadCover(); });
       return {"qrc:resources/player/no-cover.svg"};
     }
-		return QUrl::fromLocalFile(s);
+    return QUrl::fromLocalFile(s);
   } else {
     if (_py == none) do_async([this](){
       _fetchYandex();
@@ -97,7 +99,7 @@ QUrl YTrack::cover()
 QMediaContent YTrack::media()
 {
   if (!_checkedDisk) _loadFromDisk();
-	if (Config::ym_downloadMedia()) {
+  if (Config::ym_downloadMedia()) {
     if (_media.isEmpty()) {
       if (!_noMedia) do_async([this](){ QMutexLocker lock(&_mediaMtx); _downloadMedia(); });
       else {
@@ -106,9 +108,9 @@ QMediaContent YTrack::media()
       }
       return {};
     }
-    if (mediaFile().exists()) return QMediaContent(QUrl(mediaFile().fs.fileName()));
+    if (fileExists(mediaFile())) return QMediaContent(QUrl::fromLocalFile(mediaFile()));
     else {
-      Messages::message(tr("media file not found (id: %1), it will be re-downloaded").arg(_id), tr("File %1 not exist").arg(mediaFile().fs.fileName()));
+      Messages::message(tr("media file not found (id: %1), it will be re-downloaded").arg(_id), tr("File %1 not exist").arg(mediaFile()));
       do_async([this](){ QMutexLocker lock(&_mediaMtx); _downloadMedia(); });
       return {};
     }
@@ -162,19 +164,19 @@ QVector<YArtist> YTrack::artists()
   return _py.get("artists").to<QVector<YArtist>>();
 }
 
-File YTrack::coverFile()
+QString YTrack::coverFile()
 {
-	return Config::ym_cover(id());
+  return _relativePathToCover? Config::ym_saveDir().sub(_cover) : _cover;
 }
 
 File YTrack::metadataFile()
 {
-	return Config::ym_metadata(id());
+  return Config::ym_metadata(id());
 }
 
-File YTrack::mediaFile()
+QString YTrack::mediaFile()
 {
-	return Config::ym_media(id());
+  return Config::ym_saveDir().sub(_media);
 }
 
 QJsonObject YTrack::jsonMetadata()
@@ -205,7 +207,7 @@ QString YTrack::stringMetadata()
 
 void YTrack::saveMetadata()
 {
-	if (!Config::ym_saveInfo()) return;
+  if (!Config::ym_saveInfo()) return;
   if (_id <= 0) return;
   metadataFile().writeAll(jsonMetadata());
 }
@@ -342,7 +344,7 @@ void YTrack::_downloadCover()
     return;
   }
   try {
-    _py.call("download_cover", std::initializer_list<object>{coverFile().fs.fileName(), Config::ym_coverQuality()});
+    _py.call("download_cover", std::initializer_list<object>{Config::ym_saveDir().sub(QString::number(_id) + ".png"), toString(Config::ym_coverQuality())});
     _cover = QString::number(_id) + ".png";
     emit coverChanged(cover());
   } catch (std::exception& e) {
@@ -360,8 +362,8 @@ void YTrack::_downloadMedia()
     return;
   }
   try {
-    _py.call("download", mediaFile().fs.fileName());
     _media = QString::number(_id) + ".mp3";
+    _py.call("download", mediaFile());
     emit mediaChanged(media());
   } catch (std::exception& e) {
     _noCover = true;
@@ -395,10 +397,10 @@ void YTrack::_checkLiked()
 
 QUrl YTrack::_coverUrl()
 {
-	if (_py == none || _py == nullptr || !_py.has("cover_uri")) return {"qrc:/resources/player/no-cover.svg"};
+  if (_py == none || _py == nullptr || !_py.has("cover_uri")) return {"qrc:/resources/player/no-cover.svg"};
   auto a = "http://" + _py.get("cover_uri").to<QString>();
-	a.truncate(a.length() - 2);
-	a += "m" + toString(Config::ym_coverQuality());
+  a.truncate(a.length() - 2);
+  a += "m" + toString(Config::ym_coverQuality());
   return a;
 }
 
@@ -438,12 +440,12 @@ QString YArtist::name()
 
 QString YArtist::coverPath()
 {
-	return Config::ym_artistCover(id()).fs.fileName();
+  return Config::ym_artistCover(id()).fs.fileName();
 }
 
 QString YArtist::metadataPath()
 {
-	return Config::ym_artistMetadata(id()).fs.fileName();
+  return Config::ym_artistMetadata(id()).fs.fileName();
 }
 
 QJsonObject YArtist::jsonMetadata()
@@ -497,7 +499,7 @@ QUrl YPlaylist::cover()
 {
   try {
     auto a = "http://" + impl.get("cover").get("uri").to<QString>();
-		return QUrl(a.replace("%%", "m" + toString(Config::ym_coverQuality())));
+    return QUrl(a.replace("%%", "m" + toString(Config::ym_coverQuality())));
   } catch (py::error& e) {
     return QUrl("qrc:resources/player/no-cover.svg");
   }
@@ -620,8 +622,8 @@ void YClient::init()
 
 QString YClient::token(QString login, QString password)
 {
-	if (!initialized()) return "";
-	return ym.get("Client")().call("generate_token_by_username_and_password", {login, password}).to<QString>();
+  if (!initialized()) return "";
+  return ym.get("Client")().call("generate_token_by_username_and_password", {login, password}).to<QString>();
 }
 
 void YClient::login(QString token)
@@ -665,13 +667,13 @@ void YClient::login(QString token, QString proxy)
       emit logginedChanged(_loggined);
       Messages::error(tr("Failed to login to Yandex.Music"), e.what());
     }
-	});
+  });
 }
 
 void YClient::unlogin()
 {
-	_loggined = false;
-	emit logginedChanged(_loggined);
+  _loggined = false;
+  emit logginedChanged(_loggined);
 }
 
 QVector<object> YClient::fetchTracks(qint64 id)

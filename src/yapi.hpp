@@ -23,7 +23,7 @@ public:
   PyObject* raw() const { return _py.raw; }
 
   int id() override;
-	QString idStr() override;
+  QString idStr() override;
   QString title() override;
   QString artistsStr() override;
   QString extra() override;
@@ -34,9 +34,9 @@ public:
 
   bool available();
   QVector<YArtist> artists();
-  File coverFile();
+  QString coverFile();
   File metadataFile();
-  File mediaFile();
+  QString mediaFile();
 
   QJsonObject jsonMetadata();
   QString stringMetadata();
@@ -47,14 +47,14 @@ public slots:
 
 private:
   bool _loadFromDisk();
-  
+
   void _fetchYandex();
   void _fetchYandex(py::object _pys);
   void _downloadCover();
   void _downloadMedia();
   void _checkLiked();
 
-	QUrl _coverUrl();
+  QUrl _coverUrl();
 
   py::object _py{py::none};
   QMutex _fetchMtx{}, _coverMtx{}, _mediaMtx{}, _likedMtx;
@@ -156,7 +156,7 @@ public:
 
 struct YClient : QObject
 {
-	Q_OBJECT
+  Q_OBJECT
 public:
   ~YClient();
   YClient(QObject *parent = nullptr);
@@ -164,11 +164,11 @@ public:
   static YClient* instance;
   static YClient* qmlInstance(QQmlEngine*, QJSEngine*);
 
-	Q_PROPERTY(bool initialized READ initialized NOTIFY initializedChanged)
-	Q_PROPERTY(bool loggined READ loggined NOTIFY logginedChanged)
+  Q_PROPERTY(bool initialized READ initialized NOTIFY initializedChanged)
+  Q_PROPERTY(bool loggined READ loggined NOTIFY logginedChanged)
 
   bool initialized();
-	bool loggined();
+  bool loggined();
 
   refTrack track(qint64 id);
 
@@ -180,10 +180,10 @@ public slots:
   void login(QString token);
   void login(QString token, QString proxy);
 
-	void unlogin();
+  void unlogin();
 
   QVector<py::object> fetchTracks(qint64 id);
-  
+
   YLikedTracks* likedTracks();
   YPlaylist* playlist(int id);
   Playlist* oneTrack(qint64 id);

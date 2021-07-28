@@ -37,15 +37,18 @@ inline QString relativePath(QString path) {
 }
 
 inline bool fileExists(QString path) {
-  return false; //TODO
+  QFileInfo check_file(path);
+  return check_file.exists() && check_file.isFile();
 }
 
 inline bool dirExists(QString path) {
-  return false; //TODO
+  QFileInfo check_file(path);
+  return check_file.exists() && check_file.isDir();
 }
 
 inline bool symlinkExists(QString path) {
-  return false; //TODO
+  QFileInfo check_file(path);
+  return check_file.exists() && check_file.isSymLink();
 }
 
 inline void mkdir(QString path) {
