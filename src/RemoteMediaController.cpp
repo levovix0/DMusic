@@ -349,8 +349,7 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
   res["xesam:userRating"] = track.liked()? 1 : 0;
   auto duration = track.duration();
   res["mpris:length"] = duration > 0? duration * 1000 : 1; // in microseconds
-  auto id = track.idStr();
-  QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/track/") + (id == ""? QString::number(0) : id);
+  QString trackId = QString("/org/mpris/MediaPlayer2/DMusic/track/") + QString::number(track.id());
   res["mpris:trackid"] = QVariant(QDBusObjectPath(trackId).path());
 	res["mpris:artUrl"] = track.cover().url();
   return res;
@@ -480,7 +479,7 @@ void DiscordPresence::update(Track* track)
     args["details"] = track->title() + " (" + track->extra() + ")";
   args["start"] = _time.call("time");
   args["large_image"] = "app";
-  args["large_text"] = track->idStr();
+  args["large_text"] = QString::number(track->id());
 
   do_async([args, author, details, this]() {
     try {
@@ -496,7 +495,6 @@ void DiscordPresence::onTrackChanged(Track* track)
 {
   connect(track, &Track::artistsStrChanged, this, &DiscordPresence::updateData);
   connect(track, &Track::titleChanged, this, &DiscordPresence::updateData);
-  connect(track, &Track::idIntChanged, this, &DiscordPresence::updateData);
   update(track);
 }
 

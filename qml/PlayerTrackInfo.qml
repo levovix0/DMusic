@@ -10,6 +10,7 @@ Item {
   property string extra: ""
   property string idStr: ""
   property bool liked: false
+  property bool isYandex: false
 
   signal toggleLiked(bool liked)
 
@@ -29,7 +30,7 @@ Item {
 
       MouseArea {
         anchors.fill: parent
-        enabled: root.idStr != ""
+        enabled: root.isYandex
 
         cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
         hoverEnabled: true
@@ -133,7 +134,7 @@ Item {
     anchors.bottom: parent.verticalCenter
     x: Math.round(Math.min(_title.width + (_extra.text == ""? 0 : _extra.width + 2) + 5, root.width + 2))
     anchors.bottomMargin: -1
-    visible: idStr != ""
+    visible: root.isYandex
 
     icon: liked? "qrc:/resources/player/liked.svg" : "qrc:/resources/player/like.svg"
 

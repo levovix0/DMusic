@@ -14,11 +14,6 @@ int Track::id()
   return 0;
 }
 
-QString Track::idStr()
-{
-  return "";
-}
-
 QString Track::title()
 {
   return "";

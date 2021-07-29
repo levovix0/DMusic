@@ -23,7 +23,6 @@ public:
   PyObject* raw() const { return _py.raw; }
 
   int id() override;
-  QString idStr() override;
   QString title() override;
   QString artistsStr() override;
   QString extra() override;
@@ -31,6 +30,8 @@ public:
   QMediaContent media() override;
   qint64 duration() override;
   bool liked() override;
+
+  bool isYandex() override { return true; }
 
   bool available();
   QVector<YArtist> artists();

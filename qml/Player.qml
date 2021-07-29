@@ -112,8 +112,9 @@ Rectangle {
     title: _audio_player.currentTrack.title
     artists: _audio_player.currentTrack.artistsStr
     extra: _audio_player.currentTrack.extra
-    idStr: _audio_player.currentTrack.idStr
+    idStr: toString(_audio_player.currentTrack.id)
     liked: _audio_player.currentTrack.liked
+    isYandex: _audio_player.currentTrack.isYandex
 
     onToggleLiked: _audio_player.currentTrack.setLiked(liked)
   }

@@ -9,6 +9,7 @@ Item {
   property string extra: ""
   property string idStr: ""
   property bool liked: false
+  property bool isYandex: false
 
   signal toggleLiked(bool liked)
 
@@ -31,6 +32,7 @@ Item {
     extra: root.extra
     idStr: root.idStr
     liked: root.liked
+    isYandex: root.isYandex
 
     onToggleLiked: root.toggleLiked(liked)
   }

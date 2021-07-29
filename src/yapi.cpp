@@ -35,11 +35,6 @@ YTrack::YTrack(QObject* parent) : Track(parent)
 
 }
 
-QString YTrack::idStr()
-{
-  return QString::number(_id);
-}
-
 QString YTrack::title()
 {
   if (!_checkedDisk) _loadFromDisk();
@@ -397,7 +392,8 @@ void YTrack::_checkLiked()
 
 QUrl YTrack::_coverUrl()
 {
-  if (_py == none || _py == nullptr || !_py.has("cover_uri")) return {"qrc:/resources/player/no-cover.svg"};
+  if (_py == none || _py == nullptr || !_py.has("cover_uri") || _py.get("cover_uri").to<QString>().isEmpty())
+    return {"qrc:/resources/player/no-cover.svg"};
   auto a = "http://" + _py.get("cover_uri").to<QString>();
   a.truncate(a.length() - 2);
   a += "m" + toString(Config::ym_coverQuality());
