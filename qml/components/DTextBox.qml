@@ -12,6 +12,7 @@ Rectangle {
   border.color: style.border.color.normal
 
   property string hint: ""
+  property alias input: _input
   property alias text: _input.text
 
   property QtObject style: Style.panel.textBox

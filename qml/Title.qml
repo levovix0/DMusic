@@ -97,6 +97,13 @@ Rectangle {
     style: Style.header.searchBox
     Binding { target: _search; property: "style.background"; value: Config.darkHeader? (_search.text == ""? "#1C1C1C" : Style.panel.background) : "transparent" }
     hint: qsTr("search")
+
+    MouseArea {
+      anchors.fill: parent
+      visible: parent.text === ""
+      cursorShape: Qt.IBeamCursor
+      onClicked: parent.input.focus = true
+    }
   }
 
   ResizeArea {
