@@ -7,9 +7,7 @@ Download::Download(QUrl url, QObject* parent) : QObject(parent)
 }
 
 Download::~Download()
-{
-
-}
+{}
 
 void Download::onFinished(QNetworkReply* reply)
 {

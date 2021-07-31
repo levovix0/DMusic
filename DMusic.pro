@@ -5,6 +5,7 @@ CONFIG += c++17
 
 SOURCES += \
   src/AudioPlayer.cpp \
+  src/AudioTag.cpp \
   src/Clipboard.cpp \
   src/Config.cpp \
   src/DFileDialog.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
 
 HEADERS += \
   src/AudioPlayer.hpp \
+  src/AudioTag.hpp \
   src/Clipboard.hpp \
   src/Config.hpp \
   src/ConsoleArgs.hpp \
@@ -62,8 +64,8 @@ win32 {
 }
 
 unix {
-  LIBS += -L/usr/local/lib/python3.9 -lpython3.9
-  INCLUDEPATH += /usr/include/python3.9
+  LIBS += -L/usr/local/lib/python3.9 -lpython3.9 -ltag
+  INCLUDEPATH += /usr/include/python3.9 /usr/include/taglib
   DEPENDPATH += /usr/include/python3.9
 }
 

@@ -15,10 +15,10 @@ struct YTrack : Track
 {
   Q_OBJECT
 public:
+  YTrack(QObject* parent = nullptr);
   YTrack(qint64 id, QObject* parent = nullptr);
   YTrack(py::object obj, QObject* parent = nullptr);
   ~YTrack();
-  YTrack(QObject* parent = nullptr);
 
   PyObject* raw() const { return _py.raw; }
 
@@ -45,6 +45,9 @@ public:
 
 public slots:
   void setLiked(bool liked) override;
+
+private slots:
+  void onCoverChanged(QUrl cover);
 
 private:
   bool _loadFromDisk();

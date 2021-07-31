@@ -62,13 +62,13 @@ FloatingPanel {
   }
 
   DTextBox {
-    id: _extra
+    id: _comment
     width: 115
     height: 20
     anchors.left: _title.right
     anchors.top: _title.top
     anchors.leftMargin: 10
-    hint: qsTr("Additional info")
+    hint: qsTr("Comment")
   }
 
   DTextBox {
@@ -177,9 +177,9 @@ FloatingPanel {
     onClicked: {
       if (!_media.hasContent) return
       if (!_cover.hasContent) {
-        YClient.addUserTrack(_media.content.toString(), "", _title.text, _artists.text, _extra.text)
+        YClient.addUserTrack(_media.content.toString(), "", _title.text, _artists.text, _comment.text)
       } else {
-        YClient.addUserTrack(_media.content.toString(), _cover.content.toString(), _title.text, _artists.text, _extra.text)
+        YClient.addUserTrack(_media.content.toString(), _cover.content.toString(), _title.text, _artists.text, _comment.text)
       }
     }
   }

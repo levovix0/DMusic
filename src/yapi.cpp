@@ -11,26 +11,27 @@
 #include "utils.hpp"
 #include "Messages.hpp"
 #include "AudioPlayer.hpp"
+#include "AudioTag.hpp"
 
 using namespace py;
 
-YTrack::YTrack(qint64 id, QObject* parent) : Track(parent)
+YTrack::YTrack(QObject* parent) : Track(parent)
+{
+  connect(this, &YTrack::coverChanged, this, &YTrack::onCoverChanged);
+}
+
+YTrack::YTrack(qint64 id, QObject* parent) : YTrack(parent)
 {
   _id = id;
 }
 
-YTrack::YTrack(object obj, QObject* parent) : Track(parent)
+YTrack::YTrack(object obj, QObject* parent) : YTrack(parent)
 {
   _id = obj.get("id").to<qint64>();
   _fetchYandex(obj);
 }
 
 YTrack::~YTrack()
-{
-
-}
-
-YTrack::YTrack(QObject* parent) : Track(parent)
 {
 
 }
@@ -227,6 +228,15 @@ void YTrack::setLiked(bool liked)
 
     saveMetadata();
   });
+}
+
+void YTrack::onCoverChanged(QUrl cover)
+{
+  if (cover.isEmpty()) return;
+  if (!Config::ym_downloadMedia() || !Config::ym_saveCover()) return;
+  QString file = mediaFile();
+  if (AudioTag::hasCover(file)) return;
+  AudioTag::writeCover(file, cover);
 }
 
 bool YTrack::_loadFromDisk()
