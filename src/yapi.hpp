@@ -197,6 +197,8 @@ public slots:
 
   void addUserTrack(QUrl media, QUrl cover, QString title, QString artists, QString extra);
 
+  void searchAndPlayTrack(QString promit); //! костыль
+
 signals:
   void initializedChanged(bool initialized);
   void logginedChanged(bool loggined);

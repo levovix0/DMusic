@@ -98,6 +98,8 @@ Rectangle {
     Binding { target: _search; property: "style.background"; value: Config.darkHeader? (_search.text == ""? "#1C1C1C" : Style.panel.background) : "transparent" }
     hint: qsTr("search")
 
+    input.onAccepted: if (text != "") YClient.searchAndPlayTrack(text);
+
     MouseArea {
       anchors.fill: parent
       visible: parent.text === ""

@@ -783,6 +783,23 @@ void YClient::addUserTrack(QUrl media, QUrl cover, QString title, QString artist
   UserTrack().setup(media, cover, title, artists, extra);
 }
 
+void YClient::searchAndPlayTrack(QString promit)
+{
+  if (!initialized()) return;
+  try {
+  auto search = me.call("search", promit);
+  if (search.get("tracks")) {
+    auto t = search.get("tracks").get("results")[0];
+
+    DPlaylist* res = new DPlaylist(this);
+    res->add(track(t.get("id").to<int>()));
+    AudioPlayer::instance->play(res);
+  }
+  } catch (std::runtime_error& e) {
+    Messages::error(tr("Failed to search"), e.what());
+  }
+}
+
 YPlaylistsModel::YPlaylistsModel(QObject* parent) : QAbstractListModel(parent)
 {
 
