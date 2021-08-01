@@ -3,7 +3,6 @@
 #include <QUrl>
 #include <QDir>
 // nim_standart_library-like working with file system
-//TODO: implement
 
 inline QString operator/(QString l, QString r) {
   return QDir::cleanPath(l + "/" + r);
@@ -57,6 +56,13 @@ inline void mkdir(QString path) {
 
 inline void writeFile(QString path, QString text) {
   //TODO
+}
+
+inline void writeFile(QString path, QByteArray data) {
+  QFile f(path);
+  f.open(QFile::WriteOnly | QFile::Truncate);
+  f.write(data);
+  f.close();
 }
 
 inline QString readFile(QString path) {

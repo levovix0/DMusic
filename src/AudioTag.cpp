@@ -1,10 +1,4 @@
 #include "AudioTag.hpp"
-#include <QImage>
-#include <QFile>
-#include <tag.h>
-#include <taglib/id3v2tag.h>
-#include <taglib/mpegfile.h>
-#include <attachedpictureframe.h>
 #include "Download.hpp"
 
 AudioTag::AudioTag()
@@ -53,31 +47,45 @@ void AudioTag::writeCover(const QString& file, QUrl const& cover)
     f.close();
   } else {
     auto d = new Download(cover);
-    QObject::connect(d, &Download::finished, [file](QByteArray const& data) {
+    QObject::connect(d, &Download::finished, [d, file](QByteArray const& data) {
       writeCover(file, data);
+      delete d;
     });
   }
 }
 
+bool AudioTag::hasCover(TagLib::MPEG::File& file)
+{
+  auto tag = file.ID3v2Tag();
+  return getCoverTag(tag) != nullptr;
+}
+
 bool AudioTag::hasCover(const QString& file)
 {
-  bool result = false;
+  auto f = TagLib::MPEG::File(file.toUtf8().data());
+  return hasCover(f);
+}
 
-  TagLib::MPEG::File* f = new TagLib::MPEG::File(file.toUtf8().data());
-  auto tag = f->ID3v2Tag();
-  if (tag->isEmpty()) goto defer;
+TagLib::ID3v2::AttachedPictureFrame* AudioTag::getCoverTag(TagLib::ID3v2::Tag* tag)
+{
+  if (tag->isEmpty()) return nullptr;
 
   for (auto&& frame : tag->frameList()) {
     auto cover = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame);
     if (cover == nullptr) continue;
     using Type = TagLib::ID3v2::AttachedPictureFrame::Type;
-    if (cover->type() == Type::Other || cover->type() == Type::FrontCover || cover->type() == Type::BackCover || cover->type() == Type::Illustration) {
-      result = true;
-      goto defer;
-    }
+    if (cover->type() == Type::Other || cover->type() == Type::FrontCover || cover->type() == Type::BackCover || cover->type() == Type::Illustration)
+      return cover;
   }
+  return nullptr;
+}
 
-defer:
-  delete f;
-  return result;
+QByteArray AudioTag::readCover(const QString& file)
+{
+  auto f = TagLib::MPEG::File(file.toUtf8().data());
+  auto tag = f.ID3v2Tag();
+  auto cover = getCoverTag(tag);
+  if (cover == nullptr) return {};
+  auto pic = cover->picture();
+  return {pic.data(), (int)pic.size()};
 }

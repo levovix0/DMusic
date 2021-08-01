@@ -107,9 +107,7 @@ Config::NextMode AudioPlayer::nextMode()
 
 void AudioPlayer::setMedia(QMediaContent media)
 {
-  player->stop();
   player->setMedia(media);
-  player->setPosition(0);
   player->play();
 }
 
@@ -118,20 +116,19 @@ void AudioPlayer::onMediaAborted(QString reason)
   Messages::error(tr("Failed to load track"), reason);
   if (_radio != nullptr) {    
     _unsubscribeCurrentTrack();
-    player->stop();
 
     _currentTrack = _radio->markErrorCurrentTrack();
     if (_currentTrack == nullptr) return;
 
     _subscribeCurrentTrack();
 
-    emit currentTrackChanged(_currentTrack.get());
-
     player->setMedia(_currentTrack->media());
-    player->setPosition(0);
     player->play();
+
+    emit currentTrackChanged(_currentTrack.get());
   } else {
-    next();
+    _unsubscribeCurrentTrack();
+    player->stop();
   }
 }
 
@@ -149,17 +146,13 @@ void AudioPlayer::play(refTrack track)
   updatePlaylistGenerator();
 
   _unsubscribeCurrentTrack();
-  player->stop();
-
   _currentTrack = track;
-
   _subscribeCurrentTrack();
 
-  emit currentTrackChanged(_currentTrack.get());
-
-  player->setMedia(track->media());
-  player->setPosition(0);
+  player->setMedia(_currentTrack->media());
   player->play();
+
+  emit currentTrackChanged(_currentTrack.get());
 }
 
 void AudioPlayer::play(refPlaylist playlist)
@@ -167,7 +160,6 @@ void AudioPlayer::play(refPlaylist playlist)
   if (playlist == nullptr) return play(noneTrack);
 
   _unsubscribeCurrentTrack();
-  player->stop();
 
   _radio = radio(playlist, -1, nextMode());
 
@@ -176,11 +168,10 @@ void AudioPlayer::play(refPlaylist playlist)
 
   _subscribeCurrentTrack();
 
-  emit currentTrackChanged(_currentTrack.get());
-
   player->setMedia(_currentTrack->media());
-  player->setPosition(0);
   player->play();
+
+  emit currentTrackChanged(_currentTrack.get());
 }
 
 void AudioPlayer::play(ID id)
@@ -230,7 +221,6 @@ void AudioPlayer::stop()
 bool AudioPlayer::next()
 {
   _unsubscribeCurrentTrack();
-  player->stop();
 
   if (_radio == nullptr) return false;
   _currentTrack = _radio->next();
@@ -238,11 +228,10 @@ bool AudioPlayer::next()
 
   _subscribeCurrentTrack();
 
-  emit currentTrackChanged(_currentTrack.get());
-
   player->setMedia(_currentTrack->media());
-  player->setPosition(0);
   player->play();
+
+  emit currentTrackChanged(_currentTrack.get());
   return true;
 }
 
@@ -253,7 +242,6 @@ bool AudioPlayer::prev()
     return true;
   }
   _unsubscribeCurrentTrack();
-  player->stop();
 
   if (_radio == nullptr) return false;
   _currentTrack = _radio->prev();
@@ -261,11 +249,10 @@ bool AudioPlayer::prev()
 
   _subscribeCurrentTrack();
 
-  emit currentTrackChanged(_currentTrack.get());
-
   player->setMedia(_currentTrack->media());
-  player->setPosition(0);
   player->play();
+
+  emit currentTrackChanged(_currentTrack.get());
   return true;
 }
 

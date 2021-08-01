@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include "nimfs.hpp"
 
 enum FileMode {
   fmRead = QFile::ReadOnly,
@@ -135,10 +136,6 @@ inline std::ostream& operator<<(std::ostream& o, QString const& s) {
   return o << s.toUtf8().data();
 }
 
-inline bool fileExists(QString path) {
-  QFileInfo check_file(path);
-  return check_file.exists() && check_file.isFile();
-}
 inline bool exists(QString path) {
   QFileInfo check_file(path);
   return check_file.exists();

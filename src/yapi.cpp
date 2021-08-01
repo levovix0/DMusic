@@ -12,12 +12,13 @@
 #include "Messages.hpp"
 #include "AudioPlayer.hpp"
 #include "AudioTag.hpp"
+#include "nimfs.hpp"
+#include "Download.hpp"
 
 using namespace py;
 
 YTrack::YTrack(QObject* parent) : Track(parent)
 {
-  connect(this, &YTrack::coverChanged, this, &YTrack::onCoverChanged);
 }
 
 YTrack::YTrack(qint64 id, QObject* parent) : YTrack(parent)
@@ -74,13 +75,16 @@ QUrl YTrack::cover()
         emit coverAborted(tr("No cover"));
       return {"qrc:resources/player/no-cover.svg"};
     }
-    auto s = coverFile();
-    if (!fileExists(s)) {
-      if (_relativePathToCover)
-        do_async([this](){ _downloadCover(); });
+    auto path = Config::dataDir().dir("tmp").sub(QString::number(_id) + ".png");
+    if (fileExists(path)) return QUrl::fromLocalFile(path);
+
+    auto cover = AudioTag::readCover(mediaFile());
+    if (cover.isEmpty()) {
+      emit coverAborted(tr("No cover"));
       return {"qrc:resources/player/no-cover.svg"};
     }
-    return QUrl::fromLocalFile(s);
+    writeFile(path, cover);
+    return QUrl::fromLocalFile(path);
   } else {
     if (_py == none) do_async([this](){
       _fetchYandex();
@@ -230,15 +234,6 @@ void YTrack::setLiked(bool liked)
   });
 }
 
-void YTrack::onCoverChanged(QUrl cover)
-{
-  if (cover.isEmpty()) return;
-  if (!Config::ym_downloadMedia() || !Config::ym_saveCover()) return;
-  QString file = mediaFile();
-  if (AudioTag::hasCover(file)) return;
-  AudioTag::writeCover(file, cover);
-}
-
 bool YTrack::_loadFromDisk()
 {
   _checkedDisk = true;
@@ -267,7 +262,6 @@ bool YTrack::_loadFromDisk()
   _liked = liked.toBool(false);
 
   if (!doc["duration"].isDouble() && !_noMedia) {
-    //TODO: load duration from media and save data to file. use taglib
     _duration = 0;
     do_async([this](){ _fetchYandex(); saveMetadata(); });
   } else {
@@ -349,9 +343,13 @@ void YTrack::_downloadCover()
     return;
   }
   try {
-    _py.call("download_cover", std::initializer_list<object>{Config::ym_saveDir().sub(QString::number(_id) + ".png"), toString(Config::ym_coverQuality())});
-    _cover = QString::number(_id) + ".png";
-    emit coverChanged(cover());
+    auto d = new Download(_coverUrl());
+    QObject::connect(d, &Download::finished, [d, this](QByteArray const& data) {
+      AudioTag::writeCover(mediaFile(), data);
+      _cover = QString::number(_id) + ".png";
+      delete d;
+      emit coverChanged(cover());
+    });
   } catch (std::exception& e) {
     _noCover = true;
     emit coverAborted(e.what());

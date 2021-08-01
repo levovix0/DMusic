@@ -46,9 +46,6 @@ public:
 public slots:
   void setLiked(bool liked) override;
 
-private slots:
-  void onCoverChanged(QUrl cover);
-
 private:
   bool _loadFromDisk();
 
