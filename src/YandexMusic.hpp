@@ -25,49 +25,52 @@ public:
   int id() override;
   QString title() override;
   QString artistsStr() override;
-  QString extra() override;
+  QString comment() override;
   QUrl cover() override;
   QMediaContent media() override;
   qint64 duration() override;
   bool liked() override;
 
   bool isYandex() override { return true; }
+  YTrack* toYandex() override { return this; }
 
-  bool available();
   QVector<YArtist> artists();
-  QString coverFile();
-  File metadataFile();
-  QString mediaFile();
-
-  QJsonObject jsonMetadata();
-  QString stringMetadata();
-  void saveMetadata();
 
 public slots:
   void setLiked(bool liked) override;
+  void saveToDisk(bool overrideCover = false);
 
 private:
-  bool _loadFromDisk();
+  // getX methods don't emit xChanged
+  void _getAllFromDisk();
 
-  void _fetchYandex();
-  void _fetchYandex(py::object _pys);
-  void _downloadCover();
-  void _downloadMedia();
-  void _checkLiked();
+  void _getInfoFromInternet();
+  void _getLikedFromInternet();
+  void _getArtistsFromInternet();
+  void _getCoverFromInternet();
+  void _getAudioFromInternet();
+  bool _gotAllFromInternet();
 
-  QUrl _coverUrl();
+  void _fetchInternet();
+  void _fetchInternet(py::object _pys);
+
+  int _id{0};
+  QString _title, _comment;  // info
+  QString _artists;
+  QUrl _cover;
+  QMediaContent _audio;
+  bool _liked{false};
+  int _duration{0};  // info
+
+  enum class GotFrom { None, Disk, Internet };
+  GotFrom _gotInfo{GotFrom::None};
+  GotFrom _gotLiked{GotFrom::None};
+  GotFrom _gotArtists{GotFrom::None};
+  GotFrom _gotCover{GotFrom::None};
+  GotFrom _gotAudio{GotFrom::None};
 
   py::object _py{py::none};
-  QMutex _fetchMtx{}, _coverMtx{}, _mediaMtx{}, _likedMtx;
-  int _id{0};
-  QString _title, _author, _extra, _cover, _media;
-  int _duration{0};
-  bool _liked = false;
-  QVector<qint64> _artists;
-  bool _noTitle = false, _noAuthor = false, _noExtra = false, _noCover = false, _noMedia = false;
-  bool _hasLiked = false;
-  bool _relativePathToCover = true;
-  bool _checkedDisk = false;
+  bool _checkedDisk{false};
 };
 inline PyObject* toPyObject(YTrack const& a) { Py_INCREF(a.raw()); return a.raw(); }
 inline void fromPyObject(py::object const& o, YTrack*& res) { res = new YTrack(o, nullptr); }
@@ -84,13 +87,6 @@ public:
 
   int id();
   QString name();
-  QString coverPath();
-  QString metadataPath();
-
-  QJsonObject jsonMetadata();
-  QString stringMetadata();
-  void saveMetadata();
-  bool saveCover(int quality = 1000);
 
 private:
   py::object impl;

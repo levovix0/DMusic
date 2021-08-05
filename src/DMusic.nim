@@ -34,6 +34,8 @@ when defined(unix):
   {.passc: "-I/usr/include/python" & pythonVersion.}
   {.passl: "-L/usr/local/lib/python" & pythonVersion & " -lpython" & pythonVersion.}
 
+  {.passl: "-ltag".}
+
 macro sourcesFromDir(dir: static[string] = ".") =
   result = newStmtList()
   for file in dir.walkDirRec:

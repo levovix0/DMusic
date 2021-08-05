@@ -5,7 +5,7 @@
 #include <QQuickStyle>
 #include <QQuickView>
 #include <QWidget>
-#include "yapi.hpp"
+#include "YandexMusic.hpp"
 #include "file.hpp"
 #include "Config.hpp"
 #include "AudioPlayer.hpp"

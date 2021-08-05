@@ -14,23 +14,9 @@ SettingsBlock {
 
     DCheckBox {
       background: Style.window.background
-      text: qsTr("Download all track's audios")
-      checked: Config.ym_downloadMedia
-      onCheckedChanged: Config.ym_downloadMedia = checked
-    }
-
-    DCheckBox {
-      background: Style.window.background
-      text: qsTr("Download all track's covers")
-      checked: Config.ym_saveCover
-      onCheckedChanged: Config.ym_saveCover = checked
-    }
-
-    DCheckBox {
-      background: Style.window.background
-      text: qsTr("Download all track's metadata")
-      checked: Config.ym_saveInfo
-      onCheckedChanged: Config.ym_saveInfo = checked
+      text: qsTr("Save all tracks")
+      checked: Config.ym_saveAllTracks
+      onCheckedChanged: Config.ym_saveAllTracks = checked
     }
   }
 }

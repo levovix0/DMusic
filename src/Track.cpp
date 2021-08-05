@@ -24,7 +24,7 @@ QString Track::artistsStr()
   return "";
 }
 
-QString Track::extra()
+QString Track::comment()
 {
   return "";
 }

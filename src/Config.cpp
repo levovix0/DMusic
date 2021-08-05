@@ -207,24 +207,8 @@ Dir Config::ym_saveDir() {
   return dir;
 }
 
-File Config::ym_media(int id) {
-  return ym_saveDir().file(QString::number(id) + ".mp3");
-}
-
-File Config::ym_cover(int id) {
-  return ym_saveDir().file(QString::number(id) + ".png");
-}
-
-File Config::ym_metadata(int id) {
-  return ym_saveDir().file(QString::number(id) + ".json");
-}
-
-File Config::ym_artistCover(int id) {
-  return ym_saveDir().file("artist-" + QString::number(id) + ".png");
-}
-
-File Config::ym_artistMetadata(int id) {
-  return ym_saveDir().file("artist-" + QString::number(id) + ".json");
+QString Config::ym_trackFile(int id) {
+  return ym_saveDir().sub(QString::number(id) + ".mp3");
 }
 
 int Config::ym_repeatsIfError() {
@@ -238,36 +222,14 @@ void Config::set_ym_repeatsIfError(int v) {
   saveToJson();
 }
 
-bool Config::ym_downloadMedia() {
-  return _ym_downloadMedia;
+bool Config::ym_saveAllTracks() {
+  return _ym_saveAllTracks;
 }
 
-void Config::set_ym_downloadMedia(bool v) {
-  if (_ym_downloadMedia == v) return;
-  _ym_downloadMedia = v;
-  emit ym_downloadMediaChanged(_ym_downloadMedia);
-  saveToJson();
-}
-
-bool Config::ym_saveCover() {
-  return _ym_saveCover;
-}
-
-void Config::set_ym_saveCover(bool v) {
-  if (_ym_saveCover == v) return;
-  _ym_saveCover = v;
-  emit ym_saveCoverChanged(_ym_saveCover);
-  saveToJson();
-}
-
-bool Config::ym_saveInfo() {
-  return _ym_saveInfo;
-}
-
-void Config::set_ym_saveInfo(bool v) {
-  if (_ym_saveInfo == v) return;
-  _ym_saveInfo = v;
-  emit ym_saveInfoChanged(_ym_saveInfo);
+void Config::set_ym_saveAllTracks(bool v) {
+  if (_ym_saveAllTracks == v) return;
+  _ym_saveAllTracks = v;
+  emit ym_saveAllTracksChanged(_ym_saveAllTracks);
   saveToJson();
 }
 
@@ -325,12 +287,8 @@ void Config::reloadFromJson() {
     emit ym_proxyServerChanged(_ym_proxyServer);
     _ym_repeatsIfError = ym_["repeatsIfError"].toInt(1);
     emit ym_repeatsIfErrorChanged(_ym_repeatsIfError);
-    _ym_downloadMedia = ym_["downloadMedia"].toBool(true);
-    emit ym_downloadMediaChanged(_ym_downloadMedia);
-    _ym_saveCover = ym_["saveCover"].toBool(true);
-    emit ym_saveCoverChanged(_ym_saveCover);
-    _ym_saveInfo = ym_["saveInfo"].toBool(true);
-    emit ym_saveInfoChanged(_ym_saveInfo);
+    _ym_saveAllTracks = ym_["saveAllTracks"].toBool(false);
+    emit ym_saveAllTracksChanged(_ym_saveAllTracks);
     _ym_coverQuality = (CoverQuality)ym_["coverQuality"].toInt(MaximumCoverQuality);
     emit ym_coverQualityChanged(_ym_coverQuality);
   }
@@ -359,9 +317,7 @@ void Config::saveToJson() {
   ym_["email"] = _ym_email;
   ym_["proxyServer"] = _ym_proxyServer;
   ym_["repeatsIfError"] = _ym_repeatsIfError;
-  ym_["downloadMedia"] = _ym_downloadMedia;
-  ym_["saveCover"] = _ym_saveCover;
-  ym_["saveInfo"] = _ym_saveInfo;
+  ym_["saveAllTracks"] = _ym_saveAllTracks;
   ym_["coverQuality"] = _ym_coverQuality;
   doc["Yandex.Music"] = ym_;
 

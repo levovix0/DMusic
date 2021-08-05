@@ -5,7 +5,6 @@ CONFIG += c++17
 
 SOURCES += \
   src/AudioPlayer.cpp \
-  src/AudioTag.cpp \
   src/Clipboard.cpp \
   src/Config.cpp \
   src/DFileDialog.cpp \
@@ -16,16 +15,16 @@ SOURCES += \
   src/Messages.cpp \
   src/Radio.cpp \
   src/RemoteMediaController.cpp \
+  src/TagLib.cpp \
   src/Track.cpp \
   src/Translator.cpp \
+  src/YandexMusic.cpp \
   src/api.cpp \
   src/main.cpp \
-  src/python.cpp \
-  src/yapi.cpp
+  src/python.cpp
 
 HEADERS += \
   src/AudioPlayer.hpp \
-  src/AudioTag.hpp \
   src/Clipboard.hpp \
   src/Config.hpp \
   src/ConsoleArgs.hpp \
@@ -37,21 +36,28 @@ HEADERS += \
   src/Messages.hpp \
   src/Radio.hpp \
   src/RemoteMediaController.hpp \
+  src/TagLib.hpp \
   src/Track.hpp \
   src/Translator.hpp \
+  src/YandexMusic.hpp \
   src/api.hpp \
   src/file.hpp \
   src/nimfs.hpp \
   src/python.hpp \
   src/types.hpp \
-  src/utils.hpp \
-  src/yapi.hpp
+  src/utils.hpp
 
 RESOURCES += qml.qrc
 win32:RC_ICONS += resources/app.ico
 
 TRANSLATIONS += \
   translations/russian.ts
+
+QMAKE_EXTRA_COMPILERS += _translations
+_translations.input = TRANSLATIONS
+_translations.output = $$PWD/translations/russian.qm
+_translations.commands = $$[QT_INSTALL_BINS]/lrelease ${QMAKE_FILE_IN} -qm ${QMAKE_FILE_OUT}
+_translations.CONFIG += no_link
 
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin

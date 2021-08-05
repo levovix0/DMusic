@@ -26,9 +26,18 @@
 <context>
     <name>AudioPlayer</name>
     <message>
-        <location filename="../src/AudioPlayer.cpp" line="118"/>
         <source>Failed to load track</source>
-        <translation>Не удалось загрузить трек</translation>
+        <translation type="vanished">Не удалось загрузить трек</translation>
+    </message>
+    <message>
+        <location filename="../src/AudioPlayer.cpp" line="118"/>
+        <source>Failed to play Yandex.Music track (id: %1)</source>
+        <translation>Не удалось проиграть трек Яндекс.Музыки (id: %1)</translation>
+    </message>
+    <message>
+        <location filename="../src/AudioPlayer.cpp" line="120"/>
+        <source>Failed to play track</source>
+        <translation>Не удалось проиграть трек</translation>
     </message>
 </context>
 <context>
@@ -82,8 +91,12 @@
     </message>
     <message>
         <location filename="../qml/DebugPanel.qml" line="71"/>
+        <source>Comment</source>
+        <translation>Комментарий</translation>
+    </message>
+    <message>
         <source>Additional info</source>
-        <translation>Доп. инфо</translation>
+        <translation type="vanished">Доп. инфо</translation>
     </message>
     <message>
         <location filename="../qml/DebugPanel.qml" line="81"/>
@@ -168,18 +181,20 @@
     </message>
     <message>
         <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="17"/>
+        <source>Save all tracks</source>
+        <translation>Сохранять все треки</translation>
+    </message>
+    <message>
         <source>Download all track&apos;s audios</source>
-        <translation>Скачивать аудио всех треков</translation>
+        <translation type="vanished">Скачивать аудио всех треков</translation>
     </message>
     <message>
-        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="24"/>
         <source>Download all track&apos;s covers</source>
-        <translation>Скачивать обложки всех треков</translation>
+        <translation type="vanished">Скачивать обложки всех треков</translation>
     </message>
     <message>
-        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="31"/>
         <source>Download all track&apos;s metadata</source>
-        <translation>Скачивать метаданные всех треков</translation>
+        <translation type="vanished">Скачивать метаданные всех треков</translation>
     </message>
 </context>
 <context>
@@ -203,7 +218,7 @@
 <context>
     <name>PlaylistEntry</name>
     <message>
-        <location filename="../qml/PlaylistEntry.qml" line="136"/>
+        <location filename="../qml/PlaylistEntry.qml" line="137"/>
         <source>Some playlist</source>
         <translation>Какой-то плейлист</translation>
     </message>
@@ -243,7 +258,7 @@ usage: %1 [options]
 <context>
     <name>SettingsPage</name>
     <message>
-        <location filename="../qml/pages/SettingsPage.qml" line="19"/>
+        <location filename="../qml/pages/SettingsPage.qml" line="41"/>
         <source>Settings</source>
         <translation>Настройки</translation>
     </message>
@@ -316,8 +331,8 @@ usage: %1 [options]
 <context>
     <name>Track</name>
     <message>
-        <location filename="../src/Track.cpp" line="39"/>
-        <location filename="../src/Track.cpp" line="45"/>
+        <location filename="../src/Track.cpp" line="34"/>
+        <location filename="../src/Track.cpp" line="40"/>
         <source>Empty track</source>
         <translation>Пустой трек</translation>
     </message>
@@ -334,25 +349,30 @@ usage: %1 [options]
 <context>
     <name>YClient</name>
     <message>
-        <location filename="../src/yapi.cpp" line="616"/>
+        <location filename="../src/YandexMusic.cpp" line="523"/>
         <source>Failed to initialize yandex music client</source>
         <translation>Не удалось инициализировать клиент Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="640"/>
-        <location filename="../src/yapi.cpp" line="666"/>
+        <location filename="../src/YandexMusic.cpp" line="547"/>
+        <location filename="../src/YandexMusic.cpp" line="573"/>
         <source>Failed to login to Yandex.Music</source>
         <translation>Не удалось войти в Яндекс.Музыку</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="760"/>
+        <location filename="../src/YandexMusic.cpp" line="667"/>
         <source>Failed to load one of Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить один из умных плейлистов Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="764"/>
+        <location filename="../src/YandexMusic.cpp" line="671"/>
         <source>Failed to load Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить умные плейлисты Яндекс.Музыки</translation>
+    </message>
+    <message>
+        <location filename="../src/YandexMusic.cpp" line="700"/>
+        <source>Failed to search</source>
+        <translation>Не удалось выполнить поиск</translation>
     </message>
     <message>
         <source>Failed to load Yandex.Music user liked tracks (playlist with id 3)</source>
@@ -363,12 +383,12 @@ usage: %1 [options]
         <translation type="vanished">Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="699"/>
+        <location filename="../src/YandexMusic.cpp" line="606"/>
         <source>Failed to load Yandex.Music playlist (id: %1)</source>
         <translation>Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="719"/>
+        <location filename="../src/YandexMusic.cpp" line="626"/>
         <source>Failed to load Yandex.Music daily playlist</source>
         <translation>Не удалось загрузить плейлист дня Яндекс.Музыки</translation>
     </message>
@@ -376,17 +396,17 @@ usage: %1 [options]
 <context>
     <name>YLikedTracks</name>
     <message>
-        <location filename="../src/yapi.cpp" line="549"/>
+        <location filename="../src/YandexMusic.cpp" line="456"/>
         <source>Favorites</source>
         <translation>Мне нравится</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="568"/>
+        <location filename="../src/YandexMusic.cpp" line="475"/>
         <source>Failed to load Yandex.Music user liked tracks</source>
         <translation>Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="561"/>
+        <location filename="../src/YandexMusic.cpp" line="468"/>
         <source>Yandex music api is not initialized</source>
         <translation>Api Яндекс.Музыки не инициализировано</translation>
     </message>
@@ -398,7 +418,7 @@ usage: %1 [options]
 <context>
     <name>YPlaylist</name>
     <message>
-        <location filename="../src/yapi.cpp" line="516"/>
+        <location filename="../src/YandexMusic.cpp" line="423"/>
         <source>Failed to convert Yandex.Music playlist to list of tracks</source>
         <translation>Не удалось преобразовать плейлист Яндекс.Музыки в список треков</translation>
     </message>
@@ -406,65 +426,70 @@ usage: %1 [options]
 <context>
     <name>YTrack</name>
     <message>
-        <location filename="../src/yapi.cpp" line="76"/>
         <source>No cover</source>
-        <translation>Нет обложки</translation>
+        <translation type="vanished">Нет обложки</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="104"/>
         <source>Failed to get Yandex.Music track media (id: %1)</source>
-        <translation>Не удалось загрузить медиа для трека Яндекс.Музыки (id: %1)</translation>
+        <translation type="vanished">Не удалось загрузить медиа для трека Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="104"/>
-        <location filename="../src/yapi.cpp" line="105"/>
         <source>No media</source>
-        <translation>Нет аудио</translation>
+        <translation type="vanished">Нет аудио</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="111"/>
         <source>media file not found (id: %1), it will be re-downloaded</source>
-        <translation>Аудиофайл не найден (id: %1), он будет скачан заново</translation>
+        <translation type="vanished">Аудиофайл не найден (id: %1), он будет скачан заново</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="111"/>
         <source>File %1 not exist</source>
-        <translation>Файл %1 не существует</translation>
+        <translation type="vanished">Файл %1 не существует</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="119"/>
+        <location filename="../src/YandexMusic.cpp" line="346"/>
         <source>Failed to fetch Yandex.Music track (id: %1)</source>
         <translation>Не удалось загрузить трек Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="227"/>
+        <location filename="../src/YandexMusic.cpp" line="115"/>
         <source>Failed to like track</source>
         <translation>Не удалось лайкнуть трек</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="228"/>
+        <location filename="../src/YandexMusic.cpp" line="116"/>
         <source>Failed to unlike track</source>
         <translation>Не удалось убрать лайк с трека</translation>
+    </message>
+    <message>
+        <location filename="../src/YandexMusic.cpp" line="260"/>
+        <source>Failed to get info of Yandex.Music track (id: %1)</source>
+        <translation>Не удалось загрузить информацию о треке Яндекс.Музыки (id: %1)</translation>
+    </message>
+    <message>
+        <location filename="../src/YandexMusic.cpp" line="281"/>
+        <source>Failed to check like state of Yandex.Music track (id: %1)</source>
+        <translation>Не удалось получить состояние лайка для трека Яндекс.Музыки (id: %1)</translation>
+    </message>
+    <message>
+        <location filename="../src/YandexMusic.cpp" line="295"/>
+        <source>Failed to get author of Yandex.Music track (id: %1)</source>
+        <translation>Не удалось загрузить автора трека Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
         <source>Media file does not exist</source>
         <translation type="vanished">Аудиофайл не существует</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="332"/>
         <source>Failed to load Yandex.Music track (id: %1)</source>
-        <translation>Не удалось загрузить трек Яндекс.Музыки (id: %1)</translation>
+        <translation type="vanished">Не удалось загрузить трек Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="341"/>
-        <location filename="../src/yapi.cpp" line="359"/>
         <source>Null python object</source>
-        <translation>Null объект python</translation>
+        <translation type="vanished">Null объект python</translation>
     </message>
     <message>
-        <location filename="../src/yapi.cpp" line="392"/>
         <source>Failed to check like state of track</source>
-        <translation>Не удалось получить состояние лайка для трека</translation>
+        <translation type="vanished">Не удалось получить состояние лайка для трека</translation>
     </message>
 </context>
 <context>

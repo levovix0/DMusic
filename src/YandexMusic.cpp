@@ -5,13 +5,13 @@
 #include <QJsonDocument>
 #include <QGuiApplication>
 #include <QMediaPlayer>
-#include "yapi.hpp"
+#include "YandexMusic.hpp"
 #include "file.hpp"
 #include "Config.hpp"
 #include "utils.hpp"
 #include "Messages.hpp"
 #include "AudioPlayer.hpp"
-#include "AudioTag.hpp"
+#include "TagLib.hpp"
 #include "nimfs.hpp"
 #include "Download.hpp"
 
@@ -29,7 +29,7 @@ YTrack::YTrack(qint64 id, QObject* parent) : YTrack(parent)
 YTrack::YTrack(object obj, QObject* parent) : YTrack(parent)
 {
   _id = obj.get("id").to<qint64>();
-  _fetchYandex(obj);
+  _fetchInternet(obj);
 }
 
 YTrack::~YTrack()
@@ -39,112 +39,51 @@ YTrack::~YTrack()
 
 QString YTrack::title()
 {
-  if (!_checkedDisk) _loadFromDisk();
-  if (_title.isEmpty() && !_noTitle) {
-    do_async([this](){ _fetchYandex(); saveMetadata(); });
-  }
+  if (!_checkedDisk) _getAllFromDisk();
+  if (_gotInfo == GotFrom::None) _getInfoFromInternet();
   return _title;
+}
+
+QString YTrack::comment()
+{
+  if (!_checkedDisk) _getAllFromDisk();
+  if (_gotInfo == GotFrom::None) _getInfoFromInternet();
+  return _comment;
 }
 
 QString YTrack::artistsStr()
 {
-  if (!_checkedDisk) _loadFromDisk();
-  if (_author.isEmpty() && !_noAuthor) {
-    do_async([this](){ _fetchYandex(); saveMetadata(); });
-  }
-  return _author;
-}
-
-QString YTrack::extra()
-{
-  if (!_checkedDisk) _loadFromDisk();
-  if (_extra.isEmpty() && !_noExtra) {
-    do_async([this](){ _fetchYandex(); saveMetadata(); });
-  }
-  return _extra;
+  if (!_checkedDisk) _getAllFromDisk();
+  if (_gotArtists == GotFrom::None) _getArtistsFromInternet();
+  return _artists;
 }
 
 QUrl YTrack::cover()
 {
-  if (!_checkedDisk) _loadFromDisk();
-  if (Config::ym_saveCover()) {
-    if (_cover.isEmpty()) {
-      if (!_noCover)
-        do_async([this](){ _downloadCover(); });
-      else
-        emit coverAborted(tr("No cover"));
-      return {"qrc:resources/player/no-cover.svg"};
-    }
-    auto path = Config::dataDir().dir("tmp").sub(QString::number(_id) + ".png");
-    if (fileExists(path)) return QUrl::fromLocalFile(path);
-
-    auto cover = AudioTag::readCover(mediaFile());
-    if (cover.isEmpty()) {
-      emit coverAborted(tr("No cover"));
-      return {"qrc:resources/player/no-cover.svg"};
-    }
-    writeFile(path, cover);
-    return QUrl::fromLocalFile(path);
-  } else {
-    if (_py == none) do_async([this](){
-      _fetchYandex();
-      emit coverChanged(_coverUrl());
-    });
-    else
-      return _coverUrl();
-  }
-  return {"qrc:resources/player/no-cover.svg"};
+  if (!_checkedDisk) _getAllFromDisk();
+  if (_gotCover == GotFrom::None) _getCoverFromInternet();
+  return _cover;
 }
 
 QMediaContent YTrack::media()
 {
-  if (!_checkedDisk) _loadFromDisk();
-  if (Config::ym_downloadMedia()) {
-    if (_media.isEmpty()) {
-      if (!_noMedia) do_async([this](){ QMutexLocker lock(&_mediaMtx); _downloadMedia(); });
-      else {
-        Messages::error(tr("Failed to get Yandex.Music track media (id: %1)").arg(_id), tr("No media"));
-        emit mediaAborted(tr("No media"));
-      }
-      return {};
-    }
-    if (fileExists(mediaFile())) return QMediaContent(QUrl::fromLocalFile(mediaFile()));
-    else {
-      Messages::message(tr("media file not found (id: %1), it will be re-downloaded").arg(_id), tr("File %1 not exist").arg(mediaFile()));
-      do_async([this](){ QMutexLocker lock(&_mediaMtx); _downloadMedia(); });
-      return {};
-    }
-  } else {
-    if (_py == none) do_async([this](){
-      _fetchYandex();
-      if (_py == none || _py == nullptr || !_py.has("cover_uri")) {
-        emit mediaAborted(tr("Failed to fetch Yandex.Music track (id: %1)").arg(_id));
-      } else {
-        emit mediaChanged(QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>())));
-      }
-    });
-    else
-      return QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>()));
-  }
-  return {};
-}
-
-qint64 YTrack::duration()
-{
-  if (!_checkedDisk) _loadFromDisk();
-  if (_duration == 0 && !_noMedia) {
-    do_async([this](){ _fetchYandex(); saveMetadata(); });
-  }
-  return _duration;
+  if (!_checkedDisk) _getAllFromDisk();
+  if (_gotAudio == GotFrom::None) _getAudioFromInternet();
+  return _audio;
 }
 
 bool YTrack::liked()
 {
-  if (!_checkedDisk) _loadFromDisk();
-  if (!_hasLiked) {
-    do_async([this](){ QMutexLocker lock(&_likedMtx); _checkLiked(); saveMetadata(); });
-  }
+  if (!_checkedDisk) _getAllFromDisk();
+  if (_gotLiked == GotFrom::None) _getLikedFromInternet();
   return _liked;
+}
+
+qint64 YTrack::duration()
+{
+  if (!_checkedDisk) _getAllFromDisk();
+  if (_gotInfo == GotFrom::None) _getInfoFromInternet();
+  return _duration;
 }
 
 int YTrack::id()
@@ -152,71 +91,18 @@ int YTrack::id()
   return _id;
 }
 
-bool YTrack::available()
-{
-  //TODO: check _py is not nil
-  return _py.get("available").to<bool>();
-}
-
 QVector<YArtist> YTrack::artists()
 {
-  //TODO: check _py is not nil
+  _fetchInternet();
+  if (_py == nullptr) return {};
   return _py.get("artists").to<QVector<YArtist>>();
-}
-
-QString YTrack::coverFile()
-{
-  return _relativePathToCover? Config::ym_saveDir().sub(_cover) : _cover;
-}
-
-File YTrack::metadataFile()
-{
-  return Config::ym_metadata(id());
-}
-
-QString YTrack::mediaFile()
-{
-  return Config::ym_saveDir().sub(_media);
-}
-
-QJsonObject YTrack::jsonMetadata()
-{
-  QJsonObject info;
-  info["hasTitle"] = !_noTitle;
-  info["hasAuthor"] = !_noAuthor;
-  info["hasExtra"] = !_noExtra;
-  info["hasCover"] = !_noCover;
-  info["hasMedia"] = !_noMedia;
-
-  info["title"] = _title;
-  info["extra"] = _extra;
-  info["artistsNames"] = _author;
-  info["artists"] = toQJsonArray(_artists);
-  info["cover"] = _cover;
-  info["relativePathToCover"] = _relativePathToCover;
-  info["duration"] = _duration;
-  if (_hasLiked) info["liked"] = _liked;
-  return info;
-}
-
-QString YTrack::stringMetadata()
-{
-  auto json = QJsonDocument(jsonMetadata()).toJson(QJsonDocument::Compact);
-  return json.data();
-}
-
-void YTrack::saveMetadata()
-{
-  if (!Config::ym_saveInfo()) return;
-  if (_id <= 0) return;
-  metadataFile().writeAll(jsonMetadata());
 }
 
 void YTrack::setLiked(bool liked)
 {
+  _fetchInternet();
+  if (_py == nullptr) return;
   do_async([this, liked](){
-    QMutexLocker lock(&_likedMtx);
-    _fetchYandex();
     try {
       if (liked) {
         _py.call("like");
@@ -230,184 +116,241 @@ void YTrack::setLiked(bool liked)
       else Messages::error(tr("Failed to unlike track"), e.what());
     }
 
-    saveMetadata();
+    if (fileExists(Config::ym_trackFile(_id))) saveToDisk();
   });
 }
 
-bool YTrack::_loadFromDisk()
+void YTrack::saveToDisk(bool overrideCover)
+{
+  //TODO: use c++20 coroutines
+  auto filename = Config::ym_trackFile(_id);
+  auto toString = [](QString const& s) -> TagLib::String {
+    return TagLib::String(s.toUtf8().data(), TagLib::String::UTF8);
+  };
+
+  auto save = [this, filename, overrideCover, toString]() {
+    auto file = TagLib::MPEG::File(filename.toUtf8());
+    auto tag = file.ID3v2Tag(true);
+    tag->setTitle(toString(_title));
+    tag->setComment(toString(_comment));
+    tag->setArtist(toString(_artists));
+
+    TagLib::ID3v2::AttachedPictureFrame* coverFrame = nullptr;
+    TagLib::ID3v2::PopularimeterFrame* ratingFrame = nullptr;
+    for (auto&& frame : tag->frameList()) {
+      using Type = TagLib::ID3v2::AttachedPictureFrame::Type;
+      if (auto cover = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame); cover != nullptr && coverFrame == nullptr
+          && (cover->type() == Type::Other || cover->type() == Type::FrontCover || cover->type() == Type::BackCover || cover->type() == Type::Illustration)) {
+        coverFrame = cover;
+      }
+      else if (auto rating = dynamic_cast<TagLib::ID3v2::PopularimeterFrame*>(frame); rating != nullptr && ratingFrame == nullptr) {
+        ratingFrame = rating;
+      }
+    }
+
+    // add raiting (liked/not liked)
+    if (ratingFrame == nullptr) {
+      ratingFrame = new TagLib::ID3v2::PopularimeterFrame();
+      tag->addFrame(ratingFrame);
+    }
+    ratingFrame->setRating(_liked? 255 : 128);
+
+    file.save();
+
+    // save cover (use coroutines to remove code duplication)
+    if (coverFrame == nullptr || overrideCover) {
+      auto d = new Download;
+      connect(d, &Download::finished, [d, filename, toString](QByteArray data) {
+        auto file = TagLib::MPEG::File(filename.toUtf8());
+        auto tag = file.ID3v2Tag(true);
+
+        TagLib::ID3v2::AttachedPictureFrame* coverFrame = nullptr;
+        for (auto&& frame : tag->frameList()) {
+          using Type = TagLib::ID3v2::AttachedPictureFrame::Type;
+          if (auto cover = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame); cover != nullptr && coverFrame == nullptr
+              && (cover->type() == Type::Other || cover->type() == Type::FrontCover || cover->type() == Type::BackCover || cover->type() == Type::Illustration)) {
+            coverFrame = cover;
+            break;
+          }
+        }
+
+        if (coverFrame == nullptr) {
+          coverFrame = new TagLib::ID3v2::AttachedPictureFrame();
+          tag->addFrame(coverFrame);
+        }
+        auto mime = QMimeDatabase().mimeTypeForData(data);
+        coverFrame->setMimeType(toString(mime.name()));
+        coverFrame->setPicture({data.data(), (unsigned int)data.length()});
+        coverFrame->setType(TagLib::ID3v2::AttachedPictureFrame::Type::FrontCover);
+        file.save();
+        d->deleteLater();
+      });
+      d->start(_cover);
+    }
+  };
+
+  if (!fileExists(filename)) {
+    auto d = new Download;
+    connect(d, &Download::finished, [d, filename, save](QByteArray data) {
+      writeFile(filename, data);
+      save();
+      d->deleteLater();
+    });
+    d->start(_audio.request().url());
+  } else {
+    save();
+  }
+}
+
+void YTrack::_getAllFromDisk()
 {
   _checkedDisk = true;
-//	if (!Config::ym_saveInfo()) return false;
-  if (_id <= 0) return false;
-  auto metadata = metadataFile();
-  if (!metadata.exists()) return false;
+  if (!fileExists(Config::ym_trackFile(_id))) return;
 
-  QJsonObject doc = metadata.allJson().object();
+  _audio = QMediaContent(QUrl::fromLocalFile(Config::ym_trackFile(_id)));
+  _gotAudio = GotFrom::Disk;
 
-  _noTitle = !doc["hasTitle"].toBool(true);
-  _noAuthor = !doc["hasAuthor"].toBool(true);
-  _noExtra = !doc["hasExtra"].toBool(true);
-  _noCover = !doc["hasCover"].toBool(true);
-  _noMedia = !doc["hasMedia"].toBool(true);
+  auto file = TagLib::MPEG::File(Config::ym_trackFile(_id).toUtf8());
+  auto tag = file.ID3v2Tag();
+  if (tag == nullptr) return;
 
-  _title = doc["title"].toString("");
-  _author = doc["artistsNames"].toString("");
-  _extra = doc["extra"].toString("");
-  _cover = doc["cover"].toString("");
-  _relativePathToCover = doc["relativePathToCover"].toBool(true);
-  _media = _noMedia? "" : QString::number(_id) + ".mp3";
+  auto toString = [](TagLib::String const& s) -> QString { return QString::fromUtf8(s.toCString(true)); };
 
-  auto liked = doc["liked"];
-  if (liked.isBool()) _hasLiked = true;
-  _liked = liked.toBool(false);
+  _title = toString(tag->title());
+  _comment = toString(tag->comment());
+  _duration = TagLib::MPEG::Properties(&file).lengthInMilliseconds();
 
-  if (!doc["duration"].isDouble() && !_noMedia) {
-    _duration = 0;
-    do_async([this](){ _fetchYandex(); saveMetadata(); });
-  } else {
-    _duration = doc["duration"].toInt();
-  }
+  _gotInfo = GotFrom::Disk;
 
-  return true;
-}
+  _artists = toString(tag->artist());
+  _gotArtists = GotFrom::Disk;
 
-void YTrack::_fetchYandex()
-{
-  QMutexLocker lock(&_fetchMtx);
-  if (_py != py::none) return;
-  auto _pys = YClient::instance->fetchTracks(_id);
-  if (_pys.empty()) {
-    _fetchYandex(none);
-  } else {
-    _fetchYandex(_pys[0]);
-  }
-}
+  for (auto&& frame : tag->frameList()) {
+    using Type = TagLib::ID3v2::AttachedPictureFrame::Type;
 
-void YTrack::_fetchYandex(object _pys)
-{
-  bool needUnlock = _fetchMtx.tryLock();
-  if (_py != py::none) return;
-  try {
-    if (_pys == none || _pys == nullptr) {
-      _py = nullptr;
-      _title = "";
-      _author = "";
-      _extra = "";
-      _cover = "";
-      _media = "";
-      _duration = 0;
-      _noTitle = true;
-      _noAuthor = true;
-      _noExtra = true;
-      _noCover = true;
-      _noMedia = true;
-      _liked = false;
-    } else {
-      _py = _pys;
-
-      _title = _py.get("title").to<QString>();
-      _noTitle = _title.isEmpty();
-      emit titleChanged(_title);
-
-      auto artists_py = _py.get("artists").to<QVector<py::object>>();
-      QVector<QString> artists_str;
-      artists_str.reserve(artists_py.length());
-      for (auto&& e : artists_py) {
-        artists_str.append(e.get("name").to<QString>());
-        _artists.append(e.get("id").to<qint64>());
-      }
-      _author = join(artists_str, ", ");
-      _noAuthor = _author.isEmpty();
-      emit artistsStrChanged(_author);
-
-      _extra = _py.get("version").to<QString>();
-      _noExtra = _extra.isEmpty();
-      emit extraChanged(_extra);
-
-      _duration = _py.get("duration_ms").to<qint64>();
-      emit durationChanged(_duration);
-
-      saveMetadata();
+    if (auto popularityFrame = dynamic_cast<TagLib::ID3v2::PopularimeterFrame*>(frame); popularityFrame != nullptr) {
+      if (_gotLiked == GotFrom::Disk) continue;
+      _liked = popularityFrame->rating() > 128;
+      _gotLiked = GotFrom::Disk;
     }
-  } catch (std::exception& e) {
-    Messages::error(tr("Failed to load Yandex.Music track (id: %1)").arg(_id), e.what());
+    else if (auto cover = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame);
+        cover != nullptr && (cover->type() == Type::Other || cover->type() == Type::FrontCover || cover->type() == Type::BackCover || cover->type() == Type::Illustration)) {
+      if (_gotCover == GotFrom::Disk) continue;
+      auto pic = cover->picture();
+      _cover = {QString("data:") + toString(cover->mimeType()) + ";base64," + QByteArray{pic.data(), (int)pic.size()}.toBase64()};
+      _gotCover = GotFrom::Disk;
+    }
   }
-  if (needUnlock) _fetchMtx.unlock();
+  _gotLiked = GotFrom::Disk;
+  _gotCover = GotFrom::Disk;
 }
 
-void YTrack::_downloadCover()
+void YTrack::_getInfoFromInternet()
 {
-  _fetchYandex();
-  if (_py == none || _py == nullptr) {
-    emit coverAborted(tr("Null python object"));
-    return;
-  }
+  _gotInfo = GotFrom::Internet;
+  _fetchInternet();
+  if (_py == nullptr) return;
+
   try {
-    auto d = new Download(_coverUrl());
-    QObject::connect(d, &Download::finished, [d, this](QByteArray const& data) {
-      AudioTag::writeCover(mediaFile(), data);
-      _cover = QString::number(_id) + ".png";
-      delete d;
-      emit coverChanged(cover());
-    });
-  } catch (std::exception& e) {
-    _noCover = true;
-    emit coverAborted(e.what());
+    _title = _py.get("title").to<QString>();
+    _comment = _py.get("version").to<QString>();
+    _duration = _py.get("duration_ms").to<int>();
   }
-  saveMetadata();
+  catch (std::exception& e) {
+    Messages::error(tr("Failed to get info of Yandex.Music track (id: %1)"), e.what());
+  }
+  if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
 }
 
-void YTrack::_downloadMedia()
+void YTrack::_getLikedFromInternet()
 {
-  _fetchYandex();
-  if (_py == none || _py == nullptr) {
-    emit mediaAborted(tr("Null python object"));
-    return;
-  }
-  try {
-    _media = QString::number(_id) + ".mp3";
-    _py.call("download", mediaFile());
-    emit mediaChanged(media());
-  } catch (std::exception& e) {
-    _noCover = true;
-    emit mediaAborted(e.what());
-  }
-  saveMetadata();
-}
-
-void YTrack::_checkLiked()
-{
-  _fetchYandex();
-  if (_py == none || _py == nullptr) return;
+  _gotLiked = GotFrom::Internet;
+  _fetchInternet();
+  if (_py == nullptr) return;
   try {
     auto ult = _py.get("client").call("users_likes_tracks").get("tracks_ids");
-    bool liked = false;
+    _liked = false;
     for (auto&& p : ult) {
       if (!p.contains(":")) continue;
       if (p.call("split", ":")[0].to<int>() == _id) {
-        liked = true;
+        _liked = true;
         break;
       }
     }
-    if (liked != _liked) {
-      _liked = liked;
-      emit likedChanged(_liked);
-    }
-  }  catch (std::exception& e) {
-    Messages::error(tr("Failed to check like state of track", e.what()));
+  } catch (std::exception& e) {
+    Messages::error(tr("Failed to check like state of Yandex.Music track (id: %1)").arg(_id), e.what());
+  }
+  if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
+}
+
+void YTrack::_getArtistsFromInternet()
+{
+  _gotArtists = GotFrom::Internet;
+  try {
+    auto artists = this->artists();
+    QVector<QString> artists_str;
+    for (auto&& artist : artists) artists_str.append(artist.name());
+    _artists = join(artists_str, ", ");
+  } catch (std::exception& e) {
+    Messages::error(tr("Failed to get author of Yandex.Music track (id: %1)").arg(_id), e.what());
+  }
+  if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
+}
+
+void YTrack::_getCoverFromInternet()
+{
+  _gotCover = GotFrom::Internet;
+  _fetchInternet();
+  if (_py == nullptr) return;
+  try {
+    auto a = "http://" + _py.get("cover_uri").to<QString>();
+    a.truncate(a.length() - 2);
+    a += "m" + toString(Config::ym_coverQuality());
+    _cover = QUrl{a};
+  } catch (std::exception& e) {
+    // OK
+    _cover = QUrl{"qrc:/resources/player/no-cover.svg"};
+    emit coverAborted(e.what());
+  }
+  if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
+}
+
+void YTrack::_getAudioFromInternet()
+{
+  _gotAudio = GotFrom::Internet;
+  _fetchInternet();
+  if (_py == nullptr) return;
+  try {
+    _audio = QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>()));
+  } catch (std::exception& e) {
+    emit mediaAborted(e.what());
+  }
+  if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
+}
+
+bool YTrack::_gotAllFromInternet()
+{
+  return _gotInfo == GotFrom::Internet && _gotLiked == GotFrom::Internet && _gotArtists == GotFrom::Internet
+      && _gotCover == GotFrom::Internet && _gotAudio == GotFrom::Internet;
+}
+
+void YTrack::_fetchInternet()
+{
+  if (_py != py::none) return;
+  try {
+    auto _pys = YClient::instance->fetchTracks(_id);
+    if (_pys.empty()) throw std::runtime_error("empty result");
+    _py = _pys[0];
+  } catch (std::exception& e) {
+    _py = nullptr;
+    Messages::error(tr("Failed to fetch Yandex.Music track (id: %1)").arg(_id), e.what());
   }
 }
 
-QUrl YTrack::_coverUrl()
+void YTrack::_fetchInternet(object _pys)
 {
-  if (_py == none || _py == nullptr || !_py.has("cover_uri") || _py.get("cover_uri").to<QString>().isEmpty())
-    return {"qrc:/resources/player/no-cover.svg"};
-  auto a = "http://" + _py.get("cover_uri").to<QString>();
-  a.truncate(a.length() - 2);
-  a += "m" + toString(Config::ym_coverQuality());
-  return a;
+  _py = (_pys == none || _pys == nullptr)? nullptr : _pys;
 }
-
 
 YArtist::YArtist(object impl, QObject* parent) : QObject(parent)
 {
@@ -441,48 +384,6 @@ QString YArtist::name()
 {
   return impl.get("name").to<QString>();
 }
-
-QString YArtist::coverPath()
-{
-  return Config::ym_artistCover(id()).fs.fileName();
-}
-
-QString YArtist::metadataPath()
-{
-  return Config::ym_artistMetadata(id()).fs.fileName();
-}
-
-QJsonObject YArtist::jsonMetadata()
-{
-  QJsonObject info;
-  info["id"] = id();
-  info["name"] = name();
-  info["cover"] = coverPath();
-  return info;
-}
-
-QString YArtist::stringMetadata()
-{
-  auto json = QJsonDocument(jsonMetadata()).toJson(QJsonDocument::Compact);
-  return json.data();
-}
-
-void YArtist::saveMetadata()
-{
-  File(metadataPath()).writeAll(jsonMetadata());
-}
-
-bool YArtist::saveCover(int quality)
-{
-  QString size = QString::number(quality) + "x" + QString::number(quality);
-  try {
-    impl.call("download_og_image", std::initializer_list<object>{coverPath(), size});
-    return true;
-  } catch (std::exception& e) {
-    return false;
-  }
-}
-
 
 YPlaylist::YPlaylist(py::object impl, QObject* parent) : QObject(parent), impl(impl)
 {

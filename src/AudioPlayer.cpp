@@ -3,6 +3,7 @@
 #include "Config.hpp"
 #include "QDateTime"
 #include "Messages.hpp"
+#include "YandexMusic.hpp"
 
 AudioPlayer::~AudioPlayer()
 {
@@ -113,7 +114,11 @@ void AudioPlayer::setMedia(QMediaContent media)
 
 void AudioPlayer::onMediaAborted(QString reason)
 {
-  Messages::error(tr("Failed to load track"), reason);
+  if (auto track = _currentTrack->toYandex(); track != nullptr) {
+    Messages::error(tr("Failed to play Yandex.Music track (id: %1)").arg(track->id()), reason);
+  } else {
+    Messages::error(tr("Failed to play track"), reason);
+  }
   if (_radio != nullptr) {    
     _unsubscribeCurrentTrack();
 

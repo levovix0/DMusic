@@ -111,7 +111,7 @@ Rectangle {
     icon: _audio_player.currentTrack.cover
     title: _audio_player.currentTrack.title
     artists: _audio_player.currentTrack.artistsStr
-    extra: _audio_player.currentTrack.extra
+    extra: _audio_player.currentTrack.comment
     idStr: toString(_audio_player.currentTrack.id)
     liked: _audio_player.currentTrack.liked
     isYandex: _audio_player.currentTrack.isYandex

@@ -474,10 +474,10 @@ void DiscordPresence::update(Track* track)
 
   std::map<std::string, object> args;
   args["state"] = track->artistsStr();
-  if (track->extra() == "")
+  if (track->comment() == "")
     args["details"] = track->title();
   else
-    args["details"] = track->title() + " (" + track->extra() + ")";
+    args["details"] = track->title() + " (" + track->comment() + ")";
   args["start"] = _time.call("time");
   args["large_image"] = "app";
   args["large_text"] = QString::number(track->id());

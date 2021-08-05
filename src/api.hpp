@@ -90,7 +90,7 @@ public:
 
   QString title() override;
   QString artistsStr() override;
-  QString extra() override;
+  QString comment() override;
   QUrl cover() override;
   QMediaContent media() override;
 

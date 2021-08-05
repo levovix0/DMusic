@@ -49,24 +49,10 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
 
     dir saveDir "data:yandex"
 
-    get File media(int id): """
-      return ym_saveDir().file(QString::number(id) + ".mp3");
-    """
-    get File cover(int id): """
-      return ym_saveDir().file(QString::number(id) + ".png");
-    """
-    get File metadata(int id): """
-      return ym_saveDir().file(QString::number(id) + ".json");
-    """
-    get File artistCover(int id): """
-      return ym_saveDir().file("artist-" + QString::number(id) + ".png");
-    """
-    get File artistMetadata(int id): """
-      return ym_saveDir().file("artist-" + QString::number(id) + ".json");
+    get QString trackFile(int id): """
+      return ym_saveDir().sub(QString::number(id) + ".mp3");
     """
 
     int repeatsIfError 1
-    bool downloadMedia true
-    bool saveCover true
-    bool saveInfo true
+    bool saveAllTracks false
     CoverQuality coverQuality MaximumCoverQuality

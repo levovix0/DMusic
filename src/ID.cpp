@@ -1,5 +1,5 @@
 #include "ID.hpp"
-#include "yapi.hpp"
+#include "YandexMusic.hpp"
 
 QString ID::serialize() const
 {

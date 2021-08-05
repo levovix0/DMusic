@@ -122,7 +122,7 @@ QString UserTrack::artistsStr()
   return _artists;
 }
 
-QString UserTrack::extra()
+QString UserTrack::comment()
 {
   return _extra;
 }
