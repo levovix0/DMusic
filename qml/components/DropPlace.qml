@@ -10,7 +10,8 @@ DropArea {
   height: 20
 
   property bool hasContent: false
-  property string filter: "*"
+  property string filter: qsTr("All files (*)")
+  property string dropFilter: filter
 
   property url content
   onEntered: {
@@ -19,7 +20,7 @@ DropArea {
   onDropped: {
     if (!drop.hasUrls) return
     var a = drop.urls[0]
-    if (!_dialog.checkFilter(a, filter)) return
+    if (!_dialog.checkFilter(a, dropFilter)) return
 
     hasContent = true
     content = a

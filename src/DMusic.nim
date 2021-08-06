@@ -41,9 +41,13 @@ macro sourcesFromDir(dir: static[string] = ".") =
   result = newStmtList()
   for file in dir.walkDirRec:
     if not file.endsWith(".cpp"): continue
-    let cpp = readFile(file)
-    result.add quote do:
-      {.emit: `cpp`.}
+    if file.endsWith("main.cpp"):
+      let cpp = readFile(file)
+      result.add quote do:
+        {.emit: `cpp`.}
+    else:
+      result.add quote do:
+        {.compile: `file`.}
   
   for file in dir.walkDirRec:
     if not file.endsWith(".hpp") and not file.endsWith(".h"): continue

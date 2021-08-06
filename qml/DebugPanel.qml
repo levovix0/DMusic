@@ -30,6 +30,7 @@ FloatingPanel {
     anchors.top: _id.bottom
     anchors.topMargin: 10
     filter: qsTr("Image (*.jpg *.png *.svg)")
+    dropFilter: "(*)"
 
     Icon {
       anchors.centerIn: parent
@@ -89,7 +90,7 @@ FloatingPanel {
     anchors.left: _artists.right
     anchors.top: _artists.top
     anchors.leftMargin: 10
-    filter: qsTr("Audio (*.mp3 *.wav *.ogg *.m4a)")
+    filter: qsTr("MP3 (*.mp3)")
 
     Icon {
       anchors.centerIn: parent
