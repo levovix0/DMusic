@@ -2,6 +2,7 @@
 #include <QObject>
 #include <QMediaContent>
 #include <functional>
+
 #include "Config.hpp"
 #include "Track.hpp"
 #include "Radio.hpp"
@@ -53,8 +54,6 @@ private:
   QVector<refTrack> _tracks;
 };
 
-//TODO: DownloadsPlaylist, удаляющий треки с диска, если их не удалось загрузить
-
 class PlaylistRadio : public Radio
 {
   Q_OBJECT
@@ -85,26 +84,33 @@ struct UserTrack : Track
 {
   Q_OBJECT
 public:
-  //TODO: сжимать обложку в размерах, если она больше 1000x1000
   UserTrack(int id = 0, QObject *parent = nullptr);
 
+  int id() override;
+  QMediaContent audio() override;
   QString title() override;
   QString artistsStr() override;
   QString comment() override;
   QUrl cover() override;
-  QMediaContent media() override;
+  qint64 duration() override;
+  bool liked() override;
+  QUrl originalUrl() override;
 
   static Dir userDir();
 
 public slots:
   void save();
+  void save(QByteArray const& cover);
   bool load();
 
-  void setup(QUrl media, QUrl cover, QString title, QString artists, QString extra);
+  static void add(QUrl media, QUrl cover, QString title, QString artists, QString comment);
 
 private:
-  int id;
-  QString _title;
+  int _id{0};
+  QUrl _url;
+  QUrl _cover;
+  QString _title, _comment;
   QString _artists;
-  QString _extra;
+  bool _liked{false};
+  int _duration{0};
 };

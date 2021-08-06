@@ -82,6 +82,7 @@ public:
   static bool darkHeader();
   
   static Dir user_saveDir();
+  static QString user_trackFile(int id);
   
   static QString ym_token();
   static QString ym_email();

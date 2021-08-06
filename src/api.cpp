@@ -1,5 +1,5 @@
 #include "api.hpp"
-#include "file.hpp"
+
 #include <QFile>
 #include <QDir>
 #include <QJsonObject>
@@ -8,6 +8,11 @@
 #include <QRandomGenerator>
 #include <QFileDialog>
 #include <QQmlEngine>
+#include <QMimeDatabase>
+
+#include "nimfs.hpp"
+#include "Download.hpp"
+#include "TagLib.hpp"
 
 std::random_device rd;
 std::mt19937 rnd(rd());
@@ -108,8 +113,18 @@ void DPlaylist::remove(int index)
 
 UserTrack::UserTrack(int id, QObject* parent) : Track(parent)
 {
-  this->id = id;
+  _id = id;
   load();
+}
+
+int UserTrack::id()
+{
+  return _id;
+}
+
+QMediaContent UserTrack::audio()
+{
+  return QMediaContent(_url);
 }
 
 QString UserTrack::title()
@@ -124,28 +139,27 @@ QString UserTrack::artistsStr()
 
 QString UserTrack::comment()
 {
-  return _extra;
+  return _comment;
 }
 
 QUrl UserTrack::cover()
 {
-  auto ids = QString::number(id);
-  if (userDir().file(ids + ".png").exists()) return userDir().qurl(ids + ".png");
-  if (userDir().file(ids + ".jpg").exists()) return userDir().qurl(ids + ".jpg");
-  if (userDir().file(ids + ".svg").exists()) return userDir().qurl(ids + ".svg");
-  emit coverAborted(tr("File not found"));
-  return {"qrc:resources/player/no-cover.svg"};
+  return _cover;
 }
 
-QMediaContent UserTrack::media()
+qint64 UserTrack::duration()
 {
-  auto ids = QString::number(id);
-  if (userDir().file(ids + ".mp3").exists()) return userDir().qurl(ids + ".mp3");
-  if (userDir().file(ids + ".wav").exists()) return userDir().qurl(ids + ".wav");
-  if (userDir().file(ids + ".ogg").exists()) return userDir().qurl(ids + ".ogg");
-  if (userDir().file(ids + ".m4a").exists()) return userDir().qurl(ids + ".m4a");
-  emit coverAborted(tr("File not found"));
-  return QMediaContent();
+  return _duration;
+}
+
+bool UserTrack::liked()
+{
+  return _liked;
+}
+
+QUrl UserTrack::originalUrl()
+{
+  return _url;
 }
 
 Dir UserTrack::userDir()
@@ -155,49 +169,61 @@ Dir UserTrack::userDir()
 
 void UserTrack::save()
 {
-  QJsonObject info;
-  info["title"] = _title;
-  info["extra"] = _extra;
-  info["artists"] = _artists;
+  TagLib::writeTrack(Config::user_trackFile(_id), TagLib::Data{_title, _comment, _artists, _liked, 0});
+}
 
-  auto json = QJsonDocument(info).toJson(QJsonDocument::Compact);
-  userDir().file(QString::number(id) + ".json").writeAll(json);
+void UserTrack::save(const QByteArray& cover)
+{
+  TagLib::writeTrack(Config::user_trackFile(_id), TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, cover, ""});
 }
 
 bool UserTrack::load()
 {
-  if (!userDir().file(QString::number(id) + ".json").exists()) return false;
-  QJsonObject doc = userDir().file(QString::number(id) + ".json").allJson().object();
+  try {
+    auto d = TagLib::readTrack(Config::user_trackFile(_id));
 
-  _title = doc["title"].toString("");
-  _artists = doc["artists"].toString("");
-  _extra = doc["extra"].toString("");
+    _url = QUrl::fromLocalFile(Config::user_trackFile(_id));
+    _title = d.title;
+    _comment = d.comment;
+    _artists = d.artists;
+    _cover = {QString("data:") + d.coverMimeType + ";base64," + d.cover.toBase64()};
+    _liked = d.liked;
+    _duration = d.duration;
 
-  return true;
+    return true;
+  } catch(...) {
+    return false;
+  }
 }
 
-void UserTrack::setup(QUrl media, QUrl cover, QString title, QString artists, QString extra)
+void UserTrack::add(QUrl media, QUrl cover, QString title, QString artists, QString comment)
 {
-  _title = title;
-  _artists = artists;
-  _extra = extra;
-
+  //TODO: use c++20 coroutines
   int maxId = 0;
-  QStringList allFiles = userDir().entryList(QDir::Files, QDir::SortFlag::Name);
+  QStringList allFiles = userDir().entryList(QStringList{"*.mp3"}, QDir::Files, QDir::SortFlag::Name);
   for (auto& s : allFiles) {
-    if (!s.endsWith(".json")) continue;
-    try {
-      s.chop(5);
-      maxId = qMax(maxId, s.toInt());
-    }  catch (...) {}
+    s.chop(4);
+    maxId = qMax(maxId, s.toInt());
   }
-  id = maxId + 1;
+  auto id = maxId + 1;
 
-  QFile::copy(media.toLocalFile(), (userDir() / (QString::number(id) + "." + media.toLocalFile().right(3))).path());
-  if (!cover.isEmpty()) {
-    QFile::copy(cover.toLocalFile(), (userDir() / (QString::number(id) + "." + cover.toLocalFile().right(3))).path());
-  }
-  save();
+  auto d = new Download;
+  connect(d, &Download::finished, [=](QByteArray const& data) {
+    writeFile(Config::user_trackFile(id), data);
+
+    if (cover.isEmpty()) {
+      TagLib::writeTrack(Config::user_trackFile(id), TagLib::Data{title, comment, artists, false, 0});
+    } else {
+      auto dc = new Download;
+      connect(dc, &Download::finished, [=](QByteArray const& data) {
+        TagLib::writeTrack(Config::user_trackFile(id), TagLib::DataWithCover{{title, comment, artists, false, 0}, data, ""});
+        dc->deleteLater();
+      });
+      dc->start(cover);
+    }
+    d->deleteLater();
+  });
+  d->start(media);
 }
 
 PlaylistRadio::PlaylistRadio(QObject* parent) : Radio(parent)

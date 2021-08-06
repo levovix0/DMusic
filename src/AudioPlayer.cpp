@@ -127,7 +127,7 @@ void AudioPlayer::onMediaAborted(QString reason)
 
     _subscribeCurrentTrack();
 
-    player->setMedia(_currentTrack->media());
+    player->setMedia(_currentTrack->audio());
     player->play();
 
     emit currentTrackChanged(_currentTrack.get());
@@ -154,7 +154,7 @@ void AudioPlayer::play(refTrack track)
   _currentTrack = track;
   _subscribeCurrentTrack();
 
-  player->setMedia(_currentTrack->media());
+  player->setMedia(_currentTrack->audio());
   player->play();
 
   emit currentTrackChanged(_currentTrack.get());
@@ -173,7 +173,7 @@ void AudioPlayer::play(refPlaylist playlist)
 
   _subscribeCurrentTrack();
 
-  player->setMedia(_currentTrack->media());
+  player->setMedia(_currentTrack->audio());
   player->play();
 
   emit currentTrackChanged(_currentTrack.get());
@@ -233,7 +233,7 @@ bool AudioPlayer::next()
 
   _subscribeCurrentTrack();
 
-  player->setMedia(_currentTrack->media());
+  player->setMedia(_currentTrack->audio());
   player->play();
 
   emit currentTrackChanged(_currentTrack.get());
@@ -254,7 +254,7 @@ bool AudioPlayer::prev()
 
   _subscribeCurrentTrack();
 
-  player->setMedia(_currentTrack->media());
+  player->setMedia(_currentTrack->audio());
   player->play();
 
   emit currentTrackChanged(_currentTrack.get());
@@ -303,15 +303,15 @@ void AudioPlayer::setNextMode(Config::NextMode nextMode)
 void AudioPlayer::_unsubscribeCurrentTrack()
 {
   if (_currentTrack.isNull() || _currentTrack == noneTrack) return;
-  disconnect(_currentTrack.get(), &Track::mediaChanged, this, &AudioPlayer::setMedia);
-  disconnect(_currentTrack.get(), &Track::mediaAborted, this, &AudioPlayer::onMediaAborted);
+  disconnect(_currentTrack.get(), &Track::audioChanged, this, &AudioPlayer::setMedia);
+  disconnect(_currentTrack.get(), &Track::audioAborted, this, &AudioPlayer::onMediaAborted);
 }
 
 void AudioPlayer::_subscribeCurrentTrack()
 {
   if (_currentTrack.isNull() || _currentTrack == noneTrack) return;
-  QObject::connect(_currentTrack.get(), &Track::mediaChanged, this, &AudioPlayer::setMedia);
-  QObject::connect(_currentTrack.get(), &Track::mediaAborted, this, &AudioPlayer::onMediaAborted, Qt::QueuedConnection);
+  QObject::connect(_currentTrack.get(), &Track::audioChanged, this, &AudioPlayer::setMedia);
+  QObject::connect(_currentTrack.get(), &Track::audioAborted, this, &AudioPlayer::onMediaAborted, Qt::QueuedConnection);
 }
 
 QString AudioPlayer::formatTime(int t)

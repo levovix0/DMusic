@@ -7,7 +7,7 @@ Item {
 
   property string title: ""
   property string artists: ""
-  property string extra: ""
+  property string comment: ""
   property string idStr: ""
   property bool liked: false
   property bool isYandex: false
@@ -41,19 +41,19 @@ Item {
 
         onClicked: _clipboard.copy(root.idStr);
 
-        onEntered: _full_titleAndExtra.show()
-        onExited: _full_titleAndExtra.hide()
+        onEntered: _full_titleAndComment.show()
+        onExited: _full_titleAndComment.hide()
       }
     }
 
     DText {
-      id: _extra
+      id: _comment
       anchors.bottom: parent.verticalCenter
       anchors.bottomMargin: 2
       anchors.left: _title.right
       anchors.leftMargin: 5
 
-      text: extra
+      text: comment
       font.pointSize: 10.5
       color: Style.darkHeader? "#999999" : "#999999"
 
@@ -62,8 +62,8 @@ Item {
 
         hoverEnabled: true
 
-        onEntered: _full_titleAndExtra.show()
-        onExited: _full_titleAndExtra.hide()
+        onEntered: _full_titleAndComment.show()
+        onExited: _full_titleAndComment.hide()
       }
     }
 
@@ -89,13 +89,13 @@ Item {
     Rectangle {
       id: _shade_titleAndExtra
       width: 10
-      height: Math.max(_title.height, _extra.height)
+      height: Math.max(_title.height, _comment.height)
       anchors.right: parent.right
       anchors.verticalCenter: _title.verticalCenter
 
       OpacityAnimator {
         target: _shade_titleAndExtra
-        id: _anim_shade_titleAndExtra_opacity
+        id: _anim_shade_titleAndComment_opacity
         duration: 300
         easing.type: Easing.OutCubic
       }
@@ -132,7 +132,7 @@ Item {
   PlayerControlsButton {
     id: _like
     anchors.bottom: parent.verticalCenter
-    x: Math.round(Math.min(_title.width + (_extra.text == ""? 0 : _extra.width + 2) + 5, root.width + 2))
+    x: Math.round(Math.min(_title.width + (_comment.text == ""? 0 : _comment.width + 2) + 5, root.width + 2))
     anchors.bottomMargin: -1
     visible: root.isYandex
 
@@ -142,7 +142,7 @@ Item {
   }
 
   Rectangle {
-    id: _full_titleAndExtra
+    id: _full_titleAndComment
     height: Math.max(_full_title.height, _full_extra.height) + 6
     width: _full_title.width + 5 + _full_extra.width + 5 - root.width
     anchors.bottom: parent.verticalCenter
@@ -156,8 +156,8 @@ Item {
     color: Style.panel.background
 
     OpacityAnimator {
-      target: _full_titleAndExtra
-      id: _anim_full_titleAndExtra_opacity
+      target: _full_titleAndComment
+      id: _anim_full_titleAndComment_opacity
       duration: 300
       easing.type: Easing.OutCubic
     }
@@ -165,22 +165,22 @@ Item {
     function show() {
       if (showing) return
       showing = true
-      _anim_full_titleAndExtra_opacity.from = 0
-      _anim_full_titleAndExtra_opacity.to = 1
-      _anim_full_titleAndExtra_opacity.restart()
-      _anim_shade_titleAndExtra_opacity.from = 1
-      _anim_shade_titleAndExtra_opacity.to = 0
-      _anim_shade_titleAndExtra_opacity.restart()
+      _anim_full_titleAndComment_opacity.from = 0
+      _anim_full_titleAndComment_opacity.to = 1
+      _anim_full_titleAndComment_opacity.restart()
+      _anim_shade_titleAndComment_opacity.from = 1
+      _anim_shade_titleAndComment_opacity.to = 0
+      _anim_shade_titleAndComment_opacity.restart()
     }
     function hide() {
       if (!showing) return
       showing = false
-      _anim_full_titleAndExtra_opacity.from = 1
-      _anim_full_titleAndExtra_opacity.to = 0
-      _anim_full_titleAndExtra_opacity.restart()
-      _anim_shade_titleAndExtra_opacity.from = 0
-      _anim_shade_titleAndExtra_opacity.to = 1
-      _anim_shade_titleAndExtra_opacity.restart()
+      _anim_full_titleAndComment_opacity.from = 1
+      _anim_full_titleAndComment_opacity.to = 0
+      _anim_full_titleAndComment_opacity.restart()
+      _anim_shade_titleAndComment_opacity.from = 0
+      _anim_shade_titleAndComment_opacity.to = 1
+      _anim_shade_titleAndComment_opacity.restart()
     }
 
     DText {
@@ -199,7 +199,7 @@ Item {
       anchors.left: _full_title.right
       anchors.leftMargin: 5
 
-      text: extra
+      text: comment
       font.pointSize: 10.5
       color: Style.darkHeader? "#999999" : "#999999"
     }

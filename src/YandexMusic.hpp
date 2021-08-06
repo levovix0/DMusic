@@ -5,6 +5,7 @@
 #include <QQmlEngine>
 #include <QJSEngine>
 #include <QAbstractListModel>
+
 #include "python.hpp"
 #include "api.hpp"
 
@@ -27,7 +28,7 @@ public:
   QString artistsStr() override;
   QString comment() override;
   QUrl cover() override;
-  QMediaContent media() override;
+  QMediaContent audio() override;
   qint64 duration() override;
   bool liked() override;
   QUrl originalUrl() override;

@@ -33,6 +33,10 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
   config user, "User":
     dir saveDir "data:user"
 
+    get QString trackFile(int id): """
+      return user_saveDir().sub(QString::number(id) + ".mp3");
+    """
+
   config ym, "Yandex.Music":
     type CoverQuality = enum
       MaximumCoverQuality  = "1000x1000"

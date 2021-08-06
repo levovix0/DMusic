@@ -1,11 +1,11 @@
+#include "YandexMusic.hpp"
+
 #include <thread>
 #include <functional>
-#include <QJsonObject>
-#include <QJsonArray>
-#include <QJsonDocument>
+
 #include <QGuiApplication>
 #include <QMediaPlayer>
-#include "YandexMusic.hpp"
+
 #include "file.hpp"
 #include "Config.hpp"
 #include "utils.hpp"
@@ -65,7 +65,7 @@ QUrl YTrack::cover()
   return _cover;
 }
 
-QMediaContent YTrack::media()
+QMediaContent YTrack::audio()
 {
   if (!_checkedDisk) _getAllFromDisk();
   if (_gotAudio == GotFrom::None) _getAudioFromInternet();
@@ -129,125 +129,56 @@ void YTrack::saveToDisk(bool overrideCover)
 {
   //TODO: use c++20 coroutines
   auto filename = Config::ym_trackFile(_id);
-  auto toString = [](QString const& s) -> TagLib::String {
-    return TagLib::String(s.toUtf8().data(), TagLib::String::UTF8);
-  };
-
-  auto save = [this, filename, overrideCover, toString]() {
-    auto file = TagLib::MPEG::File(filename.toUtf8());
-    auto tag = file.ID3v2Tag(true);
-    tag->setTitle(toString(_title));
-    tag->setComment(toString(_comment));
-    tag->setArtist(toString(_artists));
-
-    TagLib::ID3v2::AttachedPictureFrame* coverFrame = nullptr;
-    TagLib::ID3v2::PopularimeterFrame* ratingFrame = nullptr;
-    for (auto&& frame : tag->frameList()) {
-      using Type = TagLib::ID3v2::AttachedPictureFrame::Type;
-      if (auto cover = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame); cover != nullptr && coverFrame == nullptr
-          && (cover->type() == Type::Other || cover->type() == Type::FrontCover || cover->type() == Type::BackCover || cover->type() == Type::Illustration)) {
-        coverFrame = cover;
-      }
-      else if (auto rating = dynamic_cast<TagLib::ID3v2::PopularimeterFrame*>(frame); rating != nullptr && ratingFrame == nullptr) {
-        ratingFrame = rating;
-      }
-    }
-
-    // add raiting (liked/not liked)
-    if (ratingFrame == nullptr) {
-      ratingFrame = new TagLib::ID3v2::PopularimeterFrame();
-      tag->addFrame(ratingFrame);
-    }
-    ratingFrame->setRating(_liked? 255 : 128);
-
-    file.save();
-
-    // save cover (use coroutines to remove code duplication)
-    if (coverFrame == nullptr || overrideCover) {
-      auto d = new Download;
-      connect(d, &Download::finished, [d, filename, toString](QByteArray data) {
-        auto file = TagLib::MPEG::File(filename.toUtf8());
-        auto tag = file.ID3v2Tag(true);
-
-        TagLib::ID3v2::AttachedPictureFrame* coverFrame = nullptr;
-        for (auto&& frame : tag->frameList()) {
-          using Type = TagLib::ID3v2::AttachedPictureFrame::Type;
-          if (auto cover = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame); cover != nullptr && coverFrame == nullptr
-              && (cover->type() == Type::Other || cover->type() == Type::FrontCover || cover->type() == Type::BackCover || cover->type() == Type::Illustration)) {
-            coverFrame = cover;
-            break;
-          }
-        }
-
-        if (coverFrame == nullptr) {
-          coverFrame = new TagLib::ID3v2::AttachedPictureFrame();
-          tag->addFrame(coverFrame);
-        }
-        auto mime = QMimeDatabase().mimeTypeForData(data);
-        coverFrame->setMimeType(toString(mime.name()));
-        coverFrame->setPicture({data.data(), (unsigned int)data.length()});
-        coverFrame->setType(TagLib::ID3v2::AttachedPictureFrame::Type::FrontCover);
-        file.save();
-        d->deleteLater();
-      });
-      d->start(_cover);
-    }
-  };
 
   if (!fileExists(filename)) {
     auto d = new Download;
-    connect(d, &Download::finished, [d, filename, save](QByteArray data) {
+    connect(d, &Download::finished, [d, this, filename](QByteArray data) {
       writeFile(filename, data);
-      save();
+
+      auto dc = new Download;
+      connect(dc, &Download::finished, [dc, this, filename](QByteArray data) {
+        TagLib::writeTrack(filename, TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, data, ""});
+        dc->deleteLater();
+      });
+      dc->start(_cover);
+
       d->deleteLater();
     });
     d->start(_audio.request().url());
   } else {
-    save();
+    if (overrideCover) {
+      auto dc = new Download;
+      connect(dc, &Download::finished, [dc, this, filename](QByteArray data) {
+        TagLib::writeTrack(filename, TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, data, ""});
+        dc->deleteLater();
+      });
+      dc->start(_cover);
+    } else {
+      TagLib::writeTrack(filename, TagLib::Data{_title, _comment, _artists, _liked, 0});
+    }
   }
 }
 
 void YTrack::_getAllFromDisk()
 {
   _checkedDisk = true;
-  if (!fileExists(Config::ym_trackFile(_id))) return;
+  try {
+    auto d = TagLib::readTrack(Config::ym_trackFile(_id));
 
-  _audio = QMediaContent(QUrl::fromLocalFile(Config::ym_trackFile(_id)));
-  _gotAudio = GotFrom::Disk;
+    _audio = QMediaContent(QUrl::fromLocalFile(Config::ym_trackFile(_id)));
+    _title = d.title;
+    _comment = d.comment;
+    _artists = d.artists;
+    _cover = {QString("data:") + d.coverMimeType + ";base64," + d.cover.toBase64()};
+    _liked = d.liked;
+    _duration = d.duration;
 
-  auto file = TagLib::MPEG::File(Config::ym_trackFile(_id).toUtf8());
-  auto tag = file.ID3v2Tag();
-  if (tag == nullptr) return;
-
-  auto toString = [](TagLib::String const& s) -> QString { return QString::fromUtf8(s.toCString(true)); };
-
-  _title = toString(tag->title());
-  _comment = toString(tag->comment());
-  _duration = TagLib::MPEG::Properties(&file).lengthInMilliseconds();
-
-  _gotInfo = GotFrom::Disk;
-
-  _artists = toString(tag->artist());
-  _gotArtists = GotFrom::Disk;
-
-  for (auto&& frame : tag->frameList()) {
-    using Type = TagLib::ID3v2::AttachedPictureFrame::Type;
-
-    if (auto popularityFrame = dynamic_cast<TagLib::ID3v2::PopularimeterFrame*>(frame); popularityFrame != nullptr) {
-      if (_gotLiked == GotFrom::Disk) continue;
-      _liked = popularityFrame->rating() > 128;
-      _gotLiked = GotFrom::Disk;
-    }
-    else if (auto cover = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frame);
-        cover != nullptr && (cover->type() == Type::Other || cover->type() == Type::FrontCover || cover->type() == Type::BackCover || cover->type() == Type::Illustration)) {
-      if (_gotCover == GotFrom::Disk) continue;
-      auto pic = cover->picture();
-      _cover = {QString("data:") + toString(cover->mimeType()) + ";base64," + QByteArray{pic.data(), (int)pic.size()}.toBase64()};
-      _gotCover = GotFrom::Disk;
-    }
-  }
-  _gotLiked = GotFrom::Disk;
-  _gotCover = GotFrom::Disk;
+    _gotAudio = GotFrom::Disk;
+    _gotInfo = GotFrom::Disk;
+    _gotArtists = GotFrom::Disk;
+    _gotLiked = GotFrom::Disk;
+    _gotCover = GotFrom::Disk;
+  } catch(...) {}
 }
 
 void YTrack::_getInfoFromInternet()
@@ -328,7 +259,7 @@ void YTrack::_getAudioFromInternet()
   try {
     _audio = QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>()));
   } catch (std::exception& e) {
-    emit mediaAborted(e.what());
+    emit audioAborted(e.what());
   }
   if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
 }
@@ -683,7 +614,7 @@ void YClient::playDownloads()
 
 void YClient::addUserTrack(QUrl media, QUrl cover, QString title, QString artists, QString extra)
 {
-  UserTrack().setup(media, cover, title, artists, extra);
+  UserTrack::add(media, cover, title, artists, extra);
 }
 
 void YClient::searchAndPlayTrack(QString promit)

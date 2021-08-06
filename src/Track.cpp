@@ -35,9 +35,9 @@ QUrl Track::cover()
   return {"qrc:resources/player/no-cover.svg"};
 }
 
-QMediaContent Track::media()
+QMediaContent Track::audio()
 {
-  emit mediaAborted(tr("Empty track"));
+  emit audioAborted(tr("Empty track"));
   return {};
 }
 

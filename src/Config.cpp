@@ -168,6 +168,10 @@ Dir Config::user_saveDir() {
   return dir;
 }
 
+QString Config::user_trackFile(int id) {
+  return user_saveDir().sub(QString::number(id) + ".mp3");
+}
+
 QString Config::ym_token() {
   return _ym_token;
 }

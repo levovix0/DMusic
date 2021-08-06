@@ -6,7 +6,7 @@ Item {
   property url icon: ""
   property string title: ""
   property string artists: ""
-  property string extra: ""
+  property string comment: ""
   property string idStr: ""
   property bool liked: false
   property bool isYandex: false
@@ -29,7 +29,7 @@ Item {
 
     title: root.title
     artists: root.artists
-    extra: root.extra
+    comment: root.comment
     idStr: root.idStr
     liked: root.liked
     isYandex: root.isYandex
