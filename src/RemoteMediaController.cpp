@@ -339,14 +339,10 @@ QMap<QString, QVariant> Mpris2Player::toXesam(Track& track)
 {
   QMap<QString, QVariant> res;
   res["origin"] = "DMusic";
-  QStringList artist;
-  for (auto& x : track.artistsStr().split(", "))
-    artist.append(x);
-  auto title = track.title();
-  res["xesam:url"] = title;
-  res["xesam:artist"] = artist;
+  res["xesam:url"] = track.originalUrl().url();
+  res["xesam:artist"] = track.artistsStr();
   res["xesam:album"] = ""; //TODO
-  res["xesam:title"] = title;
+  res["xesam:title"] = track.title();
   res["xesam:userRating"] = track.liked()? 1 : 0;
   auto duration = track.duration();
   res["mpris:length"] = duration > 0? duration * 1000 : 1; // in microseconds

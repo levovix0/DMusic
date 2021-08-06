@@ -34,6 +34,7 @@ when defined(unix):
   {.passc: "-I/usr/include/python" & pythonVersion.}
   {.passl: "-L/usr/local/lib/python" & pythonVersion & " -lpython" & pythonVersion.}
 
+  {.passc: "-I/usr/include/taglib".}
   {.passl: "-ltag".}
 
 macro sourcesFromDir(dir: static[string] = ".") =

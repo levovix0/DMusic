@@ -31,6 +31,7 @@ public:
   virtual QMediaContent media();
   virtual qint64 duration();
   virtual bool liked();
+  virtual QUrl originalUrl();
 
   virtual bool isYandex() { return false; }
   virtual YTrack* toYandex() { return nullptr; }

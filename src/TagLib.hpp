@@ -2,9 +2,9 @@
 #include <QMediaContent>
 #include <QImage>
 #include <QFile>
-#include <tag.h>
+#include <taglib/tag.h>
 #include <taglib/id3v2tag.h>
 #include <taglib/mpegfile.h>
 #include <taglib/mpegproperties.h>
-#include <attachedpictureframe.h>
-#include <popularimeterframe.h>
+#include <taglib/attachedpictureframe.h>
+#include <taglib/popularimeterframe.h>

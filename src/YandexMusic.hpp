@@ -30,6 +30,7 @@ public:
   QMediaContent media() override;
   qint64 duration() override;
   bool liked() override;
+  QUrl originalUrl() override;
 
   bool isYandex() override { return true; }
   YTrack* toYandex() override { return this; }

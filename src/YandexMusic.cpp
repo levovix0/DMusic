@@ -79,6 +79,11 @@ bool YTrack::liked()
   return _liked;
 }
 
+QUrl YTrack::originalUrl()
+{
+  return "https://music.yandex.ru/track/" + QString::number(_id);
+}
+
 qint64 YTrack::duration()
 {
   if (!_checkedDisk) _getAllFromDisk();

@@ -64,14 +64,14 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 win32 {
-  LIBS += -L$$(USERPROFILE)\AppData\Local\Programs\Python\Python39\libs -lpython39
-  INCLUDEPATH += $$(USERPROFILE)\AppData\Local\Programs\Python\Python39\include
+  LIBS += -L$$PWD/third-party -L$$(USERPROFILE)\AppData\Local\Programs\Python\Python39\libs -lpython39 -ltag
+  INCLUDEPATH += $$PWD/third-party $$(USERPROFILE)\AppData\Local\Programs\Python\Python39\include
   DEPENDPATH += $$(USERPROFILE)\AppData\Local\Programs\Python\Python39\include
 }
 
 unix {
   LIBS += -L/usr/local/lib/python3.9 -lpython3.9 -ltag
-  INCLUDEPATH += /usr/include/python3.9 /usr/include/taglib
+  INCLUDEPATH += /usr/include/python3.9
   DEPENDPATH += /usr/include/python3.9
 }
 

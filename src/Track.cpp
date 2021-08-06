@@ -51,6 +51,11 @@ bool Track::liked()
   return false;
 }
 
+QUrl Track::originalUrl()
+{
+  return {};
+}
+
 void Track::setLiked(bool)
 {
 
