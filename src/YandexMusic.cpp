@@ -640,25 +640,6 @@ Playlist* YClient::userTrack(int id)
   return res;
 }
 
-Playlist* YClient::downloadsPlaylist()
-{
-  DPlaylist* res = new DPlaylist(this);
-  if (!initialized()) return res;
-  for (auto&& s : Config::ym_saveDir().entryList(QDir::Files, QDir::SortFlag::Name)) {
-    if (!s.endsWith(".json")) continue;
-    s.chop(5);
-    res->add(track(s.toInt()));
-  }
-  for (auto&& s : Config::user_saveDir().entryList(QDir::Files, QDir::SortFlag::Name)) {
-    if (!s.endsWith(".json")) continue;
-    try {
-      s.chop(5);
-      res->add(refTrack(new UserTrack(s.toInt())));
-    }  catch (...) {}
-  }
-  return res;
-}
-
 YPlaylistsModel* YClient::homePlaylistsModel()
 {
   auto res = new YPlaylistsModel(this);
@@ -682,6 +663,22 @@ void YClient::playPlaylist(YPlaylist* playlist)
 {
   if (playlist == nullptr) return;
   AudioPlayer::instance->play(playlist->toPlaylist());
+}
+
+void YClient::playDownloads()
+{
+  DPlaylist* res = new DPlaylist(this);
+  for (auto&& s : Config::user_saveDir().entryList(QStringList{"*.json"}, QDir::Files, QDir::SortFlag::Name)) {
+    s.chop(5);
+    res->add(refTrack(new UserTrack(s.toInt())));
+  }
+  if (initialized()) {
+    for (auto&& s : Config::ym_saveDir().entryList(QStringList{"*.mp3"}, QDir::Files, QDir::SortFlag::Name)) {
+      s.chop(4);
+      res->add(track(s.toInt()));
+    }
+  }
+  AudioPlayer::instance->play(refPlaylist(res));
 }
 
 void YClient::addUserTrack(QUrl media, QUrl cover, QString title, QString artists, QString extra)

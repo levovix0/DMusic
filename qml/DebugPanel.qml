@@ -141,11 +141,7 @@ FloatingPanel {
     anchors.leftMargin: 12
     src: "qrc:/resources/debug/downloads.svg"
 
-    onClicked: {
-      try {
-        player.player.play(YClient.downloadsPlaylist())
-      } catch (e) {}
-    }
+    onClicked: YClient.playDownloads()
   }
 
   IconButton {

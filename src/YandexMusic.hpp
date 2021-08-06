@@ -187,10 +187,10 @@ public slots:
   Playlist* oneTrack(qint64 id);
   YPlaylist* userDailyPlaylist();
   Playlist* userTrack(int id);
-  Playlist* downloadsPlaylist();
   YPlaylistsModel* homePlaylistsModel();
 
   void playPlaylist(YPlaylist* playlist);
+  void playDownloads();
 
   void addUserTrack(QUrl media, QUrl cover, QString title, QString artists, QString extra);
 
