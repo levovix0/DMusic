@@ -394,7 +394,7 @@ QString YLikedTracks::name()
 
 QUrl YLikedTracks::cover()
 {
-  return QUrl("qrc:/resources/covers/like.png");
+  return {tr("qrc:/resources/covers/favorite.svg")};
 }
 
 refPlaylist YLikedTracks::toPlaylist()

@@ -79,6 +79,14 @@ Window {
       YClient.login(Config.ym_token, Config.ym_proxyServer)
     }
 
+    PageSwitcher {
+      id: _pages
+      anchors.left: _root.left
+      anchors.top: _title.bottom
+      anchors.right: _root.right
+      anchors.bottom: _player.top
+    }
+
     Title {
       id: _title
       width: _root.width
@@ -86,14 +94,6 @@ Window {
       windowSize: Qt.size(_root.width, _root.height)
       clientSideDecorations: Config.isClientSideDecorations
       maximized: maximized
-    }
-
-    PageSwitcher {
-      id: _pages
-      anchors.left: _root.left
-      anchors.top: _title.bottom
-      anchors.right: _root.right
-      anchors.bottom: _player.top
     }
 
     ListModel {

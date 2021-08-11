@@ -50,7 +50,7 @@ private:
   void _getLikedFromInternet();
   void _getArtistsFromInternet();
   void _getCoverFromInternet();
-  void _getAudioFromInternet();
+  void _getAudioFromInternet();  //TODO: ссылка из интернета со временем устаревает
   bool _gotAllFromInternet();
 
   void _fetchInternet();

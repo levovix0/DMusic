@@ -92,7 +92,8 @@ Rectangle {
         anchors.rightMargin: -58
         anchors.bottomMargin: 30 - _dpc.shift
 
-        triangle.anchors.horizontalCenterOffset: 85
+        triangleOffset: -73
+        triangleCenter: _debug.right
 
         player: root
       }

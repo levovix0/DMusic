@@ -38,7 +38,6 @@
         <file>resources/player/share.svg</file>
         <file>resources/player/like.svg</file>
         <file>resources/player/liked.svg</file>
-        <file>resources/covers/like.png</file>
         <file>resources/debug/add.svg</file>
         <file>resources/debug/downloads.svg</file>
         <file>resources/debug/playlist.svg</file>
@@ -105,5 +104,8 @@
         <file>qml/pages/settings/DevelopersBlock.qml</file>
         <file>resources/settings/GitHub.svg</file>
         <file>qml/pages/settings/GeneralSettingsBlock.qml</file>
+        <file>resources/covers/favorite-ru.svg</file>
+        <file>resources/covers/favorite.svg</file>
+        <file>qml/SearchPanel.qml</file>
     </qresource>
 </RCC>

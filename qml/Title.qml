@@ -108,6 +108,20 @@ Rectangle {
     }
   }
 
+  SearchPanel {
+    id: _searchPanel
+    width: _search.width
+    anchors.horizontalCenter: _search.horizontalCenter
+    anchors.top: root.bottom
+    anchors.topMargin: 10 - _spc.shift
+
+    PopupController {
+      id: _spc
+      opened: _search.input.focus
+      target: parent
+    }
+  }
+
   ResizeArea {
     id: _lg
     width: 12
