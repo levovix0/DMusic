@@ -7,7 +7,7 @@ Item {
   property string title: ""
   property string artists: ""
   property string comment: ""
-  property string idStr: ""
+  property int trackId
   property bool liked: false
   property bool isYandex: false
 
@@ -30,7 +30,7 @@ Item {
     title: root.title
     artists: root.artists
     comment: root.comment
-    idStr: root.idStr
+    trackId: root.trackId
     liked: root.liked
     isYandex: root.isYandex
 

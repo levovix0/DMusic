@@ -8,7 +8,7 @@ Item {
   property string title: ""
   property string artists: ""
   property string comment: ""
-  property string idStr: ""
+  property int trackId
   property bool liked: false
   property bool isYandex: false
 
@@ -39,7 +39,7 @@ Item {
           id: _clipboard
         }
 
-        onClicked: _clipboard.copy(root.idStr);
+        onClicked: _clipboard.copy(root.trackId);
 
         onEntered: _full_titleAndComment.show()
         onExited: _full_titleAndComment.hide()
