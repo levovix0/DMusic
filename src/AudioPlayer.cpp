@@ -31,6 +31,9 @@ AudioPlayer::AudioPlayer(QObject *parent) : QObject(parent), player(new QMediaPl
         if (next()) return;
       }
       stop();
+    } else if (status == QMediaPlayer::InvalidMedia) {
+      // media was outdated or internet was disconnected
+      _currentTrack->invalidateAudio();
     }
   });
   QObject::connect(player, &QMediaPlayer::stateChanged, [this](QMediaPlayer::State state) {
