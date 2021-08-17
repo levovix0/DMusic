@@ -56,6 +56,11 @@ QUrl Track::originalUrl()
   return {};
 }
 
+void Track::invalidateAudio()
+{
+  emit audioAborted(tr("Empty track"));
+}
+
 void Track::setLiked(bool)
 {
 

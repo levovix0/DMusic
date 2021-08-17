@@ -34,7 +34,7 @@ DPage {
       DText {
         id: _label
         Layout.alignment: Qt.AlignHCenter
-        visible: root.height >= 500
+        visible: root.height >= 400
 
         font.pointSize: 28
 

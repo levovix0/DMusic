@@ -36,6 +36,8 @@ public:
   virtual bool isYandex() { return false; }
   virtual YTrack* toYandex() { return nullptr; }
 
+  virtual void invalidateAudio();
+
 public slots:
   virtual void setLiked(bool liked);
 

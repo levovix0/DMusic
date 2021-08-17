@@ -36,6 +36,8 @@ public:
   bool isYandex() override { return true; }
   YTrack* toYandex() override { return this; }
 
+  void invalidateAudio() override;
+
   QVector<YArtist> artists();
 
 public slots:
@@ -60,7 +62,7 @@ private:
   QString _title, _comment;  // info
   QString _artists;
   QUrl _cover;
-  QMediaContent _audio;
+  QUrl _audio;
   bool _liked{false};
   int _duration{0};  // info
 

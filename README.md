@@ -1,5 +1,5 @@
 # DMusic
-Music player  
+Free Yandex.Music client / Music player  
 Uses unoffical Yandex.Music Api
 
 ## Installation

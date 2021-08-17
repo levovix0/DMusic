@@ -68,8 +68,9 @@ QUrl YTrack::cover()
 QMediaContent YTrack::audio()
 {
   if (!_checkedDisk) _getAllFromDisk();
-  if (_gotAudio == GotFrom::None) _getAudioFromInternet();
-  return _audio;
+  if (_gotAudio == GotFrom::None || _gotAudio == GotFrom::Internet) _getAudioFromInternet();
+  // if got audio from internet, link may be outdated, so re-get audio from internet in all cases
+  return {_audio};
 }
 
 bool YTrack::liked()
@@ -82,6 +83,14 @@ bool YTrack::liked()
 QUrl YTrack::originalUrl()
 {
   return "https://music.yandex.ru/track/" + QString::number(_id);
+}
+
+void YTrack::invalidateAudio()
+{
+  _gotAudio = GotFrom::None;
+  _audio = QUrl{};
+  _checkedDisk = false;
+  emit audioChanged(audio());
 }
 
 qint64 YTrack::duration()
@@ -138,23 +147,26 @@ void YTrack::saveToDisk(bool overrideCover)
       auto dc = new Download;
       connect(dc, &Download::finished, [dc, this, filename](QByteArray data) {
         TagLib::writeTrack(filename, TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, data, ""});
+        _checkedDisk = false;
         dc->deleteLater();
       });
       dc->start(_cover);
 
       d->deleteLater();
     });
-    d->start(_audio.request().url());
+    d->start(_audio);
   } else {
     if (overrideCover) {
       auto dc = new Download;
       connect(dc, &Download::finished, [dc, this, filename](QByteArray data) {
         TagLib::writeTrack(filename, TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, data, ""});
+        _checkedDisk = false;
         dc->deleteLater();
       });
       dc->start(_cover);
     } else {
       TagLib::writeTrack(filename, TagLib::Data{_title, _comment, _artists, _liked, 0});
+      _checkedDisk = false;
     }
   }
 }
@@ -165,7 +177,7 @@ void YTrack::_getAllFromDisk()
   try {
     auto d = TagLib::readTrack(Config::ym_trackFile(_id));
 
-    _audio = QMediaContent(QUrl::fromLocalFile(Config::ym_trackFile(_id)));
+    _audio = QUrl::fromLocalFile(Config::ym_trackFile(_id));
     _title = d.title;
     _comment = d.comment;
     _artists = d.artists;
@@ -257,7 +269,7 @@ void YTrack::_getAudioFromInternet()
   _fetchInternet();
   if (_py == nullptr) return;
   try {
-    _audio = QMediaContent(QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>()));
+    _audio = QUrl(_py.call("get_download_info")[0].call("get_direct_link").to<QString>());
   } catch (std::exception& e) {
     emit audioAborted(e.what());
   }
@@ -394,7 +406,7 @@ QString YLikedTracks::name()
 
 QUrl YLikedTracks::cover()
 {
-  return QUrl("qrc:/resources/covers/like.png");
+  return {tr("qrc:/resources/covers/favorite.svg")};
 }
 
 refPlaylist YLikedTracks::toPlaylist()

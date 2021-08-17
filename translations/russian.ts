@@ -411,6 +411,11 @@ usage: %1 [options]
         <translation>Мне нравится</translation>
     </message>
     <message>
+        <location filename="../src/YandexMusic.cpp" line="397"/>
+        <source>qrc:/resources/covers/favorite.svg</source>
+        <translation type="unfinished">qrc:/resources/covers/favorite-ru.svg</translation>
+    </message>
+    <message>
         <location filename="../src/YandexMusic.cpp" line="411"/>
         <source>Failed to load Yandex.Music user liked tracks</source>
         <translation>Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
