@@ -64,8 +64,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 win32 {
-  LIBS += -L$$PWD/third-party -L$$(USERPROFILE)\AppData\Local\Programs\Python\Python39\libs -lpython39 -ltag
-  INCLUDEPATH += $$PWD/third-party $$(USERPROFILE)\AppData\Local\Programs\Python\Python39\include
+  LIBS += -L$$(USERPROFILE)\AppData\Local\Programs\Python\Python39\libs -lpython39
+  INCLUDEPATH += $$(USERPROFILE)\AppData\Local\Programs\Python\Python39\include
   DEPENDPATH += $$(USERPROFILE)\AppData\Local\Programs\Python\Python39\include
 }
 
@@ -78,3 +78,11 @@ unix {
 DISTFILES += \
   src/codegen/genconfig.nim \
   src/config.nim
+
+DEFINES += TAGLIB_STATIC
+
+win32 {
+  CONFIG(release, debug|release): LIBS += -L"C:/Program Files/taglib/lib/" -ltag -lz
+  INCLUDEPATH += "C:/Program Files/taglib/include"
+  DEPENDPATH += "C:/Program Files/taglib/include"
+}

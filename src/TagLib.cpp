@@ -12,7 +12,7 @@ TagLib::DataWithCover TagLib::readTrack(QString path)
   DataWithCover res;
   if (!fileExists(path)) throw std::runtime_error("file not exist");
 
-  auto file = TagLib::MPEG::File(path.toUtf8());
+  auto file = TagLib::MPEG::File(path.toUtf8().data());
   auto tag = file.ID3v2Tag();
   if (tag == nullptr) return res;
 
@@ -49,7 +49,7 @@ void TagLib::writeTrack(QString path, Data const& data)
   };
   if (!fileExists(path)) return;
 
-  auto file = TagLib::MPEG::File(path.toUtf8());
+  auto file = TagLib::MPEG::File(path.toUtf8().data());
   auto tag = file.ID3v2Tag(true);
   tag->setTitle(toString(data.title));
   tag->setComment(toString(data.comment));
@@ -80,7 +80,7 @@ void TagLib::writeTrack(QString path, DataWithCover const& data)
   };
   if (!fileExists(path)) return;
 
-  auto file = TagLib::MPEG::File(path.toUtf8());
+  auto file = TagLib::MPEG::File(path.toUtf8().data());
   auto tag = file.ID3v2Tag(true);
   tag->setTitle(toString(data.title));
   tag->setComment(toString(data.comment));
