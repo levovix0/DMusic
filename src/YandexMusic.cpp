@@ -476,7 +476,12 @@ void YClient::init()
 QString YClient::token(QString login, QString password)
 {
   if (!initialized()) return "";
-  return ym.get("Client")().call("generate_token_by_username_and_password", {login, password}).to<QString>();
+  try {
+    return ym.get("Client")().call("generate_token_by_username_and_password", {login, password}).to<QString>();
+  } catch (std::exception& e) {
+    Messages::error(tr("Failed to login to Yandex.Music"), e.what());
+  }
+  return "";
 }
 
 void YClient::login(QString token)

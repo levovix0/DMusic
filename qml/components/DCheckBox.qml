@@ -8,13 +8,13 @@ RowLayout {
 
   property string text
   property bool checked: false
-  property color background: Style.panel.background
   property var style: Style.block
+  property real fontSize: 11
 
   MouseArea {
     Layout.alignment: Qt.AlignVCenter
-    width: 15
-    height: 15
+    width: 16
+    height: 16
 
     cursorShape: Qt.PointingHandCursor
 
@@ -25,9 +25,9 @@ RowLayout {
       visible: !root.checked
 
       radius: 3
-      color: root.background
-      border.color: style.border.color
-      border.width: style.border.width
+      color: "transparent"
+      border.color: style.checkBox.border.color
+      border.width: style.checkBox.border.width
     }
 
     Icon {
@@ -43,6 +43,7 @@ RowLayout {
     Layout.alignment: Qt.AlignVCenter
     visible: text != ""
     style: root.style.text
+    font.pointSize: root.fontSize
 
     text: root.text
 

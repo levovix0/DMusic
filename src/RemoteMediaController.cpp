@@ -1,5 +1,6 @@
 #include "RemoteMediaController.hpp"
-#include <QGuiApplication>
+#include <QApplication>
+#include <QWindow>
 #include <stdexcept>
 #include "utils.hpp"
 #include "Messages.hpp"
@@ -13,12 +14,12 @@ Mpris2Root::Mpris2Root(QObject* parent) : QDBusAbstractAdaptor(parent)
 
 void Mpris2Root::Raise()
 {
-  //TODO
+  // TODO
 }
 
 void Mpris2Root::Quit()
 {
-  QGuiApplication::instance()->quit();
+  QApplication::instance()->quit();
 }
 
 bool Mpris2Root::canRaise()
@@ -46,10 +47,8 @@ bool Mpris2Root::fullscreen()
   return false;
 }
 
-void Mpris2Root::setFullscreen(bool value)
-{
-  Q_UNUSED(value);
-}
+void Mpris2Root::setFullscreen(bool)
+{}
 
 QString Mpris2Root::identity()
 {
@@ -58,7 +57,7 @@ QString Mpris2Root::identity()
 
 QString Mpris2Root::desktopEntry()
 {
-  return "dmusic";
+  return "DMusic";
 }
 
 QStringList Mpris2Root::supportedUriSchemes()

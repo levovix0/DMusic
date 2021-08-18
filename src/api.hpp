@@ -99,6 +99,8 @@ public:
   static Dir userDir();
 
 public slots:
+  void setLiked(bool liked) override;
+
   void save();
   void save(QByteArray const& cover);
   bool load();

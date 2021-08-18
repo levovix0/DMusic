@@ -9,9 +9,8 @@ Item {
   property string comment: ""
   property int trackId
   property bool liked: false
-  property bool isYandex: false
 
-  signal toggleLiked(bool liked)
+  signal toggleLiked()
 
   PlayerTrackIcon {
     id: _icon
@@ -32,8 +31,7 @@ Item {
     comment: root.comment
     trackId: root.trackId
     liked: root.liked
-    isYandex: root.isYandex
 
-    onToggleLiked: root.toggleLiked(liked)
+    onToggleLiked: root.toggleLiked()
   }
 }

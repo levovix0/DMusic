@@ -1,6 +1,8 @@
 import QtQuick 2.15
 import QtGraphicalEffects 1.15
 
+// TODO: make it auto-resizible using Control
+
 Item {
   id: root
 

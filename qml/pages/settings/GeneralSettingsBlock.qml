@@ -13,8 +13,8 @@ SettingsBlock {
     Layout.maximumWidth: 600
 
     DCheckBox {
-      background: Style.window.background
       text: qsTr("Save all tracks")
+      fontSize: 10.5
       checked: Config.ym_saveAllTracks
       onCheckedChanged: Config.ym_saveAllTracks = checked
     }

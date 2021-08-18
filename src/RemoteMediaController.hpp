@@ -174,7 +174,7 @@ public:
   ~RemoteMediaController();
   explicit RemoteMediaController(QObject* parent = nullptr);
 
-  inline static const QString serviceName = "org.mpris.MediaPlayer2.DTeam.DMusic";
+  inline static const QString serviceName = "org.mpris.MediaPlayer2.DMusic";
 
   Q_PROPERTY(AudioPlayer* target READ target WRITE setTarget)
 

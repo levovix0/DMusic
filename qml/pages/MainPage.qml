@@ -18,13 +18,13 @@ DPage {
 
       Component.onCompleted: {
         if (YClient.loggined) {
-          model = YClient.homePlaylistsModel()
+          _yandexHomePlaylistsRepeater.model = YClient.homePlaylistsModel()
         } else {
           YClient.logginedChanged.connect(function(loggined) {
             if (loggined) {
-              model = YClient.homePlaylistsModel()
+              _yandexHomePlaylistsRepeater.model = YClient.homePlaylistsModel()
             } else {
-              model = []
+              _yandexHomePlaylistsRepeater.model = []
             }
           })
         }

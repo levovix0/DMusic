@@ -50,13 +50,23 @@ SettingsBlock {
       }
     }
 
-    DCheckBox {
+    RowLayout {
       Layout.alignment: Qt.AlignHCenter
+      spacing: 10
 
-      background: Style.window.background
-      checked: Config.isClientSideDecorations
-      onCheckedChanged: Config.isClientSideDecorations = checked
-      text: qsTr("Client-side decorations")
+      DCheckBox {
+        checked: Config.isClientSideDecorations
+        onCheckedChanged: Config.isClientSideDecorations = checked
+        text: qsTr("Client-side decorations")
+        fontSize: 10.5
+      }
+
+      DCheckBox {
+//        checked: Config.isClientSideDecorations
+//        onCheckedChanged: Config.isClientSideDecorations = checked
+        text: qsTr("By time of day")
+        fontSize: 10.5
+      }
     }
   }
 }

@@ -115,8 +115,7 @@ Rectangle {
     comment: _audio_player.currentTrack.comment
     trackId: _audio_player.currentTrack.id
     liked: _audio_player.currentTrack.liked
-    isYandex: _audio_player.currentTrack.isYandex
 
-    onToggleLiked: _audio_player.currentTrack.setLiked(liked)
+    onToggleLiked: _player.toglleLiked()
   }
 }

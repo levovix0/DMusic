@@ -167,6 +167,13 @@ Dir UserTrack::userDir()
   return Config::user_saveDir();
 }
 
+void UserTrack::setLiked(bool liked)
+{
+  _liked = liked;
+  TagLib::writeTrack(Config::user_trackFile(_id), TagLib::Data{_title, _comment, _artists, _liked, 0});
+  emit likedChanged(liked);
+}
+
 void UserTrack::save()
 {
   TagLib::writeTrack(Config::user_trackFile(_id), TagLib::Data{_title, _comment, _artists, _liked, 0});

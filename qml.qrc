@@ -107,5 +107,6 @@
         <file>resources/covers/favorite-ru.svg</file>
         <file>resources/covers/favorite.svg</file>
         <file>qml/SearchPanel.qml</file>
+        <file>qml/components/LinkText.qml</file>
     </qresource>
 </RCC>

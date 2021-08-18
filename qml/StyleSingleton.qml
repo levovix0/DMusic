@@ -39,6 +39,14 @@ QtObject {
         property color hoverColor: Qt.darker(color, 1.5)
       }
     }
+
+    property QtObject checkBox: QtObject {
+      property color color: accent
+      property QtObject border: QtObject {
+        property color color: darkTheme? accent : cBorder
+        property real width: 2
+      }
+    }
   }
 
   property QtObject header: QtObject {
@@ -170,6 +178,14 @@ QtObject {
         property color hoverColor: Qt.darker(color, 1.5)
       }
     }
+
+    property QtObject checkBox: QtObject {
+      property color color: accent
+      property QtObject border: QtObject {
+        property color color: darkTheme? accent : cBorder
+        property real width: 2
+      }
+    }
   }
 
   property QtObject block: QtObject {
@@ -198,6 +214,14 @@ QtObject {
       property QtObject accent: QtObject {
         property color color: block.accent
         property color hoverColor: Qt.darker(color, 1.5)
+      }
+    }
+
+    property QtObject checkBox: QtObject {
+      property color color: accent
+      property QtObject border: QtObject {
+        property color color: darkTheme? accent : cBorder
+        property real width: 2
       }
     }
   }

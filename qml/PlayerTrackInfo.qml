@@ -10,9 +10,8 @@ Item {
   property string comment: ""
   property int trackId
   property bool liked: false
-  property bool isYandex: false
 
-  signal toggleLiked(bool liked)
+  signal toggleLiked()
 
   Item {
     anchors.fill: root
@@ -30,7 +29,7 @@ Item {
 
       MouseArea {
         anchors.fill: parent
-        enabled: root.isYandex
+        enabled: root.trackId != 0
 
         cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
         hoverEnabled: true
@@ -134,11 +133,11 @@ Item {
     anchors.bottom: parent.verticalCenter
     x: Math.round(Math.min(_title.width + (_comment.text == ""? 0 : _comment.width + 2) + 5, root.width + 2))
     anchors.bottomMargin: -1
-    visible: root.isYandex
 
-    icon: liked? "qrc:/resources/player/liked.svg" : "qrc:/resources/player/like.svg"
+    visible: root.trackId != 0
+    icon: root.liked? "qrc:/resources/player/liked.svg" : "qrc:/resources/player/like.svg"
 
-    onClick: toggleLiked(!liked)
+    onClick: root.toggleLiked()
   }
 
   Rectangle {

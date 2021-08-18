@@ -4,14 +4,14 @@ import "../../components"
 
 Rectangle {
   id: root
-  width: 50
-  height: 50
+  width: 45
+  height: 45
 
   property color dark
   property color light
   property bool selected: Config.colorAccentDark == dark && Config.colorAccentLight == light
 
-  radius: 10
+  radius: 7.5
 
   color: Config.darkTheme? dark : light
 
@@ -29,7 +29,7 @@ Rectangle {
   Icon {
     anchors.centerIn: parent
     visible: root.selected
-    color: "#FFFFFF"
+    color: Config.darkTheme? Style.panel.background : "#FFFFFF"
     src: "qrc:/resources/settings/selected.svg"
   }
 }

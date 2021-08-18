@@ -11,7 +11,7 @@ SettingsBlock {
   GridLayout {
     Layout.maximumWidth: 250
     columnSpacing: 10
-    rowSpacing: 10
+    rowSpacing: 15
     columns: 3
 
     ColorSelect {
