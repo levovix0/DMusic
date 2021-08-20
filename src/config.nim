@@ -29,6 +29,7 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
 
   bool darkTheme true
   bool darkHeader true
+  bool themeByTime true
 
   config user, "User":
     dir saveDir "data:user"

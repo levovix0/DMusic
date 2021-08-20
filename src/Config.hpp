@@ -57,6 +57,7 @@ public:
   Q_PROPERTY(LoopMode loopMode READ loopMode WRITE setLoopMode NOTIFY loopModeChanged)
   Q_PROPERTY(bool darkTheme READ darkTheme WRITE setDarkTheme NOTIFY darkThemeChanged)
   Q_PROPERTY(bool darkHeader READ darkHeader WRITE setDarkHeader NOTIFY darkHeaderChanged)
+  Q_PROPERTY(bool themeByTime READ themeByTime WRITE setThemeByTime NOTIFY themeByTimeChanged)
   
   
   Q_PROPERTY(QString ym_token READ ym_token WRITE set_ym_token NOTIFY ym_tokenChanged)
@@ -80,6 +81,7 @@ public:
   static LoopMode loopMode();
   static bool darkTheme();
   static bool darkHeader();
+  static bool themeByTime();
   
   static Dir user_saveDir();
   static QString user_trackFile(int id);
@@ -105,6 +107,7 @@ public slots:
   void setLoopMode(LoopMode v);
   void setDarkTheme(bool v);
   void setDarkHeader(bool v);
+  void setThemeByTime(bool v);
   
   
   void set_ym_token(QString v);
@@ -129,6 +132,7 @@ signals:
   void loopModeChanged(LoopMode loopMode);
   void darkThemeChanged(bool darkTheme);
   void darkHeaderChanged(bool darkHeader);
+  void themeByTimeChanged(bool themeByTime);
   
   
   void ym_tokenChanged(QString ym_token);
@@ -150,6 +154,7 @@ private:
   inline static LoopMode _loopMode = LoopNone;
   inline static bool _darkTheme = true;
   inline static bool _darkHeader = true;
+  inline static bool _themeByTime = true;
   
   
   inline static QString _ym_token = "";

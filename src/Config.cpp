@@ -162,6 +162,17 @@ void Config::setDarkHeader(bool v) {
   saveToJson();
 }
 
+bool Config::themeByTime() {
+  return _themeByTime;
+}
+
+void Config::setThemeByTime(bool v) {
+  if (_themeByTime == v) return;
+  _themeByTime = v;
+  emit themeByTimeChanged(_themeByTime);
+  saveToJson();
+}
+
 Dir Config::user_saveDir() {
   auto dir = dataDir()/"user";
   if (!dir.exists()) dir.create();
@@ -275,6 +286,8 @@ void Config::reloadFromJson() {
   emit darkThemeChanged(_darkTheme);
   _darkHeader = doc["darkHeader"].toBool(true);
   emit darkHeaderChanged(_darkHeader);
+  _themeByTime = doc["themeByTime"].toBool(true);
+  emit themeByTimeChanged(_themeByTime);
   
   QJsonObject user_ = doc["User"].toObject();
   if (!user_.isEmpty()) {
@@ -312,6 +325,7 @@ void Config::saveToJson() {
   doc["loopMode"] = _loopMode;
   doc["darkTheme"] = _darkTheme;
   doc["darkHeader"] = _darkHeader;
+  doc["themeByTime"] = _themeByTime;
   
   QJsonObject user_;
   doc["User"] = user_;

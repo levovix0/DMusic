@@ -5,6 +5,7 @@
 #include <QQuickStyle>
 #include <QQuickView>
 #include <QWidget>
+#include <QTimer>
 #include "YandexMusic.hpp"
 #include "file.hpp"
 #include "Config.hpp"
@@ -37,6 +38,35 @@ int main(int argc, char *argv[])
 	QObject::connect(Config::instance, &Config::languageChanged, [](Config::Language language) {
 		Translator::instance->setLanguage(language);
 	});
+
+  auto updateThemeIfNeeded = []() {
+    if (!Config::themeByTime()) return;
+    if (QTime::currentTime().hour() >= 19 || QTime::currentTime().hour() < 7) {
+      if (!Config::instance->darkTheme()) {
+        Config::instance->setDarkTheme(true);
+      }
+    } else if (Config::instance->darkTheme()) {
+      Config::instance->setDarkTheme(false);
+    }
+  };
+  QObject::connect(Config::instance, &Config::themeByTimeChanged, updateThemeIfNeeded);
+
+  bool darkTime = Config::instance->darkTheme();
+  auto timer = new QTimer();
+  QObject::connect(timer, &QTimer::timeout, [&](){
+    if (!Config::themeByTime()) return;
+    if (QTime::currentTime().hour() >= 19 || QTime::currentTime().hour() < 7) {
+      if (!darkTime) {
+        Config::instance->setDarkTheme(true);
+        darkTime = true;
+      }
+    } else if (darkTime) {
+      Config::instance->setDarkTheme(false);
+      darkTime = false;
+    }
+  });
+  timer->start(1000);
+
 
 //  bool gui = args.count() == 0 || args.has("-g") || args.has("--gui");
 

@@ -18,7 +18,7 @@ SettingsBlock {
 
       ThemeSelect {
         darkTheme: true
-        darkHeader: true
+        darkHeader: Config.darkHeader
         background: "#33373F"
         header: "#25282F"
       }
@@ -62,8 +62,8 @@ SettingsBlock {
       }
 
       DCheckBox {
-//        checked: Config.isClientSideDecorations
-//        onCheckedChanged: Config.isClientSideDecorations = checked
+        checked: Config.themeByTime
+        onCheckedChanged: Config.themeByTime = checked
         text: qsTr("By time of day")
         fontSize: 10.5
       }

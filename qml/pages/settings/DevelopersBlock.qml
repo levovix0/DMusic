@@ -70,7 +70,7 @@ SettingsBlock {
         width: 16
         height: 16
 
-        color: Style.panel.text.color
+        color: Style.block.text.color
         src: "qrc:/resources/settings/GitHub.svg"
 
         MouseArea {

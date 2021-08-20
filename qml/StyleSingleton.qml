@@ -5,7 +5,7 @@ import Config 1.0
 QtObject {
   id: root
   property bool darkTheme: Config.darkTheme
-  property bool darkHeader: Config.darkHeader
+  property bool darkHeader: Config.darkTheme || Config.darkHeader
 
   property color accent: Config.colorAccentDark
   property color lightAccent: Config.colorAccentLight
