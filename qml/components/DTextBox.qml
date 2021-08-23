@@ -15,6 +15,8 @@ Rectangle {
   property alias input: _input
   property alias text: _input.text
 
+  property bool clearButton: false
+
   property QtObject style: Style.panel.textBox
 
   MouseArea {
@@ -29,8 +31,10 @@ Rectangle {
     TextInput {
       id: _input
       anchors.fill: parent
+      anchors.rightMargin: (clearButton && contentWidth > parent.width - _clear.width * 2)? _clear.width : 0
       verticalAlignment: Text.AlignVCenter
       horizontalAlignment: root.style.text.hAlign
+      clip: true
 
       color: root.style.text.color
       font.family: root.style.text.font
@@ -50,6 +54,24 @@ Rectangle {
       font.pointSize: root.height * 0.75 * root.style.hintScale
       text: root.hint
       color: root.style.text.darkColor
+    }
+
+    MouseArea {
+      id: _clear
+      anchors.right: parent.right
+      visible: clearButton && root.text !== ""
+      height: parent.height
+      width: height
+
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onClicked: root.text = ""
+
+      Icon {
+        anchors.centerIn: parent
+        src: "qrc:/resources/title/clear.svg"
+        color: root.style.text.color
+      }
     }
   }
 

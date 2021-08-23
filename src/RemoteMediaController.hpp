@@ -187,7 +187,7 @@ private:
   bool _isDBusServiceCreated = false;
   Mpris2Root* _mpris2Root;
   Mpris2Player* _mpris2Player;
-  DiscordPresence* _discordPresence;
+  DiscordPresence* _discordPresence = nullptr;
   AudioPlayer* _target;
 #ifdef Q_OS_WIN
   ThumbnailController* _win = nullptr;

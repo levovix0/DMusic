@@ -539,7 +539,7 @@ void RemoteMediaController::setTarget(AudioPlayer* player)
   delete _win;
   _win = new ThumbnailController(player, this);
 #endif
-  _discordPresence = new DiscordPresence(player, this);
+  if (_discordPresence == nullptr) _discordPresence = new DiscordPresence(player, this);
   if (!_isDBusServiceCreated) return;
-  _mpris2Player = new Mpris2Player(player, this);
+  if (_mpris2Player == nullptr) _mpris2Player = new Mpris2Player(player, this);
 }

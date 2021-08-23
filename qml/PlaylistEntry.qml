@@ -73,6 +73,14 @@ Item {
     }
   }
 
+  DropShadow {
+    anchors.fill: _roundCover
+    radius: 8.0
+    samples: 16
+    color: "#40000000"
+    source: _roundCover
+  }
+
   RoundMask {
     id: _roundCover
     anchors.fill: _cover

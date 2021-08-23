@@ -3,7 +3,7 @@ import QtGraphicalEffects 1.0
 
 OpacityMask {
   id: root
-  property real radius: 10
+  property real radius: 7.5
 
   maskSource: Item {
     width: root.source.width

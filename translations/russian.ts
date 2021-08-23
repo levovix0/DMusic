@@ -235,7 +235,7 @@
 <context>
     <name>PlaylistEntry</name>
     <message>
-        <location filename="../qml/PlaylistEntry.qml" line="137"/>
+        <location filename="../qml/PlaylistEntry.qml" line="145"/>
         <source>Some playlist</source>
         <translation>Какой-то плейлист</translation>
     </message>
@@ -245,7 +245,7 @@
     <message>
         <location filename="../src/python.cpp" line="437"/>
         <source>Failed to import python module &apos;%1&apos;, it will be auto-installed</source>
-        <translation>Не удалось импортировать модуль python &apos;%1&apos;, он будет установлен автоматически</translation>
+        <translation>Не удалось импортировать модуль python &apos;%1&apos;, он был установлен автоматически</translation>
     </message>
     <message>
         <location filename="../src/python.cpp" line="476"/>
@@ -253,7 +253,7 @@
         <translation>Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="48"/>
+        <location filename="../src/main.cpp" line="78"/>
         <source>DMusic - music player
 usage: %1 [options]
 
@@ -270,6 +270,24 @@ usage: %1 [options]
 -g --gui      запустить приложение
 -verbose      показать больше логов
 </translation>
+    </message>
+</context>
+<context>
+    <name>SearchPanel</name>
+    <message>
+        <location filename="../qml/SearchPanel.qml" line="30"/>
+        <source>Tracks</source>
+        <translation>Треки</translation>
+    </message>
+    <message>
+        <location filename="../qml/SearchPanel.qml" line="36"/>
+        <source>Albums</source>
+        <translation>Альбомы</translation>
+    </message>
+    <message>
+        <location filename="../qml/SearchPanel.qml" line="42"/>
+        <source>Artists</source>
+        <translation>Исполнители</translation>
     </message>
 </context>
 <context>

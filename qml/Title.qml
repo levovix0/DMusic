@@ -97,8 +97,12 @@ Rectangle {
     style: Style.header.searchBox
     Binding { target: _search; property: "style.background"; value: Config.darkHeader? (_search.text == ""? "#1C1C1C" : Style.panel.background) : "transparent" }
     hint: qsTr("search")
+    clearButton: true
 
-    input.onAccepted: if (text != "") YClient.searchAndPlayTrack(text);
+    input.onAccepted: {
+      if (text != "") YClient.searchAndPlayTrack(text);
+      SearchHistory.savePromit(text)
+    }
 
     MouseArea {
       anchors.fill: parent
@@ -114,6 +118,9 @@ Rectangle {
     anchors.horizontalCenter: _search.horizontalCenter
     anchors.top: root.bottom
     anchors.topMargin: 10 - _spc.shift
+
+    onChangeText: _search.text = text
+    text: _search.text
 
     PopupController {
       id: _spc

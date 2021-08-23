@@ -108,5 +108,11 @@
         <file>resources/covers/favorite.svg</file>
         <file>qml/SearchPanel.qml</file>
         <file>qml/components/LinkText.qml</file>
+        <file>qml/SearchFilterToggle.qml</file>
+        <file>resources/search/album.svg</file>
+        <file>resources/search/artist.svg</file>
+        <file>resources/search/track.svg</file>
+        <file>resources/search/history.svg</file>
+        <file>resources/title/clear.svg</file>
     </qresource>
 </RCC>

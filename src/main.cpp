@@ -16,6 +16,7 @@
 #include "Messages.hpp"
 #include "ConsoleArgs.hpp"
 #include "Translator.hpp"
+#include "SearchHistory.hpp"
 
 // TODO: dislike
 // TODO: Память течёт, хоть и понемногу (потоковый режим)
@@ -119,6 +120,7 @@ int main(int argc, char *argv[])
 	qmlRegisterSingletonType<Translator>("DMusic", 1, 0, "Translator", &Config::qmlInstance);
   qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
   qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
+  qmlRegisterSingletonType<SearchHistory>("DMusic", 1, 0, "SearchHistory", &SearchHistory::qmlInstance);
 
 	qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
 

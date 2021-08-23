@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.15
 import QtGraphicalEffects 1.15
 import DMusic 1.0
 
@@ -16,14 +16,14 @@ Item {
   Rectangle {
     id: _background
     anchors.fill: root
-    radius: 8
+    radius: 7.5
     color: root.color
   }
 
   DropShadow {
     anchors.fill: root
     radius: 16.0
-    samples: 25
+    samples: 30
     color: "#40000000"
     source: _background
   }

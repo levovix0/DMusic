@@ -15,6 +15,7 @@ SOURCES += \
   src/Messages.cpp \
   src/Radio.cpp \
   src/RemoteMediaController.cpp \
+  src/SearchHistory.cpp \
   src/TagLib.cpp \
   src/Track.cpp \
   src/Translator.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
   src/Messages.hpp \
   src/Radio.hpp \
   src/RemoteMediaController.hpp \
+  src/SearchHistory.hpp \
   src/TagLib.hpp \
   src/Track.hpp \
   src/Translator.hpp \
