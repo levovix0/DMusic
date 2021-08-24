@@ -58,8 +58,11 @@ void SearchHistory::load()
   QFile f(Config::dataDir().sub("searchHistory.txt"));
 
   f.open(QFile::ReadOnly);
-  while (f.canReadLine()) {
-    _history.append(QString::fromUtf8(f.readLine()));
+  while (!f.atEnd()) {
+    auto line = QString::fromUtf8(f.readLine());
+    line.replace("\n", "");
+    if (line.isEmpty()) continue;
+    _history.append(line);
   }
   f.close();
 }
