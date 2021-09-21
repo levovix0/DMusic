@@ -416,6 +416,15 @@ refPlaylist YLikedTracks::toPlaylist()
   DPlaylist* res = new DPlaylist(this);
   try {
     if (!YClient::instance->initialized()) throw std::runtime_error(tr("Yandex music api is not initialized").toStdString());
+
+    // add user-added and liked tracks
+    for (auto&& s : Config::user_saveDir().entryList(QStringList{"*.mp3"}, QDir::Files, QDir::SortFlag::Name)) {
+      s.chop(4);
+      auto r = refTrack(new UserTrack(s.toInt()));
+      if (r->liked())
+        res->add(r);
+    }
+
     auto a = YClient::instance->me.call("users_likes_tracks").get("tracks_ids");
     for (auto&& p : a) {
       if (!p.contains(":")) continue;
@@ -618,8 +627,8 @@ void YClient::playPlaylist(YPlaylist* playlist)
 void YClient::playDownloads()
 {
   DPlaylist* res = new DPlaylist(this);
-  for (auto&& s : Config::user_saveDir().entryList(QStringList{"*.json"}, QDir::Files, QDir::SortFlag::Name)) {
-    s.chop(5);
+  for (auto&& s : Config::user_saveDir().entryList(QStringList{"*.mp3"}, QDir::Files, QDir::SortFlag::Name)) {
+    s.chop(4);
     res->add(refTrack(new UserTrack(s.toInt())));
   }
   if (initialized()) {
