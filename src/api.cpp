@@ -167,6 +167,11 @@ Dir UserTrack::userDir()
   return Config::user_saveDir();
 }
 
+void UserTrack::invalidateAudio()
+{
+  emit audioAborted(tr("Failed to play track from file: %1").arg(_url.fileName()));
+}
+
 void UserTrack::setLiked(bool liked)
 {
   _liked = liked;

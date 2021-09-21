@@ -98,6 +98,8 @@ public:
 
   static Dir userDir();
 
+  void invalidateAudio() override;
+
 public slots:
   void setLiked(bool liked) override;
 
