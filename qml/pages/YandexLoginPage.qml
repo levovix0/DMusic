@@ -87,7 +87,7 @@ DPage {
             verticalAlignment: Text.AlignVCenter
 
             color: Style.login.textboxText
-            font.pixelSize: parent.height * 0.5
+            font.pointSize: 30 * 0.5 * 0.75
             selectByMouse: true
             selectionColor: "#627FAA"
 
@@ -100,7 +100,7 @@ DPage {
             anchors.horizontalCenter: parent.horizontalCenter
             visible: _email.text == ""
 
-            font.pixelSize: parent.height * 0.5
+            font.pointSize: 30 * 0.5 * 0.75
             text: qsTr("Email")
             color: Style.login.textboxHint
           }
@@ -135,7 +135,7 @@ DPage {
             echoMode: TextInput.Password
 
             color: Style.login.textboxText
-            font.pixelSize: parent.height * 0.3
+            font.pointSize: 30 * 0.3 * 0.75
             selectByMouse: true
             selectionColor: "#627FAA"
 
@@ -148,7 +148,7 @@ DPage {
             anchors.horizontalCenter: parent.horizontalCenter
             visible: _password.text == ""
 
-            font.pixelSize: parent.height * 0.5
+            font.pointSize: 30 * 0.5 * 0.75
             text: qsTr("Password")
             color: Style.login.textboxHint
           }

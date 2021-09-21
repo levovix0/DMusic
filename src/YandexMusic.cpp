@@ -251,7 +251,9 @@ void YTrack::_getCoverFromInternet()
   _fetchInternet();
   if (_py == nullptr) return;
   try {
-    auto a = "http://" + _py.get("cover_uri").to<QString>();
+    auto a = _py.get("cover_uri").to<QString>();
+    if (a == "") throw std::exception();
+    a = "http://" + a;
     a.truncate(a.length() - 2);
     a += "m" + toString(Config::ym_coverQuality());
     _cover = QUrl{a};

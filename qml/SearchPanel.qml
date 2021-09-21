@@ -107,8 +107,47 @@ FloatingPanel {
   Component {
     id: _searchResults
 
-    Item {
+    Column {
+      x: -10
 
+      SearchResult {
+        width: root.width - 20
+
+        kind: "track"
+        cover: "file:///d/graphics/art/арт-3-азриэль дриммур.png"
+        name: "name"
+        comment: "comment"
+        artist: "artist"
+      }
+
+      SearchResult {
+        width: root.width - 20
+
+        kind: "artist"
+        cover: "file:///d/graphics/art/аватарка.png"
+        name: "name"
+        comment: "comment"
+      }
+
+      SearchResult {
+        width: root.width - 20
+
+        kind: "album"
+        cover: "file:///d/graphics/art/Идеальность.png"
+        name: "name"
+        comment: "comment"
+        artist: "artist"
+      }
+
+      SearchResult {
+        width: root.width - 20
+
+        kind: "track"
+        cover: "file:///d/graphics/art/арт-2-lixie lox.png"
+        name: "name"
+        comment: "comment"
+        artist: "artist"
+      }
     }
   }
 }

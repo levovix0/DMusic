@@ -100,7 +100,9 @@ Rectangle {
     clearButton: true
 
     input.onAccepted: {
-      if (text != "") YClient.searchAndPlayTrack(text);
+      if (text == "") return
+//      YClient.searchAndPlayTrack(text);
+      _pages.gotoPage("qrc:/qml/pages/SearchPage.qml")
       SearchHistory.savePromit(text)
     }
 

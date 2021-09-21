@@ -123,7 +123,7 @@ private:
 
     QString qMapToString(const QMap<QString, QVariant>& map);
     QString stateToString(QMediaPlayer::State state);
-    AudioPlayer* _player;
+    AudioPlayer* _player = nullptr;
     qint64 _prevPosition = 0;
     QMap<QString, QVariant> _currentTrackMetadata;
 };
@@ -185,10 +185,10 @@ public slots:
 
 private:
   bool _isDBusServiceCreated = false;
-  Mpris2Root* _mpris2Root;
-  Mpris2Player* _mpris2Player;
+  Mpris2Root* _mpris2Root = nullptr;
+  Mpris2Player* _mpris2Player = nullptr;
   DiscordPresence* _discordPresence = nullptr;
-  AudioPlayer* _target;
+  AudioPlayer* _target = nullptr;
 #ifdef Q_OS_WIN
   ThumbnailController* _win = nullptr;
 #endif

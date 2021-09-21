@@ -505,7 +505,7 @@ RemoteMediaController::~RemoteMediaController()
   if (!_isDBusServiceCreated) return;
   auto&& bus = QDBusConnection::sessionBus();
   bus.unregisterObject("/org/mpris/MediaPlayer2");
-  bus.unregisterService(serviceName);
+  bus.unregisterService(serviceName + (_serviceDuplicateCount == 1? "" : QString::number(_serviceDuplicateCount)));
 }
 
 RemoteMediaController::RemoteMediaController(QObject *parent) : QObject(parent)
@@ -514,8 +514,6 @@ RemoteMediaController::RemoteMediaController(QObject *parent) : QObject(parent)
 
   if (!bus.isConnected()) return;
   while (!bus.registerService(serviceName + (_serviceDuplicateCount == 1? "" : QString::number(_serviceDuplicateCount)))) {
-    if (_serviceDuplicateCount > 20)
-      throw std::runtime_error(qPrintable(QDBusConnection::sessionBus().lastError().message()));
     ++_serviceDuplicateCount;
   }
 

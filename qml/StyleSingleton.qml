@@ -122,16 +122,28 @@ QtObject {
     property color background: darkHeader? "#262626" : white
     property color accent: darkHeader? root.accent : root.lightAccent
     property bool shadow: true
-    property real radius: 10
+    property real radius: 7.5
 
     property QtObject border: QtObject {
       property color color: "transparent"
       property real width: 0
     }
 
+    property QtObject sellection: QtObject {
+      property color background: darkHeader? "#202020" : white
+      property real radius: 7.5
+
+      property QtObject border: QtObject {
+        property color color: darkHeader? "transparent" : cBorder
+        property real width: darkHeader? 0 : 2
+      }
+    }
+
     property QtObject text: QtObject {
       property color color: darkHeader? white : c40
       property color darkColor: "#808080"
+      property color artistColor: darkHeader? "#CCCCCC" : "#515151"
+      property color commentColor: "#999999"
       property string font: "Roboto"
     }
 

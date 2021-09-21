@@ -233,11 +233,37 @@
     </message>
 </context>
 <context>
+    <name>PagePlaceholder</name>
+    <message>
+        <location filename="../qml/components/PagePlaceholder.qml" line="9"/>
+        <source>There must be page</source>
+        <translation>Здесь должна быть какая-то страница</translation>
+    </message>
+    <message>
+        <location filename="../qml/components/PagePlaceholder.qml" line="10"/>
+        <source>but there isn&apos;t</source>
+        <translation>но её тут нет</translation>
+    </message>
+</context>
+<context>
     <name>PlaylistEntry</name>
     <message>
         <location filename="../qml/PlaylistEntry.qml" line="145"/>
         <source>Some playlist</source>
         <translation>Какой-то плейлист</translation>
+    </message>
+</context>
+<context>
+    <name>PlaylistPage</name>
+    <message>
+        <location filename="../qml/pages/PlaylistPage.qml" line="11"/>
+        <source>There must be playlist</source>
+        <translation>Здесь должен быть плейлист</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/PlaylistPage.qml" line="12"/>
+        <source>but there isn&apos;t</source>
+        <translation>но его тут нет</translation>
     </message>
 </context>
 <context>
@@ -253,7 +279,7 @@
         <translation>Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="78"/>
+        <location filename="../src/main.cpp" line="79"/>
         <source>DMusic - music player
 usage: %1 [options]
 
@@ -273,21 +299,42 @@ usage: %1 [options]
     </message>
 </context>
 <context>
+    <name>SearchPage</name>
+    <message>
+        <location filename="../qml/pages/SearchPage.qml" line="11"/>
+        <source>There must be search</source>
+        <translation>Здесь должен быть поиск</translation>
+    </message>
+    <message>
+        <location filename="../qml/pages/SearchPage.qml" line="12"/>
+        <source>but there isn&apos;t</source>
+        <translation>но его тут нет</translation>
+    </message>
+</context>
+<context>
     <name>SearchPanel</name>
     <message>
-        <location filename="../qml/SearchPanel.qml" line="30"/>
+        <location filename="../qml/SearchPanel.qml" line="41"/>
         <source>Tracks</source>
         <translation>Треки</translation>
     </message>
     <message>
-        <location filename="../qml/SearchPanel.qml" line="36"/>
+        <location filename="../qml/SearchPanel.qml" line="47"/>
         <source>Albums</source>
         <translation>Альбомы</translation>
     </message>
     <message>
-        <location filename="../qml/SearchPanel.qml" line="42"/>
+        <location filename="../qml/SearchPanel.qml" line="53"/>
         <source>Artists</source>
         <translation>Исполнители</translation>
+    </message>
+</context>
+<context>
+    <name>SearchResult</name>
+    <message>
+        <location filename="../qml/SearchResult.qml" line="84"/>
+        <source>album</source>
+        <translation>альбом</translation>
     </message>
 </context>
 <context>
@@ -388,29 +435,29 @@ usage: %1 [options]
 <context>
     <name>YClient</name>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="471"/>
+        <location filename="../src/YandexMusic.cpp" line="473"/>
         <source>Failed to initialize yandex music client</source>
         <translation>Не удалось инициализировать клиент Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="482"/>
-        <location filename="../src/YandexMusic.cpp" line="500"/>
-        <location filename="../src/YandexMusic.cpp" line="526"/>
+        <location filename="../src/YandexMusic.cpp" line="484"/>
+        <location filename="../src/YandexMusic.cpp" line="502"/>
+        <location filename="../src/YandexMusic.cpp" line="528"/>
         <source>Failed to login to Yandex.Music</source>
         <translation>Не удалось войти в Яндекс.Музыку</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="601"/>
+        <location filename="../src/YandexMusic.cpp" line="603"/>
         <source>Failed to load one of Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить один из умных плейлистов Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="605"/>
+        <location filename="../src/YandexMusic.cpp" line="607"/>
         <source>Failed to load Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить умные плейлисты Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="650"/>
+        <location filename="../src/YandexMusic.cpp" line="652"/>
         <source>Failed to search</source>
         <translation>Не удалось выполнить поиск</translation>
     </message>
@@ -423,12 +470,12 @@ usage: %1 [options]
         <translation type="vanished">Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="559"/>
+        <location filename="../src/YandexMusic.cpp" line="561"/>
         <source>Failed to load Yandex.Music playlist (id: %1)</source>
         <translation>Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="579"/>
+        <location filename="../src/YandexMusic.cpp" line="581"/>
         <source>Failed to load Yandex.Music daily playlist</source>
         <translation>Не удалось загрузить плейлист дня Яндекс.Музыки</translation>
     </message>
@@ -436,22 +483,22 @@ usage: %1 [options]
 <context>
     <name>YLikedTracks</name>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="404"/>
+        <location filename="../src/YandexMusic.cpp" line="406"/>
         <source>Favorites</source>
         <translation>Мне нравится</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="409"/>
+        <location filename="../src/YandexMusic.cpp" line="411"/>
         <source>qrc:/resources/covers/favorite.svg</source>
         <translation>qrc:/resources/covers/favorite-ru.svg</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="423"/>
+        <location filename="../src/YandexMusic.cpp" line="425"/>
         <source>Failed to load Yandex.Music user liked tracks</source>
         <translation>Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="416"/>
+        <location filename="../src/YandexMusic.cpp" line="418"/>
         <source>Yandex music api is not initialized</source>
         <translation>Api Яндекс.Музыки не инициализировано</translation>
     </message>
@@ -463,7 +510,7 @@ usage: %1 [options]
 <context>
     <name>YPlaylist</name>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="371"/>
+        <location filename="../src/YandexMusic.cpp" line="373"/>
         <source>Failed to convert Yandex.Music playlist to list of tracks</source>
         <translation>Не удалось преобразовать плейлист Яндекс.Музыки в список треков</translation>
     </message>
@@ -491,7 +538,7 @@ usage: %1 [options]
         <translation type="vanished">Файл %1 не существует</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="294"/>
+        <location filename="../src/YandexMusic.cpp" line="296"/>
         <source>Failed to fetch Yandex.Music track (id: %1)</source>
         <translation>Не удалось загрузить трек Яндекс.Музыки (id: %1)</translation>
     </message>

@@ -114,5 +114,11 @@
         <file>resources/search/track.svg</file>
         <file>resources/search/history.svg</file>
         <file>resources/title/clear.svg</file>
+        <file>qml/SearchResult.qml</file>
+        <file>qml/components/PagePlaceholder.qml</file>
+        <file>qml/pages/SearchPage.qml</file>
+        <file>resources/placeholders/search.svg</file>
+        <file>qml/pages/PlaylistPage.qml</file>
+        <file>resources/placeholders/playlist.svg</file>
     </qresource>
 </RCC>

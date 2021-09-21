@@ -1,11 +1,11 @@
 # DMusic
-Free Yandex.Music client / Music player  
-Uses unoffical Yandex.Music Api
+Open source Yandex.Music client / Music player  
+Uses [unoffical Yandex.Music Api](https://github.com/MarshalX/yandex-music-api)
 
 ## Installation
 See [releases](https://github.com/levovix0/DMusic/releases) or use nimble
 ```sh
-nimble install https://github.com/levovix0/DMusic
+nimble install https://github.com/levovix0/DMusic  # (linux-only)
 ```
 
 ## Dependencies
