@@ -17,6 +17,8 @@ Rectangle {
 
   property bool sellectedIn: sellected || _mouse.containsMouse
 
+  signal play()
+
   color: sellectedIn? Style.panel.sellection.background : "transparent"
   border.width: Style.panel.sellection.border.width
   border.color: sellectedIn? Style.panel.sellection.border.color : "transparent"
@@ -27,6 +29,8 @@ Rectangle {
     anchors.fill: parent
 
     hoverEnabled: true
+
+    onClicked: root.play()
 
     Item {
       anchors.centerIn: parent

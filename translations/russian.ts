@@ -5,16 +5,20 @@
     <name>AccountsSettingsBlock</name>
     <message>
         <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="8"/>
+        <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="8"/>
         <source>Accounts</source>
         <translation>Аккаунты</translation>
     </message>
     <message>
         <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="34"/>
         <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="120"/>
+        <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="34"/>
+        <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="120"/>
         <source>Yandex</source>
         <translation>Яндекс</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="102"/>
         <location filename="../qml/pages/settings/AccountsSettingsBlock.qml" line="102"/>
         <source>Login to </source>
         <translation>Войти в </translation>
@@ -48,6 +52,7 @@
 <context>
     <name>ColorSettingsBlock</name>
     <message>
+        <location filename="../qml/pages/settings/ColorSettingsBlock.qml" line="8"/>
         <location filename="../qml/pages/settings/ColorSettingsBlock.qml" line="8"/>
         <source>Color</source>
         <translation>Цвет</translation>
@@ -86,20 +91,24 @@
     <name>DebugPanel</name>
     <message>
         <location filename="../qml/DebugPanel.qml" line="22"/>
+        <location filename="../qml/DebugPanel.qml" line="22"/>
         <source>ID</source>
         <translation>ID</translation>
     </message>
     <message>
+        <location filename="../qml/DebugPanel.qml" line="62"/>
         <location filename="../qml/DebugPanel.qml" line="62"/>
         <source>Title</source>
         <translation>Название</translation>
     </message>
     <message>
         <location filename="../qml/DebugPanel.qml" line="72"/>
+        <location filename="../qml/DebugPanel.qml" line="72"/>
         <source>Comment</source>
         <translation>Комментарий</translation>
     </message>
     <message>
+        <location filename="../qml/DebugPanel.qml" line="93"/>
         <location filename="../qml/DebugPanel.qml" line="93"/>
         <source>MP3 (*.mp3)</source>
         <translation>MP3 (*.mp3)</translation>
@@ -109,6 +118,7 @@
         <translation type="vanished">Доп. инфо</translation>
     </message>
     <message>
+        <location filename="../qml/DebugPanel.qml" line="82"/>
         <location filename="../qml/DebugPanel.qml" line="82"/>
         <source>Artists</source>
         <translation>Авторы</translation>
@@ -127,6 +137,7 @@
     </message>
     <message>
         <location filename="../qml/DebugPanel.qml" line="32"/>
+        <location filename="../qml/DebugPanel.qml" line="32"/>
         <source>Image (*.jpg *.png *.svg)</source>
         <translation>Изображение (*.jpg *.png *.svg)</translation>
     </message>
@@ -135,40 +146,48 @@
     <name>DevelopersBlock</name>
     <message>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="8"/>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="8"/>
         <source>Developers</source>
         <translation>Разработчики</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="23"/>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="23"/>
         <source>levovix</source>
         <translation>levovix</translation>
     </message>
     <message>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="29"/>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="29"/>
         <source> - code, design</source>
         <translation> - код, дизайн</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="38"/>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="38"/>
         <source>LightFly</source>
         <translation>LightFly</translation>
     </message>
     <message>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="44"/>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="44"/>
         <source> - design, code</source>
         <translation> - дизайн, код</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="53"/>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="53"/>
         <source>Elidder</source>
         <translation>Elidder</translation>
     </message>
     <message>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="58"/>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="58"/>
         <source> - design</source>
         <translation> - дизайн</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="86"/>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="86"/>
         <source>GitHub</source>
         <translation>GitHub</translation>
@@ -185,6 +204,7 @@
     <name>DropPlace</name>
     <message>
         <location filename="../qml/components/DropPlace.qml" line="13"/>
+        <location filename="../qml/components/DropPlace.qml" line="13"/>
         <source>All files (*)</source>
         <translation>Все файлы (*)</translation>
     </message>
@@ -193,10 +213,12 @@
     <name>GeneralSettingsBlock</name>
     <message>
         <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="8"/>
+        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="8"/>
         <source>General</source>
         <translation>Общие</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="16"/>
         <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="16"/>
         <source>Save all tracks</source>
         <translation>Сохранять все треки</translation>
@@ -218,15 +240,18 @@
     <name>LanguageSettingsBlock</name>
     <message>
         <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="8"/>
+        <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="8"/>
         <source>Language</source>
         <translation>Язык</translation>
     </message>
     <message>
         <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="17"/>
+        <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="17"/>
         <source>English</source>
         <translation>Английский</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="23"/>
         <location filename="../qml/pages/settings/LanguageSettingsBlock.qml" line="23"/>
         <source>Russian</source>
         <translation>Русский</translation>
@@ -248,6 +273,7 @@
 <context>
     <name>PlaylistEntry</name>
     <message>
+        <location filename="../qml/PlaylistEntry.qml" line="145"/>
         <location filename="../qml/PlaylistEntry.qml" line="145"/>
         <source>Some playlist</source>
         <translation>Какой-то плейлист</translation>
@@ -279,7 +305,7 @@
         <translation>Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="79"/>
+        <location filename="../src/main.cpp" line="80"/>
         <source>DMusic - music player
 usage: %1 [options]
 
@@ -315,15 +341,18 @@ usage: %1 [options]
     <name>SearchPanel</name>
     <message>
         <location filename="../qml/SearchPanel.qml" line="41"/>
+        <location filename="../qml/SearchPanel.qml" line="41"/>
         <source>Tracks</source>
         <translation>Треки</translation>
     </message>
     <message>
         <location filename="../qml/SearchPanel.qml" line="47"/>
+        <location filename="../qml/SearchPanel.qml" line="47"/>
         <source>Albums</source>
         <translation>Альбомы</translation>
     </message>
     <message>
+        <location filename="../qml/SearchPanel.qml" line="53"/>
         <location filename="../qml/SearchPanel.qml" line="53"/>
         <source>Artists</source>
         <translation>Исполнители</translation>
@@ -332,7 +361,8 @@ usage: %1 [options]
 <context>
     <name>SearchResult</name>
     <message>
-        <location filename="../qml/SearchResult.qml" line="84"/>
+        <location filename="../qml/SearchResult.qml" line="89"/>
+        <location filename="../qml/SearchResult.qml" line="89"/>
         <source>album</source>
         <translation>альбом</translation>
     </message>
@@ -340,6 +370,7 @@ usage: %1 [options]
 <context>
     <name>SettingsPage</name>
     <message>
+        <location filename="../qml/pages/SettingsPage.qml" line="41"/>
         <location filename="../qml/pages/SettingsPage.qml" line="41"/>
         <source>Settings</source>
         <translation>Настройки</translation>
@@ -369,15 +400,18 @@ usage: %1 [options]
     <name>ThemeSettingsBlock</name>
     <message>
         <location filename="../qml/pages/settings/ThemeSettingsBlock.qml" line="8"/>
+        <location filename="../qml/pages/settings/ThemeSettingsBlock.qml" line="8"/>
         <source>Theme</source>
         <translation>Тема</translation>
     </message>
     <message>
         <location filename="../qml/pages/settings/ThemeSettingsBlock.qml" line="60"/>
+        <location filename="../qml/pages/settings/ThemeSettingsBlock.qml" line="60"/>
         <source>Client-side decorations</source>
         <translation>Декорации со стороны приложения</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/ThemeSettingsBlock.qml" line="67"/>
         <location filename="../qml/pages/settings/ThemeSettingsBlock.qml" line="67"/>
         <source>By time of day</source>
         <translation>По времени суток</translation>
@@ -411,6 +445,7 @@ usage: %1 [options]
     <name>Title</name>
     <message>
         <location filename="../qml/Title.qml" line="99"/>
+        <location filename="../qml/Title.qml" line="99"/>
         <source>search</source>
         <translation>поиск</translation>
     </message>
@@ -431,33 +466,38 @@ usage: %1 [options]
         <source>File not found</source>
         <translation type="vanished">Файл не найден</translation>
     </message>
+    <message>
+        <location filename="../src/api.cpp" line="173"/>
+        <source>Failed to play track from file: %1</source>
+        <translation>Не удалось проиграть трек из файла: %1</translation>
+    </message>
 </context>
 <context>
     <name>YClient</name>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="473"/>
+        <location filename="../src/YandexMusic.cpp" line="482"/>
         <source>Failed to initialize yandex music client</source>
         <translation>Не удалось инициализировать клиент Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="484"/>
-        <location filename="../src/YandexMusic.cpp" line="502"/>
-        <location filename="../src/YandexMusic.cpp" line="528"/>
+        <location filename="../src/YandexMusic.cpp" line="493"/>
+        <location filename="../src/YandexMusic.cpp" line="511"/>
+        <location filename="../src/YandexMusic.cpp" line="537"/>
         <source>Failed to login to Yandex.Music</source>
         <translation>Не удалось войти в Яндекс.Музыку</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="603"/>
+        <location filename="../src/YandexMusic.cpp" line="612"/>
         <source>Failed to load one of Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить один из умных плейлистов Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="607"/>
+        <location filename="../src/YandexMusic.cpp" line="616"/>
         <source>Failed to load Yandex.Music smart playlists</source>
         <translation>Не удалось загрузить умные плейлисты Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="652"/>
+        <location filename="../src/YandexMusic.cpp" line="661"/>
         <source>Failed to search</source>
         <translation>Не удалось выполнить поиск</translation>
     </message>
@@ -470,12 +510,12 @@ usage: %1 [options]
         <translation type="vanished">Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="561"/>
+        <location filename="../src/YandexMusic.cpp" line="570"/>
         <source>Failed to load Yandex.Music playlist (id: %1)</source>
         <translation>Не удалось загрузить плейлист Яндекс.Музыки (id: %1)</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="581"/>
+        <location filename="../src/YandexMusic.cpp" line="590"/>
         <source>Failed to load Yandex.Music daily playlist</source>
         <translation>Не удалось загрузить плейлист дня Яндекс.Музыки</translation>
     </message>
@@ -493,7 +533,7 @@ usage: %1 [options]
         <translation>qrc:/resources/covers/favorite-ru.svg</translation>
     </message>
     <message>
-        <location filename="../src/YandexMusic.cpp" line="425"/>
+        <location filename="../src/YandexMusic.cpp" line="434"/>
         <source>Failed to load Yandex.Music user liked tracks</source>
         <translation>Не удалось загрузить понравившиеся треки пользователя Яндекс.Музыки</translation>
     </message>
@@ -588,35 +628,42 @@ usage: %1 [options]
     <name>YandexLoginPage</name>
     <message>
         <location filename="../qml/pages/YandexLoginPage.qml" line="46"/>
+        <location filename="../qml/pages/YandexLoginPage.qml" line="46"/>
         <source>qrc:/resources/settings/Y.svg</source>
         <translation>qrc:/resources/settings/Я.svg</translation>
     </message>
     <message>
+        <location filename="../qml/pages/YandexLoginPage.qml" line="51"/>
         <location filename="../qml/pages/YandexLoginPage.qml" line="51"/>
         <source>qrc:/resources/settings/andex.svg</source>
         <translation>qrc:/resources/settings/ндекс.svg</translation>
     </message>
     <message>
         <location filename="../qml/pages/YandexLoginPage.qml" line="59"/>
+        <location filename="../qml/pages/YandexLoginPage.qml" line="59"/>
         <source>Login to account</source>
         <translation>Войдите в аккант</translation>
     </message>
     <message>
+        <location filename="../qml/pages/YandexLoginPage.qml" line="104"/>
         <location filename="../qml/pages/YandexLoginPage.qml" line="104"/>
         <source>Email</source>
         <translation>Почта</translation>
     </message>
     <message>
         <location filename="../qml/pages/YandexLoginPage.qml" line="152"/>
+        <location filename="../qml/pages/YandexLoginPage.qml" line="152"/>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
     <message>
         <location filename="../qml/pages/YandexLoginPage.qml" line="163"/>
+        <location filename="../qml/pages/YandexLoginPage.qml" line="163"/>
         <source>Login</source>
         <translation>Войти</translation>
     </message>
     <message>
+        <location filename="../qml/pages/YandexLoginPage.qml" line="174"/>
         <location filename="../qml/pages/YandexLoginPage.qml" line="174"/>
         <source>Back</source>
         <translation>Назад</translation>

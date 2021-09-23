@@ -144,6 +144,7 @@ QString UserTrack::comment()
 
 QUrl UserTrack::cover()
 {
+  if (_cover.isEmpty()) return {"qrc:resources/player/no-cover.svg"};
   return _cover;
 }
 
@@ -169,7 +170,7 @@ Dir UserTrack::userDir()
 
 void UserTrack::invalidateAudio()
 {
-  emit audioAborted(tr("Failed to play track from file: %1").arg(_url.fileName()));
+  emit audioAborted(tr("Failed to play track from file: %1").arg(_url.path()));
 }
 
 void UserTrack::setLiked(bool liked)
@@ -198,7 +199,10 @@ bool UserTrack::load()
     _title = d.title;
     _comment = d.comment;
     _artists = d.artists;
-    _cover = {QString("data:") + d.coverMimeType + ";base64," + d.cover.toBase64()};
+    if (d.cover != "")
+      _cover = {QString("data:") + d.coverMimeType + ";base64," + d.cover.toBase64()};
+    else
+      _cover = QUrl{};
     _liked = d.liked;
     _duration = d.duration;
 

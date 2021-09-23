@@ -9,6 +9,19 @@ backend       = "cpp"
 requires "nim >= 1.4.4"
 requires "fusion"
 
+when defined(nimdistros):
+  import distros
+  if detectOs(Manjaro) or detectOS(ArchLinux):
+    foreignDep "qt5-base"
+    foreignDep "qt5-declarative"
+    foreignDep "qt5-graphicaleffects"
+    foreignDep "qt5-networkauth"
+    foreignDep "qt5-multimedia"
+    foreignDep "qt5-quickcontrols"
+    foreignDep "qt5-quickcontrols2"
+    foreignDep "python"
+    foreignDep "taglib"
+
 task codegen, "Generate additional C++ code":
   withDir "src":
     exec "nim c -r config.nim"

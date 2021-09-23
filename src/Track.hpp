@@ -2,10 +2,11 @@
 #include <QObject>
 #include <QMediaContent>
 #include "Config.hpp"
+#include "types.hpp"
 
 struct YTrack;
 
-struct Track : public QObject
+class Track : public QObject
 {
   Q_OBJECT
 public:

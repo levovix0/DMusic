@@ -16,6 +16,7 @@ SOURCES += \
   src/Radio.cpp \
   src/RemoteMediaController.cpp \
   src/SearchHistory.cpp \
+  src/SearchModel.cpp \
   src/TagLib.cpp \
   src/Track.cpp \
   src/Translator.cpp \
@@ -38,6 +39,7 @@ HEADERS += \
   src/Radio.hpp \
   src/RemoteMediaController.hpp \
   src/SearchHistory.hpp \
+  src/SearchModel.hpp \
   src/TagLib.hpp \
   src/Track.hpp \
   src/Translator.hpp \
