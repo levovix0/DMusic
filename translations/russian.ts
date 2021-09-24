@@ -630,13 +630,13 @@ usage: %1 [options]
         <location filename="../qml/pages/YandexLoginPage.qml" line="46"/>
         <location filename="../qml/pages/YandexLoginPage.qml" line="46"/>
         <source>qrc:/resources/settings/Y.svg</source>
-        <translation>qrc:/resources/settings/Я.svg</translation>
+        <translation>qrc:/resources/settings/Y-ru.svg</translation>
     </message>
     <message>
         <location filename="../qml/pages/YandexLoginPage.qml" line="51"/>
         <location filename="../qml/pages/YandexLoginPage.qml" line="51"/>
         <source>qrc:/resources/settings/andex.svg</source>
-        <translation>qrc:/resources/settings/ндекс.svg</translation>
+        <translation>qrc:/resources/settings/andex-ru.svg</translation>
     </message>
     <message>
         <location filename="../qml/pages/YandexLoginPage.qml" line="59"/>

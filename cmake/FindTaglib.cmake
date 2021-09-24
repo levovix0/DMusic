@@ -38,12 +38,12 @@ pkg_check_modules(PC_TAGLIB QUIET taglib)
 find_path(Taglib_INCLUDE_DIRS
     NAMES tag.h
     PATH_SUFFIXES taglib
-    HINTS ${PC_TAGLIB_INCLUDEDIR}
+    HINTS ${PC_TAGLIB_INCLUDEDIR} C:/Libraries/taglib/include/taglib
 )
 
 find_library(Taglib_LIBRARIES
     NAMES tag
-    HINTS ${PC_TAGLIB_LIBDIR}
+    HINTS ${PC_TAGLIB_LIBDIR} C:/Libraries/taglib/lib
 )
 
 set(Taglib_VERSION ${PC_TAGLIB_VERSION})

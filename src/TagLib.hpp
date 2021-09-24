@@ -1,10 +1,10 @@
 #pragma once
-#include <taglib/tag.h>
-#include <taglib/id3v2tag.h>
-#include <taglib/mpegfile.h>
-#include <taglib/mpegproperties.h>
-#include <taglib/attachedpictureframe.h>
-#include <taglib/popularimeterframe.h>
+#include <tag.h>
+#include <id3v2tag.h>
+#include <mpegfile.h>
+#include <mpegproperties.h>
+#include <attachedpictureframe.h>
+#include <popularimeterframe.h>
 
 #include <QMediaContent>
 #include <QImage>

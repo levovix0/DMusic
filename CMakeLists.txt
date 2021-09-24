@@ -13,8 +13,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick LinguistTools Quick QuickControls2 Widgets Multimedia DBus Svg Network REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick LinguistTools Quick QuickControls2 Widgets Multimedia DBus Svg Network REQUIRED)
+set(qt_modules )
+if(WIN32)
+  list(APPEND qt_modules WinExtras)
+  find_package(ZLIB REQUIRED)
+endif()
+
+find_package(QT NAMES Qt6 Qt5 COMPONENTS Core Quick LinguistTools Quick QuickControls2 Widgets Multimedia DBus Svg Network ${qt_modules} REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick LinguistTools Quick QuickControls2 Widgets Multimedia DBus Svg Network ${qt_modules} REQUIRED)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(Taglib REQUIRED)
 
@@ -23,11 +29,11 @@ set(TS_FILES translations/russian.ts)
 set(all_sources )
 
 macro(source_from_directory dir)
-	aux_source_directory(${dir} tmpv)
-	foreach(x IN LISTS tmpv)
-		list(APPEND all_sources ${x})
-	endforeach()
-	include_directories(${dir})
+  aux_source_directory(${dir} tmpv)
+  foreach(x IN LISTS tmpv)
+    list(APPEND all_sources ${x})
+  endforeach()
+  include_directories(${dir})
 endmacro()
 
 source_from_directory(src)
@@ -56,11 +62,13 @@ else()
     )
   endif()
 
-  qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+  qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR}/translations ${TS_FILES})
 endif()
 
 if(UNIX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+  list(APPEND CMAKE_CXX_FLAGS "-pthread")
+elseif(WIN32)
+  list(APPEND CMAKE_CXX_FLAGS "-DTAGLIB_STATIC")
 endif()
 
 set(qt "Qt${QT_VERSION_MAJOR}")
@@ -78,6 +86,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   ${Python3_LIBRARIES}
   ${Taglib_LIBRARIES}
 )
+if(WIN32)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+    ${qt}::WinExtras
+    ${ZLIB_LIBRARIES}
+  )
+endif()
 include_directories(${Python3_INCLUDE_DIRS})
 include_directories(${Taglib_INCLUDE_DIRS})
 

@@ -89,8 +89,8 @@
         <file>resources/settings/login-background.png</file>
         <file>resources/settings/andex.svg</file>
         <file>resources/settings/Y.svg</file>
-        <file>resources/settings/ндекс.svg</file>
-        <file>resources/settings/Я.svg</file>
+        <file>resources/settings/andex-ru.svg</file>
+        <file>resources/settings/Y-ru.svg</file>
         <file>qml/pages/settings/ThemeSettingsBlock.qml</file>
         <file>qml/pages/settings/ThemeSelect.qml</file>
         <file>qml/components/DCheckBox.qml</file>
