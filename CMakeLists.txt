@@ -43,6 +43,31 @@ set(PROJECT_SOURCES
   ${all_sources}
   qml.qrc
   ${TS_FILES}
+
+  src/AudioPlayer.hpp
+  src/Clipboard.hpp
+  src/Config.hpp
+  src/ConsoleArgs.hpp
+  src/DFileDialog.hpp
+  src/Dir.hpp
+  src/Download.hpp
+  src/ID.hpp
+  src/MediaDownloader.hpp
+  src/Messages.hpp
+  src/Radio.hpp
+  src/RemoteMediaController.hpp
+  src/SearchHistory.hpp
+  src/SearchModel.hpp
+  src/TagLib.hpp
+  src/Track.hpp
+  src/Translator.hpp
+  src/YandexMusic.hpp
+  src/api.hpp
+  src/file.hpp
+  src/nimfs.hpp
+  src/python.hpp
+  src/types.hpp
+  src/utils.hpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
