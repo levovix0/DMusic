@@ -24,7 +24,8 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Core Quick LinguistTools Quick Qui
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(Taglib REQUIRED)
 
-set(TS_FILES translations/russian.ts)
+set(TS_FILES ${CMAKE_SOURCE_DIR}/translations/russian.ts)
+set(QM_FILES ${CMAKE_SOURCE_DIR}/translations/russian.qm)
 
 set(all_sources )
 
@@ -49,8 +50,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
   )
-  qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR}/translations ${TS_FILES})
 
+  #qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR}/translations ${TS_FILES})
 else()
   if(ANDROID)
     add_library(${PROJECT_NAME} SHARED
@@ -62,8 +63,20 @@ else()
     )
   endif()
 
-  qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR}/translations ${TS_FILES})
+  #qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR}/translations ${TS_FILES})
 endif()
+
+set(qt_bin /usr/bin)
+if(WIN32)
+  set(qt_bin ${QT_DIR}/../../../bin)
+endif()
+add_custom_target(translations ALL
+  ${qt_bin}/lrelease ${CMAKE_SOURCE_DIR}/translations/russian.ts -qm ${CMAKE_SOURCE_DIR}/translations/russian.qm
+  DEPENDS ${TS_FILES}
+  BYPRODUCTS ${QM_FILES}
+)
+
+add_dependencies(${CMAKE_PROJECT_NAME} translations)
 
 if(UNIX)
   list(APPEND CMAKE_CXX_FLAGS "-pthread")
