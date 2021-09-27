@@ -31,6 +31,8 @@ genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
   bool darkHeader true
   bool themeByTime true
 
+  bool discordPresence false
+
   config user, "User":
     dir saveDir "data:user"
 

@@ -75,8 +75,8 @@ win32 {
 
 unix {
   LIBS += -L/usr/local/lib/python3.9 -lpython3.9 -ltag
-  INCLUDEPATH += /usr/include/python3.9
-  DEPENDPATH += /usr/include/python3.9
+  INCLUDEPATH += /usr/include/python3.9 /usr/include/taglib
+  DEPENDPATH += /usr/include/python3.9 /usr/include/taglib
 }
 
 DISTFILES += \

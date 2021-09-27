@@ -39,7 +39,8 @@ when defined(unix):
 
 macro sourcesFromDir(dir: static[string] = ".") =
   result = newStmtList()
-  for file in dir.walkDirRec:
+  for k, file in dir.walkDir:
+    if k notin {pcFile, pcLinkToFile}: continue
     if not file.endsWith(".cpp"): continue
     if file.endsWith("main.cpp"):
       let cpp = readFile(file)
@@ -49,18 +50,26 @@ macro sourcesFromDir(dir: static[string] = ".") =
       result.add quote do:
         {.compile: `file`.}
   
-  for file in dir.walkDirRec:
+  for k, file in dir.walkDir:
+    if k notin {pcFile, pcLinkToFile}: continue
     if not file.endsWith(".hpp") and not file.endsWith(".h"): continue
     if "Q_OBJECT" notin readFile(file): continue
-    let moc = staticExec &"moc ../{file}"
-    result.add quote do:
-      {.emit: `moc`.}
 
-  for file in dir.walkDirRec:
-    if not file.endsWith(".qrc"): continue
-    let qrc = staticExec &"rcc ../{file}"
+    let moc = staticExec &"moc ../{file}"
+    let filename = "build" / file.splitPath.tail
+    writeFile filename, moc
     result.add quote do:
-      {.emit: `qrc`.}
+      {.compile: `filename`.}
+
+  for k, file in dir.walkDir:
+    if k notin {pcFile, pcLinkToFile}: continue
+    if not file.endsWith(".qrc"): continue
+
+    let qrc = staticExec &"rcc ../{file}"
+    let filename = "build" / file.splitPath.tail & ".cpp"
+    writeFile filename, qrc
+    result.add quote do:
+      {.compile: `filename`.}
 
 sourcesFromDir()
 

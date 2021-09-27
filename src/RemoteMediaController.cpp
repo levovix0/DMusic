@@ -445,19 +445,8 @@ void ThumbnailController::updateToolbar()
 
 DiscordPresence::DiscordPresence(AudioPlayer* player, QObject* parent) : QObject(parent), _player(player)
 {
-  try {
-    auto presence = py::module("pypresence", true);
-    _time = module("time");
-    _rpc = presence.call("Presence", "830725995769626624");
-
-    //TODO: buttons
-
-    _rpc.call("connect");
-
-    connect(_player, &AudioPlayer::currentTrackChanged, this, &DiscordPresence::onTrackChanged);
-  } catch(py::error& e) {
-    // OK
-  }
+  setEnabled(Config::instance->discordPresence());
+  connect(Config::instance, &Config::discordPresenceChanged, this, &DiscordPresence::setEnabled);
 }
 
 void DiscordPresence::update(Track* track)
@@ -497,6 +486,31 @@ void DiscordPresence::onTrackChanged(Track* track)
 void DiscordPresence::updateData()
 {
   update(_player->currentTrackPtr());
+}
+
+void DiscordPresence::setEnabled(bool v)
+{
+  if (v) {
+    try {
+      auto presence = py::module("pypresence", true);
+      _time = module("time");
+      _rpc = presence.call("Presence", "830725995769626624");
+
+      //TODO: buttons
+
+      _rpc.call("connect");
+
+      connect(_player, &AudioPlayer::currentTrackChanged, this, &DiscordPresence::onTrackChanged);
+    } catch(py::error& e) {
+      // OK
+    }
+  } else {
+    if (_rpc != py::none) {
+      _rpc.call("clear");
+      _rpc.call("close");
+      _rpc = py::none;
+    }
+  }
 }
 
 

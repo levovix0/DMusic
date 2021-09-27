@@ -13,6 +13,13 @@ SettingsBlock {
     Layout.maximumWidth: 600
 
     DCheckBox {
+      text: qsTr("Discord presence")
+      fontSize: 10.5
+      checked: Config.discordPresence
+      onCheckedChanged: Config.discordPresence = checked
+    }
+
+    DCheckBox {
       text: qsTr("Save all tracks")
       fontSize: 10.5
       checked: Config.ym_saveAllTracks

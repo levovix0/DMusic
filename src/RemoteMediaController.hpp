@@ -160,6 +160,7 @@ public:
 private slots:
   void onTrackChanged(Track* track);
   void updateData();
+  void setEnabled(bool v);
 
 private:
   AudioPlayer* _player;

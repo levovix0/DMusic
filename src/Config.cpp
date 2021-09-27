@@ -173,6 +173,17 @@ void Config::setThemeByTime(bool v) {
   saveToJson();
 }
 
+bool Config::discordPresence() {
+  return _discordPresence;
+}
+
+void Config::setDiscordPresence(bool v) {
+  if (_discordPresence == v) return;
+  _discordPresence = v;
+  emit discordPresenceChanged(_discordPresence);
+  saveToJson();
+}
+
 Dir Config::user_saveDir() {
   auto dir = dataDir()/"user";
   if (!dir.exists()) dir.create();
@@ -288,6 +299,8 @@ void Config::reloadFromJson() {
   emit darkHeaderChanged(_darkHeader);
   _themeByTime = doc["themeByTime"].toBool(true);
   emit themeByTimeChanged(_themeByTime);
+  _discordPresence = doc["discordPresence"].toBool(false);
+  emit discordPresenceChanged(_discordPresence);
   
   QJsonObject user_ = doc["User"].toObject();
   if (!user_.isEmpty()) {
@@ -326,6 +339,7 @@ void Config::saveToJson() {
   doc["darkTheme"] = _darkTheme;
   doc["darkHeader"] = _darkHeader;
   doc["themeByTime"] = _themeByTime;
+  doc["discordPresence"] = _discordPresence;
   
   QJsonObject user_;
   doc["User"] = user_;
