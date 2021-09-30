@@ -4,7 +4,7 @@ import "components"
 
 FloatingPanel {
   id: root
-  height: _column.implicitHeight + 40
+  height: _column.implicitHeight + (root.text == ""? 40 : 20)
 
   property string text
 
@@ -19,6 +19,14 @@ FloatingPanel {
     hoverEnabled: true
   }
 
+  onTextChanged: {
+    _model.search(root.text)
+  }
+
+  SearchModel {
+    id: _model;
+  }
+
   Column {
     id: _column
     anchors.centerIn: parent
@@ -31,6 +39,7 @@ FloatingPanel {
     }
 
     Row {
+      visible: false
       topPadding: 5
       leftPadding: spacing - 20
       rightPadding: spacing - 20
@@ -110,43 +119,24 @@ FloatingPanel {
     Column {
       x: -10
 
-      SearchResult {
-        width: root.width - 20
+      Repeater {
+        model: _model
 
-        kind: "track"
-        cover: "file:///d/graphics/art/арт-3-азриэль дриммур.png"
-        name: "name"
-        comment: "comment"
-        artist: "artist"
-      }
+        SearchResult {
+          width: root.width - 20
 
-      SearchResult {
-        width: root.width - 20
+          kind: "track"
+          cover: element.cover
+          name: element.title
+          comment: element.comment
+          artist: element.artistsStr
 
-        kind: "artist"
-        cover: "file:///d/graphics/art/аватарка.png"
-        name: "name"
-        comment: "comment"
-      }
-
-      SearchResult {
-        width: root.width - 20
-
-        kind: "album"
-        cover: "file:///d/graphics/art/Идеальность.png"
-        name: "name"
-        comment: "comment"
-        artist: "artist"
-      }
-
-      SearchResult {
-        width: root.width - 20
-
-        kind: "track"
-        cover: "file:///d/graphics/art/арт-2-lixie lox.png"
-        name: "name"
-        comment: "comment"
-        artist: "artist"
+          onPlay: {
+            SearchHistory.savePromit(root.text)
+            YClient.playPlaylist(YClient.oneTrack(element.id))
+            _root.focus = true
+          }
+        }
       }
     }
   }

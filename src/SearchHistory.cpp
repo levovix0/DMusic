@@ -46,7 +46,7 @@ void SearchHistory::savePromit(QString promit)
        _history.erase(_history.begin() + maxLenght, _history.end());
     }
   } else {
-    _history.swapItemsAt(-(_history.begin() - p), 0);
+    _history.move(p - _history.begin(), 0);
   }
   save();
 }

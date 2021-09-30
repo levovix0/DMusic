@@ -70,6 +70,15 @@ int main(int argc, char *argv[])
   timer->start(1000);
 
 
+  QObject::connect(Config::instance, &Config::isClientSideDecorationsChanged, []() {
+#ifdef Q_OS_LINUX
+    QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));
+#else
+    QGuiApplication::setWindowIcon(QIcon(":resources/app.svg"));
+#endif
+  });
+
+
 //  bool gui = args.count() == 0 || args.has("-g") || args.has("--gui");
 
   if (args.has("-v") || args.has("--version")) {
@@ -101,9 +110,9 @@ int main(int argc, char *argv[])
 
 	QQuickStyle::setStyle("Material");
 
+  qmlRegisterType<Track>("DMusic", 1, 0, "Track");
   qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
   qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");
-  qmlRegisterType<YTrack>("DMusic", 1, 0, "Track");
   qmlRegisterType<Playlist>("DMusic", 1, 0, "Playlist");
   qmlRegisterType<DPlaylist>("DMusic", 1, 0, "DPlaylist");
   qmlRegisterType<Radio>("DMusic", 1, 0, "Radio");
@@ -124,7 +133,7 @@ int main(int argc, char *argv[])
   qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
   qmlRegisterSingletonType<SearchHistory>("DMusic", 1, 0, "SearchHistory", &SearchHistory::qmlInstance);
 
-	qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
+  qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
 
 #ifdef Q_OS_LINUX
   QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));

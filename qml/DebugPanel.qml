@@ -128,7 +128,7 @@ FloatingPanel {
     onClicked: {
       if (_id.text === "") return
       try {
-        YClient.playPlaylist(YClient.playlist(parseInt(_id.text)))
+        YClient.playYPlaylist(YClient.playlist(parseInt(_id.text)))
       } catch (e) {}
     }
   }

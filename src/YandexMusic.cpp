@@ -572,7 +572,7 @@ YPlaylist* YClient::playlist(int id)
   return nullptr;
 }
 
-Playlist* YClient::oneTrack(qint64 id)
+Playlist* YClient::oneTrack(int id)
 {
   DPlaylist* res = new DPlaylist(this);
   if (!initialized()) return res;
@@ -618,7 +618,13 @@ YPlaylistsModel* YClient::homePlaylistsModel()
   return res;
 }
 
-void YClient::playPlaylist(YPlaylist* playlist)
+void YClient::playPlaylist(Playlist* playlist)
+{
+  if (playlist == nullptr) return;
+  AudioPlayer::instance->play(refPlaylist{playlist});
+}
+
+void YClient::playYPlaylist(YPlaylist* playlist)
 {
   if (playlist == nullptr) return;
   AudioPlayer::instance->play(playlist->toPlaylist());
@@ -649,15 +655,15 @@ void YClient::searchAndPlayTrack(QString promit)
 {
   if (!initialized()) return;
   try {
-  auto search = me.call("search", promit);
-  if (search.get("tracks")) {
-    auto t = search.get("tracks").get("results")[0];
+    auto search = me.call("search", promit);
+    if (search.get("tracks")) {
+      auto t = search.get("tracks").get("results")[0];
 
-    DPlaylist* res = new DPlaylist(this);
-    res->add(track(t.get("id").to<int>()));
-    AudioPlayer::instance->play(res);
-  }
-  } catch (std::runtime_error& e) {
+      DPlaylist* res = new DPlaylist(this);
+      res->add(track(t.get("id").to<int>()));
+      AudioPlayer::instance->play(res);
+    }
+  } catch (std::exception& e) {
     Messages::error(tr("Failed to search"), e.what());
   }
 }
