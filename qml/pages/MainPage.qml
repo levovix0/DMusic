@@ -39,7 +39,7 @@ DPage {
       PlaylistEntry {
         playlist: element
 
-        onPlay: YClient.playPlaylist(playlist)
+        onPlay: YClient.playYPlaylist(playlist)
         onShowFull: switcher("qrc:/qml/pages/PlaylistPage.qml")
       }
     }
