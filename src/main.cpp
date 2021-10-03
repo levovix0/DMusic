@@ -1,3 +1,5 @@
+#include "main.hpp"
+
 #include <QGuiApplication>
 #include <QApplication>
 #include <QQmlApplicationEngine>
@@ -19,23 +21,8 @@
 #include "SearchHistory.hpp"
 #include "SearchModel.hpp"
 
-// TODO: dislike
-// TODO: Память течёт, хоть и понемногу (потоковый режим)
-// TODO: Добавить возможность отменять загрузку обложки и аудио для трека (например, при переключении на следующий)
-
-#if build_using_nim
-int cppmain(int argc, char *argv[])
-#else
-int main(int argc, char *argv[])
-#endif
+void cppmain()
 {
-  ConsoleArgs args(argc, argv);
-
-  Py_Initialize();
-
-	QApplication app(argc, argv);
-
-	Translator::setApp(&app);
 	Translator::instance->setLanguage(Config::language());
 	QObject::connect(Config::instance, &Config::languageChanged, [](Config::Language language) {
 		Translator::instance->setLanguage(language);
@@ -72,41 +59,11 @@ int main(int argc, char *argv[])
 
   QObject::connect(Config::instance, &Config::isClientSideDecorationsChanged, []() {
 #ifdef Q_OS_LINUX
-    QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));
+    QApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));
 #else
-    QGuiApplication::setWindowIcon(QIcon(":resources/app.svg"));
+    QApplication::setWindowIcon(QIcon(":resources/app.svg"));
 #endif
   });
-
-
-//  bool gui = args.count() == 0 || args.has("-g") || args.has("--gui");
-
-  if (args.has("-v") || args.has("--version")) {
-    std::cout << "DMusic 0.3" << std::endl;
-  }
-
-  if (args.has("-h") || args.has("--help")) {
-    std::cout << QObject::tr(
-"DMusic - music player\n"
-"usage: %1 [options]\n\n"
-"-h --help     show help\n"
-"-v --version  show version\n"
-"-g --gui      run application\n"
-"-verbose      show more logs\n"
-    ).arg(argv[0]) << std::endl;
-  }
-
-  if (!args.has("--verbose")) {
-    try {
-      auto logging = py::module("logging");
-      auto logger = logging.call("getLogger");
-      logger.call("setLevel", logging.get("CRITICAL"));
-    } catch (py::error& e) {
-      Messages::error("a", e.what());
-    }
-  }
-
-//  if (!gui) return 0;
 
 	QQuickStyle::setStyle("Material");
 
@@ -136,19 +93,8 @@ int main(int argc, char *argv[])
   qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
 
 #ifdef Q_OS_LINUX
-  QGuiApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));
+  QApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));
 #else
-  QGuiApplication::setWindowIcon(QIcon(":resources/app.svg"));
+  QApplication::setWindowIcon(QIcon(":resources/app.svg"));
 #endif
-  app.setApplicationName("DMusic");
-  app.setOrganizationName("DTeam");
-  app.setOrganizationDomain("zxx.ru");
-
-	QQmlApplicationEngine engine;
-	Translator::setEngine(&engine);
-	engine.load(QUrl("qrc:/qml/main.qml"));
-
-  auto r = app.exec();
-  Py_Finalize();
-  return r;
 }
