@@ -1,4 +1,5 @@
 import os, strformat, macros, strutils, std/exitprocs
+import cligen
 import qt
 
 when defined(unix):
@@ -76,7 +77,7 @@ exportModuleToCpp "search"
 
 {.emit: """#include "Translator.hpp"""".}
 
-proc main =
+proc dmusic =
   {.emit: "Py_Initialize();".}
 
   let app = newQApplication()
@@ -98,4 +99,4 @@ proc main =
   {.emit: "Py_Finalize();".}
 
 when isMainModule:
-  main()
+  dispatch dmusic

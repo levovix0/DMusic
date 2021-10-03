@@ -7,7 +7,7 @@ bin           = @["DMusic"]
 backend       = "cpp"
 
 requires "nim >= 1.4.4"
-requires "fusion"
+requires "fusion", "cligen"
 
 when defined(nimdistros):
   import distros
@@ -15,7 +15,6 @@ when defined(nimdistros):
     foreignDep "qt5-base"
     foreignDep "qt5-declarative"
     foreignDep "qt5-graphicaleffects"
-    foreignDep "qt5-networkauth"
     foreignDep "qt5-multimedia"
     foreignDep "qt5-quickcontrols"
     foreignDep "qt5-quickcontrols2"
