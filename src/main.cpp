@@ -21,6 +21,34 @@
 #include "SearchHistory.hpp"
 #include "SearchModel.hpp"
 
+
+void initializeDMusicQmlModule() {
+  qmlRegisterType<Track>("DMusic", 1, 0, "Track");
+  qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
+  qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");
+  qmlRegisterType<Playlist>("DMusic", 1, 0, "Playlist");
+  qmlRegisterType<DPlaylist>("DMusic", 1, 0, "DPlaylist");
+  qmlRegisterType<Radio>("DMusic", 1, 0, "Radio");
+  qmlRegisterType<PlaylistRadio>("DMusic", 1, 0, "PlaylistRadio");
+  qmlRegisterType<AudioPlayer>("DMusic", 1, 0, "AudioPlayer");
+  qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
+  qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
+  qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
+  qmlRegisterType<YPlaylist>("DMusic", 1, 0, "YPlaylist");
+  qmlRegisterType<YLikedTracks>("DMusic", 1, 0, "YLikedTracks");
+  qmlRegisterType<YPlaylistsModel>("DMusic", 1, 0, "YPlaylistsModel");
+  qmlRegisterType<SearchModel>("DMusic", 1, 0, "SearchModel");
+
+	qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
+	qmlRegisterSingletonType<Config>("Config", 1, 0, "Config", &Config::qmlInstance);
+	qmlRegisterSingletonType<Translator>("DMusic", 1, 0, "Translator", &Config::qmlInstance);
+  qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
+  qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
+  qmlRegisterSingletonType<SearchHistory>("DMusic", 1, 0, "SearchHistory", &SearchHistory::qmlInstance);
+
+  qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
+}
+
 void cppmain()
 {
 	Translator::instance->setLanguage(Config::language());
@@ -65,36 +93,9 @@ void cppmain()
 #endif
   });
 
-	QQuickStyle::setStyle("Material");
-
-  qmlRegisterType<Track>("DMusic", 1, 0, "Track");
-  qmlRegisterType<YTrack>("DMusic", 1, 0, "YTrack");
-  qmlRegisterType<YArtist>("DMusic", 1, 0, "YArtist");
-  qmlRegisterType<Playlist>("DMusic", 1, 0, "Playlist");
-  qmlRegisterType<DPlaylist>("DMusic", 1, 0, "DPlaylist");
-  qmlRegisterType<Radio>("DMusic", 1, 0, "Radio");
-  qmlRegisterType<PlaylistRadio>("DMusic", 1, 0, "PlaylistRadio");
-  qmlRegisterType<AudioPlayer>("DMusic", 1, 0, "AudioPlayer");
-  qmlRegisterType<RemoteMediaController>("DMusic", 1, 0, "RemoteMediaController");
-  qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
-  qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
-  qmlRegisterType<YPlaylist>("DMusic", 1, 0, "YPlaylist");
-  qmlRegisterType<YLikedTracks>("DMusic", 1, 0, "YLikedTracks");
-  qmlRegisterType<YPlaylistsModel>("DMusic", 1, 0, "YPlaylistsModel");
-  qmlRegisterType<SearchModel>("DMusic", 1, 0, "SearchModel");
-
-	qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
-	qmlRegisterSingletonType<Config>("Config", 1, 0, "Config", &Config::qmlInstance);
-	qmlRegisterSingletonType<Translator>("DMusic", 1, 0, "Translator", &Config::qmlInstance);
-  qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
-  qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
-  qmlRegisterSingletonType<SearchHistory>("DMusic", 1, 0, "SearchHistory", &SearchHistory::qmlInstance);
-
-  qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
-
 #ifdef Q_OS_LINUX
   QApplication::setWindowIcon(QIcon(":resources/app-papirus.svg"));
 #else
   QApplication::setWindowIcon(QIcon(":resources/app.svg"));
 #endif
-}
+};

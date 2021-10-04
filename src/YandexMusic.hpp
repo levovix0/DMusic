@@ -1,5 +1,6 @@
 #pragma once
 #include <atomic>
+
 #include <QObject>
 #include <QVariantList>
 #include <QQmlEngine>

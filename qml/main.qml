@@ -130,6 +130,16 @@ Window {
       anchors.bottom: parent.bottom
     }
 
+    YandexMusicTrack {
+      id: _track
+    }
+
+    Text {
+      Component.onCompleted: {
+        text = _track.strid()
+      }
+    }
+
     Rectangle {
       visible: !Style.darkHeader
       height: Style.window.border.width
