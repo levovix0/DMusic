@@ -47,4 +47,5 @@ proc dmusic =
   {.emit: "Py_Finalize();".}
 
 when isMainModule:
+  clcfg.version = "0.3"
   dispatch dmusic

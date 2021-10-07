@@ -201,9 +201,11 @@ proc rcc*(file: string): string {.compileTime.} =
 #----------- macros -----------#
 macro qobject*(t, body) =
   ## export type to qt
-  t.expectKind nnkInfix
-  let parent = t[2]
-  let t = t[1]
+  var t = t
+  var parent = ident"QObject"
+  if t.kind == nnkInfix:
+    parent = t[2]
+    t = t[1]
   
   proc qoClass(name: string, body: string, parent: string = "QObject"): seq[string] =
     @["/*TYPESECTION*/ class " & name & " : public " & parent & " {\nQ_OBJECT\npublic:\n  " &
@@ -252,7 +254,7 @@ macro qobject*(t, body) =
           arg[^2] = toNimQtType arg[^2]
           arg
       pragma:
-        ident "exportcpp"
+        ident "exportc"
         exprColonExpr:
           ident "codegenDecl"
           let rt = if rettype.kind == nnkEmpty: "void" else: toQtTypename $rettype
@@ -261,18 +263,18 @@ macro qobject*(t, body) =
       stmtList:
         varSection(identDefs(ident "this", ptrTy(t), empty()))
         pragma(exprColonExpr(ident "emit", bracket(ident"this", newLit " = &self;")))
-        if rettype.kind == nnkEmpty:
-          call:
-            alias
-            bracketExpr(ident "this")
-            for arg in args.mapit(it[0..^3]).concat:
-              call(fnqv, arg)
-        else: call(tnqv):
-          call:
-            alias
-            bracketExpr(ident "this")
-            for arg in args.mapit(it[0..^3]).concat:
-              call(fnqv, arg)
+        
+        let a = buildAst:
+          if args.len == 0:
+            dotExpr(bracketExpr(ident "this"), alias)
+          else:
+            call:
+              dotExpr(bracketExpr(ident "this"), alias)
+              for arg in args.mapit(it[0..^3]).concat:
+                call(fnqv, arg)
+              
+        if rettype.kind == nnkEmpty: a
+        else: call(tnqv, a)
 
   var decl: seq[string]
   var impl = newStmtList()
@@ -304,7 +306,13 @@ macro registerInQml*(t: typedesc, module: static string, verMajor, verMinor: sta
       block:
         proc x() {.importcpp: "(void)0", header: "qqml.h".} = discard
         x())
-    pragma(exprColonExpr(ident "emit", bracket(newLit "qmlRegisterType<", newLit $t, newLit ">(", newLit module.quoted, newLit ", ", newLit $verMajor, newLit ", ", newLit $verMinor, newLit &", {quoted $t});")))
+    pragma(exprColonExpr(
+      ident "emit",
+      bracket(
+        newLit "qmlRegisterType<", newLit $t, newLit ">(", newLit module.quoted, newLit ", ",
+        newLit $verMajor, newLit ", ", newLit $verMinor, newLit &", {quoted $t});"
+      )
+    ))
 
 
 macro registerInQml*(t: typedesc, module: static string, verMajor, verMinor: static int; name: static string) =
@@ -314,5 +322,11 @@ macro registerInQml*(t: typedesc, module: static string, verMajor, verMinor: sta
       block:
         proc x() {.importcpp: "(void)0", header: "qqml.h".} = discard
         x())
-    pragma(exprColonExpr(ident "emit", bracket(newLit "qmlRegisterType<", newLit $t, newLit ">(", newLit module.quoted, newLit ", ", newLit $verMajor, newLit ", ", newLit $verMinor, newLit &", {name.quoted});")))
+    pragma(exprColonExpr(
+      ident "emit",
+      bracket(
+        newLit "qmlRegisterType<", newLit $t, newLit ">(", newLit module.quoted, newLit ", ",
+        newLit $verMajor, newLit ", ", newLit $verMinor, newLit &", {name.quoted});"
+      )
+    ))
 

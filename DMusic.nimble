@@ -3,11 +3,12 @@ author        = "DTeam"
 description   = "Music player"
 license       = "MIT"
 srcDir        = "src"
-bin           = @["DMusic"]
+bin           = @["dmusic"]
 backend       = "cpp"
 
 requires "nim >= 1.4.4"
 requires "fusion", "cligen"
+requires "https://github.com/levovix0/impl"
 
 when defined(nimdistros):
   import distros
