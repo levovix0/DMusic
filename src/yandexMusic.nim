@@ -87,33 +87,33 @@ const
 
 
 proc parseArtist*(a: JsonNode): Artist =
-  result.id = a["id"].getInt
+  result.id = a{"id"}.getInt
 
-  result.name = a["name"].getStr
-  result.coverUri = a["cover"]["uri"].getStr
+  result.name = a{"name"}.getStr
+  result.coverUri = a{"cover", "uri"}.getStr
 
 proc parseAlbum*(a: JsonNode): Album =
-  result.id = a["id"].getInt
+  result.id = a{"id"}.getInt
 
-  result.title = a["title"].getStr
-  result.coverUri = a["coverUri"].getStr
-  result.year = a["year"].getInt
-  result.len = a["trackCount"].getInt
+  result.title = a{"title"}.getStr
+  result.coverUri = a{"coverUri"}.getStr
+  result.year = a{"year"}.getInt
+  result.len = a{"trackCount"}.getInt
 
 proc parseTrack*(a: JsonNode): Track =
-  result.id = a["id"].getInt
+  result.id = a{"id"}.getInt
 
-  result.title = a["title"].getStr
-  result.comment = a["version"].getStr
-  result.coverUri = a["coverUri"].getStr
-  result.duration = a["duration"].getInt
+  result.title = a{"title"}.getStr
+  result.comment = a{"version"}.getStr
+  result.coverUri = a{"coverUri"}.getStr
+  result.duration = a{"duration"}.getInt
 
-  result.explicit = a["explicit"].getBool
+  result.explicit = a{"explicit"}.getBool
 
-  for album in a["albums"]:
+  for album in a{"albums"}:
     result.albums.add album.parseAlbum
   
-  for artist in a["artists"]:
+  for artist in a{"artists"}:
     result.artists.add artist.parseArtist
 
 
@@ -139,7 +139,7 @@ proc search*(this: Client, text: string, kind = "all", correct = true): Future[t
     }
   ).await.parseJson
 
-  for track in response["result"]["tracks"]["results"]:
+  for track in response{"result", "tracks", "results"}:
     result.tracks.add track.parseTrack
   #TODO: albums and artists
 
