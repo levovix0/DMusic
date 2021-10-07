@@ -28,7 +28,7 @@ proc dmusic =
   {.emit: "Py_Initialize();".}
 
   let app = newQApplication()
-  registerYandexMusicTrackInQml()
+  registerYandexMusicInQml()
   {.emit: "Translator::setApp(&`app`);".}
 
   QApplication.appName = "DMusic"

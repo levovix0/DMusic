@@ -1,5 +1,9 @@
 {.used.}
-import os, strformat, macros, strutils
+import utils
+import os, strformat, macros, strutils, sequtils
+import fusion/matching, fusion/astdsl
+
+{.experimental: "caseStmtMacros".}
 
 func qso(module: string): string =
   when defined(windows): &"Qt5{module}.dll"
@@ -55,7 +59,20 @@ type
     data*: ptr cuint
     extradata: pointer
 
-  QMetaObjectCall* {.importcpp: "QMetaObject::Call", header: "QObject".} = object
+  QMetaObjectCall* {.importcpp: "QMetaObject::Call", header: "QObject", pure.} = enum
+    invokeMetaMethod
+    readProperty
+    writeProperty
+    resetProperty
+    queryPropertyDesignable
+    queryPropertyScriptable
+    queryPropertyStored
+    queryPropertyEditable
+    queryPropertyUser
+    createInstance
+    indexOfMethod
+    registerPropertyMetaType
+    registerMethodArgumentMetaType
 
   QMetaType* {.size: uint32.sizeof, pure.} = enum
     bool = 1, int = 2, uint32 = 3
@@ -66,6 +83,8 @@ type
     ulong = 35, ushort = 36, uchar = 37
     float = 38, schar = 40, nullptr = 41
     void = 43
+
+  QQuickItem* {.importcpp, header: "QQuickItem".} = object of QObject
 
   QApplication* {.importcpp, header: "QApplication".} = object
   
@@ -168,66 +187,132 @@ proc load*(this: QQmlApplicationEngine, file: QUrl) {.importcpp: "#.load(@)", he
 
 
 
+#----------- tools -----------#
+proc moc*(code: string): string {.compileTime.} =
+  ## qt moc (meta-compiler) tool wrapper
+  "moc".staticExec(code)
+
+proc rcc*(file: string): string {.compileTime.} =
+  ## qt rcc (resource-compiler) tool wrapper
+  staticExec &"rcc {file.quoted}"
+
+
+
 #----------- macros -----------#
-proc makeMetaObjectProc(t: NimNode, o: NimNode): NimNode =
-  let decl = &"QMetaObject const* {t}::metaObject$3 const"
-  let name = genSym(nskProc)
-  quote do:
-    proc `name`(): ptr QMetaObject {.exportc, codegenDecl: `decl`.} =
-      let o {.inject.} = `o`.unsafeaddr
-      {.emit: "`result` = QObject::d_ptr->metaObject? QObject::d_ptr->dynamicMetaObject() : `o`;".}
-
-macro declareQtObjectSubtype*(name: static string, body: static string, parent: static string = "QObject") =
-  let toEmit = "/*TYPESECTION*/ class " & name & " : public " & parent & """ {
-public:
-  const QMetaObject* metaObject() const override;
-  void* qt_metacast(char const*) override;
-  int qt_metacall(QMetaObject::Call, int, void**) override;
-  """ & name & "(QObject* parent = nullptr): " & parent & "(parent) {}\n" & body & "};"
-  quote do: {.emit: `toEmit`.}
-
-macro makeStaticMetaObject*(t: typedesc, strings: static seq[string], metadata: static seq[int]) =
-  proc linkProc(): QMetaObjectSuperData {.importcpp: "QMetaObject::SuperData::link<QObject::staticMetaObject>()", header: "QObject".}
-  let link = bindSym"linkProc"
-
-  let litsd = block:
-    var res = nnkBracket.newTree
-    var o = 0
-    for i, s in strings:
-      let size = s.len
-      let offset = (s.len - i) * (int32, int32, uint32, int).sizeof + o
-      res.add (quote do: (-1.int32, `size`.int32, 0.uint32, `offset`))
-      o += s.len
-    res
-
-  let stringsd = block:
-    var res = nnkBracket.newTree
-    for c in strings.join("\0") & "\0":
-      res.add newLit c
-    res
-
-  let stringdata = quote do: (`litsd`, `stringsd`)
-
-  let cmetadata = block:
-    var res = nnkBracket.newTree
-    for x in metadata:
-      res.add newLit x.uint32
-    res.add newLit 0.uint32
-    res
+macro qobject*(t, body) =
+  ## export type to qt
+  t.expectKind nnkInfix
+  let parent = t[2]
+  let t = t[1]
   
-  let mo = genSym(nskVar)
-  let sd = genSym(nskVar)
-  let md = genSym(nskVar)
+  proc qoClass(name: string, body: string, parent: string = "QObject"): seq[string] =
+    @["/*TYPESECTION*/ class " & name & " : public " & parent & " {\nQ_OBJECT\npublic:\n  " &
+    name & "(QObject* parent = nullptr): " & parent & "(parent) {}\n  ", body, "\n};"]
 
-  let moProc = makeMetaObjectProc(t, mo)
+  proc toQtTypename(s: string): string =
+    case s
+    of "string": "QString"
+    else: s
 
-  quote do:
-    var `mo`: QMetaObject
-    `mo`.d.superdata = `link`()
-    var `sd` = `stringdata`
-    `mo`.d.stringdata = cast[ptr QByteArrayData](`sd`.addr)
-    var `md` = `cmetadata`
-    `mo`.d.data = cast[ptr cuint](`md`.addr)
+  proc toNimQtType(s: NimNode): NimNode =
+    if s.kind == nnkEmpty: return bindSym"void"
+    case $s
+    of "string": ident "QString"
+    of "int": ident "cint"
+    else: s
+
+  proc declslot(name: string, rettype: NimNode, args: seq[NimNode]): string =
+    let argnames = args.mapit(it[0..^3]).concat.map(`$`)
+    let argtypes = args.mapit(it[^2].repeat(it.len - 2)).concat.mapit(toQtTypename $it)
+    let rettype = if rettype.kind != nnkEmpty: toQtTypename $rettype else: "void"
+    &"public Q_SLOTS: {rettype} {name}(" & zip(argtypes, argnames).mapit(&"{it[0]} {it[1]}").join(", ") & ");"
+  
+  proc toNimQtVal[T](v: T): auto =
+    when T is string: toQString v
+    elif T is int: v.cint
+    else: v
+
+  proc fromNimQtVal[T](v: T): auto =
+    when T is QString: toString v
+    elif T is cint: v.int
+    else: v
     
-    `moProc`
+  proc implslot(name: string, alias: NimNode, rettype: NimNode, args: seq[NimNode]): NimNode =
+    let tnqv = bindSym"toNimQtVal"
+    let fnqv = bindSym"fromNimQtVal"
+
+    buildAst(procDef):
+      genSym nskProc
+      empty()
+      empty()
+      formalParams:
+        toNimQtType rettype
+        for arg in args:
+          var arg = arg
+          arg[^2] = toNimQtType arg[^2]
+          arg
+      pragma:
+        ident "exportcpp"
+        exprColonExpr:
+          ident "codegenDecl"
+          let rt = if rettype.kind == nnkEmpty: "void" else: toQtTypename $rettype
+          newLit &"{rt} {t}::{name}$3"
+      empty()
+      stmtList:
+        varSection(identDefs(ident "this", ptrTy(t), empty()))
+        pragma(exprColonExpr(ident "emit", bracket(ident"this", newLit " = &self;")))
+        if rettype.kind == nnkEmpty:
+          call:
+            alias
+            bracketExpr(ident "this")
+            for arg in args.mapit(it[0..^3]).concat:
+              call(fnqv, arg)
+        else: call(tnqv):
+          call:
+            alias
+            bracketExpr(ident "this")
+            for arg in args.mapit(it[0..^3]).concat:
+              call(fnqv, arg)
+
+  var decl: seq[string]
+  var impl = newStmtList()
+
+  for x in body:
+    case x
+    of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Empty(), Empty(), Empty()]:
+      decl.add declslot(name, rettype, args)
+      impl.add implslot(name, ident name, rettype, args)
+    of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Empty(), Empty(), StmtList[@alias is Ident()]]:
+      decl.add declslot(name, rettype, args)
+      impl.add implslot(name, alias, rettype, args)
+    else: error("Unexpected syntax", x)
+
+  let moc = moc qoClass($t, decl.join("\n"), $parent).join
+  let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)
+
+  buildAst(stmtList):
+    pragma(exprColonExpr(ident "emit", newLit &"/*INCLUDESECTION*/ #include <{parent}>"))
+    pragma(exprColonExpr(ident "emit", bracket(newLit toEmit[0], t, newLit " self;\n", newLit toEmit[1], newLit toEmit[2])))
+    pragma(exprColonExpr(ident "emit", bracket(newLit moc)))
+    for x in impl: x
+
+
+macro registerInQml*(t: typedesc, module: static string, verMajor, verMinor: static int) =
+  ## export type to qml (must be exported to qt before)
+  buildAst(stmtList):
+    (quote do:
+      block:
+        proc x() {.importcpp: "(void)0", header: "qqml.h".} = discard
+        x())
+    pragma(exprColonExpr(ident "emit", bracket(newLit "qmlRegisterType<", newLit $t, newLit ">(", newLit module.quoted, newLit ", ", newLit $verMajor, newLit ", ", newLit $verMinor, newLit &", {quoted $t});")))
+
+
+macro registerInQml*(t: typedesc, module: static string, verMajor, verMinor: static int; name: static string) =
+  ## export type to qml (must be exported to qt before)
+  buildAst(stmtList):
+    (quote do:
+      block:
+        proc x() {.importcpp: "(void)0", header: "qqml.h".} = discard
+        x())
+    pragma(exprColonExpr(ident "emit", bracket(newLit "qmlRegisterType<", newLit $t, newLit ">(", newLit module.quoted, newLit ", ", newLit $verMajor, newLit ", ", newLit $verMinor, newLit &", {name.quoted});")))
 
