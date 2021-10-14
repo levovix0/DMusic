@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import DMusic 1.0
+import YandexMusic 1.0 as YandexMusic
 import "components"
 
 FloatingPanel {
@@ -23,7 +24,7 @@ FloatingPanel {
     _model.search(root.text)
   }
 
-  SearchModel {
+  YandexMusic.SearchModel {
     id: _model;
   }
 
@@ -125,15 +126,15 @@ FloatingPanel {
         SearchResult {
           width: root.width - 20
 
-          kind: "track"
-          cover: element.cover
-          name: element.title
-          comment: element.comment
-          artist: element.artistsStr
+          kind: objKind
+          cover: objCover
+          name: objName
+          comment: objComment
+          artist: objArtist
 
           onPlay: {
             SearchHistory.savePromit(root.text)
-            YClient.playPlaylist(YClient.oneTrack(element.id))
+            YClient.playPlaylist(YClient.oneTrack(objId))
             _root.focus = true
           }
         }

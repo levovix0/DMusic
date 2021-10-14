@@ -38,23 +38,23 @@ void SearchModel::search(QString request)
 {
   auto thread = QThread::currentThread();
 
-  ym_search(Config::ym_token().toUtf8().data(), request.toUtf8().data(), "all", [this, thread](char* json) {
-    ResultList result;
-    auto data = QJsonDocument::fromJson(json).object();
-    if (!data["result"].isObject()) return result;
-    auto res = data["result"].toObject();
-    if (!res["tracks"].isObject() || !res["tracks"].toObject()["results"].isArray()) return result;
-    auto tracks = res["tracks"].toObject()["results"].toArray();
+  QString json = ym_search(Config::ym_token(), request, "all");
 
-    int rc = 0;
-    for (auto&& track : tracks) {
-      if (rc++ >= maxResults) break;
-      auto t = new YTrack(track.toObject()["id"].toInt(-1));
-      t->moveToThread(thread);
-      result.push_back({refTrack{t}});
-    }
+  ResultList result;
+  auto data = QJsonDocument::fromJson(json.toUtf8()).object();
+  if (!data["result"].isObject()) return result;
+  auto res = data["result"].toObject();
+  if (!res["tracks"].isObject() || !res["tracks"].toObject()["results"].isArray()) return result;
+  auto tracks = res["tracks"].toObject()["results"].toArray();
 
-    _result = result;
-    emit layoutChanged();
-  });
+  int rc = 0;
+  for (auto&& track : tracks) {
+    if (rc++ >= maxResults) break;
+    auto t = new YTrack(track.toObject()["id"].toInt(-1));
+    t->moveToThread(thread);
+    result.push_back({refTrack{t}});
+  }
+
+  _result = result;
+  emit layoutChanged();
 }

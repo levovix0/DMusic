@@ -7,7 +7,8 @@ bin           = @["dmusic"]
 backend       = "cpp"
 
 requires "nim >= 1.4.4"
-requires "fusion", "cligen"
+requires "cligen"
+requires "fusion"
 requires "https://github.com/levovix0/impl"
 
 when defined(nimdistros):

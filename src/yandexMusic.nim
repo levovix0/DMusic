@@ -129,6 +129,8 @@ proc generateToken*(this: Client, username, password: string): Future[string] {.
   ).await.parseJson["access_token"].getStr
 
 proc search*(this: Client, text: string, kind = "all", correct = true): Future[tuple[tracks: seq[Track]]] {.async.} =
+  if text == "": return
+
   let response = this.request(
     &"{baseUrl}/search", params = @{
       "text": text,
@@ -139,14 +141,15 @@ proc search*(this: Client, text: string, kind = "all", correct = true): Future[t
     }
   ).await.parseJson
 
-  for track in response{"result", "tracks", "results"}:
-    result.tracks.add track.parseTrack
+  if response{"result", "tracks", "results"} != nil:
+    for track in response{"result", "tracks", "results"}:
+      result.tracks.add track.parseTrack
   #TODO: albums and artists
 
 
 proc coverUrl*(this: Track|Album|Artist, size = 1000): string =
   ## direct link to track's cover
-  this.coverUri.replace("%%", &"{size}x{size}")
+  "https://" & this.coverUri.replace("%%", &"{size}x{size}")
 
 
 proc `$`*(this: TrackId): string = $this.id

@@ -24,7 +24,7 @@ exportModuleToCpp "search"
 proc initializeDMusicQmlModule() {.importcpp: "initializeDMusicQmlModule()", header: "main.hpp".}
 proc cppmain() {.importcpp: "cppmain()", header: "main.hpp".}
 
-proc dmusic =
+proc dmusic: string =
   {.emit: "Py_Initialize();".}
 
   let app = newQApplication()
@@ -41,7 +41,7 @@ proc dmusic =
   let engine = newQQmlApplicationEngine()
   {.emit: "Translator::setEngine(&`engine`);".}
   engine.load "qrc:/qml/main.qml"
-  
+
   setProgramResult app.exec
   
   {.emit: "Py_Finalize();".}

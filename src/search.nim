@@ -1,14 +1,16 @@
 {.used.}
-import httpclient, strformat, asyncdispatch, json, uri
+import qt
+import httpclient, strformat, json, uri
 
 type
   Requset* = ref object
     headers: HttpHeaders
-    httpc: AsyncHttpClient
+    httpc: HttpClient
   
   Client* = ref object
     request: Requset
     token: string
+  
 
 
 proc `lang=`*(this: Requset, lang: string) =
@@ -19,7 +21,7 @@ proc `token=`*(this: Requset, token: string) =
 
 proc newRequest*(lang="ru"): Requset =
   new result
-  result.httpc = newAsyncHttpClient()
+  result.httpc = newHttpClient()
   result.headers = newHttpHeaders()
   result.lang = lang
   result.headers["User-Agent"] = "Yandex-Music-API"
@@ -40,13 +42,13 @@ proc request*(
   body = "",
   data: MultipartData = nil,
   params: seq[(string, string)] = @[]
-  ): Future[AsyncResponse] {.async.} =
+  ): Response =
 
   let url =
     if params.len == 0: url
     else: $(url.parseUri ? params)
 
-  return await this.httpc.request(url, httpMethod, body, this.headers, data)
+  return this.httpc.request(url, httpMethod, body, this.headers, data)
 
 
 const
@@ -54,7 +56,7 @@ const
   oauthUrl = "https://oauth.yandex.ru"
 
 
-proc generateToken*(this: Client, username, password: string): Future[string] {.async.} =
+proc generateToken*(this: Client, username, password: string): string =
   return this.request.request(
     &"{oauthUrl}/token", HttpPost, data = newMultipartData {
       "grant_type": "password",
@@ -63,9 +65,9 @@ proc generateToken*(this: Client, username, password: string): Future[string] {.
       "username": username,
       "password": password,
     }
-  ).await.body.await.parseJson["access_token"].getStr
+  ).body.parseJson["access_token"].getStr
 
-proc search*(this: Client, text: string, kind = "all"): Future[string] {.async.} =
+proc search*(this: Client, text: string, kind = "all"): string =
   return this.request.request(
     &"{baseUrl}/search", HttpGet, params = @{
       "text": text,
@@ -74,7 +76,7 @@ proc search*(this: Client, text: string, kind = "all"): Future[string] {.async.}
       "page": "0",
       # "playlist-in-best": "True",
     }
-  ).await.body.await
+  ).body
 
 
 type
@@ -84,6 +86,6 @@ type
 proc `()`[R, T](this: StdFunction[R, T], a: T): R {.importcpp: "#(#)".}
 
 
-proc ym_search*(token: cstring, text: cstring, kind: cstring, callback: StdFunction[void, cstring]) {.async, exportc.} =
-  let res = waitFor newClient($token).search($text, $kind)
-  callback(res)
+proc ym_search*(token: QString, text: QString, kind: QString): QString {.exportc.} =
+  let x = newClient($token).search($text, $kind)
+  result = x

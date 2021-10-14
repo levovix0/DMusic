@@ -1,29 +1,54 @@
-import sequtils, strutils
+import sequtils, strutils, asyncdispatch, base64, strformat
 import impl
 import qt, yandexMusic
 
-var client* = newClient()
+proc coverBase64(client: Client, t: Track): Future[string] {.async.} =
+  return &"data:image/png;base64,{client.request(t.coverUrl).await.encode}"
 
 
-type YandexMusicTrack = object
-  track: Track
+type YmSearchModel = object
+  result: seq[Track] #TODO: albums, artists
+  covers: seq[string]
+  process: Future[(seq[Track], seq[string])]
 
-impl YandexMusicTrack:
-  proc id: int = this.track.id
-  proc title: string = this.track.title
-  proc comment: string = this.track.comment
-  proc artists: string = this.track.artists.mapit(it.name).join(", ")
-  proc cover: string = this.track.coverUrl
-  proc isExplicit: bool = this.track.explicit
+impl YmSearchModel:
+  proc search(query: string): Future[(seq[Track], seq[string])] {.mut, async.} =
+    var client = newClient()
+    result[0] = client.search(query).await.tracks
+    
+    result[1].setLen result[0].len
+    for i, track in result[0]:
+      result[1][i] = await client.coverBase64(track)
 
-qobject YandexMusicTrack:
-  proc idStr: int = id
-  proc title: string
-  proc comment: string
-  proc artists: string
-  proc cover: string
-  proc isExplicit: bool
+template safeGet(x): auto =
+  if i in 0..<this.result.len: x else: typeof(x).default
+
+qmodel YmSearchModel:
+  rows: this.result.len.min(5)
+
+  get objId:      safeGet cint this.result[i].id
+  get objName:    safeGet toQString this.result[i].title
+  get objComment: safeGet toQString this.result[i].comment
+  get objCover:   safeGet toQString this.covers[i]
+  get objArtist:  safeGet toQString this.result[i].artists.mapit(it.name).join(", ")
+  get objKind:    safeGet toQString "track"
+
+  proc poll =
+    asyncdispatch.poll()
+
+  proc search(query: string) =
+    if this[].self.process != nil:
+      if not this[].self.process.finished:
+        clearCallbacks this[].self.process
+        complete this[].self.process, (@[], @[])
+    
+    this[].self.process = this[].self.search(query)
+    this[].self.process.addCallback(proc(f: Future[(seq[Track], seq[string])]) =
+      this[].self.result = f.read[0]
+      this[].self.covers = f.read[1]
+      this.layoutChanged
+    )
 
 
 proc registerYandexMusicInQml* =
-  YandexMusicTrack.registerInQml("DMusic", 1, 0)
+  registerInQml YmSearchModel, "YandexMusic", 1, 0, "SearchModel"
