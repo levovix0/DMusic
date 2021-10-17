@@ -1,4 +1,4 @@
-import sequtils, strutils, asyncdispatch, base64, strformat
+import sequtils, strutils, asyncdispatch, base64, strformat, locks
 import impl
 import qt, yandexMusic
 
@@ -10,6 +10,7 @@ type YmSearchModel = object
   result: seq[Track] #TODO: albums, artists
   covers: seq[string]
   process: Future[(seq[Track], seq[string])]
+  lock: Lock
 
 impl YmSearchModel:
   proc search(query: string): Future[(seq[Track], seq[string])] {.mut, async.} =
@@ -21,7 +22,11 @@ impl YmSearchModel:
       result[1][i] = await client.coverBase64(track)
 
 template safeGet(x): auto =
-  if i in 0..<this.result.len: x else: typeof(x).default
+  block:
+    var r: typeof(x)
+    withLock this.lock:
+      r = if i in 0..<this.result.len: x else: typeof(x).default
+    r
 
 qmodel YmSearchModel:
   rows: this.result.len.min(5)
@@ -33,19 +38,19 @@ qmodel YmSearchModel:
   get objArtist:  safeGet toQString this.result[i].artists.mapit(it.name).join(", ")
   get objKind:    safeGet toQString "track"
 
-  proc poll =
-    asyncdispatch.poll()
+  proc init =
+    initLock this[].self.lock
 
   proc search(query: string) =
     if this[].self.process != nil:
       if not this[].self.process.finished:
         clearCallbacks this[].self.process
-        complete this[].self.process, (@[], @[])
     
     this[].self.process = this[].self.search(query)
     this[].self.process.addCallback(proc(f: Future[(seq[Track], seq[string])]) =
-      this[].self.result = f.read[0]
-      this[].self.covers = f.read[1]
+      withLock this[].self.lock:
+        this[].self.result = f.read[0]
+        this[].self.covers = f.read[1]
       this.layoutChanged
     )
 

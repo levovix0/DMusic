@@ -1,4 +1,4 @@
-import std/exitprocs
+import std/exitprocs, asyncdispatch
 import cligen
 import cppbridge, qt, yandexMusicQmlModule
 
@@ -13,16 +13,22 @@ when defined(unix):
 sourcesFromDir "src"
 resourcesFromDir "."
 
-exportModuleToCpp "search"
-
 {.emit: "#undef slots".}
 {.emit: "#include <Python.h>".}
 {.emit: "#define slots Q_SLOTS".}
 
 {.emit: """#include "Translator.hpp"""".}
+{.emit: """#include <QTimer>""".}
 
 proc initializeDMusicQmlModule() {.importcpp: "initializeDMusicQmlModule()", header: "main.hpp".}
 proc cppmain() {.importcpp: "cppmain()", header: "main.hpp".}
+
+proc doNothingAsync() {.async.} =
+  while true:
+    await sleepAsync 100
+
+proc onMainLoop {.exportc.} =
+  asyncdispatch.poll(25)
 
 proc dmusic: string =
   {.emit: "Py_Initialize();".}
@@ -41,6 +47,14 @@ proc dmusic: string =
   let engine = newQQmlApplicationEngine()
   {.emit: "Translator::setEngine(&`engine`);".}
   engine.load "qrc:/qml/main.qml"
+
+  let _ = doNothingAsync()
+
+  {.emit: """
+  auto timer = QTimer();
+  QObject::connect(&timer, &QTimer::timeout, []{ onMainLoop(); });
+  timer.start();
+  """.}
 
   setProgramResult app.exec
   

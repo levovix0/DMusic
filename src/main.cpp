@@ -19,7 +19,6 @@
 #include "ConsoleArgs.hpp"
 #include "Translator.hpp"
 #include "SearchHistory.hpp"
-#include "SearchModel.hpp"
 
 
 void initializeDMusicQmlModule() {
@@ -37,7 +36,6 @@ void initializeDMusicQmlModule() {
   qmlRegisterType<YPlaylist>("DMusic", 1, 0, "YPlaylist");
   qmlRegisterType<YLikedTracks>("DMusic", 1, 0, "YLikedTracks");
   qmlRegisterType<YPlaylistsModel>("DMusic", 1, 0, "YPlaylistsModel");
-  qmlRegisterType<SearchModel>("DMusic", 1, 0, "SearchModel");
 
 	qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
 	qmlRegisterSingletonType<Config>("Config", 1, 0, "Config", &Config::qmlInstance);

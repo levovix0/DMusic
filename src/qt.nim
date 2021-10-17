@@ -310,7 +310,7 @@ proc implslot(t, ct: NimNode, name: string, rettype: NimNode, args: seq[NimNode]
 
 proc qoClass(name: string, body: string, parent: string = "QObject"): array[3, string] =
   ["/*TYPESECTION*/ class " & name & " : public " & parent & " {\nQ_OBJECT\npublic:\n  " &
-  name & "(QObject* parent = nullptr): " & parent & "(parent) {}\n  ", body, "\n};"]
+  name & "(QObject* parent = nullptr);\n  ", body, "\n};"]
 
 
 proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], impl: var NimNode) =
@@ -413,9 +413,12 @@ macro qobject*(t, body) =
   let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)
 
   buildAst(stmtList):
-    pragma(exprColonExpr(i"emit", newLit &"/*INCLUDESECTION*/ #include <{parent}>"))
-    pragma(exprColonExpr(i"emit", bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])))
-    pragma(exprColonExpr(i"emit", bracket(newLit moc)))
+    pragma: exprColonExpr i"emit": newLit &"/*INCLUDESECTION*/ #include <{parent}>"
+    pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
+    pragma: exprColonExpr i"emit": bracket(newLit moc)
+    pragma: exprColonExpr i"emit":
+      newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
+      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
     for x in impl: x
 
 
@@ -529,9 +532,12 @@ macro qmodel*(t, body) =
   let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)
 
   buildAst(stmtList):
-    pragma: exprColonExpr(i"emit", newLit &"/*INCLUDESECTION*/ #include <{parent}>")
-    pragma: exprColonExpr(i"emit", bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2]))
-    pragma: exprColonExpr(i"emit", bracket(newLit moc))
+    pragma: exprColonExpr i"emit": newLit &"/*INCLUDESECTION*/ #include <{parent}>"
+    pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
+    pragma: exprColonExpr i"emit": bracket(newLit moc)
+    pragma: exprColonExpr i"emit":
+      newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
+      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
     for x in impl: x
 
 
