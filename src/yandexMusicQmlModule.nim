@@ -2,7 +2,7 @@ import sequtils, strutils, asyncdispatch, base64, strformat
 import qt, yandexMusic
 
 proc coverBase64(client: Client, t: Track): Future[string] {.async.} =
-  return &"data:image/png;base64,{client.request(t.coverUrl).await.encode}"
+  return &"data:image/png;base64,{client.request(t.coverUrl(50)).await.encode}"
 
 
 type YmSearchModel = object
