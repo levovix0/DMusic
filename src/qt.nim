@@ -202,6 +202,9 @@ var
 
 proc newQApplication*(argc = cmdCount, argv = cmdLine): QApplication {.importcpp: "QApplication(@)", header: "QApplication", constructor.}
 proc exec*(this: QApplication): int32 {.importcpp: "#.exec()".}
+  ## executes main loop and returns allication return code
+proc processEvents*(this: QApplication) {.importcpp: "#.processEvents()".}
+  ## do main loop step, can be called without anything instead of exec
 
 proc `appName=`*(this: type QApplication, v: string) =
   proc impl(v: QString) {.importcpp: "QApplication::setApplicationName(@)", header: "QApplication".}

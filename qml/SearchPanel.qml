@@ -26,9 +26,6 @@ FloatingPanel {
 
   YandexMusic.SearchModel {
     id: _model;
-    Component.onCompleted: {
-      _model.init()
-    }
   }
 
   Column {
