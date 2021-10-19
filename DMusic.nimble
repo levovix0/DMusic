@@ -7,9 +7,10 @@ bin           = @["dmusic"]
 backend       = "cpp"
 
 requires "nim >= 1.4.4"
-requires "cligen"
 requires "fusion"
+requires "cligen"
 requires "https://github.com/levovix0/impl"
+requires "discord_rpc"
 
 when defined(nimdistros):
   import distros

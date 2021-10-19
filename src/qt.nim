@@ -278,7 +278,7 @@ proc toQtTypename(s: string): string =
 proc argNames(args: NimNode|seq[NimNode]): seq[NimNode] =
   args.mapit(it[0..^3]).concat
 
-proc implslot(t, ct: NimNode, name: string, rettype: NimNode, args: seq[NimNode], body: NimNode): NimNode =
+proc implslot(t, ct: NimNode, name: string, rettype: NimNode, args: seq[NimNode], pragma: seq[NimNode], body: NimNode): NimNode =
   let tqv = s"toQtVal"
 
   proc toNimQtType(s: NimNode): NimNode =
@@ -303,10 +303,13 @@ proc implslot(t, ct: NimNode, name: string, rettype: NimNode, args: seq[NimNode]
       exprColonExpr:
         i"codegenDecl"
         newLit &"$1 {t}::{name}$3"
+      for x in pragma: x
     empty()
     stmtList:
-      varSection: identDefs(i"this", ptrTy ct, empty())
+      varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
       pragma: exprColonExpr(i"emit", bracket(i"this", l" = this;"))
+      quote do:
+        template self(): var `t` {.used.} = this[].self
       
       if rettype.kind == nnkEmpty: body
       else: call(tqv, body)
@@ -319,42 +322,30 @@ proc qoClass(name: string, body: string, parent: string = "QObject"): array[3, s
 proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], impl: var NimNode) =
   proc declslot(name: string, rettype: NimNode, args: seq[NimNode]): string =
     let argnames = args.mapit(it[0..^3]).concat.map(`$`)
-    let argtypes = args.mapit(it[^2].repeat(it.len - 2)).concat.mapit(toQtTypename $it)
+    let argtypes = args.mapit(it[^2].`$`.toQtTypename.repeat(it.len - 2)).concat
     let rettype = if rettype.kind != nnkEmpty: toQtTypename $rettype else: "void"
     &"public Q_SLOTS: {rettype} {name}(" & zip(argtypes, argnames).mapit(&"{it[0]} {it[1]}").join(", ") & ");"
-    
-  proc implslot(name: string, alias: NimNode, rettype: NimNode, args: seq[NimNode]): NimNode =
-    let fqv = s"fromQtVal"
 
-    qt.implslot t, ct, name, rettype, args, buildAst do:
-      if args.len == 0:
-        dotExpr(dotExpr(bracketExpr(i"this"), i"self"), alias)
-      else:
-        call dotExpr(dotExpr(bracketExpr(i"this"), i"self"), alias):
-          for arg in args.argNames:
-            call(fqv, arg)
-
-  case x
-  of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Empty(), Empty(), Empty()]:
-    decl.add declslot(name, rettype, args)
-    impl.add implslot(name, ident name, rettype, args)
-  
-  of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Empty(), Empty(), StmtList[@alias is Ident()]]:
-    decl.add declslot(name, rettype, args)
-    impl.add implslot(name, alias, rettype, args)
-  
+  case x  
   of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Empty(), Empty(), StmtList[all @body]]:
     decl.add declslot(name, rettype, args)
     
     let fqv = s"fromQtVal"
-    impl.add: qt.implslot t, ct, name, rettype, args, buildAst stmtList do:
+    impl.add: implslot t, ct, name, rettype, args, @[], buildAst stmtList do:
       letSection:
         for arg in args.argNames:
           identDefs(arg, empty(), call(fqv, arg))
       for x in body: x
-  
-  # of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Pragma[Ident(strVal: "async")], Empty(), StmtList[all @body]]:
-  #   discard
+
+  of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Pragma[all @pragma], Empty(), StmtList[all @body]]:
+    decl.add declslot(name, rettype, args)
+    
+    let fqv = s"fromQtVal"
+    impl.add: implslot t, ct, name, rettype, args, pragma, buildAst stmtList do:
+      letSection:
+        for arg in args.argNames:
+          identDefs(arg, empty(), call(fqv, arg))
+      for x in body: x
   
   of ProcDef[AccQuoted[Ident(strVal: "="), Ident(strVal: "new")], Empty(), Empty(), FormalParams[Empty(), all @args], Empty(), Empty(), @body]:
     impl.add: buildAst procDef:
@@ -436,6 +427,7 @@ macro qmodel*(t, body) =
   var decl: seq[string]
   var impl = newStmtList()
   var dataImpl: Table[string, NimNode]
+  var rowsImpl: NimNode
 
   let ct = gensym nskType
   impl.add: buildAst typeSection:
@@ -451,6 +443,7 @@ macro qmodel*(t, body) =
   for x in body:
     case x
     of Call[Ident(strVal: "rows"), @body is StmtList()]:
+      rowsImpl = newCall(s"int", body)
       decl.add "int rowCount(QModelIndex const& parent) const override;"
       impl.add: buildAst(procDef):
         gensym nskProc
@@ -466,11 +459,13 @@ macro qmodel*(t, body) =
             newLit &"int {t}::rowCount(QModelIndex const& parent) const"
         empty()
         stmtList:
-          varSection: identDefs(i"this", ptrTy t, empty())
-          pragma: exprColonExpr(i"emit", bracket(i"this", l" = &self;"))
+          varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
+          pragma: exprColonExpr(i"emit", bracket(i"this", l" = this;"))
+          quote do:
+            template self(): var `t` {.used.} = this[].self
           call(s"cint", body)
 
-    of Command[Ident(strVal: "get"), Ident(strVal: @valname), @body is StmtList()]:
+    of Command[Ident(strVal: "elem"), Ident(strVal: @valname), @body is StmtList()]:
       if dataImpl.len == 0:
         decl.add "QVariant data(QModelIndex const& index, int role) const override;"
         decl.add "QHash<int, QByteArray> roleNames() const override;"
@@ -478,6 +473,8 @@ macro qmodel*(t, body) =
 
     else: qobjectCasesImpl t, body, ct, x, decl, impl
   
+  if rowsImpl == nil: error("rows must be declarated")
+
   impl.add:
     let i = nskParam.gensym "index"
     let role = nskParam.gensym "role"
@@ -497,17 +494,22 @@ macro qmodel*(t, body) =
           newLit &"QVariant {t}::data(QModelIndex const& index, int role) const"
       empty()
       stmtList:
-        varSection: identDefs(i"this", ptrTy t, empty())
-        pragma: exprColonExpr(i"emit", bracket(i"this", l" = &self;"))
+        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
+        pragma: exprColonExpr(i"emit", bracket(i"this", l" = this;"))
+        quote do:
+          template self(): var `t` {.used.} = this[].self
         varSection:
           identDefs(pragmaExpr(i"i", pragma(i"used")), empty(), call(s"int", dotExpr(i, s"row")))
           identDefs(pragmaExpr(i"j", pragma(i"used")), empty(), call(s"int", dotExpr(i, s"column")))
+        ifStmt: elifBranch:
+          infix(s"notin", i"i"): infix(s"..<", newLit 0, rowsImpl)
+          stmtList: returnStmt(empty())
         caseStmt role:
           var ri = 0x0100
           for _, v in dataImpl:
             inc ri
             ofBranch(newLit ri):
-              call(s"toQVariant", v)
+              call(s"toQVariant", call(s"toQtVal", v))
           Else: call(s"toQVariant", newLit 0)
 
   impl.add:

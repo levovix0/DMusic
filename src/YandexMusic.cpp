@@ -497,46 +497,46 @@ QString YClient::token(QString login, QString password)
 
 void YClient::login(QString token)
 {
-  if (!initialized()) return;
-  if (token == "") return;
-  do_async([this, token](){
-    try {
-      me = ym.call("Client", token);
+  // if (!initialized()) return;
+  // if (token == "") return;
+  // do_async([this, token](){
+  //   try {
+  //     me = ym.call("Client", token);
 
-      _loggined = true;
-      emit logginedChanged(_loggined);
-    }  catch (std::exception& e) {
-      _loggined = false;
-      emit logginedChanged(_loggined);
-      Messages::error(tr("Failed to login to Yandex.Music"), e.what());
-    }
-  });
+  //     _loggined = true;
+  //     emit logginedChanged(_loggined);
+  //   }  catch (std::exception& e) {
+  //     _loggined = false;
+  //     emit logginedChanged(_loggined);
+  //     Messages::error(tr("Failed to login to Yandex.Music"), e.what());
+  //   }
+  // });
 }
 void YClient::login(QString token, QString proxy)
 {
-  if (!initialized()) return;
-  if (token == "") return;
-  if (proxy == "") {
-    login(token);
-    return;
-  }
-  do_async([this, token, proxy](){
-    try {
-      std::map<std::string, object> kwargs;
-      kwargs["proxy_url"] = proxy;
-      object req = ym_request.call("Request", std::initializer_list<object>{}, kwargs);
-      kwargs.clear();
-      kwargs["request"] = req;
-      me = ym.call("Client", token);
+  // if (!initialized()) return;
+  // if (token == "") return;
+  // if (proxy == "") {
+  //   login(token);
+  //   return;
+  // }
+  // do_async([this, token, proxy](){
+  //   try {
+  //     std::map<std::string, object> kwargs;
+  //     kwargs["proxy_url"] = proxy;
+  //     object req = ym_request.call("Request", std::initializer_list<object>{}, kwargs);
+  //     kwargs.clear();
+  //     kwargs["request"] = req;
+  //     me = ym.call("Client", token);
 
-      _loggined = true;
-      emit logginedChanged(_loggined);
-    }  catch (std::exception& e) {
-      _loggined = false;
-      emit logginedChanged(_loggined);
-      Messages::error(tr("Failed to login to Yandex.Music"), e.what());
-    }
-  });
+  //     _loggined = true;
+  //     emit logginedChanged(_loggined);
+  //   }  catch (std::exception& e) {
+  //     _loggined = false;
+  //     emit logginedChanged(_loggined);
+  //     Messages::error(tr("Failed to login to Yandex.Music"), e.what());
+  //   }
+  // });
 }
 
 void YClient::unlogin()

@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import DMusic 1.0
-import YandexMusic 1.0 as YandexMusic
+import YandexMusic 1.0
 import "components"
 
 FloatingPanel {
@@ -24,8 +24,12 @@ FloatingPanel {
     _model.search(root.text)
   }
 
-  YandexMusic.SearchModel {
-    id: _model;
+  SearchModel {
+    id: _model
+  }
+
+  SearchHistory {
+    id: _hisroty_model
   }
 
   Column {
@@ -75,7 +79,7 @@ FloatingPanel {
 
       Repeater {
         enabled: root.text
-        model: SearchHistory
+        model: _hisroty_model
 
         MouseArea {
           width: root.width - 40
@@ -87,7 +91,7 @@ FloatingPanel {
 
           onClicked: {
             root.changeText(element)
-            SearchHistory.savePromit(element)
+            _hisroty_model.savePromit(element)
           }
 
           Icon {
