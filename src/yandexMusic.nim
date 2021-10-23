@@ -1,4 +1,6 @@
-import httpclient, strformat, strutils, sequtils, asyncdispatch, json, uri, xmltree, xmlparser, md5
+import
+  httpclient, strformat, strutils, sequtils, options,
+  asyncdispatch, json, uri, xmltree, xmlparser, md5, os
 
 type
   HttpError* = object of CatchableError
@@ -44,7 +46,7 @@ type
   
   Playlist* = object
     id*: int
-    kind*: int
+    uid*: int
     ownerId*: int
 
     title*: string
@@ -75,7 +77,7 @@ proc newClient*(token="", lang="ru"): Client =
 
 proc request*(
   client: Client,
-  url: string,
+  url: string|Uri,
   httpMethod: HttpMethod = HttpGet,
   body = "",
   data: MultipartData = nil,
@@ -83,8 +85,9 @@ proc request*(
   ): Future[string] {.async.} =
 
   let url =
-    if params.len == 0: url
-    else: $(url.parseUri ? params)
+    if params.len == 0: $url
+    else:
+      when url is Uri: $(url ? params) else: $(url.parseUri ? params)
 
   let response = await client.httpc.request(url, httpMethod, body, client.headers, data)
 
@@ -115,7 +118,7 @@ const
 
 
 proc toInt(a: JsonNode): int =
-  if a.kind == JString:
+  if a != nil and a.kind == JString:
     try: a.getStr.parseInt except: 0
   else: a.getInt
 
@@ -154,8 +157,8 @@ proc parseTrack*(a: JsonNode): Track =
     result.artists.add artist.parseArtist
   
 proc parsePlaylist*(a: JsonNode): Playlist =
-  result.id = a{"uid"}.toInt
-  result.kind = a{"kind"}.getInt
+  result.id = a{"kind"}.toInt
+  result.uid = a{"uid"}.toInt
   result.ownerId = a{"owner", "uid"}.getInt
 
   result.title = a{"title"}.getStr
@@ -207,16 +210,19 @@ proc coverUrl*(client: Track|Album|Artist|Playlist, size = 1000): string =
 proc `$`*(x: TrackId): string = $x.id
 
 converter asId*(x: Track): TrackId = TrackId(id: x.id)
+converter asId*(x: int): TrackId = TrackId(id: x)
 
+converter asIdSeq*(x: TrackId): seq[TrackId] = @[x]
+converter asIdSeq*(x: Track): seq[TrackId] = @[TrackId(id: x.id)]
+converter asIdSeq*(x: int): seq[TrackId] = @[TrackId(id: x)]
 
-proc fetch*(ids: TrackId|seq[TrackId], client: Client, withPositions = true): Future[seq[Track]] {.async.} =
-  ## get full track information by id
-  when ids is seq[TrackId]:
-    if ids.len < 1: return
+proc fetch*(ids: seq[TrackId], client: Client, withPositions = true): Future[seq[Track]] {.async.} =
+  ## get full track information by ids
+  if ids.len < 1: return
   
   let response = client.request(
     &"{baseUrl}/tracks", HttpPost, data = newMultipartData {
-      "track-ids": if ids is TrackId: $ids else: ids.join(","),
+      "track-ids": ids.join(","),
       "with-positions": $withPositions
     }
   ).await.parseJson
@@ -224,14 +230,15 @@ proc fetch*(ids: TrackId|seq[TrackId], client: Client, withPositions = true): Fu
   for res in response{"result"}:
     result.add res.parseTrack
 
-proc audioUrl*(track: Track|TrackId, client: Client): Future[string] {.async.} =
+
+proc audioUrl*(track: TrackId, client: Client): Future[string] {.async.} =
   ## get direct link to track's audio
   ## ! works only one minute after call
   let infoUrl = client.request(
     &"{baseUrl}/tracks/{track.id}/download-info"
-  ).await.parseJson["downloadInfoUrl"].getString
+  ).await.parseJson["downloadInfoUrl"].getStr
     
-  let result = await client.request(infoUrl).parseXml
+  let result = client.request(infoUrl).await.parseXml
   let host = result.findAll("host")[0].text
   let path = result.findAll("path")[0].text
   let ts = result.findAll("ts")[0].text
@@ -282,8 +289,31 @@ proc personalPlaylists*(client: Client): Future[seq[tuple[kind: string, playlist
 
 proc tracks*(playlist: Playlist, client: Client): Future[seq[Track]] {.async.} =
   let response = client.request(
-    &"{baseUrl}/users/{playlist.ownerId}/playlists/{playlist.kind}"
+    &"{baseUrl}/users/{playlist.ownerId}/playlists/{playlist.id}"
   ).await.parseJson
 
   for track in response{"result", "tracks"}:
     result.add track{"track"}.parseTrack
+
+proc playlist*(user: Account, id: int, client: Client): Future[Playlist] {.async.} =
+  let response = client.request(
+    &"{baseUrl}/users/{user.id}/playlists/{id}"
+  ).await.parseJson
+
+  return response{"result"}.parsePlaylist
+
+
+template trackLikeAction(name; url: string) {.dirty.} =
+  proc name*(user: Account, ids: seq[TrackId], client: Client) {.async.} =
+    if ids.len < 1: return
+
+    discard client.request(
+      &"{baseUrl}/users/{user.id}/" & url, HttpPost, data = newMultipartData {
+        "track-ids": ids.join(",")
+      }
+    ).await
+
+trackLikeAction like, "likes/tracks/add-multiple"
+trackLikeAction unlike, "likes/tracks/remove"
+trackLikeAction dislike, "dislikes/tracks/add-multiple"
+trackLikeAction undislike, "dislikes/tracks/remove"

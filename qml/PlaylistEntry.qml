@@ -12,7 +12,8 @@ Item {
 
   property real _anim_n: 0
   property real _anim2_n: 0
-  property var playlist
+  property string title
+  property url cover
 
   signal play()
   signal pause()
@@ -62,7 +63,7 @@ Item {
     height: root.width
     sourceSize: Qt.size(root.width, root.width)
 
-    source: playlist === null? "qrc:/resources/player/no-cover.svg" : playlist.cover
+    source: cover
     fillMode: Image.PreserveAspectCrop
 
     Rectangle {
@@ -142,7 +143,7 @@ Item {
     horizontalAlignment: Text.AlignHCenter
     wrapMode: Text.WordWrap
 
-    text: playlist === null? qsTr("Some playlist") : playlist.name
+    text: title
 
     MouseArea {
       id: _textMouse

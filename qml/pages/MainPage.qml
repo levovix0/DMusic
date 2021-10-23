@@ -1,9 +1,16 @@
 import QtQuick 2.15
 import DMusic 1.0
+import YandexMusic 1.0
 import "qrc:/qml"
 
 DPage {
   id: root
+
+  HomePlaylistsModel {
+    id: _homePlaylists
+    
+    Component.onCompleted: load()
+  }
 
   Row {
     id: _yandexHomePlaylists
@@ -16,30 +23,13 @@ DPage {
     Repeater {
       id: _yandexHomePlaylistsRepeater
 
-      function updateModel(loggined) {
-        if (loggined) {
-          _yandexHomePlaylistsRepeater.model = YClient.homePlaylistsModel()
-        } else {
-          _yandexHomePlaylistsRepeater.model = []
-        }
-      }
-
-      Component.onCompleted: {
-        if (YClient.loggined) {
-          _yandexHomePlaylistsRepeater.model = YClient.homePlaylistsModel()
-        } else {
-          YClient.logginedChanged.connect(updateModel)
-        }
-      }
-
-      Component.onDestruction: {
-        YClient.logginedChanged.disconnect(updateModel)
-      }
+      model: _homePlaylists
 
       PlaylistEntry {
-        playlist: element
+        title: objTitle
+        cover: objCover
 
-        onPlay: YClient.playYPlaylist(playlist)
+        // onPlay: YClient.playYPlaylist(playlist)
         onShowFull: switcher("qrc:/qml/pages/PlaylistPage.qml")
       }
     }

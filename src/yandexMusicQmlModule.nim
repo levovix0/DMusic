@@ -1,39 +1,34 @@
-import sequtils, strutils, asyncdispatch, base64, strformat, os, config
-import qt, yandexMusic
+import sequtils, strutils, async, base64, strformat, os, sugar, tables
+import qt, yandexMusic, config
 
+const
+  emptyCover = "qrc:resources/player/no-cover.svg"
 
-template then(x: Future, body) =
-  x.addCallback(proc(res: typeof(x)) =
-    let res {.inject.} = read res
-    body
-  )
+var coverCache: Table[(string, int), string]
 
-proc cancel(x: Future) =
-  if x == nil or x.finished: return
-  clearCallbacks x
-  fail x, CatchableError.newException("Canceled")
-
-
-proc coverBase64(client: Client, t: Track): Future[string] {.async.} =
-  return &"data:image/png;base64,{client.request(t.coverUrl(50)).await.encode}"
-
-proc search(query: string): Future[(seq[Track], seq[string])] {.async.} =
-  var client = newClient()
-  result[0] = client.search(query).await.tracks
-  
-  result[1].setLen result[0].len
-  #TODO: parallel
-  for i, track in result[0]:
-    result[1][i] = await client.coverBase64(track)
+proc coverBase64(t: Track|Playlist, client: Client, quality = 1000): Future[string] {.async.} =
+  if not coverCache.hasKey (t.coverUri, quality):
+    coverCache[(t.coverUri, quality)] = client.request(t.coverUrl(quality)).await
+  return &"data:image/png;base64,{coverCache[(t.coverUri, quality)].encode}"
 
 
 type SearchModel = object
   result: seq[Track] #TODO: albums, artists
   covers: seq[string]
-  process: Future[(seq[Track], seq[string])]
+  process: Future[void]
+
+proc search(query: string): Future[seq[Track]] {.async.} =
+  let client = newClient(token=getToken())
+  result = client.search(query).await.tracks
+
+proc getCover(track: Track): Future[string] {.async.} =
+  let client = newClient(token=getToken())
+  return await track.coverBase64(client, 50)
+
+const searchModelMaxLen = 5
 
 qmodel SearchModel:
-  rows: self.result.len.min(5)
+  rows: self.result.len.min(searchModelMaxLen)
 
   elem objId:      self.result[i].id
   elem objName:    self.result[i].title
@@ -45,10 +40,19 @@ qmodel SearchModel:
   proc search(query: string) =
     cancel self.process
     
-    self.process = search(query)
-    self.process.then:
-      (self.result, self.covers) = res
+    self.process = doAsync:
+      self.result = search(query).await[0..<searchModelMaxLen]
+      self.covers = sequtils.repeat(emptyCover, self.result.len)
       this.layoutChanged
+
+      var cvf: seq[Future[void]]
+      for i, track in self.result: capture i, track:
+        cvf.add: doAsync:
+          self.covers[i] = await getCover(track)
+          this.layoutChanged
+      
+      await cvf
+
 
 
 var searchHistory: seq[string]
@@ -72,6 +76,51 @@ qmodel SearchHistory:
     this.layoutChanged
 
 
+
+type HomePlaylistsModel = object
+  result: seq[Playlist]
+  covers: seq[string]
+  process: Future[void]
+
+proc getHomePlaylists: Future[seq[Playlist]] {.async.} =
+  let client = newClient(token=getToken())
+  result = client.personalPlaylists.await.mapit(it.playlist)
+  result.insert Playlist(
+    id: 3,
+    title: "Favorites"
+  )
+
+proc getCover(playlist: Playlist): Future[string] {.async.} =
+  let client = newClient(token=getToken())
+  return
+    if playlist.id == 3: "qrc:/resources/covers/favorite.svg"
+    else: await playlist.coverBase64(client, 400)
+
+qmodel HomePlaylistsModel:
+  rows: self.result.len
+
+  elem objId:      self.result[i].id
+  elem objTitle:   self.result[i].title
+  elem objCover:   self.covers[i]
+
+  proc load =
+    cancel self.process
+  
+    self.process = doAsync:
+      self.result = await getHomePlaylists()
+      self.covers = sequtils.repeat(emptyCover, self.result.len)
+      this.layoutChanged
+
+      var cvf: seq[Future[void]]
+      for i, playlist in self.result: capture i, playlist:
+        cvf.add: doAsync:
+          self.covers[i] = await getCover(playlist)
+          this.layoutChanged
+      
+      await cvf
+
+
 proc registerYandexMusicInQml* =
   registerInQml SearchModel, "YandexMusic", 1, 0
   registerInQml SearchHistory, "DMusic", 1, 0  #TODO: singleton
+  registerInQml HomePlaylistsModel, "YandexMusic", 1, 0

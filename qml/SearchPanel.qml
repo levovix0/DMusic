@@ -137,7 +137,7 @@ FloatingPanel {
           artist: objArtist
 
           onPlay: {
-            SearchHistory.savePromit(root.text)
+            _hisroty_model.savePromit(root.text)
             YClient.playPlaylist(YClient.oneTrack(objId))
             _root.focus = true
           }

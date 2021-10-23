@@ -282,7 +282,7 @@ proc implslot(t, ct: NimNode, name: string, rettype: NimNode, args: seq[NimNode]
   let tqv = s"toQtVal"
 
   proc toNimQtType(s: NimNode): NimNode =
-    if s.kind == nnkEmpty: return s"void"
+    if s.kind == nnkEmpty: return s
     case $s
     of "string": i"QString"
     of "int": i"cint"
