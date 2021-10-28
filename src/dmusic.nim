@@ -1,5 +1,4 @@
 import std/exitprocs, asyncdispatch
-import cligen
 import cppbridge, qt, yandexMusicQmlModule
 
 when defined(unix):
@@ -29,10 +28,7 @@ proc onMainLoop {.exportc.} =
 
 proc dmusic: string =
   {.emit: "Py_Initialize();".}
-
-  let app = newQApplication()
-  registerYandexMusicInQml()
-  {.emit: "Translator::setApp(&`app`);".}
+  {.emit: "Translator::setApp(QApplication::instance());".}
 
   QApplication.appName = "DMusic"
   QApplication.organizationName = "DTeam"
@@ -51,10 +47,11 @@ proc dmusic: string =
   timer.start();
   """.}
 
-  setProgramResult app.exec
+  setProgramResult QApplication.exec
 
   {.emit: "Py_Finalize();".}
 
 when isMainModule:
+  import cligen
   clcfg.version = "0.3"
   dispatch dmusic

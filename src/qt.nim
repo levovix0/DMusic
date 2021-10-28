@@ -200,10 +200,20 @@ var
   cmdCount* {.importc.}: cint
   cmdLine* {.importc.}: cstringArray
 
-proc newQApplication*(argc = cmdCount, argv = cmdLine): QApplication {.importcpp: "QApplication(@)", header: "QApplication", constructor.}
-proc exec*(this: QApplication): int32 {.importcpp: "#.exec()".}
+proc init(app: ptr QApplication, argc = cmdCount, argv = cmdLine)
+  {.importcpp: "new (#) QApplication(@)", header: "QApplication".}
+
+proc destroy(app: QApplication)
+  {.importcpp: "#.~QApplication()", header: "QApplication".}
+
+var app: ref QApplication
+new app, (proc(_: ref QApplication) = destroy app[])
+init cast[ptr QApplication](app)
+
+
+proc exec*(this: type QApplication): int32 {.importcpp: "QApplication::exec()".}
   ## executes main loop and returns allication return code
-proc processEvents*(this: QApplication) {.importcpp: "#.processEvents()".}
+proc processEvents*(this: type QApplication) {.importcpp: "QApplication::processEvents()".}
   ## do main loop step, can be called without anything instead of exec
 
 proc `appName=`*(this: type QApplication, v: string) =
@@ -238,9 +248,11 @@ proc remove*(this: type QApplication, translator: QTranslator) =
 
 
 #----------- QQmlApplicationEngine -----------#
-proc newQQmlApplicationEngine*(): QQmlApplicationEngine {.importcpp: "QQmlApplicationEngine(@)", header: "QQmlApplicationEngine", constructor.}
+proc newQQmlApplicationEngine*(): QQmlApplicationEngine
+  {.importcpp: "QQmlApplicationEngine(@)", header: "QQmlApplicationEngine", constructor.}
 
-proc load*(this: QQmlApplicationEngine, file: QUrl) {.importcpp: "#.load(@)", header: "QQmlApplicationEngine".}
+proc load*(this: QQmlApplicationEngine, file: QUrl)
+  {.importcpp: "#.load(@)", header: "QQmlApplicationEngine".}
 
 
 
@@ -413,6 +425,8 @@ macro qobject*(t, body) =
     pragma: exprColonExpr i"emit":
       newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
       "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
+    quote do:
+      template Ct(_: type `t`): type = `ct`
     for x in impl: x
 
 
@@ -543,33 +557,17 @@ macro qmodel*(t, body) =
     pragma: exprColonExpr i"emit":
       newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
       "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
+    quote do:
+      template Ct(_: type `t`): type = `ct`
     for x in impl: x
 
 
-macro registerInQml*(t: typedesc, module: static string, verMajor, verMinor: static int) =
-  ## export type to qml (must be exported to qt before)
-  buildAst(stmtList):
-    quote do:
-      block:
-        proc x() {.importcpp: "(void)0", header: "qqml.h".} = discard
-        x()
-    pragma: exprColonExpr i"emit":
-      bracket(
-        l"qmlRegisterType<", newLit $t, l">(", newLit module.quoted, l", ",
-        newLit $verMajor, l", ", newLit $verMinor, newLit &", {quoted $t});"
-      )
+proc registerInQmlC[T](module: cstring, verMajor, verMinor: cint, name: cstring, x: ptr T) {.importcpp: "qmlRegisterType<'*5>(#, #, #, #)", header: "qqml.h".}
 
+template registerInQml*(t: type, module: string, verMajor, verMinor: int) =
+  bind registerInQmlC
+  registerInQmlC[t.Ct](module, verMajor.cint, verMinor.cint, $t, nil)
 
-macro registerInQml*(t: typedesc, module: static string, verMajor, verMinor: static int; name: static string) =
-  ## export type to qml (must be exported to qt before)
-  buildAst(stmtList):
-    quote do:
-      block:
-        proc x() {.importcpp: "(void)0", header: "qqml.h".} = discard
-        x()
-    pragma: exprColonExpr i"emit":
-      bracket(
-        l"qmlRegisterType<", newLit $t, l">(", newLit module.quoted, l", ",
-        newLit $verMajor, l", ", newLit $verMinor, newLit &", {name.quoted});"
-      )
-
+template registerInQml*(t: type, module: string, verMajor, verMinor: int, name: string) =
+  bind registerInQmlC
+  registerInQmlC[t.Ct](module, verMajor.cint, verMinor.cint, name, nil)

@@ -1,21 +1,29 @@
+{.used.}
 import sequtils, strutils, async, base64, strformat, os, sugar, tables
-import qt, yandexMusic, config
+import qt, yandexMusic, config, cacheTable
 
 const
   emptyCover = "qrc:resources/player/no-cover.svg"
 
-var coverCache: Table[(string, int), string]
+var coverCache: CacheTable[(string, int), string]
 
 proc coverBase64(t: Track|Playlist, client: Client, quality = 1000): Future[string] {.async.} =
-  if not coverCache.hasKey (t.coverUri, quality):
-    coverCache[(t.coverUri, quality)] = client.request(t.coverUrl(quality)).await
+  ## download cover and encode it to base64
+  coverCache[(t.coverUri, quality)] = client.request(t.coverUrl(quality)).await
   return &"data:image/png;base64,{coverCache[(t.coverUri, quality)].encode}"
+
+proc `{}`[T](x: seq[T], s: Slice[int]): seq[T] =
+  ## safe slice a seq
+  if x.len == 0: return
+  let s = Slice[int](a: s.a.max(x.low).min(x.high), b: s.b.max(x.low).min(x.high))
+  x[s]
+
 
 
 type SearchModel = object
   result: seq[Track] #TODO: albums, artists
   covers: seq[string]
-  process: Future[void]
+  process: seq[Future[void]]
 
 proc search(query: string): Future[seq[Track]] {.async.} =
   let client = newClient(token=getToken())
@@ -39,19 +47,19 @@ qmodel SearchModel:
 
   proc search(query: string) =
     cancel self.process
+    self.process = @[]
     
-    self.process = doAsync:
-      self.result = search(query).await[0..<searchModelMaxLen]
+    self.process.add: doAsync:
+      self.result = search(query).await{0..<searchModelMaxLen}
       self.covers = sequtils.repeat(emptyCover, self.result.len)
       this.layoutChanged
 
-      var cvf: seq[Future[void]]
       for i, track in self.result: capture i, track:
-        cvf.add: doAsync:
+        self.process.add: doAsync:
           self.covers[i] = await getCover(track)
           this.layoutChanged
-      
-      await cvf
+
+registerInQml SearchModel, "YandexMusic", 1, 0
 
 
 
@@ -71,16 +79,18 @@ qmodel SearchHistory:
     if text in searchHistory:
       searchHistory.delete searchHistory.find(text)
     searchHistory.insert text, 0
-    searchHistory = searchHistory[0..<5]
+    searchHistory = searchHistory{0..<5}
     writeFile(dataDir / "searchHistory.txt", searchHistory.join("\n"))
     this.layoutChanged
+
+registerInQml SearchHistory, "DMusic", 1, 0  #TODO: singleton
 
 
 
 type HomePlaylistsModel = object
   result: seq[Playlist]
   covers: seq[string]
-  process: Future[void]
+  process: seq[Future[void]]
 
 proc getHomePlaylists: Future[seq[Playlist]] {.async.} =
   let client = newClient(token=getToken())
@@ -106,21 +116,14 @@ qmodel HomePlaylistsModel:
   proc load =
     cancel self.process
   
-    self.process = doAsync:
+    self.process.add: doAsync:
       self.result = await getHomePlaylists()
       self.covers = sequtils.repeat(emptyCover, self.result.len)
       this.layoutChanged
 
-      var cvf: seq[Future[void]]
       for i, playlist in self.result: capture i, playlist:
-        cvf.add: doAsync:
+        self.process.add: doAsync:
           self.covers[i] = await getCover(playlist)
           this.layoutChanged
-      
-      await cvf
 
-
-proc registerYandexMusicInQml* =
-  registerInQml SearchModel, "YandexMusic", 1, 0
-  registerInQml SearchHistory, "DMusic", 1, 0  #TODO: singleton
-  registerInQml HomePlaylistsModel, "YandexMusic", 1, 0
+registerInQml HomePlaylistsModel, "YandexMusic", 1, 0
