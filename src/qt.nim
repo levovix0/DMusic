@@ -349,31 +349,64 @@ proc qoClass(name: string, body: string, parent: string = "QObject"): array[3, s
 
 
 proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], impl: var NimNode) =
+  proc declaringArgs(args: seq[NimNode]): string =
+    zip(
+      args.mapit(it[^2].repeat(it.len - 2)).concat.mapit(it.`$`.toQtTypename),
+      args.mapit(it[0..^3]).concat.map(`$`)
+    ).mapit(&"{it[0]} {it[1]}").join(", ")
+
   proc declslot(name: string, rettype: NimNode, args: seq[NimNode]): string =
-    let argnames = args.mapit(it[0..^3]).concat.map(`$`)
-    let argtypes = args.mapit(it[^2].`$`.toQtTypename.repeat(it.len - 2)).concat
-    let rettype = if rettype.kind != nnkEmpty: toQtTypename $rettype else: "void"
-    &"public Q_SLOTS: {rettype} {name}(" & zip(argtypes, argnames).mapit(&"{it[0]} {it[1]}").join(", ") & ");"
+    let rettype = if rettype.kind == nnkIdent: toQtTypename $rettype else: "void"
+    &"public Q_SLOTS: {rettype} {name}(" & args.declaringArgs & ");"
+
+  proc declsignal(name: string, rettype: NimNode, args: seq[NimNode]): string =
+    let rettype = if rettype.kind == nnkIdent: toQtTypename $rettype else: "void"
+    &"Q_SIGNALS: {rettype} {name}(" & args.declaringArgs & ");"
 
   case x  
   of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Empty(), Empty(), StmtList[all @body]]:
     decl.add declslot(name, rettype, args)
     
-    let fqv = s"fromQtVal"
-    impl.add: implslot t, ct, name, rettype, args, @[], buildAst stmtList do:
+    impl.add: implslot t, ct, name, rettype, args, @[], buildAst(stmtList) do:
       letSection:
         for arg in args.argNames:
-          identDefs(arg, empty(), call(fqv, arg))
+          identDefs(arg, empty(), call(s"fromQtVal", arg))
       for x in body: x
+
+  of ProcDef[@name is Ident(), Empty(), Empty(), FormalParams[@rettype, all @args], Pragma[Ident(strVal: "signal")], Empty(), Empty()]:
+    decl.add declsignal($name, rettype, args)
+    
+    impl.add: buildAst procDef:
+      name
+      empty()
+      empty()
+      formalParams:
+        empty()
+        identDefs(i"this", ptrTy ct, empty())
+        for arg in args: arg
+      empty()
+      empty()
+      stmtList:
+        letSection: varTuple:
+          for arg in args.argNames: arg
+          empty()
+          tupleConstr:
+            for arg in args.argNames: call(s"toQtVal", arg)
+        pragma: exprColonExpr i"emit": bracket:
+          l"emit "
+          i"this"; l"->"; newLit $name
+          l"("
+          for arg in args.argNames.mapit(@[it, l", "]).concat[0..^2]: arg
+          l");"
+      
 
   of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Pragma[all @pragma], Empty(), StmtList[all @body]]:
     decl.add declslot(name, rettype, args)
     
-    let fqv = s"fromQtVal"
-    impl.add: implslot t, ct, name, rettype, args, pragma, buildAst stmtList do:
+    impl.add: implslot t, ct, name, rettype, args, pragma, buildAst(stmtList) do:
       letSection:
         for arg in args.argNames:
-          identDefs(arg, empty(), call(fqv, arg))
+          identDefs(arg, empty(), call(s"fromQtVal", arg))
       for x in body: x
   
   of ProcDef[AccQuoted[Ident(strVal: "="), Ident(strVal: "new")], Empty(), Empty(), FormalParams[Empty(), all @args], Empty(), Empty(), @body]:
@@ -441,7 +474,7 @@ macro qobject*(t, body) =
     pragma: exprColonExpr i"emit": bracket(newLit moc)
     pragma: exprColonExpr i"emit":
       newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
-      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
+      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}" #TODO: call =new if defined
     quote do:
       template Ct(_: type `t`): type = `ct`
     for x in impl: x

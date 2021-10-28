@@ -1,6 +1,5 @@
 #include "python.hpp"
 #include <stdexcept>
-#include "Messages.hpp"
 
 py::error::error(py::object type, py::object value, py::object traceback)
 {
@@ -434,7 +433,6 @@ py::module::module(const char* name, bool autoInstall)
   QMutexLocker locker(&mutex);
   raw = PyImport_ImportModule(name);
   if (raw == nullptr) {
-    Messages::message(QObject::tr("Failed to import python module '%1', it will be auto-installed").arg(name));
     if (autoInstall) {
       if (module::autoInstall(name)) {
         raw = PyImport_ImportModule(name);
@@ -473,7 +471,6 @@ bool py::module::autoInstall(py::object name)
     pip.call("main", std::vector<object>{"install", name});
     return true;
   }  catch (std::exception const& e) {
-    Messages::error(QObject::tr("Failed to auto-install python module '%1'").arg(name), e.what());
     return false;
   }
 }

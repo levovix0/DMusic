@@ -15,7 +15,6 @@
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
 #include "DFileDialog.hpp"
-#include "Messages.hpp"
 #include "ConsoleArgs.hpp"
 #include "Translator.hpp"
 
@@ -39,7 +38,6 @@ void initializeDMusicQmlModule() {
 	qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
 	qmlRegisterSingletonType<Config>("Config", 1, 0, "Config", &Config::qmlInstance);
 	qmlRegisterSingletonType<Translator>("DMusic", 1, 0, "Translator", &Config::qmlInstance);
-  qmlRegisterSingletonType<Messages>("DMusic", 1, 0, "Messages", &Messages::qmlInstance);
   qmlRegisterSingletonType<YClient>("DMusic", 1, 0, "YClient", &YClient::qmlInstance);
 
   qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");

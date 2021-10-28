@@ -9,7 +9,6 @@
 #include "file.hpp"
 #include "Config.hpp"
 #include "utils.hpp"
-#include "Messages.hpp"
 #include "AudioPlayer.hpp"
 #include "TagLib.hpp"
 #include "nimfs.hpp"
@@ -126,8 +125,6 @@ void YTrack::setLiked(bool liked)
       _liked = liked;
       emit likedChanged(liked);
     } catch(std::exception& e) {
-      if (liked) Messages::error(tr("Failed to like track"), e.what());
-      else Messages::error(tr("Failed to unlike track"), e.what());
     }
 
     if (fileExists(Config::ym_trackFile(_id))) saveToDisk();
@@ -205,7 +202,6 @@ void YTrack::_getInfoFromInternet()
     _duration = _py.get("duration_ms").to<int>();
   }
   catch (std::exception& e) {
-    Messages::error(tr("Failed to get info of Yandex.Music track (id: %1)"), e.what());
   }
   if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
 }
@@ -226,7 +222,6 @@ void YTrack::_getLikedFromInternet()
       }
     }
   } catch (std::exception& e) {
-    Messages::error(tr("Failed to check like state of Yandex.Music track (id: %1)").arg(_id), e.what());
   }
   if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
 }
@@ -240,7 +235,6 @@ void YTrack::_getArtistsFromInternet()
     for (auto&& artist : artists) artists_str.append(artist.name());
     _artists = join(artists_str, ", ");
   } catch (std::exception& e) {
-    Messages::error(tr("Failed to get author of Yandex.Music track (id: %1)").arg(_id), e.what());
   }
   if (Config::ym_saveAllTracks() && _gotAllFromInternet()) saveToDisk();
 }
@@ -293,7 +287,6 @@ void YTrack::_fetchInternet()
     _py = _pys[0];
   } catch (std::exception& e) {
     _py = nullptr;
-    Messages::error(tr("Failed to fetch Yandex.Music track (id: %1)").arg(_id), e.what());
   }
 }
 
@@ -370,7 +363,6 @@ refPlaylist YPlaylist::toPlaylist()
       res->add(refTrack(new YTrack(p.get("id").to<int>(), YClient::instance)));
     }
   } catch (std::exception& e) {
-    Messages::error(tr("Failed to convert Yandex.Music playlist to list of tracks"), e.what());
   }
   return refPlaylist(res);
 }
@@ -431,7 +423,6 @@ refPlaylist YLikedTracks::toPlaylist()
       res->add(refTrack(new YTrack(p.call("split", ":")[0].to<int>(), YClient::instance)));
     }
   } catch (std::exception& e) {
-    Messages::error(tr("Failed to load Yandex.Music user liked tracks"), e.what());
   }
   return refPlaylist(res);
 }
@@ -479,7 +470,6 @@ void YClient::init()
     _initialized = true;
     emit initializedChanged(true);
   } catch (py::error& e) {
-    Messages::error(tr("Failed to initialize yandex music client"), e.what());
     emit initializedChanged(false);
   }
 }
@@ -490,7 +480,6 @@ QString YClient::token(QString login, QString password)
   try {
     return ym.get("Client")().call("generate_token_by_username_and_password", {login, password}).to<QString>();
   } catch (std::exception& e) {
-    Messages::error(tr("Failed to login to Yandex.Music"), e.what());
   }
   return "";
 }
@@ -508,7 +497,6 @@ void YClient::login(QString token)
   //   }  catch (std::exception& e) {
   //     _loggined = false;
   //     emit logginedChanged(_loggined);
-  //     Messages::error(tr("Failed to login to Yandex.Music"), e.what());
   //   }
   // });
 }
@@ -534,7 +522,6 @@ void YClient::login(QString token, QString proxy)
   //   }  catch (std::exception& e) {
   //     _loggined = false;
   //     emit logginedChanged(_loggined);
-  //     Messages::error(tr("Failed to login to Yandex.Music"), e.what());
   //   }
   // });
 }
@@ -567,7 +554,6 @@ YPlaylist* YClient::playlist(int id)
   try {
     return new YPlaylist(me.call("playlists_list", me.get("me").get("account").get("uid").to<QString>() + ":" + QString::number(id))[0]);
   } catch (py::error& e) {
-    Messages::error(tr("Failed to load Yandex.Music playlist (id: %1)").arg(id), e.what());
   }
   return nullptr;
 }
@@ -587,7 +573,6 @@ YPlaylist* YClient::userDailyPlaylist()
     auto ppb = me.call("landing", std::vector<object>{"personalplaylists"}).get("blocks")[0];
     return new YPlaylist(ppb.get("entities")[0].get("data").get("data"));
   } catch (py::error& e) {
-    Messages::error(tr("Failed to load Yandex.Music daily playlist"), e.what());
   }
   return nullptr;
 }
@@ -609,11 +594,9 @@ YPlaylistsModel* YClient::homePlaylistsModel()
       try {
         res->playlists.append(new YPlaylist(p.get("data").get("data")));
       } catch (py::error& e) {
-        Messages::error(tr("Failed to load one of Yandex.Music smart playlists"), e.what());
       }
     }
   } catch (py::error& e) {
-    Messages::error(tr("Failed to load Yandex.Music smart playlists"), e.what());
   }
   return res;
 }
@@ -664,7 +647,6 @@ void YClient::searchAndPlayTrack(QString promit)
       AudioPlayer::instance->play(res);
     }
   } catch (std::exception& e) {
-    Messages::error(tr("Failed to search"), e.what());
   }
 }
 

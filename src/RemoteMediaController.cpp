@@ -3,7 +3,6 @@
 #include <QWindow>
 #include <stdexcept>
 #include "utils.hpp"
-#include "Messages.hpp"
 #include "Download.hpp"
 
 using namespace py;

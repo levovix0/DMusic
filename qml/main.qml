@@ -123,6 +123,14 @@ Window {
       }
     }
 
+    Messages {
+      id: _messagesReciever
+
+      onMessage: _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": false })
+      onError: _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": true })
+      Component.onCompleted: init()
+    }
+
     Player {
       id: _player
       width: _root.width
@@ -141,14 +149,6 @@ Window {
     }
 
     Component.onCompleted: {
-      Messages.onGotMessage.connect(function(text, details) {
-        _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": false })
-      })
-      Messages.onGotError.connect(function(text, details) {
-        _messages.append({ "elementText": text, "elementDetails": details, "elementIsError": true })
-      })
-      Messages.reSendHistory()
-
       YClient.init()
       _root.autologin()
     }

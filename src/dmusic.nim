@@ -1,5 +1,5 @@
 import std/exitprocs, asyncdispatch
-import cppbridge, qt, yandexMusicQmlModule
+import cppbridge, qt, yandexMusicQmlModule, messages
 
 when defined(unix):
   const pythonVersion = "3.9"
