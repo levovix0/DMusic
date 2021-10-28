@@ -136,7 +136,7 @@ converter toSeq*[T](this: QList[T]): seq[T] =
   proc len(this: QList): int {.importcpp: "#.size()", header: "QList".}
   proc `[]`(this: QList, i: int): var T {.importcpp: "#[#]", header: "QList".}
   result.setLen this.len
-  for i, v in result.mitems:
+  for i, v in result.mpairs:
     v = this[i]
 
 
