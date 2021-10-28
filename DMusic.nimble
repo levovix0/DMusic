@@ -20,7 +20,6 @@ when defined(nimdistros):
     foreignDep "qt5-base"
     foreignDep "qt5-declarative"
     foreignDep "qt5-graphicaleffects"
-    foreignDep "qt5-multimedia"
     foreignDep "qt5-quickcontrols"
     foreignDep "qt5-quickcontrols2"
     foreignDep "python"

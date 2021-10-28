@@ -12,7 +12,6 @@
 #include "AudioPlayer.hpp"
 #include "TagLib.hpp"
 #include "nimfs.hpp"
-#include "Download.hpp"
 
 using namespace py;
 
@@ -133,39 +132,39 @@ void YTrack::setLiked(bool liked)
 
 void YTrack::saveToDisk(bool overrideCover)
 {
-  //TODO: use c++20 coroutines
-  auto filename = Config::ym_trackFile(_id);
+  // //TODO: use c++20 coroutines
+  // auto filename = Config::ym_trackFile(_id);
 
-  if (!fileExists(filename)) {
-    auto d = new Download;
-    connect(d, &Download::finished, [d, this, filename](QByteArray data) {
-      writeFile(filename, data);
+  // if (!fileExists(filename)) {
+  //   auto d = new Download;
+  //   connect(d, &Download::finished, [d, this, filename](QByteArray data) {
+  //     writeFile(filename, data);
 
-      auto dc = new Download;
-      connect(dc, &Download::finished, [dc, this, filename](QByteArray data) {
-        TagLib::writeTrack(filename, TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, data, ""});
-        _checkedDisk = false;
-        dc->deleteLater();
-      });
-      dc->start(_cover);
+  //     auto dc = new Download;
+  //     connect(dc, &Download::finished, [dc, this, filename](QByteArray data) {
+  //       TagLib::writeTrack(filename, TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, data, ""});
+  //       _checkedDisk = false;
+  //       dc->deleteLater();
+  //     });
+  //     dc->start(_cover);
 
-      d->deleteLater();
-    });
-    d->start(_audio);
-  } else {
-    if (overrideCover) {
-      auto dc = new Download;
-      connect(dc, &Download::finished, [dc, this, filename](QByteArray data) {
-        TagLib::writeTrack(filename, TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, data, ""});
-        _checkedDisk = false;
-        dc->deleteLater();
-      });
-      dc->start(_cover);
-    } else {
-      TagLib::writeTrack(filename, TagLib::Data{_title, _comment, _artists, _liked, 0});
-      _checkedDisk = false;
-    }
-  }
+  //     d->deleteLater();
+  //   });
+  //   d->start(_audio);
+  // } else {
+  //   if (overrideCover) {
+  //     auto dc = new Download;
+  //     connect(dc, &Download::finished, [dc, this, filename](QByteArray data) {
+  //       TagLib::writeTrack(filename, TagLib::DataWithCover{{_title, _comment, _artists, _liked, 0}, data, ""});
+  //       _checkedDisk = false;
+  //       dc->deleteLater();
+  //     });
+  //     dc->start(_cover);
+  //   } else {
+  //     TagLib::writeTrack(filename, TagLib::Data{_title, _comment, _artists, _liked, 0});
+  //     _checkedDisk = false;
+  //   }
+  // }
 }
 
 void YTrack::_getAllFromDisk()

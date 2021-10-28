@@ -4,7 +4,6 @@
 
 #include <QMimeDatabase>
 
-#include "Download.hpp"
 #include "nimfs.hpp"
 
 TagLib::DataWithCover TagLib::readTrack(QString path)

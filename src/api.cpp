@@ -11,7 +11,6 @@
 #include <QMimeDatabase>
 
 #include "nimfs.hpp"
-#include "Download.hpp"
 #include "TagLib.hpp"
 
 std::random_device rd;
@@ -214,32 +213,32 @@ bool UserTrack::load()
 
 void UserTrack::add(QUrl media, QUrl cover, QString title, QString artists, QString comment)
 {
-  //TODO: use c++20 coroutines
-  int maxId = 0;
-  QStringList allFiles = userDir().entryList(QStringList{"*.mp3"}, QDir::Files, QDir::SortFlag::Name);
-  for (auto& s : allFiles) {
-    s.chop(4);
-    maxId = qMax(maxId, s.toInt());
-  }
-  auto id = maxId + 1;
+  // //TODO: use c++20 coroutines
+  // int maxId = 0;
+  // QStringList allFiles = userDir().entryList(QStringList{"*.mp3"}, QDir::Files, QDir::SortFlag::Name);
+  // for (auto& s : allFiles) {
+  //   s.chop(4);
+  //   maxId = qMax(maxId, s.toInt());
+  // }
+  // auto id = maxId + 1;
 
-  auto d = new Download;
-  connect(d, &Download::finished, [=](QByteArray const& data) {
-    writeFile(Config::user_trackFile(id), data);
+  // auto d = new Download;
+  // connect(d, &Download::finished, [=](QByteArray const& data) {
+  //   writeFile(Config::user_trackFile(id), data);
 
-    if (cover.isEmpty()) {
-      TagLib::writeTrack(Config::user_trackFile(id), TagLib::Data{title, comment, artists, false, 0});
-    } else {
-      auto dc = new Download;
-      connect(dc, &Download::finished, [=](QByteArray const& data) {
-        TagLib::writeTrack(Config::user_trackFile(id), TagLib::DataWithCover{{title, comment, artists, false, 0}, data, ""});
-        dc->deleteLater();
-      });
-      dc->start(cover);
-    }
-    d->deleteLater();
-  });
-  d->start(media);
+  //   if (cover.isEmpty()) {
+  //     TagLib::writeTrack(Config::user_trackFile(id), TagLib::Data{title, comment, artists, false, 0});
+  //   } else {
+  //     auto dc = new Download;
+  //     connect(dc, &Download::finished, [=](QByteArray const& data) {
+  //       TagLib::writeTrack(Config::user_trackFile(id), TagLib::DataWithCover{{title, comment, artists, false, 0}, data, ""});
+  //       dc->deleteLater();
+  //     });
+  //     dc->start(cover);
+  //   }
+  //   d->deleteLater();
+  // });
+  // d->start(media);
 }
 
 PlaylistRadio::PlaylistRadio(QObject* parent) : Radio(parent)

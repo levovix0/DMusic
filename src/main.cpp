@@ -1,21 +1,14 @@
 #include "main.hpp"
 
-#include <QGuiApplication>
 #include <QApplication>
-#include <QQmlApplicationEngine>
 #include <QIcon>
-#include <QQuickStyle>
-#include <QQuickView>
-#include <QWidget>
 #include <QTimer>
 #include "YandexMusic.hpp"
-#include "file.hpp"
 #include "Config.hpp"
 #include "AudioPlayer.hpp"
 #include "RemoteMediaController.hpp"
 #include "Clipboard.hpp"
 #include "DFileDialog.hpp"
-#include "ConsoleArgs.hpp"
 #include "Translator.hpp"
 
 
