@@ -1,6 +1,6 @@
 import tables, times
 
-proc filter[K, V](x: var Table[K, V], f: proc(k: K, v: V)) =
+proc filter[K, V](x: var Table[K, V], f: proc(k: K, v: V): bool) =
   var keys: seq[K]
   for x in x.keys: keys.add x
   for k in keys:
@@ -8,7 +8,8 @@ proc filter[K, V](x: var Table[K, V], f: proc(k: K, v: V)) =
       x.del k
 
 template filterit[K, V](x: var Table[K, V], body) =
-  x.filter(proc(k {.inject.}: K, v {.inject.}: V) = body)
+  bind filter
+  filter(x, proc(k {.inject.}: K, v {.inject.}: V): bool = body)
 
 
 type CacheTable*[K, V] = object
@@ -28,7 +29,7 @@ template `[]=`*[K, V](this: var CacheTable[K, V], k: K, v: V) =
   if key notin this:
     this.setValue key, v
 
-proc garbageCollect*[K, V](this: var CacheTable, storeTime: Duration = initDuration(minutes = 1)) =
+proc garbageCollect*[K, V](this: var CacheTable[K, V], storeTime: Duration = initDuration(minutes = 1)) =
   let now = getTime()
   this.table.filterit(now - v[1] <= storeTime)
 

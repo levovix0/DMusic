@@ -6,6 +6,8 @@ const
   emptyCover = "qrc:resources/player/no-cover.svg"
 
 var coverCache: CacheTable[(string, int), string]
+onMainLoop: coverCache.garbageCollect
+
 
 proc coverBase64(t: Track|Playlist, client: Client, quality = 1000): Future[string] {.async.} =
   ## download cover and encode it to base64

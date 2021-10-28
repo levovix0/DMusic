@@ -33,6 +33,9 @@ qmo"QuickControls2"
 qmo"Svg"
 
 
+{.emit: """#include <QTimer>""".}
+
+
 type
   QString* {.importcpp, header: "QString".} = object
   
@@ -228,6 +231,20 @@ proc `organizationDomain=`*(this: type QApplication, v: string) =
   proc impl(v: QString) {.importcpp: "QApplication::setOrganizationDomain(@)", header: "QApplication".}
   impl(v)
 
+var mainLoopCallbacks*: seq[proc()]
+proc onMainLoopProc {.exportc.} =
+  for cb in mainLoopCallbacks: cb()
+
+proc onMain =
+  {.emit: """
+  auto timer = new QTimer;
+  QObject::connect(timer, &QTimer::timeout, []{ onMainLoopProc(); });
+  timer->start(10);
+  """.}
+onMain()
+
+template onMainLoop*(body) =
+  mainLoopCallbacks.add (proc() = body)
 
 
 #----------- QTranslator -----------#

@@ -17,14 +17,9 @@ resourcesFromDir "."
 {.emit: "#define slots Q_SLOTS".}
 
 {.emit: """#include "Translator.hpp"""".}
-{.emit: """#include <QTimer>""".}
 
 proc initializeDMusicQmlModule() {.importcpp: "initializeDMusicQmlModule()", header: "main.hpp".}
 proc cppmain() {.importcpp: "cppmain()", header: "main.hpp".}
-
-proc onMainLoop {.exportc.} =
-  try: asyncdispatch.poll(5)
-  except: discard
 
 proc dmusic: string =
   {.emit: "Py_Initialize();".}
@@ -41,11 +36,9 @@ proc dmusic: string =
   {.emit: "Translator::setEngine(&`engine`);".}
   engine.load "qrc:/qml/main.qml"
 
-  {.emit: """
-  QTimer timer;
-  QObject::connect(&timer, &QTimer::timeout, []{ onMainLoop(); });
-  timer.start();
-  """.}
+  onMainLoop:
+    try: asyncdispatch.poll(5)
+    except: discard
 
   setProgramResult QApplication.exec
 
