@@ -5,6 +5,10 @@ import "components"
 FloatingPanel {
   id: root
 
+  PlayerController {
+    id: _player
+  }
+
   VolumeSlider {
     id: _volume
     height: root.height - 69
@@ -12,7 +16,7 @@ FloatingPanel {
     anchors.bottom: root.bottom
     anchors.bottomMargin: 20
 
-    value: _audio_player.volume
-    onSeek: _audio_player.volume = value
+    value: _player.volume
+    onSeek: _player.volume = value
   }
 }

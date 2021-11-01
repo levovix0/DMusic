@@ -1,28 +1,19 @@
-import std/exitprocs, asyncdispatch
-import cppbridge, qt, yandexMusicQmlModule, messages
-
-when defined(unix):
-  const pythonVersion = "3.9"
-  {.passc: "-I/usr/include/python" & pythonVersion.}
-  {.passl: "-L/usr/local/lib/python" & pythonVersion & " -lpython" & pythonVersion.}
-
-  {.passc: "-I/usr/include/taglib".}
-  {.passl: "-ltag".}
+import std/exitprocs
+import cppbridge, qt, messages, async
+import yandexMusicQmlModule, audio, taglib
 
 sourcesFromDir "src"
 resourcesFromDir "."
-
-{.emit: "#undef slots".}
-{.emit: "#include <Python.h>".}
-{.emit: "#define slots Q_SLOTS".}
 
 {.emit: """#include "Translator.hpp"""".}
 
 proc initializeDMusicQmlModule() {.importcpp: "initializeDMusicQmlModule()", header: "main.hpp".}
 proc cppmain() {.importcpp: "cppmain()", header: "main.hpp".}
 
+var infinityLoop = doAsync:
+  while true: await sleepAsync(100)
+
 proc dmusic: string =
-  {.emit: "Py_Initialize();".}
   {.emit: "Translator::setApp(QApplication::instance());".}
 
   QApplication.appName = "DMusic"
@@ -37,12 +28,14 @@ proc dmusic: string =
   engine.load "qrc:/qml/main.qml"
 
   onMainLoop:
-    try: asyncdispatch.poll(5)
-    except: discard
+    try: async.poll(5)
+    except:
+      echo getCurrentExceptionMsg()
+      sendError "Exception during async operation", getCurrentExceptionMsg()
 
   setProgramResult QApplication.exec
 
-  {.emit: "Py_Finalize();".}
+  complete infinityLoop
 
 when isMainModule:
   import cligen

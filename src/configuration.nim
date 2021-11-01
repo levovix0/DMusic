@@ -8,13 +8,52 @@ let dataDir* =
   when defined(linux): getHomeDir() / ".local/share/DMusic"
   else: "."
 
-proc readConfig*: JsonNode =
-  if fileExists(configDir / "config.json"):
-    readFile(configDir / "config.json").parseJson
+converter toJsonNode(x: string): JsonNode = newJString x
+converter toJsonNode(x: float): JsonNode = newJFloat x
+converter toJsonNode(x: bool): JsonNode = newJBool x
+proc get(x: JsonNode, t: type, default = t.default): t =
+  try: x.to(t) except: default
+converter toJsonNode[T: enum](x: T): JsonNode = %* x
+
+type Config* = distinct JsonNode
+
+converter toJsonNode(x: Config): JsonNode = x.JsonNode
+converter toConfig(x: JsonNode): Config = x.Config
+
+proc readConfig*: Config =
+  if fileExists(configDir/"config.json"):
+    readFile(configDir/"config.json").parseJson
   else: %{:}
 
-proc getToken*: string =
-  readConfig(){"Yandex.Music", "token"}.getStr
+proc save*(config: Config) =
+  createDir configDir
+  writeFile(configDir/"config.json", config.pretty)
+
+var config* = readConfig()
+
+
+type
+  Language* {.pure.} = enum
+    en, ru
+
+  LoopMode* {.pure.} = enum
+    none, playlist, track
+
+
+proc language*(config: Config): Language = config{"language"}.get(Language)
+proc `language=`*(config: Config, v: Language) = config{"language"} = v; save config
+
+proc volume*(config: Config): float = config{"volume"}.getFloat(0.5)
+proc `volume=`*(config: Config, v: float) = config{"volume"} = v; save config
+
+proc shuffle*(config: Config): bool = config{"shuffle"}.getBool
+proc `shuffle=`*(config: Config, v: bool) = config{"shuffle"} = v; save config
+
+proc loop*(config: Config): LoopMode = config{"loop"}.get(LoopMode)
+proc `loop=`*(config: Config, v: LoopMode) = config{"loop"} = v; save config
+
+proc ym_token*(config: Config): string = config{"Yandex.Music", "token"}.getStr
+proc `ym_token=`*(config: Config, v: string) = config{"Yandex.Music", "token"} = v; save config
 
 
 when isMainModule:

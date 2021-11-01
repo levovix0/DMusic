@@ -4,15 +4,15 @@ import DMusic 1.0
 Item {
   id: root
 
-  property bool playing: false
-  property int nextMode: Config.NextSequence
-  property int loopMode: Config.LoopNone
+  property bool playing
+  property bool shuffle
+  property int loop
 
   signal pause_or_play()
   signal next()
   signal prev()
-  signal changeLoopMode(var mode)
-  signal changeNextMode(var mode)
+  signal setShuffle(bool v)
+  signal setLoop(int v)
 
   PlayerControlsButton {
     id: _play_pause
@@ -47,28 +47,24 @@ Item {
   }
 
   PlayerControlsButton {
-    id: _loop
-    anchors.verticalCenter: root.verticalCenter
-    anchors.horizontalCenter: root.horizontalCenter
-    anchors.horizontalCenterOffset: 50 + 50
-
-    icon: loopMode == Config.LoopTrack? "qrc:/resources/player/loop-track.svg" : "qrc:/resources/player/loop-playlist.svg"
-    style: loopMode != Config.LoopNone? Style.panel.icon.accent : Style.panel.icon.normal
-    onClick: {
-      if (loopMode == Config.LoopNone) changeLoopMode(Config.LoopPlaylist)
-      else if (loopMode == Config.LoopPlaylist) changeLoopMode(Config.LoopTrack)
-      else changeLoopMode(Config.LoopNone)
-    }
-  }
-
-  PlayerControlsButton {
     id: _shuffle
     anchors.verticalCenter: root.verticalCenter
     anchors.horizontalCenter: root.horizontalCenter
     anchors.horizontalCenterOffset: -50 - 50
 
     icon: "qrc:/resources/player/shuffle.svg"
-    style: nextMode != Config.NextSequence? Style.panel.icon.accent : Style.panel.icon.normal
-    onClick: changeNextMode(nextMode == Config.NextSequence? Config.NextShuffle : Config.NextSequence)
+    style: shuffle? Style.panel.icon.accent : Style.panel.icon.normal
+    onClick: setShuffle(!shuffle)
+  }
+
+  PlayerControlsButton {
+    id: _loop
+    anchors.verticalCenter: root.verticalCenter
+    anchors.horizontalCenter: root.horizontalCenter
+    anchors.horizontalCenterOffset: 50 + 50
+
+    icon: loop == 2? "qrc:/resources/player/loop-track.svg" : "qrc:/resources/player/loop-playlist.svg"
+    style: loop == 0? Style.panel.icon.normal : Style.panel.icon.accent
+    onClick: setLoop((loop + 1) % 3)
   }
 }

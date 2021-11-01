@@ -1,6 +1,8 @@
 import
-  httpclient, strformat, strutils, sequtils, options,
-  asyncdispatch, json, uri, xmltree, xmlparser, md5, os
+  strformat, strutils, sequtils, options,
+  json, uri, xmltree, xmlparser, md5, os
+import httpclient except request
+import async, configuration
 
 type
   HttpError* = object of CatchableError
@@ -8,9 +10,7 @@ type
   BadRequestError* = object of HttpError
   BadGatewayError* = object of HttpError
   
-  Client* = ref object
-    headers: HttpHeaders
-    httpc: AsyncHttpClient
+  Client* = AsyncHttpClient
 
   TrackId* = object
     #TODO: user-added tracks
@@ -67,16 +67,14 @@ proc `lang=`*(client: Client, lang: string) =
 proc `token=`*(client: Client, token: string) =
   client.headers["Authorization"] = if token != "": &"OAuth {token}" else: ""
 
-proc newClient*(token="", lang="ru"): Client =
-  new result
-  result.httpc = newAsyncHttpClient()
-  result.headers = newHttpHeaders()
-  result.headers["User-Agent"] = "Yandex-Music-API"
-  result.token = token
-  result.lang = lang
+proc newClient*(config = config): Client =
+  result = newAsyncHttpClient("Yandex-Music-API")
+  result.token = config.ym_token
+  result.lang = case config.language
+    of Language.ru: "ru"
+    else: "en"
 
 proc request*(
-  client: Client,
   url: string|Uri,
   httpMethod: HttpMethod = HttpGet,
   body = "",
@@ -89,7 +87,7 @@ proc request*(
     else:
       when url is Uri: $(url ? params) else: $(url.parseUri ? params)
 
-  let response = await client.httpc.request(url, httpMethod, body, client.headers, data)
+  let response = await httpclient.request(newClient(), url, httpMethod, body, nil, data)
 
   template formatResponse: string =
     let body = response.body.await.parseJson
@@ -146,7 +144,7 @@ proc parseTrack*(a: JsonNode): Track =
   result.title = a{"title"}.getStr
   result.comment = a{"version"}.getStr
   result.coverUri = a{"coverUri"}.getStr
-  result.duration = a{"duration"}.getInt
+  result.duration = a{"durationMs"}.getInt
 
   result.explicit = a{"explicit"}.getBool
 
@@ -173,8 +171,8 @@ proc parseAccount*(a: JsonNode): Account =
   result.name = a{"displayName"}.getStr
 
 
-proc generateToken*(client: Client, username, password: string): Future[string] {.async.} =
-  return client.request(
+proc generateToken*(username, password: string): Future[string] {.async.} =
+  return request(
     &"{oauthUrl}/token", HttpPost, data = newMultipartData {
       "grant_type": "password",
       "client_id": "23cabbbdc6cd418abb4b39c32c41195d",
@@ -184,10 +182,10 @@ proc generateToken*(client: Client, username, password: string): Future[string] 
     }
   ).await.parseJson["access_token"].getStr
 
-proc search*(client: Client, text: string, kind = "all", correct = true): Future[tuple[tracks: seq[Track]]] {.async.} =
+proc search*(text: string, kind = "all", correct = true): Future[tuple[tracks: seq[Track]]] {.async.} =
   if text == "": return
 
-  let response = client.request(
+  let response = request(
     &"{baseUrl}/search", params = @{
       "text": text,
       "nocorrect": $(not correct),
@@ -202,9 +200,9 @@ proc search*(client: Client, text: string, kind = "all", correct = true): Future
   #TODO: albums and artists
 
 
-proc coverUrl*(client: Track|Album|Artist|Playlist, size = 1000): string =
+proc coverUrl*(this: Track|Album|Artist|Playlist, size = 1000): string =
   ## direct link to track's cover
-  "https://" & client.coverUri.replace("%%", &"{size}x{size}")
+  "https://" & this.coverUri.replace("%%", &"{size}x{size}")
 
 
 proc `$`*(x: TrackId): string = $x.id
@@ -216,11 +214,11 @@ converter asIdSeq*(x: TrackId): seq[TrackId] = @[x]
 converter asIdSeq*(x: Track): seq[TrackId] = @[TrackId(id: x.id)]
 converter asIdSeq*(x: int): seq[TrackId] = @[TrackId(id: x)]
 
-proc fetch*(ids: seq[TrackId], client: Client, withPositions = true): Future[seq[Track]] {.async.} =
+proc fetch*(ids: seq[TrackId], withPositions = true): Future[seq[Track]] {.async.} =
   ## get full track information by ids
   if ids.len < 1: return
   
-  let response = client.request(
+  let response = request(
     &"{baseUrl}/tracks", HttpPost, data = newMultipartData {
       "track-ids": ids.join(","),
       "with-positions": $withPositions
@@ -231,33 +229,33 @@ proc fetch*(ids: seq[TrackId], client: Client, withPositions = true): Future[seq
     result.add res.parseTrack
 
 
-proc audioUrl*(track: TrackId, client: Client): Future[string] {.async.} =
+proc audioUrl*(track: TrackId): Future[string] {.async.} =
   ## get direct link to track's audio
   ## ! works only one minute after call
-  let infoUrl = client.request(
+  let infoUrl = request(
     &"{baseUrl}/tracks/{track.id}/download-info"
-  ).await.parseJson["downloadInfoUrl"].getStr
+  ).await.parseJson["result"][0]["downloadInfoUrl"].getStr
     
-  let result = client.request(infoUrl).await.parseXml
-  let host = result.findAll("host")[0].text
-  let path = result.findAll("path")[0].text
-  let ts = result.findAll("ts")[0].text
-  let s = result.findAll("s")[0].text
+  let result = request(infoUrl).await.parseXml
+  let host = result.findAll("host")[0].innerText
+  let path = result.findAll("path")[0].innerText
+  let ts = result.findAll("ts")[0].innerText
+  let s = result.findAll("s")[0].innerText
   let sign = getMd5(&"XGRlBW9FXlekgbPrRHuSiA{path[1..^1]}{s}")
   
   return &"https://{host}/get-mp3/{sign}/{ts}{path}"
 
 
-proc currentUser*(client: Client): Future[Account] {.async.} =
-  let response = client.request(
+proc currentUser*: Future[Account] {.async.} =
+  let response = request(
     &"{baseUrl}/account/status"
   ).await.parseJson
   return response{"result", "account"}.parseAccount
 
 
-proc likedTracks*(user: Account, client: Client): Future[seq[TrackId]] {.async.} =
-  ## get smart playlists for user
-  let response = client.request(
+proc likedTracks*(user: Account): Future[seq[TrackId]] {.async.} =
+  ## get tracks that user liked
+  let response = request(
     &"{baseUrl}/users/{user.id}/likes/tracks"
   ).await.parseJson
 
@@ -266,37 +264,40 @@ proc likedTracks*(user: Account, client: Client): Future[seq[TrackId]] {.async.}
   
   result = result.filterit(it.id != 0)
 
+proc liked*(user: Account, track: TrackId): Future[bool] {.async.} =
+  return track in user.likedTracks.await
 
-proc landing*(client: Client, blocks: string): Future[JsonNode] {.async.} =
+
+proc landing*(blocks: string): Future[JsonNode] {.async.} =
   ## get block
   ## ? requires token
   #TODO: seq of blocks
-  return client.request(
+  return request(
     &"{baseUrl}/landing3", params = @{
       "blocks": blocks,
       "eitherUserId": "10254713668400548221"
     }
   ).await.parseJson
 
-proc personalPlaylists*(client: Client): Future[seq[tuple[kind: string, playlist: Playlist]]] {.async.} =
+proc personalPlaylists*: Future[seq[tuple[kind: string, playlist: Playlist]]] {.async.} =
   ## get smart playlists for current user
   ## * requires token
-  let response = await client.landing("personalplaylists")
+  let response = await landing("personalplaylists")
   for Block in response{"result", "blocks"}:
     for entity in Block{"entities"}:
       result.add (entity{"data"}{"type"}.getStr, entity{"data"}{"data"}.parsePlaylist)
 
 
-proc tracks*(playlist: Playlist, client: Client): Future[seq[Track]] {.async.} =
-  let response = client.request(
+proc tracks*(playlist: Playlist): Future[seq[Track]] {.async.} =
+  let response = request(
     &"{baseUrl}/users/{playlist.ownerId}/playlists/{playlist.id}"
   ).await.parseJson
 
   for track in response{"result", "tracks"}:
     result.add track{"track"}.parseTrack
 
-proc playlist*(user: Account, id: int, client: Client): Future[Playlist] {.async.} =
-  let response = client.request(
+proc playlist*(user: Account, id: int): Future[Playlist] {.async.} =
+  let response = request(
     &"{baseUrl}/users/{user.id}/playlists/{id}"
   ).await.parseJson
 
@@ -304,10 +305,10 @@ proc playlist*(user: Account, id: int, client: Client): Future[Playlist] {.async
 
 
 template trackLikeAction(name; url: string) {.dirty.} =
-  proc name*(user: Account, ids: seq[TrackId], client: Client) {.async.} =
+  proc name*(user: Account, ids: seq[TrackId]) {.async.} =
     if ids.len < 1: return
 
-    discard client.request(
+    discard request(
       &"{baseUrl}/users/{user.id}/" & url, HttpPost, data = newMultipartData {
         "track-ids": ids.join(",")
       }

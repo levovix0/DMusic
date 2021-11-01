@@ -118,6 +118,10 @@ FloatingPanel {
     }
   }
 
+  PlayerController {
+    id: _player
+  }
+
   Component {
     id: _searchResults
 
@@ -138,7 +142,7 @@ FloatingPanel {
 
           onPlay: {
             _hisroty_model.savePromit(root.text)
-            YClient.playPlaylist(YClient.oneTrack(objId))
+            _player.playYmTrack(objId)
             _root.focus = true
           }
         }

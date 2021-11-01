@@ -7,17 +7,17 @@ Rectangle {
 
   color: Style.panel.background
 
-  property alias player: _audio_player
   property alias track: _track
 
-  function toglleLiked() {
-    _audio_player.currentTrack.setLiked(!_audio_player.currentTrack.liked)
+  function toggleLiked() {
+    _currentTrack.liked = !_currentTrack.liked
   }
+
   function next() {
-    _audio_player.next()
+    _player.next()
   }
   function prev() {
-    _audio_player.prev()
+    _player.prev()
   }
 
   PlayerControls {
@@ -26,15 +26,15 @@ Rectangle {
     anchors.horizontalCenter: root.horizontalCenter
     y: 21
 
-    playing: _audio_player.state === AudioPlayer.PlayingState
-    loopMode: _audio_player.loopMode
-    nextMode: _audio_player.nextMode
+    playing: _player.playing
+    shuffle: _player.shuffle
+    loop: _player.loop
 
-    onPause_or_play: _audio_player.pause_or_play()
-    onNext: _audio_player.next()
-    onPrev: _audio_player.prev()
-    onChangeLoopMode: _audio_player.loopMode = mode
-    onChangeNextMode: _audio_player.nextMode = mode
+    onPause_or_play: _player.playing? _player.pause() : _player.play()
+    onNext: _player.next()
+    onPrev: _player.prev()
+    onSetShuffle: _player.shuffle = v
+    onSetLoop: _player.loop = v
   }
 
   PlayerLine {
@@ -43,29 +43,20 @@ Rectangle {
     y: 48
     width: root.width / 2.7
 
-    progress: _audio_player.progress
-    onSeek: _audio_player.progress = progress
-    onAppendMs: _audio_player.progress_ms += delta * 1000
+    progress: _currentTrack.progress
+    onSeek: _currentTrack.progress = progress
+    onAppendMs: _currentTrack.positionMs += delta * 1000
 
-    positionText: _audio_player.formatProgress
-    durationText: _audio_player.formatDuration
+    positionText: _currentTrack.position
+    durationText: _currentTrack.duration
   }
 
-  AudioPlayer {
-    id: _audio_player
-    Component.onCompleted: {
-      volume = Config.volume
-      nextMode = Config.nextMode
-      loopMode = Config.loopMode
-    }
-
-    onVolumeChanged: Config.volume = volume
-    onNextModeChanged: Config.nextMode = nextMode
-    onLoopModeChanged: Config.loopMode = loopMode
+  PlayerController {
+    id: _player
   }
-
-  RemoteMediaController {
-    target: _audio_player
+  
+  PlayingTrackInfo {
+    id: _currentTrack
   }
 
   Row {
@@ -109,13 +100,13 @@ Rectangle {
     width: root.width / 2 - _playerLine.leftWidth - 14 - x
     height: root.height
 
-    icon: _audio_player.currentTrack.cover
-    title: _audio_player.currentTrack.title
-    artists: _audio_player.currentTrack.artistsStr
-    comment: _audio_player.currentTrack.comment
-    trackId: _audio_player.currentTrack.id
-    liked: _audio_player.currentTrack.liked
+    icon: _currentTrack.cover
+    title: _currentTrack.title
+    artists: _currentTrack.artists
+    comment: _currentTrack.comment
+    trackId: _currentTrack.id
+    liked: _currentTrack.liked
 
-    onToggleLiked: _player.toglleLiked()
+    onToggleLiked: root.toggleLiked()
   }
 }

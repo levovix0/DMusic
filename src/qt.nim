@@ -124,6 +124,10 @@ converter toQUrl*(this: QString): QUrl =
 
 converter toQUrl*(this: string): QUrl = this.toQString.toQUrl
 
+proc path*(this: QUrl): string =
+  proc impl(this: QUrl): QString {.importcpp: "#.path()", header: "QUrl".}
+  impl(this)
+
 
 
 #----------- QList -----------#
@@ -144,7 +148,7 @@ converter toSeq*[T](this: QList[T]): seq[T] =
 
 
 #----------- QVariant -----------#
-converter toQVariant*[T](v: T): QVariant =
+converter toQVariant*[T: bool|SomeInteger|QString|SomeFloat](v: T): QVariant =
   proc ctor(): QVariant {.importcpp: "QVariant(@)", header: "QVariant", constructor.}
   proc setValue(this: QVariant, v: T){.importcpp: "#.setValue(@)", header: "QVariant".}
   result = ctor()
@@ -275,7 +279,7 @@ proc load*(this: QQmlApplicationEngine, file: QUrl)
 #----------- tools -----------#
 proc moc*(code: string): string {.compileTime.} =
   ## qt moc (meta-compiler) tool wrapper
-  "moc".staticExec(code)
+  "moc --no-warnings".staticExec(code)
 
 proc rcc*(file: string): string {.compileTime.} =
   ## qt rcc (resource-compiler) tool wrapper
@@ -291,11 +295,13 @@ template s(s: string{lit}): NimNode = bindSym s
 proc toQtVal[T](v: T): auto =
   when T is string: toQString v
   elif T is int: v.cint
+  elif T is float: v.cfloat
   else: v
 
 proc fromQtVal[T](v: T): auto =
   when T is QString: $v
   elif T is cint: v.int
+  elif T is cfloat: v.float
   else: v
 
 proc toQtTypename(s: string): string =
@@ -314,6 +320,7 @@ proc implslot(t, ct: NimNode, name: string, rettype: NimNode, args: seq[NimNode]
     case $s
     of "string": i"QString"
     of "int": i"cint"
+    of "float": i"cfloat"
     else: s
 
   buildAst(procDef):
@@ -347,12 +354,16 @@ proc qoClass(name: string, body: string, parent: string = "QObject"): array[3, s
   name & "(QObject* parent = nullptr);\n  ", body, "\n};"]
 
 
-proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], impl: var NimNode) =
+proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], impl: var NimNode, constructor: var NimNode, signalNames: var seq[string]) =
   proc declaringArgs(args: seq[NimNode]): string =
     zip(
       args.mapit(it[^2].repeat(it.len - 2)).concat.mapit(it.`$`.toQtTypename),
       args.mapit(it[0..^3]).concat.map(`$`)
     ).mapit(&"{it[0]} {it[1]}").join(", ")
+
+  proc declproc(name: string, rettype: NimNode, args: seq[NimNode]): string =
+    let rettype = if rettype.kind == nnkIdent: toQtTypename $rettype else: "void"
+    &"public: {rettype} {name}(" & args.declaringArgs & ");"
 
   proc declslot(name: string, rettype: NimNode, args: seq[NimNode]): string =
     let rettype = if rettype.kind == nnkIdent: toQtTypename $rettype else: "void"
@@ -361,6 +372,35 @@ proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], i
   proc declsignal(name: string, rettype: NimNode, args: seq[NimNode]): string =
     let rettype = if rettype.kind == nnkIdent: toQtTypename $rettype else: "void"
     &"Q_SIGNALS: {rettype} {name}(" & args.declaringArgs & ");"
+  
+  proc newSignal(name: NimNode, rettype: NimNode, args: seq[NimNode], decl: var seq[string], impl: var NimNode, signalNames: var seq[string]) =
+    signalNames.add $name
+    decl.add declsignal($name, rettype, args)
+    
+    impl.add: buildAst procDef:
+      name
+      empty()
+      empty()
+      formalParams:
+        i"auto"
+        identDefs(i"this", ptrTy ct, empty())
+        for arg in args: arg
+      empty()
+      empty()
+      stmtList:
+        if args.argNames.len > 0:
+          letSection: varTuple:
+            for arg in args.argNames: arg
+            empty()
+            tupleConstr:
+              for arg in args.argNames: call(s"toQtVal", arg)
+        pragma: exprColonExpr i"emit": bracket:
+          l"emit "
+          i"this"; l"->"; newLit $name
+          l"("
+          if args.argNames.len > 0:
+            for arg in args.argNames.mapit(@[it, l", "]).concat[0..^2]: arg
+          l");"
 
   case x  
   of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Empty(), Empty(), StmtList[all @body]]:
@@ -373,32 +413,8 @@ proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], i
       for x in body: x
 
   of ProcDef[@name is Ident(), Empty(), Empty(), FormalParams[@rettype, all @args], Pragma[Ident(strVal: "signal")], Empty(), Empty()]:
-    decl.add declsignal($name, rettype, args)
-    
-    impl.add: buildAst procDef:
-      name
-      empty()
-      empty()
-      formalParams:
-        empty()
-        identDefs(i"this", ptrTy ct, empty())
-        for arg in args: arg
-      empty()
-      empty()
-      stmtList:
-        letSection: varTuple:
-          for arg in args.argNames: arg
-          empty()
-          tupleConstr:
-            for arg in args.argNames: call(s"toQtVal", arg)
-        pragma: exprColonExpr i"emit": bracket:
-          l"emit "
-          i"this"; l"->"; newLit $name
-          l"("
-          for arg in args.argNames.mapit(@[it, l", "]).concat[0..^2]: arg
-          l");"
+    newSignal name, rettype, args, decl, impl, signalNames
       
-
   of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Pragma[all @pragma], Empty(), StmtList[all @body]]:
     decl.add declslot(name, rettype, args)
     
@@ -408,33 +424,83 @@ proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], i
           identDefs(arg, empty(), call(s"fromQtVal", arg))
       for x in body: x
   
-  of ProcDef[AccQuoted[Ident(strVal: "="), Ident(strVal: "new")], Empty(), Empty(), FormalParams[Empty(), all @args], Empty(), Empty(), @body]:
-    impl.add: buildAst procDef:
-      accQuoted(i"=", i"new")
+  of ProcDef[@name is AccQuoted[Ident(strVal: "="), Ident(strVal: "new")], Empty(), Empty(), FormalParams[Empty()], Empty(), Empty(), @body]:
+    constructor = buildAst procDef:
+      nskProc.gensym "constructor"
       empty()
       empty()
       formalParams:
         empty()
-        identDefs(i"this", varTy t, empty())
-        for arg in args: arg
-      empty()
-      empty()
-      if body.kind == nnkEmpty: discardStmt empty() else: body
-    impl.add: buildAst procDef:
-      i"qnew"
-      empty()
-      empty()
-      formalParams:
-        ptrTy ct
-        identDefs(gensym nskParam, command(i"type", t), empty())
-        for arg in args: arg
-      empty()
+      pragma:
+        i"exportc"
+        exprColonExpr:
+          i"codegenDecl"
+          newLit &"{t}::{t}(QObject* parent)"
       empty()
       stmtList:
-        pragma: exprColonExpr(i"emit", bracket(i"result", newLit &" = new {t};"))
-        call accQuoted(i"=", i"new"):
-          bracketExpr dotExpr(bracketExpr i"result", i"self")
-          for arg in args.argNames: arg
+        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
+        pragma: exprColonExpr i"emit": bracket(i"this", l" = this;")
+        quote do:
+          template self(): var `t` {.used.} = this[].self
+        call s"wasMoved", i"self"
+        body
+  
+  of Command[Ident(strVal: "property"), Command[@propType, Ident(strVal: @name)], @body is StmtList()]:
+    var getter: NimNode
+    var setter: NimNode
+    var notify: NimNode
+    
+    for x in body:
+      case x
+      of Call[Ident(strVal: "get"), @body]:
+        if getter != nil: error("getter is already declared", x)
+        getter = body
+
+      of Call[Ident(strVal: "set"), @body]:
+        if setter != nil: error("setter is already declared", x)
+        setter = body
+
+      of Command[Ident(strVal: "notify"), @name is Ident()]:
+        if notify != nil: error("notify is already declared", x)
+        notify = name
+        if $name notin signalNames:
+          newSignal notify, newEmptyNode(), @[], decl, impl, signalNames
+
+      of Ident(strVal: "notify"):
+        if notify != nil: error("notify already declared", x)
+        notify = ident &"{name}Changed"
+        copyLineInfo notify, x
+        newSignal notify, newEmptyNode(), @[], decl, impl, signalNames
+      
+      else: error("Unexpected syntax", x)
+    
+    if getter != nil and notify == nil:
+      warning("Property with getter has no notify", body)
+    
+    if getter == nil and notify != nil:
+      warning("Property with notify has no getter", body)
+    
+    decl.add "public: Q_PROPERTY(" & toQtTypename($propType) & " " & name & " " &
+      (if getter != nil: &"READ {name} " else: "") &
+      (if setter != nil: &"WRITE set{name.capitalizeFirst} " else: "") &
+      (if notify != nil: &"NOTIFY {notify}" else: "") &
+      ")"
+    
+    if getter != nil:
+      decl.add declproc(name, propType, @[])
+      
+      impl.add: implslot t, ct, name, propType, @[], @[], getter
+    
+    if setter != nil:
+      decl.add declproc("set" & name.capitalizeFirst, newEmptyNode(), @[newIdentDefs(i"value", propType)])
+      
+      let v = i"value"
+      copyLineInfo(v, setter)
+
+      impl.add: implslot t, ct, "set" & name.capitalizeFirst, newEmptyNode(), @[newIdentDefs(i"value", propType)], @[], buildAst(stmtList) do:
+        letSection:
+          identDefs(v, empty(), call(s"fromQtVal", i"value"))
+        setter
   
   else: error("Unexpected syntax", x)
 
@@ -449,6 +515,11 @@ macro qobject*(t, body) =
 
   var decl: seq[string]
   var impl = newStmtList()
+  var signalNames: seq[string]
+  var constructor = buildAst:
+    pragma: exprColonExpr i"emit":
+      newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
+      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
 
   let ct = gensym nskType
   impl.add: buildAst typeSection:
@@ -462,21 +533,33 @@ macro qobject*(t, body) =
           identDefs(i"self", t, empty())
 
   for x in body:
-    qobjectCasesImpl t, body, ct, x, decl, impl
+    qobjectCasesImpl t, body, ct, x, decl, impl, constructor, signalNames
 
   let moc = moc qoClass($t, decl.join("\n"), $parent).join
   let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)
+
+  let cts = ident"Ct"
+  copyLineInfo(cts, body)
 
   buildAst(stmtList):
     pragma: exprColonExpr i"emit": newLit &"/*INCLUDESECTION*/ #include <{parent}>"
     pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
     pragma: exprColonExpr i"emit": bracket(newLit moc)
-    pragma: exprColonExpr i"emit":
-      newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
-      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}" #TODO: call =new if defined
-    quote do:
-      template Ct(_: type `t`): type = `ct`
+    templateDef:
+      cts
+      empty()
+      empty()
+      formalParams:
+        i"type"
+        identDefs:
+          gensym nskParam
+          command i"type", t
+          empty()
+      empty()
+      empty()
+      ct
     for x in impl: x
+    constructor
 
 
 macro qmodel*(t, body) =
@@ -491,6 +574,11 @@ macro qmodel*(t, body) =
   var impl = newStmtList()
   var dataImpl: Table[string, NimNode]
   var rowsImpl: NimNode
+  var signalNames: seq[string]
+  var constructor = buildAst:
+    pragma: exprColonExpr i"emit":
+      newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
+      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
 
   let ct = gensym nskType
   impl.add: buildAst typeSection:
@@ -534,7 +622,7 @@ macro qmodel*(t, body) =
         decl.add "QHash<int, QByteArray> roleNames() const override;"
       dataImpl[valname] = body
 
-    else: qobjectCasesImpl t, body, ct, x, decl, impl
+    else: qobjectCasesImpl t, body, ct, x, decl, impl, constructor, signalNames
   
   if rowsImpl == nil: error("rows must be declarated")
 
@@ -599,16 +687,28 @@ macro qmodel*(t, body) =
   let moc = moc qoClass($t, decl.join("\n"), $parent).join
   let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)
 
+  let cts = ident"Ct"
+  copyLineInfo(cts, body)
+
   buildAst(stmtList):
     pragma: exprColonExpr i"emit": newLit &"/*INCLUDESECTION*/ #include <{parent}>"
     pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
     pragma: exprColonExpr i"emit": bracket(newLit moc)
-    pragma: exprColonExpr i"emit":
-      newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
-      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
-    quote do:
-      template Ct(_: type `t`): type = `ct`
+    templateDef:
+      cts
+      empty()
+      empty()
+      formalParams:
+        i"type"
+        identDefs:
+          gensym nskParam
+          command i"type", t
+          empty()
+      empty()
+      empty()
+      ct
     for x in impl: x
+    constructor
 
 
 proc registerInQmlC[T](module: cstring, verMajor, verMinor: cint, name: cstring, x: ptr T) {.importcpp: "qmlRegisterType<'*5>(#, #, #, #)", header: "qqml.h".}

@@ -1,5 +1,5 @@
-import asyncdispatch
-export asyncdispatch
+import asyncdispatch, asyncfutures
+export asyncdispatch, asyncfutures
 
 template then*(x: Future, body) =
   x.addCallback(proc(res: typeof(x)) {.closure, gcsafe.} =
@@ -11,7 +11,6 @@ template then*(x: Future, body) =
 proc cancel*(x: Future) =
   if x == nil or x.finished: return
   clearCallbacks x
-  fail x, CatchableError.newException("Canceled")
 
 proc cancel*(x: openarray[Future]) =
   for f in x: cancel f

@@ -11,7 +11,6 @@ requires "fusion"
 requires "cligen"
 requires "https://github.com/levovix0/impl"
 requires "discord_rpc"
-requires "parasound"
 requires "filetype"
 
 when defined(nimdistros):
@@ -25,10 +24,10 @@ when defined(nimdistros):
     foreignDep "python"
     foreignDep "taglib"
 
-task codegen, "Generate additional C++ code":
+task codegen, "Generate additional C++ code": # deprecated
   withDir "src":
-    exec "nim c -r config.nim"
+    exec "nim c -r configuration.nim"
     when defined(windows):
-      exec "rm config.exe"
+      exec "rm configuration.exe"
     else:
-      exec "rm config"
+      exec "rm configuration"

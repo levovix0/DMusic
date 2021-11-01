@@ -75,10 +75,6 @@ Window {
       onClicked: _root.focus = true
     }
 
-    function autologin() {
-      YClient.login(Config.ym_token, Config.ym_proxyServer)
-    }
-
     PageSwitcher {
       id: _pages
       anchors.left: _root.left
@@ -148,18 +144,17 @@ Window {
       color: Style.window.border.color
     }
 
-    Component.onCompleted: {
-      YClient.init()
-      _root.autologin()
+    PlayerController {
+      id: _playerController
     }
 
-    Keys.onSpacePressed: _player.player.pause_or_play()
-    Keys.onRightPressed: _player.next()
-    Keys.onLeftPressed: _player.prev()
+    Keys.onSpacePressed: _playerController.pause_or_play()
+    Keys.onRightPressed: _playerController.next()
+    Keys.onLeftPressed: _playerController.prev()
     Keys.onPressed: {
-      if (event.key === Qt.Key_L) _player.toglleLiked()
-      else if (event.key === Qt.Key_D) _player.next()
-      else if (event.key === Qt.Key_A) _player.prev()
+      if (event.key === Qt.Key_L) _player.toggleLiked()
+      else if (event.key === Qt.Key_D) _playerController.next()
+      else if (event.key === Qt.Key_A) _playerController.prev()
     }
 
     layer.enabled: Config.isClientSideDecorations && visibility != 4
