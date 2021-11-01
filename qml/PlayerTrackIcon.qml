@@ -7,6 +7,7 @@ Item {
   height: 50
 
   property url src: ""
+  property url originalUrl: ""
 
   RoundedImage {
     id: _icon
@@ -25,6 +26,6 @@ Item {
     enabled: (src.toString().length > 0) && (src.toString().slice(0, 4) !== "qrc:")
 
     cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
-    onClicked: Qt.openUrlExternally(src)
+    onClicked: Qt.openUrlExternally(originalUrl)
   }
 }

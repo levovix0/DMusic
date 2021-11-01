@@ -98,7 +98,7 @@ proc progress*: float =
 
 type PlayingTrackInfo = object
   cover: string
-  liked: Option[bool]
+  liked: bool
   process: seq[Future[void]]
 
 qobject PlayingTrackInfo:
@@ -148,18 +148,7 @@ qobject PlayingTrackInfo:
     notify positionChanged
 
   property bool liked:
-    get:
-      if self.liked.isNone:
-        self.liked = some false
-        
-        case currentTrack.kind
-        of tkYandex:
-          self.process.add: doAsync:
-            self.liked = some currentTrack.yandex.liked.await
-            this.likedChanged
-        else: discard
-      
-      get self.liked
+    get: self.liked
     set:
       case currentTrack.kind
       of tkYandex:
@@ -168,25 +157,21 @@ qobject PlayingTrackInfo:
             currentUser().await.like(currentTrack.yandex).await
           else:
             currentUser().await.unlike(currentTrack.yandex).await
-        self.liked = some value
+        self.liked = value
         this.likedChanged
       else: discard
     notify
 
   property string cover:
-    get:
-      if self.cover.len == 0:
-        self.cover = emptyCover
-
-        case currentTrack.kind
-        of tkYandex:
-          self.process.add: doAsync:
-            self.cover = currentTrack.yandex.cover.await
-            this.coverChanged
-        else: discard
-      
-      self.cover
+    get: self.cover
     notify
+  
+  property string originalUrl:
+    get:
+      case currentTrack.kind
+      of tkYandex: currentTrack.yandex.coverUrl
+      else: ""
+    notify coverChanged
   
   property int id:
     get:
@@ -196,12 +181,28 @@ qobject PlayingTrackInfo:
     notify infoChanged
 
   proc `=new` =
+    self.cover = emptyCover
+
     notifyTrackChanged &= proc() =
       cancel self.process
+      
       wasMoved self
+      self.cover = emptyCover
+
       this.infoChanged
       this.coverChanged
       this.likedChanged
+      
+      case currentTrack.kind
+      of tkYandex:
+        self.process.add: doAsync:
+          self.cover = currentTrack.yandex.cover.await
+          this.coverChanged
+        
+        self.process.add: doAsync:
+          self.liked = currentTrack.yandex.liked.await
+          this.likedChanged
+      else: discard
 
     notifyPositionChanged &= proc() =
       this.positionChanged

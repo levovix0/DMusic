@@ -101,6 +101,7 @@ Rectangle {
     height: root.height
 
     icon: _currentTrack.cover
+    originalUrl: _currentTrack.originalUrl
     title: _currentTrack.title
     artists: _currentTrack.artists
     comment: _currentTrack.comment
