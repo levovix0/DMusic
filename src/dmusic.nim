@@ -1,5 +1,5 @@
 import std/exitprocs
-import cppbridge, qt, messages, async
+import cppbridge, qt, messages, async, localize
 import yandexMusicQmlModule, audio, taglib
 
 sourcesFromDir "src"
@@ -31,7 +31,7 @@ proc dmusic: string =
     try: async.poll(5)
     except:
       echo getCurrentExceptionMsg()
-      sendError "Exception during async operation", getCurrentExceptionMsg()
+      sendError tr"Exception during async operation", getCurrentExceptionMsg()
 
   setProgramResult QApplication.exec
 
@@ -41,3 +41,5 @@ when isMainModule:
   import cligen
   clcfg.version = "0.3"
   dispatch dmusic
+
+  updateTranslations()

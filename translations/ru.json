@@ -1,0 +1,15 @@
+{
+  "yandexMusicQmlModule.nim": {
+    "Favorites": {
+      "": "Нравится"
+    },
+    "qrc:/resources/covers/favorite.svg": {
+      "": "qrc:/resources/covers/favorite-ru.svg"
+    }
+  },
+  "dmusic.nim": {
+    "Exception during async operation": {
+      "": "Исключение во время асинхронной операции"
+    }
+  }
+}

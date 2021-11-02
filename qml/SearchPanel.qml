@@ -21,15 +21,7 @@ FloatingPanel {
   }
 
   onTextChanged: {
-    _model.search(root.text)
-  }
-
-  SearchModel {
-    id: _model
-  }
-
-  SearchHistory {
-    id: _hisroty_model
+    SearchModel.search(root.text)
   }
 
   Column {
@@ -79,7 +71,7 @@ FloatingPanel {
 
       Repeater {
         enabled: root.text
-        model: _hisroty_model
+        model: SearchHistory
 
         MouseArea {
           width: root.width - 40
@@ -91,7 +83,7 @@ FloatingPanel {
 
           onClicked: {
             root.changeText(element)
-            _hisroty_model.savePromit(element)
+            SearchHistory.savePromit(element)
           }
 
           Icon {
@@ -118,10 +110,6 @@ FloatingPanel {
     }
   }
 
-  PlayerController {
-    id: _player
-  }
-
   Component {
     id: _searchResults
 
@@ -129,7 +117,7 @@ FloatingPanel {
       x: -10
 
       Repeater {
-        model: _model
+        model: SearchModel
 
         SearchResult {
           width: root.width - 20
@@ -141,8 +129,8 @@ FloatingPanel {
           artist: objArtist
 
           onPlay: {
-            _hisroty_model.savePromit(root.text)
-            _player.playYmTrack(objId)
+            SearchHistory.savePromit(root.text)
+            AudioPlayer.playYmTrack(objId)
             _root.focus = true
           }
         }

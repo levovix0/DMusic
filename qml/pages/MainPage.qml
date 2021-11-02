@@ -6,11 +6,7 @@ import "qrc:/qml"
 DPage {
   id: root
 
-  HomePlaylistsModel {
-    id: _homePlaylists
-    
-    Component.onCompleted: load()
-  }
+  Component.onCompleted: HomePlaylistsModel.load()
 
   Row {
     id: _yandexHomePlaylists
@@ -23,7 +19,7 @@ DPage {
     Repeater {
       id: _yandexHomePlaylistsRepeater
 
-      model: _homePlaylists
+      model: HomePlaylistsModel
 
       PlaylistEntry {
         title: objTitle

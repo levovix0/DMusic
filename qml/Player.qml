@@ -10,14 +10,14 @@ Rectangle {
   property alias track: _track
 
   function toggleLiked() {
-    _currentTrack.liked = !_currentTrack.liked
+    PlayingTrackInfo.liked = !PlayingTrackInfo.liked
   }
 
   function next() {
-    _player.next()
+    AudioPlayer.next()
   }
   function prev() {
-    _player.prev()
+    AudioPlayer.prev()
   }
 
   PlayerControls {
@@ -26,15 +26,15 @@ Rectangle {
     anchors.horizontalCenter: root.horizontalCenter
     y: 21
 
-    playing: _player.playing
-    shuffle: _player.shuffle
-    loop: _player.loop
+    playing: AudioPlayer.playing
+    shuffle: AudioPlayer.shuffle
+    loop: AudioPlayer.loop
 
-    onPause_or_play: _player.playing? _player.pause() : _player.play()
-    onNext: _player.next()
-    onPrev: _player.prev()
-    onSetShuffle: _player.shuffle = v
-    onSetLoop: _player.loop = v
+    onPause_or_play: AudioPlayer.playing? AudioPlayer.pause() : AudioPlayer.play()
+    onNext: AudioPlayer.next()
+    onPrev: AudioPlayer.prev()
+    onSetShuffle: AudioPlayer.shuffle = v
+    onSetLoop: AudioPlayer.loop = v
   }
 
   PlayerLine {
@@ -43,20 +43,12 @@ Rectangle {
     y: 48
     width: root.width / 2.7
 
-    progress: _currentTrack.progress
-    onSeek: _currentTrack.progress = progress
-    onAppendMs: _currentTrack.positionMs += delta * 1000
+    progress: PlayingTrackInfo.progress
+    onSeek: PlayingTrackInfo.progress = progress
+    onAppendMs: PlayingTrackInfo.positionMs += delta * 1000
 
-    positionText: _currentTrack.position
-    durationText: _currentTrack.duration
-  }
-
-  PlayerController {
-    id: _player
-  }
-  
-  PlayingTrackInfo {
-    id: _currentTrack
+    positionText: PlayingTrackInfo.position
+    durationText: PlayingTrackInfo.duration
   }
 
   Row {
@@ -100,13 +92,13 @@ Rectangle {
     width: root.width / 2 - _playerLine.leftWidth - 14 - x
     height: root.height
 
-    icon: _currentTrack.cover
-    originalUrl: _currentTrack.originalUrl
-    title: _currentTrack.title
-    artists: _currentTrack.artists
-    comment: _currentTrack.comment
-    trackId: _currentTrack.id
-    liked: _currentTrack.liked
+    icon: PlayingTrackInfo.cover
+    originalUrl: PlayingTrackInfo.originalUrl
+    title: PlayingTrackInfo.title
+    artists: PlayingTrackInfo.artists
+    comment: PlayingTrackInfo.comment
+    trackId: PlayingTrackInfo.id
+    liked: PlayingTrackInfo.liked
 
     onToggleLiked: root.toggleLiked()
   }

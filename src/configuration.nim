@@ -1,4 +1,4 @@
-import json, os
+import json, os, math
 
 let configDir* =
   when defined(linux): getHomeDir() / ".config/DMusic"
@@ -44,7 +44,7 @@ proc language*(config: Config): Language = config{"language"}.get(Language)
 proc `language=`*(config: Config, v: Language) = config{"language"} = v; save config
 
 proc volume*(config: Config): float = config{"volume"}.getFloat(0.5)
-proc `volume=`*(config: Config, v: float) = config{"volume"} = v; save config
+proc `volume=`*(config: Config, v: float) = config{"volume"} = v.round(2).max(0).min(1); save config
 
 proc shuffle*(config: Config): bool = config{"shuffle"}.getBool
 proc `shuffle=`*(config: Config, v: bool) = config{"shuffle"} = v; save config

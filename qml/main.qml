@@ -144,17 +144,13 @@ Window {
       color: Style.window.border.color
     }
 
-    PlayerController {
-      id: _playerController
-    }
-
-    Keys.onSpacePressed: _playerController.pause_or_play()
-    Keys.onRightPressed: _playerController.next()
-    Keys.onLeftPressed: _playerController.prev()
+    Keys.onSpacePressed: AudioPlayer.pause_or_play()
+    Keys.onRightPressed: AudioPlayer.next()
+    Keys.onLeftPressed: AudioPlayer.prev()
     Keys.onPressed: {
       if (event.key === Qt.Key_L) _player.toggleLiked()
-      else if (event.key === Qt.Key_D) _playerController.next()
-      else if (event.key === Qt.Key_A) _playerController.prev()
+      else if (event.key === Qt.Key_D) AudioPlayer.next()
+      else if (event.key === Qt.Key_A) AudioPlayer.prev()
     }
 
     layer.enabled: Config.isClientSideDecorations && visibility != 4

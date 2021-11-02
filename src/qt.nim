@@ -711,12 +711,27 @@ macro qmodel*(t, body) =
     constructor
 
 
-proc registerInQmlC[T](module: cstring, verMajor, verMinor: cint, name: cstring, x: ptr T) {.importcpp: "qmlRegisterType<'*5>(#, #, #, #)", header: "qqml.h".}
+type
+  QQmlEngine* {.importcpp: "QQmlEngine", header: "QQmlEngine".} = object
+  QJSEngine* {.importcpp: "QJSEngine", header: "QJSEngine".} = object
+
+
+proc registerInQmlC[T](
+  module: cstring, verMajor, verMinor: cint, name: cstring, x: ptr T
+) {.importcpp: "qmlRegisterType<'*5>(#, #, #, #)", header: "qqml.h".}
+
+proc registerSingletonInQmlC[T](
+  module: cstring, verMajor, verMinor: cint, name: cstring, f: proc(a: ptr QQmlEngine, b: ptr QJSEngine): ptr T {.cdecl.}, x: ptr T
+) {.importcpp: "qmlRegisterSingletonType<'*6>(#, #, #, #, #)", header: "qqml.h".}
+
+proc cnew(t: type): ptr t {.importcpp: "(new '*0)", nodecl.}
 
 template registerInQml*(t: type, module: string, verMajor, verMinor: int) =
   bind registerInQmlC
   registerInQmlC[t.Ct](module, verMajor.cint, verMinor.cint, $t, nil)
 
-template registerInQml*(t: type, module: string, verMajor, verMinor: int, name: string) =
-  bind registerInQmlC
-  registerInQmlC[t.Ct](module, verMajor.cint, verMinor.cint, name, nil)
+template registerSingletonInQml*(t: type, module: string, verMajor, verMinor: int) =
+  bind registerSingletonInQmlC, cnew
+  var x = cnew t.Ct
+  proc instance(a: ptr QQmlEngine, b: ptr QJSEngine): ptr t.Ct {.cdecl.} = x
+  registerSingletonInQmlC[t.Ct](module, verMajor.cint, verMinor.cint, $t, instance, nil)

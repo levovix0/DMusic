@@ -1,6 +1,6 @@
 {.used.}
 import sequtils, strutils, async, base64, strformat, os, sugar, tables
-import qt, yandexMusic, configuration, cacheTable, utils
+import qt, yandexMusic, configuration, cacheTable, utils, localize
 
 var coverCache: CacheTable[(string, int), string]
 onMainLoop: coverCache.garbageCollect
@@ -64,7 +64,7 @@ qmodel SearchModel:
           self.covers[i] = await track.cover
           this.layoutChanged
 
-registerInQml SearchModel, "YandexMusic", 1, 0
+registerSingletonInQml SearchModel, "YandexMusic", 1, 0
 
 
 
@@ -88,7 +88,7 @@ qmodel SearchHistory:
     writeFile(dataDir / "searchHistory.txt", searchHistory.join("\n"))
     this.layoutChanged
 
-registerInQml SearchHistory, "DMusic", 1, 0  #TODO: singleton
+registerSingletonInQml SearchHistory, "DMusic", 1, 0
 
 
 
@@ -101,12 +101,12 @@ proc getHomePlaylists: Future[seq[Playlist]] {.async.} =
   result = personalPlaylists().await.mapit(it.playlist)
   result.insert Playlist(
     id: 3,
-    title: "Favorites"
+    title: tr"Favorites"
   )
 
 proc cover(playlist: Playlist): Future[string] {.async.} =
   return
-    if playlist.id == 3: "qrc:/resources/covers/favorite.svg"
+    if playlist.id == 3: tr"qrc:/resources/covers/favorite.svg"
     else: playlist.coverBase64(400).await
 
 qmodel HomePlaylistsModel:
@@ -129,4 +129,4 @@ qmodel HomePlaylistsModel:
           self.covers[i] = await playlist.cover
           this.layoutChanged
 
-registerInQml HomePlaylistsModel, "YandexMusic", 1, 0
+registerSingletonInQml HomePlaylistsModel, "YandexMusic", 1, 0

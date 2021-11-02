@@ -7,10 +7,6 @@ Item {
   width: _icon.width
   height: _icon.height
 
-  PlayerController {
-    id: _player
-  }
-
   MouseArea {
     id: _bg_mouse
     anchors.horizontalCenter: parent.horizontalCenter
@@ -52,11 +48,11 @@ Item {
         hoverEnabled: true
 
         onEntered: _ppc.opened = true
-        onPressed: _player.muted = !_player.muted
-        onWheel: _player.volume += 0.05 * wheel.angleDelta.y / 120
+        onPressed: AudioPlayer.muted = !AudioPlayer.muted
+        onWheel: AudioPlayer.volume += 0.05 * wheel.angleDelta.y / 120
       }
 
-      src: (_player.volume <= 0.01 ||  _player.muted)? "qrc:/resources/player/vol-muted.svg" : _player.volume < 0.5? "qrc:/resources/player/vol-quiet.svg" : "qrc:/resources/player/vol.svg"
+      src: (AudioPlayer.volume <= 0.01 ||  AudioPlayer.muted)? "qrc:/resources/player/vol-muted.svg" : AudioPlayer.volume < 0.5? "qrc:/resources/player/vol-quiet.svg" : "qrc:/resources/player/vol.svg"
       color: (_mouse.containsMouse)? Style.panel.icon.normal.hoverColor : Style.panel.icon.normal.color
     }
   }

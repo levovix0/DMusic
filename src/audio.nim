@@ -204,22 +204,15 @@ qobject PlayingTrackInfo:
           this.likedChanged
       else: discard
 
-    notifyPositionChanged &= proc() =
-      this.positionChanged
+    notifyPositionChanged &= proc() = this.positionChanged
 
-registerInQml PlayingTrackInfo, "DMusic", 1, 0
+registerSingletonInQml PlayingTrackInfo, "DMusic", 1, 0
 
 
-type PlayerController = object
+type AudioPlayer = object
+  process: Future[void]
 
-var process: Future[void]
-
-var notifyShuffleChanged: proc() = proc() = discard
-var notifyLoopChanged: proc() = proc() = discard
-var notifyMutedChanged: proc() = proc() = discard
-var notifyVolumeChanged: proc() = proc() = discard
-
-qobject PlayerController:
+qobject AudioPlayer:
   proc play = play()
   proc stop = stop()
   proc pause = pause()
@@ -228,31 +221,31 @@ qobject PlayerController:
   proc prev = discard
   
   proc playYmTrack(id: int) =
-    cancel process
-    process = doAsync:
+    cancel self.process
+    self.process = doAsync:
       id.fetch.await[0].play.await
 
   property bool shuffle:
     get: config.shuffle
-    set: config.shuffle = value; notifyShuffleChanged()
+    set: config.shuffle = value; this.shuffleChanged
     notify
 
   property int loop:
     get: config.loop.ord
-    set: config.loop = value.LoopMode; notifyLoopChanged()
+    set: config.loop = value.LoopMode; this.loopChanged
     notify
 
   property bool muted:
     get: player.muted
-    set: player.muted = value; notifyMutedChanged()
+    set: player.muted = value; this.mutedChanged
     notify
   
   property float volume:
     get: config.volume
     set:
-      config.volume = value.max(0).min(1)
+      config.volume = value
       player.volume = calcVolume()
-      notifyVolumeChanged()
+      this.volumeChanged
     notify
 
   property bool playing:
@@ -264,11 +257,7 @@ qobject PlayerController:
     notify stateChanged
     
   proc `=new` =
-    notifyStateChanged   &= proc() = this.stateChanged
-    notifyShuffleChanged &= proc() = this.shuffleChanged
-    notifyLoopChanged    &= proc() = this.loopChanged
-    notifyMutedChanged   &= proc() = this.mutedChanged
-    notifyVolumeChanged  &= proc() = this.volumeChanged
+    notifyStateChanged &= proc() = this.stateChanged
 
-registerInQml PlayerController, "DMusic", 1, 0
+registerSingletonInQml AudioPlayer, "DMusic", 1, 0
 
