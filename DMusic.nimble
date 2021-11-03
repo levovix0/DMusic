@@ -1,7 +1,7 @@
 version       = "0.3"
 author        = "DTeam"
 description   = "Music player"
-license       = "MIT"
+license       = "GPL"
 srcDir        = "src"
 bin           = @["dmusic"]
 backend       = "cpp"
@@ -21,13 +21,4 @@ when defined(nimdistros):
     foreignDep "qt5-graphicaleffects"
     foreignDep "qt5-quickcontrols"
     foreignDep "qt5-quickcontrols2"
-    foreignDep "python"
     foreignDep "taglib"
-
-task codegen, "Generate additional C++ code": # deprecated
-  withDir "src":
-    exec "nim c -r configuration.nim"
-    when defined(windows):
-      exec "rm configuration.exe"
-    else:
-      exec "rm configuration"

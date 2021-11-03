@@ -8,14 +8,14 @@ import "pages"
 Window {
   id: _window
   visible: true
-  flags: Config.isClientSideDecorations? Qt.FramelessWindowHint | Qt.Window : Qt.Window
+  flags: Config.csd? Qt.FramelessWindowHint | Qt.Window : Qt.Window
 
   width: 1280 + 20
   height: 720 + 20
   minimumWidth: 520 + shadowRadius * 2
   minimumHeight: 300 + shadowRadius * 2
 
-  property real shadowRadius: (Config.isClientSideDecorations && !maximized)? 10 : 0
+  property real shadowRadius: (Config.csd && !maximized)? 10 : 0
   property bool maximized: visibility == 4
 
   property bool needReadWH: false
@@ -47,7 +47,7 @@ Window {
 
   DropShadow {
     anchors.fill: _root
-    enabled: Config.isClientSideDecorations && !maximized
+    enabled: Config.csd && !maximized
     opacity: 0.6
     radius: shadowRadius
     samples: 20
@@ -88,7 +88,7 @@ Window {
       width: _root.width
 
       windowSize: Qt.size(_root.width, _root.height)
-      clientSideDecorations: Config.isClientSideDecorations
+      clientSideDecorations: Config.csd
       maximized: maximized
     }
 
@@ -153,7 +153,7 @@ Window {
       else if (event.key === Qt.Key_A) AudioPlayer.prev()
     }
 
-    layer.enabled: Config.isClientSideDecorations && visibility != 4
+    layer.enabled: Config.csd && visibility != 4
     layer.effect: OpacityMask {
       maskSource: Rectangle {
         width: _root.width

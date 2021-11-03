@@ -19,7 +19,7 @@ SettingsBlock {
       Layout.alignment: Qt.AlignCenter
       Layout.preferredWidth: item.width
 
-      sourceComponent: YClient.loggined? _YandexMusiclogined : _YandexMusiclogin
+      sourceComponent: Config.ym_token != ""? _YandexMusiclogined : _YandexMusiclogin
 
       Component {
         id: _YandexMusiclogined
@@ -64,7 +64,6 @@ SettingsBlock {
                 hoverEnabled: true
                 onClicked: {
                   Config.ym_token = ""
-                  YClient.unlogin()
                 }
               }
             }

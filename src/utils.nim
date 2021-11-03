@@ -22,7 +22,7 @@ proc `&`*(x: proc(), f: proc()): proc() =
   ## concatenate procs
   (proc = x(); f())
 
-proc `&=`*(x: var proc(), f: proc()) =
+proc add*(x: var proc(), f: proc()) =
   x = x & f
 
 proc move*[T](x: var seq[T], i, to: int) =

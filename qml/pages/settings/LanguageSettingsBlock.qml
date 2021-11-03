@@ -15,13 +15,13 @@ SettingsBlock {
     LanguageSelect {
       Layout.alignment: Qt.AlignHCenter
       text: qsTr("English")
-      language: Config.EnglishLanguage
+      language: 0
     }
 
     LanguageSelect {
       Layout.alignment: Qt.AlignHCenter
       text: qsTr("Russian")
-      language: Config.RussianLanguage
+      language: 1
     }
   }
 }

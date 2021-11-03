@@ -55,8 +55,8 @@ SettingsBlock {
       spacing: 10
 
       DCheckBox {
-        checked: Config.isClientSideDecorations
-        onCheckedChanged: Config.isClientSideDecorations = checked
+        checked: Config.csd
+        onCheckedChanged: Config.csd = checked
         text: qsTr("Client-side decorations")
         fontSize: 10.5
       }

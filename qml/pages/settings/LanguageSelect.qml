@@ -5,8 +5,8 @@ import "../../components"
 DText {
   id: root
 
-  property int language: Config.EnglishLanguage
-  property bool selected: Config.language == language
+  property int language: 0
+  property bool selected: Config.i_language == language
 
   style: Style.block.text
   font.weight: selected? Font.Bold : Font.Light
@@ -21,6 +21,6 @@ DText {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
 
-    onClicked: Config.language = root.language
+    onClicked: Config.i_language = root.language
   }
 }

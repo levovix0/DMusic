@@ -1,4 +1,8 @@
-import json, os, math
+import json, os, math, macros, options
+import fusion/matching, fusion/astdsl
+import qt, utils
+
+{.experimental: "caseStmtMacros".}
 
 let configDir* =
   when defined(linux): getHomeDir() / ".config/DMusic"
@@ -8,26 +12,21 @@ let dataDir* =
   when defined(linux): getHomeDir() / ".local/share/DMusic"
   else: "."
 
-converter toJsonNode(x: string): JsonNode = newJString x
-converter toJsonNode(x: float): JsonNode = newJFloat x
-converter toJsonNode(x: bool): JsonNode = newJBool x
-proc get(x: JsonNode, t: type, default = t.default): t =
+proc get(x: JsonNode, t: type): t =
+  try: x.to(t) except: t.default
+proc get(x: JsonNode, t: type, default: t): t =
   try: x.to(t) except: default
-converter toJsonNode[T: enum](x: T): JsonNode = %* x
 
-type Config* = distinct JsonNode
+type ConfigObj* = distinct JsonNode
 
-converter toJsonNode(x: Config): JsonNode = x.JsonNode
-converter toConfig(x: JsonNode): Config = x.Config
-
-proc readConfig*: Config =
+proc readConfig*: ConfigObj =
   if fileExists(configDir/"config.json"):
-    readFile(configDir/"config.json").parseJson
-  else: %{:}
+    readFile(configDir/"config.json").parseJson.ConfigObj
+  else: ConfigObj %{:}
 
-proc save*(config: Config) =
+proc save*(config: ConfigObj) =
   createDir configDir
-  writeFile(configDir/"config.json", config.pretty)
+  writeFile(configDir/"config.json", config.JsonNode.pretty)
 
 var config* = readConfig()
 
@@ -39,86 +38,156 @@ type
   LoopMode* {.pure.} = enum
     none, playlist, track
 
+# some magic
+discard
+{.emit: """/*TYPESECTION*/
+typedef NU8 Language;
+typedef NU8 LoopMode;
+""".}
 
-proc language*(config: Config): Language = config{"language"}.get(Language)
-proc `language=`*(config: Config, v: Language) = config{"language"} = v; save config
+type Config = object
 
-proc volume*(config: Config): float = config{"volume"}.getFloat(0.5)
-proc `volume=`*(config: Config, v: float) = config{"volume"} = v.round(2).max(0).min(1); save config
+template i(s: string{lit}): NimNode = ident s
+template s(s: string{lit}): NimNode = bindSym s
 
-proc shuffle*(config: Config): bool = config{"shuffle"}.getBool
-proc `shuffle=`*(config: Config, v: bool) = config{"shuffle"} = v; save config
+proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts, qobj, ctor: var NimNode) =
+  proc entry(typ: NimNode, aname: NimNode, def: Option[NimNode]; stmts, qobj, ctor: var NimNode, sethook = ident"v") =
+    let name = ident prefix & $aname
+    copyLineInfo(name, aname)
 
-proc loop*(config: Config): LoopMode = config{"loop"}.get(LoopMode)
-proc `loop=`*(config: Config, v: LoopMode) = config{"loop"} = v; save config
+    let notify = ident("notify" & ($name).capitalizeFirst & "Changed")
 
-proc ym_token*(config: Config): string = config{"Yandex.Music", "token"}.getStr
-proc `ym_token=`*(config: Config, v: string) = config{"Yandex.Music", "token"} = v; save config
-
-
-when isMainModule:
-  import codegen/genconfig
-
-  genconfig "Config", "Config.hpp", "Config.cpp", "DMusic":
-    type Language = enum
-      EnglishLanguage = ""
-      RussianLanguage = ":translations/russian"
-
-    type NextMode = enum
-      NextSequence
-      NextShuffle
+    stmts.add quote do:
+      var `notify`*: proc() = proc() = discard
     
-    type LoopMode = enum
-      LoopNone
-      LoopTrack
-      LoopPlaylist
-
-    Language language EnglishLanguage
-    string colorAccentDark "#FCE165"
-    string colorAccentLight "#FFA800"
-
-    bool isClientSideDecorations true
-
-    double width 1280
-    double height 720
+    stmts.add: buildAst(procDef):
+      postfix i"*", name
+      empty()
+      empty()
+      formalParams:
+        typ
+        newIdentDefs(i"config", s"ConfigObj")
+      empty()
+      empty()
+      call i"get":
+        curlyExpr:
+          call i"JsonNode", i"config"
+          for x in path: newLit x
+          newLit $aname
+        command i"type", typ
+        if def.isSome: def.get
     
-    double volume 0.5
-    NextMode nextMode NextSequence
-    LoopMode loopMode LoopNone
+    stmts.add: buildAst(procDef):
+      postfix i"*", accQuoted(name, i"=")
+      empty()
+      empty()
+      formalParams:
+        empty()
+        newIdentDefs(i"config", s"ConfigObj")
+        newIdentDefs(i"v", typ)
+      empty()
+      empty()
+      stmtList:
+        ifStmt:
+          elifBranch:
+            call i"==", sethook, call(name, i"config")
+            stmtList: returnStmt empty()
+        asgn:
+          curlyExpr call(i"JsonNode", i"config"):
+            for x in path: newLit x
+            newLit $aname
+          call i"%*", sethook
+        call i"save", i"config"
+        call notify
+    
+    qobj.add: buildAst(command):
+      i"property"
+      command typ, name
+      stmtList:
+        call i"get":
+          call name, i"config"
+        call i"set":
+          asgn dotExpr(i"config", name), i"value"
+        i"notify"
+    
+    ctor.add: buildAst:
+      call i"&=", notify:
+        Lambda:
+          empty()
+          empty()
+          empty()
+          formalParams: empty()
+          empty()
+          empty()
+          call ident($name & "Changed"), i"this"
 
-    bool darkTheme true
-    bool darkHeader true
-    bool themeByTime true
+  for x in body:
+    case x
+    
+    of Command[@typ, Command[@name is Ident(), Command[@def, @sethook]]]:
+      entry(typ, name, some def, stmts, qobj, ctor, sethook)
+    
+    of Command[@typ, Command[@name is Ident(), @def]]:
+      entry(typ, name, some def, stmts, qobj, ctor)
+    
+    of Command[@typ, @name is Ident()]:
+      entry(typ, name, none NimNode, stmts, qobj, ctor)
+    
+    of Command[Ident(strVal: @prefix2), StrLit(strVal: @name), @body is StmtList()]:
+      genconfigImpl(body, path & name, prefix & prefix2 & "_", stmts, qobj, ctor)
+    
+    else: error("Unexpected syntax", x)
 
-    bool discordPresence false
+macro genconfig(body) =
+  result = newStmtList()
+  var qobj = newStmtList()
+  var ctor = newStmtList()
+  genconfigImpl(body, @[], "", result, qobj, ctor)
 
-    config user, "User":
-      dir saveDir "data:user"
+  result.add: buildAst:
+    call s"qobject", s"Config": stmtList:
+      for x in qobj: x
+      procDef accQuoted(i"=", i"new"):
+        empty()
+        empty()
+        formalParams: empty()
+        empty()
+        empty()
+        stmtList:
+          for x in ctor: x
 
-      get QString trackFile(int id): """
-        return user_saveDir().sub(QString::number(id) + ".mp3");
-      """
 
-    config ym, "Yandex.Music":
-      type CoverQuality = enum
-        MaximumCoverQuality  = "1000x1000"
-        VeryHighCoverQuality = "700x700"
-        HighCoverQuality     = "600x600"
-        MediumCoverQuality   = "400x400"
-        LowCoverQuality      = "200x200"
-        VeryLowCoverQuality  = "100x100"
-        MinimumCoverQuality  = "50x50"
+genconfig:
+  int i_language
+  string colorAccentDark "#FCE165"
+  string colorAccentLight "#FFA800"
 
-      string token
-      string email
-      string proxyServer
+  bool csd true
 
-      dir saveDir "data:yandex"
+  int width 1280
+  int height 720
+  
+  float volume 0.5 v.round(2).max(0).min(1)
+  bool shuffle
+  int i_loop
 
-      get QString trackFile(int id): """
-        return ym_saveDir().sub(QString::number(id) + ".mp3");
-      """
+  bool darkTheme true
+  bool darkHeader true
+  bool themeByTime true
 
-      int repeatsIfError 1
-      bool saveAllTracks false
-      CoverQuality coverQuality MaximumCoverQuality
+  bool discordPresence
+
+  ym "Yandex.Music":
+    string token
+    string email
+    
+    bool saveAllTracks false
+
+registerSingletonInQml Config, ("DMusic", 1, 0), ("Config", 1, 0)
+
+proc language*(config: ConfigObj): Language = Language config.i_language
+proc `language=`*(config: ConfigObj, v: Language) = config.i_language = v.ord
+proc loop*(config: ConfigObj): LoopMode = LoopMode config.i_loop
+proc `loop=`*(config: ConfigObj, v: LoopMode) = config.i_loop = v.ord
+
+config.ym_token = "AgAAAAAwR49zAAG8XhIxS-ofH0kDr_W8ZMZLUkg"

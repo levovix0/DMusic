@@ -187,6 +187,12 @@ proc `appName=`*(this: type QApplication, v: string) =
   proc impl(v: QString) {.importcpp: "QApplication::setApplicationName(@)", header: "QApplication".}
   impl(v)
 
+proc `icon=`*(this: type QApplication, v: string) =
+  type QIcon {.importcpp: "QIcon", header: "QIcon".} = object
+  proc icon(v: QString): QIcon {.importcpp: "QIcon(@)", header: "QIcon".}
+  proc impl(v: QIcon) {.importcpp: "QApplication::setWindowIcon(@)", header: "QApplication".}
+  impl(icon v)
+
 proc `organizationName=`*(this: type QApplication, v: string) =
   proc impl(v: QString) {.importcpp: "QApplication::setOrganizationName(@)", header: "QApplication".}
   impl(v)
@@ -210,32 +216,40 @@ onMain()
 template onMainLoop*(body) =
   mainLoopCallbacks.add (proc() = body)
 
-proc clipboard*(this: type QApplication): ptr QClipboard {.importcpp: "QApplication::clipboard()", header: "QApplication".}
+proc clipboard*(this: type QApplication): ptr QClipboard
+  {.importcpp: "QApplication::clipboard()", header: "QApplication".}
 
 
 #----------- QTranslator -----------#
-proc newQTranslator*(): QTranslator {.importcpp: "QTranslator(@)", header: "QTranslator", constructor.}
+proc newQTranslator*: ptr QTranslator {.importcpp: "new QTranslator(@)", header: "QTranslator", constructor.}
 
-proc load*(this: QTranslator, file: string) =
-  proc impl(this: QTranslator, file: QString) {.importcpp: "#.load(@)", header: "QTranslator".}
+proc load*(this: ptr QTranslator, file: string) =
+  proc impl(this: ptr QTranslator, file: QString) {.importcpp: "#->load(@)", header: "QTranslator".}
   this.impl(file)
 
-proc install*(this: type QApplication, translator: QTranslator) =
-  proc impl(translator: ptr QTranslator) {.importcpp: "QApplication::installTranslator(@)", header: "QApplication".}
-  impl(translator.unsafeAddr)
+proc isEmpty*(this: ptr QTranslator): bool =
+  proc impl(this: ptr QTranslator): bool {.importcpp: "#->isEmpty(@)", header: "QTranslator".}
+  this.impl
 
-proc remove*(this: type QApplication, translator: QTranslator) =
+proc install*(this: type QApplication, translator: ptr QTranslator) =
+  proc impl(translator: ptr QTranslator) {.importcpp: "QApplication::installTranslator(@)", header: "QApplication".}
+  impl(translator)
+
+proc remove*(this: type QApplication, translator: ptr QTranslator) =
   proc impl(translator: ptr QTranslator) {.importcpp: "QApplication::removeTranslator(@)", header: "QApplication".}
-  impl(translator.unsafeAddr)
+  impl(translator)
 
 
 
 #----------- QQmlApplicationEngine -----------#
-proc newQQmlApplicationEngine*(): QQmlApplicationEngine
-  {.importcpp: "QQmlApplicationEngine(@)", header: "QQmlApplicationEngine", constructor.}
+proc newQQmlApplicationEngine*(): ptr QQmlApplicationEngine
+  {.importcpp: "new QQmlApplicationEngine(@)", header: "QQmlApplicationEngine", constructor.}
 
-proc load*(this: QQmlApplicationEngine, file: QUrl)
-  {.importcpp: "#.load(@)", header: "QQmlApplicationEngine".}
+proc load*(this: ptr QQmlApplicationEngine, file: QUrl)
+  {.importcpp: "#->load(@)", header: "QQmlApplicationEngine".}
+
+proc retranslate*(this: ptr QQmlApplicationEngine)
+  {.importcpp: "#->retranslate(@)", header: "QQmlApplicationEngine".}
 
 
 
@@ -354,15 +368,15 @@ proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], i
     ).mapit(&"{it[0]} {it[1]}").join(", ")
 
   proc declproc(name: string, rettype: NimNode, args: seq[NimNode]): string =
-    let rettype = if rettype.kind == nnkIdent: toQtTypename $rettype else: "void"
+    let rettype = if rettype.kind in {nnkIdent, nnkSym}: toQtTypename $rettype else: "void"
     &"public: {rettype} {name}(" & args.declaringArgs & ");"
 
   proc declslot(name: string, rettype: NimNode, args: seq[NimNode]): string =
-    let rettype = if rettype.kind == nnkIdent: toQtTypename $rettype else: "void"
+    let rettype = if rettype.kind in {nnkIdent, nnkSym}: toQtTypename $rettype else: "void"
     &"public Q_SLOTS: {rettype} {name}(" & args.declaringArgs & ");"
 
   proc declsignal(name: string, rettype: NimNode, args: seq[NimNode]): string =
-    let rettype = if rettype.kind == nnkIdent: toQtTypename $rettype else: "void"
+    let rettype = if rettype.kind in {nnkIdent, nnkSym}: toQtTypename $rettype else: "void"
     &"Q_SIGNALS: {rettype} {name}(" & args.declaringArgs & ");"
   
   proc newSignal(name: NimNode, rettype: NimNode, args: seq[NimNode], decl: var seq[string], impl: var NimNode, signalNames: var seq[string]) =
@@ -757,3 +771,10 @@ template registerSingletonInQml*(t: type, module: string, verMajor, verMinor: in
   var x = cnew t.Ct
   proc instance(a: ptr QQmlEngine, b: ptr QJSEngine): ptr t.Ct {.cdecl.} = x
   registerSingletonInQmlC[t.Ct](module, verMajor.cint, verMinor.cint, $t, instance, nil)
+
+template registerSingletonInQml*(t: type, modules: varargs[(string, int, int)]) =
+  bind registerSingletonInQmlC, cnew
+  var x = cnew t.Ct
+  proc instance(a: ptr QQmlEngine, b: ptr QJSEngine): ptr t.Ct {.cdecl.} = x
+  for module in modules:
+    registerSingletonInQmlC[t.Ct](module[0], module[1].cint, module[2].cint, $t, instance, nil)
