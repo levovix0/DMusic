@@ -48,7 +48,7 @@ proc dmusic: string =
 
   var tr = newQTranslator()
 
-  notifyILanguageChanged &= proc() =
+  notifyLanguageChanged &= proc() =
     if not tr.isEmpty: QApplication.remove tr
     case config.language
     of Language.ru: tr.load ":translations/russian"; QApplication.install tr
@@ -59,7 +59,7 @@ proc dmusic: string =
     when defined(windows): QApplication.icon = ":resources/app.svg"
     else: QApplication.icon = ":resources/app-papirus.svg"
 
-  notifyILanguageChanged()
+  notifyLanguageChanged()
   notifyCsdChanged()
 
   onMainLoop:

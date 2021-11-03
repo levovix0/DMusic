@@ -227,12 +227,12 @@ qobject AudioPlayer:
 
   property bool shuffle:
     get: config.shuffle
-    set: config.shuffle = value; this.shuffleChanged
+    set: config.shuffle = value
     notify
 
   property int loop:
     get: config.loop.ord
-    set: config.loop = value.LoopMode; this.loopChanged
+    set: config.loop = value.LoopMode
     notify
 
   property bool muted:
@@ -258,6 +258,8 @@ qobject AudioPlayer:
     
   proc `=new` =
     notifyStateChanged &= proc() = this.stateChanged
+    notifyShuffleChanged &= proc() = this.shuffleChanged
+    notifyLoopChanged &= proc() = this.loopChanged
 
 registerSingletonInQml AudioPlayer, "DMusic", 1, 0
 

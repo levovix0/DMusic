@@ -38,12 +38,6 @@ type
   LoopMode* {.pure.} = enum
     none, playlist, track
 
-# some magic
-discard
-{.emit: """/*TYPESECTION*/
-typedef NU8 Language;
-typedef NU8 LoopMode;
-""".}
 
 type Config = object
 
@@ -56,6 +50,10 @@ proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts, qobj
     copyLineInfo(name, aname)
 
     let notify = ident("notify" & ($name).capitalizeFirst & "Changed")
+
+    let qtyp = case $typ
+      of "string", "float", "int", "bool": typ
+      else: i"int"
 
     stmts.add quote do:
       var `notify`*: proc() = proc() = discard
@@ -102,12 +100,18 @@ proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts, qobj
     
     qobj.add: buildAst(command):
       i"property"
-      command typ, name
+      command qtyp, name
       stmtList:
         call i"get":
-          call name, i"config"
+          if qtyp == typ:
+            call name, i"config"
+          else:
+            call qtyp, call(name, i"config")
         call i"set":
-          asgn dotExpr(i"config", name), i"value"
+          if qtyp == typ:
+            asgn dotExpr(i"config", name), i"value"
+          else:
+            asgn dotExpr(i"config", name), call(typ, i"value")
         i"notify"
     
     ctor.add: buildAst:
@@ -158,7 +162,7 @@ macro genconfig(body) =
 
 
 genconfig:
-  int i_language
+  Language language
   string colorAccentDark "#FCE165"
   string colorAccentLight "#FFA800"
 
@@ -169,7 +173,7 @@ genconfig:
   
   float volume 0.5 v.round(2).max(0).min(1)
   bool shuffle
-  int i_loop
+  LoopMode loop
 
   bool darkTheme true
   bool darkHeader true
@@ -184,10 +188,3 @@ genconfig:
     bool saveAllTracks false
 
 registerSingletonInQml Config, ("DMusic", 1, 0), ("Config", 1, 0)
-
-proc language*(config: ConfigObj): Language = Language config.i_language
-proc `language=`*(config: ConfigObj, v: Language) = config.i_language = v.ord
-proc loop*(config: ConfigObj): LoopMode = LoopMode config.i_loop
-proc `loop=`*(config: ConfigObj, v: LoopMode) = config.i_loop = v.ord
-
-config.ym_token = "AgAAAAAwR49zAAG8XhIxS-ofH0kDr_W8ZMZLUkg"

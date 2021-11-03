@@ -1,9 +1,16 @@
-{.used.}
-import os, strformat, macros, strutils, sequtils, tables
+import os, strformat, macros, strutils, sequtils, tables, unicode
 import fusion/matching, fusion/astdsl
-import utils
 
 {.experimental: "caseStmtMacros".}
+
+proc quoted(s: string): string =
+  result.addQuoted s
+
+proc capitalizeFirst(s: string): string =
+  if s.len == 0: return
+  $s.runeAt(0).toUpper & s[1..^1]
+
+
 
 func qso(module: string): string =
   when defined(windows): &"Qt5{module}.dll"
@@ -32,8 +39,8 @@ qmo"QuickControls2"
 qmo"Svg"
 
 
-{.emit: """#include <QTimer>""".}
 
+{.emit: """#include <QTimer>""".}
 
 type
   QString* {.importcpp, header: "QString".} = object
