@@ -98,7 +98,12 @@ type HomePlaylistsModel = object
   process: seq[Future[void]]
 
 proc getHomePlaylists: Future[seq[Playlist]] {.async.} =
-  result = personalPlaylists().await.mapit(it.playlist)
+  var x = personalPlaylists().await
+  
+  let daily = x.mapit(it.kind).find("playlistOfTheDay")
+  if daily != -1: x.move daily, 0
+
+  result = x.mapit(it.playlist)
   result.insert Playlist(
     id: 3,
     title: tr"Favorites"

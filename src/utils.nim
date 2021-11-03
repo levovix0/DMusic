@@ -1,4 +1,4 @@
-import unicode, times
+import unicode, times, sequtils
 
 proc quoted*(s: string): string =
   result.addQuoted s
@@ -24,3 +24,8 @@ proc `&`*(x: proc(), f: proc()): proc() =
 
 proc `&=`*(x: var proc(), f: proc()) =
   x = x & f
+
+proc move*[T](x: var seq[T], i, to: int) =
+  let a = x[i]
+  x.delete i
+  x.insert a, to

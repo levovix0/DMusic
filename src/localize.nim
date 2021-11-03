@@ -42,7 +42,7 @@ macro updateTranslations* =
     else:
       files[lang] = %*{:}
 
-  for lang, f in files.mpairs:
+  for lang, f in files:
     var r = %*{:}
 
     for i, x in toTranslate:

@@ -37,72 +37,30 @@ qmo"Svg"
 
 type
   QString* {.importcpp, header: "QString".} = object
-  
   QUrl* {.importcpp, header: "QUrl".} = object
-
   QList*[T] {.importcpp, header: "QList".} = object
-
   QVariant* {.importcpp, header: "QVariant".} = object
-
   QModelIndex* {.importcpp, header: "QModelIndex".} = object
-  
   QHash*[K, V] {.importcpp, header: "QHash".} = object
-
   QByteArray* {.importcpp, header: "QByteArray".} = object
+  QByteArrayData* {.importcpp: "QByteArrayData", header: "QArrayData".} = object
 
   QObject* {.importcpp, header: "QObject", inheritable.} = object
 
-  QByteArrayData* {.importcpp: "QByteArrayData", header: "QArrayData".} = object
-
-  QBindingStorage* {.importcpp, header: "QObject".} = object
-  
-  QMetaObject* {.importcpp, header: "QObject".} = object
-    d: QMetaObjectData
-
-  QMetaObjectSuperData* {.importcpp: "QMetaObject::SuperData", header: "QObject".} = object
-    direct*: ptr QMetaObject
-    indirect*: proc(): ptr QMetaObject {.cdecl.}
-
-  QMetaObjectData* {.importcpp: "QMetaObject::Data", header: "QObject".} = object
-    superdata*: QMetaObjectSuperData
-    stringdata*: ptr QByteArrayData
-    data*: ptr cuint
-    extradata: pointer
-
-  QMetaObjectCall* {.importcpp: "QMetaObject::Call", header: "QObject", pure.} = enum
-    invokeMetaMethod
-    readProperty
-    writeProperty
-    resetProperty
-    queryPropertyDesignable
-    queryPropertyScriptable
-    queryPropertyStored
-    queryPropertyEditable
-    queryPropertyUser
-    createInstance
-    indexOfMethod
-    registerPropertyMetaType
-    registerMethodArgumentMetaType
-
-  QMetaType* {.size: uint32.sizeof, pure.} = enum
-    bool = 1, int = 2, uint32 = 3
-    longlong = 4, ulonglong = 5
-    double = 6
-    long = 32
-    short = 33, char = 34
-    ulong = 35, ushort = 36, uchar = 37
-    float = 38, schar = 40, nullptr = 41
-    void = 43
-
   QAbstractListModel* {.importcpp: "QAbstractListModel", header: "QAbstractListModel".} = object of QObject
-
   QQuickItem* {.importcpp, header: "QQuickItem".} = object of QObject
 
   QApplication* {.importcpp, header: "QApplication".} = object
+  QQmlApplicationEngine* {.importcpp, header: "QQmlApplicationEngine".} = object
   
   QTranslator* {.importcpp, header: "QTranslator".} = object
-  
-  QQmlApplicationEngine* {.importcpp, header: "QQmlApplicationEngine".} = object
+  QClipboard* {.importcpp, header: "QClipboard".} = object
+
+  QFileDialog* {.importcpp, byref, header: "QFileDialog".} = object
+  DialogAcceptMode* = enum
+    damOpen, damSave
+  DialogFileMode* = enum
+    dfmAnyFile, dfmExistingFile, dfmDirectory, dfmExistingFiles
 
 
 
@@ -126,6 +84,10 @@ converter toQUrl*(this: string): QUrl = this.toQString.toQUrl
 
 proc path*(this: QUrl): string =
   proc impl(this: QUrl): QString {.importcpp: "#.path()", header: "QUrl".}
+  impl(this)
+
+converter `$`*(this: QUrl): string =
+  proc impl(this: QUrl): QString {.importcpp: "#.toString()", header: "QUrl".}
   impl(this)
 
 
@@ -187,7 +149,6 @@ proc column*(this: QModelIndex): int =
 #----------- QObject -----------#
 proc parent*(this: QObject): ptr QObject {.importcpp: "#.parent()".}
 
-proc bindingStorage*(this: QObject): ptr QBindingStorage {.importcpp: "#.bindingStorage()".}
 proc isWidget*(this: QObject): bool {.importcpp: "#.isWidgetType()".}
 proc isWindow*(this: QObject): bool {.importcpp: "#.isWindowType()".}
 proc signalsBlocked*(this: QObject): bool {.importcpp: "#.signalsBlocked()".}
@@ -249,6 +210,8 @@ onMain()
 template onMainLoop*(body) =
   mainLoopCallbacks.add (proc() = body)
 
+proc clipboard*(this: type QApplication): ptr QClipboard {.importcpp: "QApplication::clipboard()", header: "QApplication".}
+
 
 #----------- QTranslator -----------#
 proc newQTranslator*(): QTranslator {.importcpp: "QTranslator(@)", header: "QTranslator", constructor.}
@@ -273,6 +236,35 @@ proc newQQmlApplicationEngine*(): QQmlApplicationEngine
 
 proc load*(this: QQmlApplicationEngine, file: QUrl)
   {.importcpp: "#.load(@)", header: "QQmlApplicationEngine".}
+
+
+
+#----------- QClipboard -----------#
+proc `text=`*(this: ptr QClipboard, text: string) =
+  proc impl(this: ptr QClipboard, text: QString) {.importcpp: "#->setText(@)", header: "QClipboard".}
+  impl(this, text)
+
+
+
+#----------- QFileDialog -----------#
+proc newQFileDialog*: QFileDialog {.importcpp: "QFileDialog", header: "QFileDialog", constructor.}
+proc exec*(this: QFileDialog): bool {.importcpp: "#.exec(@)", header: "QFileDialog".}
+
+proc selectedUrls*(this: QFileDialog): seq[string] =
+  proc impl(this: QFileDialog): QList[QUrl] {.importcpp: "#.selectedUrls()", header: "QFileDialog".}
+  for x in this.impl.toSeq:
+    result.add $x
+
+proc `filter=`*(this: QFileDialog, v: string) =
+  proc impl(this: QFileDialog, v: QString) {.importcpp: "#.setNameFilter(@)", header: "QFileDialog".}
+  impl(this, v)
+
+proc `title=`*(this: QFileDialog, v: string) =
+  proc impl(this: QFileDialog, v: QString) {.importcpp: "#.setWindowTitle(@)", header: "QFileDialog".}
+  impl(this, v)
+
+proc `acceptMode=`*(this: QFileDialog, v: DialogAcceptMode) {.importcpp: "#.setAcceptMode(@)", header: "QFileDialog".}
+proc `fileMode=`*(this: QFileDialog, v: DialogFileMode) {.importcpp: "#.setFileMode(@)", header: "QFileDialog".}
 
 
 
@@ -516,10 +508,6 @@ macro qobject*(t, body) =
   var decl: seq[string]
   var impl = newStmtList()
   var signalNames: seq[string]
-  var constructor = buildAst:
-    pragma: exprColonExpr i"emit":
-      newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
-      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
 
   let ct = gensym nskType
   impl.add: buildAst typeSection:
@@ -531,6 +519,25 @@ macro qobject*(t, body) =
         ofInherit(parent)
         recList:
           identDefs(i"self", t, empty())
+
+  var constructor = buildAst procDef:
+      nskProc.gensym "constructor"
+      empty()
+      empty()
+      formalParams:
+        empty()
+      pragma:
+        i"exportc"
+        exprColonExpr:
+          i"codegenDecl"
+          newLit &"{t}::{t}(QObject* parent)"
+      empty()
+      stmtList:
+        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
+        pragma: exprColonExpr i"emit": bracket(i"this", l" = this;")
+        quote do:
+          template self(): var `t` {.used.} = this[].self
+        call s"wasMoved", i"self"
 
   for x in body:
     qobjectCasesImpl t, body, ct, x, decl, impl, constructor, signalNames
@@ -575,10 +582,6 @@ macro qmodel*(t, body) =
   var dataImpl: Table[string, NimNode]
   var rowsImpl: NimNode
   var signalNames: seq[string]
-  var constructor = buildAst:
-    pragma: exprColonExpr i"emit":
-      newLit &"/*VARSECTION*/ {t}::{t}(QObject* parent): {parent}(parent) " &
-      "{\n  nimZeroMem((void*)(&self), sizeof(decltype(self)));\n}"
 
   let ct = gensym nskType
   impl.add: buildAst typeSection:
@@ -590,6 +593,25 @@ macro qmodel*(t, body) =
         ofInherit(parent)
         recList:
           identDefs(i"self", t, empty())
+
+  var constructor = buildAst procDef:
+      nskProc.gensym "constructor"
+      empty()
+      empty()
+      formalParams:
+        empty()
+      pragma:
+        i"exportc"
+        exprColonExpr:
+          i"codegenDecl"
+          newLit &"{t}::{t}(QObject* parent)"
+      empty()
+      stmtList:
+        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
+        pragma: exprColonExpr i"emit": bracket(i"this", l" = this;")
+        quote do:
+          template self(): var `t` {.used.} = this[].self
+        call s"wasMoved", i"self"
 
   for x in body:
     case x

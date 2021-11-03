@@ -4,15 +4,10 @@
 #include <QIcon>
 #include <QTimer>
 #include "Config.hpp"
-#include "Clipboard.hpp"
-#include "DFileDialog.hpp"
 #include "Translator.hpp"
 
 
 void initializeDMusicQmlModule() {
-  qmlRegisterType<Clipboard>("DMusic", 1, 0, "Clipboard");
-  qmlRegisterType<DFileDialog>("DMusic", 1, 0, "DFileDialog");
-
 	qmlRegisterSingletonType<Config>("DMusic", 1, 0, "Config", &Config::qmlInstance);
 	qmlRegisterSingletonType<Config>("Config", 1, 0, "Config", &Config::qmlInstance);
 	qmlRegisterSingletonType<Translator>("DMusic", 1, 0, "Translator", &Config::qmlInstance);

@@ -7,6 +7,11 @@
       "": "qrc:/resources/covers/favorite-ru.svg"
     }
   },
+  "qmlUtils.nim": {
+    "Open file": {
+      "": "Открыть файл"
+    }
+  },
   "dmusic.nim": {
     "Exception during async operation": {
       "": "Исключение во время асинхронной операции"

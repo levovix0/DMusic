@@ -34,11 +34,7 @@ Item {
         cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
         hoverEnabled: true
 
-        Clipboard {
-          id: _clipboard
-        }
-
-        onClicked: _clipboard.copy(root.trackId);
+        onClicked: Clipboard.text = root.trackId;
 
         onEntered: _full_titleAndComment.show()
         onExited: _full_titleAndComment.hide()

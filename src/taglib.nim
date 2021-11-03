@@ -1,4 +1,3 @@
-{.used.}
 import times, os, filetype
 import impl
 

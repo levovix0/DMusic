@@ -54,35 +54,6 @@
     </message>
 </context>
 <context>
-    <name>DFileDialog</name>
-    <message>
-        <source>Sellect</source>
-        <translation type="vanished">Выбрать</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation type="vanished">Отменить</translation>
-    </message>
-    <message>
-        <location filename="../src/DFileDialog.hpp" line="12"/>
-        <location filename="../src/DFileDialog.hpp" line="13"/>
-        <source>Open file</source>
-        <translation>Открыть файл</translation>
-    </message>
-    <message>
-        <source>Open</source>
-        <translation type="vanished">Открыть</translation>
-    </message>
-    <message>
-        <source>File</source>
-        <translation type="vanished">Файл</translation>
-    </message>
-    <message>
-        <source>Sellect file</source>
-        <translation type="vanished">Выбрать файл</translation>
-    </message>
-</context>
-<context>
     <name>DebugPanel</name>
     <message>
         <location filename="../qml/DebugPanel.qml" line="22"/>

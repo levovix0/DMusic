@@ -1,6 +1,6 @@
 import std/exitprocs
 import cppbridge, qt, messages, async, localize
-import yandexMusicQmlModule, audio, taglib
+import yandexMusicQmlModule, audio, qmlUtils
 
 sourcesFromDir "src"
 resourcesFromDir "."

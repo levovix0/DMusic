@@ -20,7 +20,7 @@ DropArea {
   onDropped: {
     if (!drop.hasUrls) return
     var a = drop.urls[0]
-    if (!_dialog.checkFilter(a, dropFilter)) return
+    if (!FileDialogs.checkFilter(a, dropFilter)) return
 
     hasContent = true
     content = a
@@ -34,7 +34,7 @@ DropArea {
     hoverEnabled: true
     cursorShape: Qt.PointingHandCursor
     onClicked: {
-      content = _dialog.openFile(root.filter)
+      content = FileDialogs.openFile(root.filter)
       hasContent = content != ""
     }
   }
@@ -56,9 +56,5 @@ DropArea {
     strokeWidth: Style.dropPlace.border.weight
     strokeStyle: 2
     dashPattern: [3, 3 + (((width + height) * 2 - radius) % 3)]
-  }
-
-  DFileDialog {
-    id: _dialog
   }
 }
