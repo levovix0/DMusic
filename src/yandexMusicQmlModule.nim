@@ -1,6 +1,6 @@
 {.used.}
 import sequtils, strutils, async, base64, strformat, os, sugar, tables
-import qt, yandexMusic, configuration, cacheTable, utils, localize
+import qt, yandexMusic, configuration, utils, localize
 
 var coverCache: CacheTable[(string, int), string]
 onMainLoop: coverCache.garbageCollect
