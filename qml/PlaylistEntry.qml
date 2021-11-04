@@ -8,22 +8,23 @@ Item {
   width: 115
   height: root.width + _name.height + 10
 
-  property bool playing: false
+  property bool playing: PlayingTrackInfo.playlistId == playlistId && PlayingTrackInfo.playlistOwner == ownerId && playlistId != 0 && ownerId != 0
 
   property real _anim_n: 0
   property real _anim2_n: 0
   property string title
   property url cover
+  property int playlistId
+  property int ownerId
 
   signal play()
-  signal pause()
   signal showOrHide()
   signal showFull()
 
   states: [
     State {
       name: "hover"
-      when: _imageMouse.containsMouse && !_playMouse.containsMouse
+      when: (_imageMouse.containsMouse || playing) && !_playMouse.containsMouse
       PropertyChanges {
         target: root
         _anim_n: 1
@@ -106,7 +107,9 @@ Item {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
 
-        onPressed: playing? pause() : play()
+        onPressed: if (playing) {
+          AudioPlayer.playing? AudioPlayer.pause() : AudioPlayer.play()
+        } else play()
       }
     }
   }
@@ -116,7 +119,7 @@ Item {
     anchors.centerIn: _roundCover
     opacity: _anim_n
 
-    src: playing? "qrc:/resources/player/pause.svg" : "qrc:/resources/player/play.svg"
+    src: (playing && AudioPlayer.playing)? "qrc:/resources/player/pause.svg" : "qrc:/resources/player/play.svg"
     color: "#FFFFFF"
     image.sourceSize: Qt.size(25, 30)
     scale: 0.7

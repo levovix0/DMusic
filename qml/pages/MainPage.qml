@@ -24,8 +24,10 @@ DPage {
       PlaylistEntry {
         title: objTitle
         cover: objCover
+        playlistId: objId
+        ownerId: objOwner
 
-        // onPlay: YClient.playYPlaylist(playlist)
+        onPlay: AudioPlayer.playYmPlaylist(objId, objOwner)
         onShowFull: switcher("qrc:/qml/pages/PlaylistPage.qml")
       }
     }

@@ -120,6 +120,7 @@ qmodel HomePlaylistsModel:
   elem objId:      self.result[i].id
   elem objTitle:   self.result[i].title
   elem objCover:   self.covers[i]
+  elem objOwner:   self.result[i].ownerId
 
   proc load =
     cancel self.process

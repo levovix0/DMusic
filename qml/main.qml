@@ -144,7 +144,7 @@ Window {
       color: Style.window.border.color
     }
 
-    Keys.onSpacePressed: AudioPlayer.pause_or_play()
+    Keys.onSpacePressed: AudioPlayer.playing? AudioPlayer.pause() : AudioPlayer.play()
     Keys.onRightPressed: AudioPlayer.next()
     Keys.onLeftPressed: AudioPlayer.prev()
     Keys.onPressed: {

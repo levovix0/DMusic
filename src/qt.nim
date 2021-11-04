@@ -26,7 +26,7 @@ macro qmo(module: static[string]) =
     {.passc: `c`.}
     {.passl: `l`.}
 
-{.passc: &"-I{qtpath} -std=c++17 -fPIC".}
+{.passc: &"-I{qtpath} -fPIC".}
 {.passl: "-lpthread".}
 qmo"Core"
 qmo"Gui"

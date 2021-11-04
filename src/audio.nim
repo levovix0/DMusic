@@ -1,24 +1,115 @@
 {.used.}
-import sequtils, strutils, options, times, math
+import sequtils, strutils, options, times, math, random, algorithm
 import qt, configuration, yandexMusic, utils, yandexMusicQmlModule, async, messages
 
+randomize()
 
 type
   TrackKind = enum
     tkNone
     tkYandex
     
-  TrackInfo = object
+  TrackInfo = ref object
     case kind: TrackKind
     of tkYandex:
       yandex: yandexMusic.Track
     else: discard
+  
+  TrackSequence = object
+    tracks: seq[TrackInfo]
+    yandexId: (int, int)
+    history: seq[int]
+    current: int
+    shuffle, loop: bool
 
-var currentTrack: TrackInfo
+var currentTrack = TrackInfo()
+var currentSequence: TrackSequence
 
 var notifyTrackChanged: proc() = proc() = discard
 var notifyPositionChanged: proc() = proc() = discard
 var notifyStateChanged: proc() = proc() = discard
+var notifyTrackEnded: proc() = proc() = discard
+
+converter toTrackInfo(x: yandexMusic.Track): TrackInfo =
+  TrackInfo(kind: tkYandex, yandex: x)
+
+proc curr(x: var TrackSequence): TrackInfo =
+  try:
+    if x.shuffle: x.tracks[x.history[x.current]]
+    else: x.tracks[x.current]
+  except: TrackInfo(kind: tkNone)
+
+proc next(x: var TrackSequence): TrackInfo =
+  if x.shuffle:
+    if x.current > x.history.high: return TrackInfo(kind: tkNone)
+    x.history.delete 0
+    x.history.add:
+      toSeq(0..x.tracks.high)
+      .filterit(it notin x.history[^(x.tracks.len div 2)..^1])
+      .sample
+    x.tracks[x.history[x.current]]
+  else:
+    inc x.current
+    if x.current > x.tracks.high:
+      if x.loop: x.current = 0
+    if x.current notin 0..x.tracks.high: TrackInfo(kind: tkNone)
+    else: x.tracks[x.current]
+
+proc prev(x: var TrackSequence): TrackInfo =
+  if x.shuffle:
+    if x.current > x.history.high: return TrackInfo(kind: tkNone)
+    x.history.del x.history.high
+    x.history.insert:
+      toSeq(0..x.tracks.high)
+      .filterit(it notin x.history[0..<(x.tracks.len div 2)])
+      .sample
+    x.tracks[x.history[x.current]]
+  else:
+    dec x.current
+    if x.current < 0:
+      if x.loop: x.current = x.tracks.high
+    if x.current notin 0..x.tracks.high: TrackInfo(kind: tkNone)
+    else: x.tracks[x.current]
+
+proc shuffle(x: var TrackSequence, current = -1) =
+  if x.shuffle == true: return
+  x.shuffle = true
+  
+  var
+    h1 = toSeq(0..x.tracks.high)
+    h2 = toSeq(0..x.tracks.high)
+    current =
+      if current in 0..x.tracks.high: current
+      else: rand(x.tracks.high)
+  
+  shuffle h1
+  if current in h1[^(x.tracks.len div 2)..^1]: reverse h1
+  shuffle h2
+  if current in h2[0..<(x.tracks.len div 2)]: reverse h1
+  
+  x.history = h1 & @[current] & h2
+  x.current = x.tracks.len
+
+proc unshuffle(x: var TrackSequence, current = 0) =
+  if x.shuffle == false: return
+  x.shuffle = false
+  
+  x.history = @[]
+  x.current = current
+
+notifyShuffleChanged &= proc() =
+  if config.shuffle:
+    shuffle(currentSequence, currentSequence.current)
+  else:
+    try: unshuffle(currentSequence, currentSequence.history[currentSequence.current])
+    except: discard
+
+notifyLoopChanged &= proc() =
+  currentSequence.loop = config.loop == LoopMode.playlist
+
+notifyTrackChanged &= proc() =
+  if currentTrack.kind == tkNone:
+    currentSequence = TrackSequence()
 
 
 
@@ -59,18 +150,34 @@ proc notifyPositionChangedC {.exportc.} =
 proc notifyStateChangedC {.exportc.} =
   notifyStateChanged()
 
+proc notifyTrackEndedC {.exportc.} =
+  notifyTrackEnded()
+
 proc onMain =
   {.emit: """
   QObject::connect(`player`, &QMediaPlayer::positionChanged, []() { `notifyPositionChangedC`(); });
   QObject::connect(`player`, &QMediaPlayer::stateChanged, []() { `notifyStateChangedC`(); });
+  QObject::connect(`player`, &QMediaPlayer::mediaStatusChanged, [](QMediaPlayer::MediaStatus status) {
+    if (status == QMediaPlayer::EndOfMedia) `notifyTrackEndedC`();
+  });
   """.}
 onMain()
 
-proc play*(track: yandexMusic.Track) {.async.} =
-  currentTrack = TrackInfo(kind: tkYandex, yandex: track)
+proc play*(track: TrackInfo) {.async.} =
+  currentTrack = track
   notifyTrackChanged()
-  player.media = track.audioUrl.await
-  player.play
+  case currentTrack.kind
+  of tkYandex:
+    player.media = track.yandex.audioUrl.await
+    player.play
+  else: player.stop
+
+proc play*(tracks: seq[TrackInfo], yandexId = (0, 0)) {.async.} =
+  currentSequence = TrackSequence(tracks: tracks, yandexId: yandexId)
+  if config.shuffle: shuffle currentSequence
+  currentSequence.loop = config.loop == LoopMode.playlist
+  await play currentSequence.curr
+
 
 proc pause* =
   player.pause
@@ -179,6 +286,14 @@ qobject PlayingTrackInfo:
       of tkYandex: currentTrack.yandex.id
       else: 0
     notify infoChanged
+  
+  property int playlistId:
+    get: currentSequence.yandexId[0]
+    notify infoChanged
+  
+  property int playlistOwner:
+    get: currentSequence.yandexId[1]
+    notify infoChanged
 
   proc `=new` =
     self.cover = emptyCover
@@ -217,13 +332,36 @@ qobject AudioPlayer:
   proc stop = stop()
   proc pause = pause()
 
-  proc next = discard
-  proc prev = discard
+  proc next =
+    cancel self.process
+    self.process = doAsync:
+      if config.loop == LoopMode.track:
+        await play currentTrack
+      else:
+        await play currentSequence.next
+  
+  proc prev =
+    if player.position > 10_000:
+      player.position = 0
+    
+    else:
+      cancel self.process
+      self.process = doAsync:
+        if config.loop == LoopMode.track:
+          await play currentTrack
+        else:
+          await play currentSequence.prev
   
   proc playYmTrack(id: int) =
     cancel self.process
     self.process = doAsync:
-      id.fetch.await[0].play.await
+      await play @[id.fetch.await[0].toTrackInfo]
+  
+  proc playYmPlaylist(id: int, owner: int) =
+    cancel self.process
+    self.process = doAsync:
+      #TODO: user tracks if id==3
+      await play(Playlist(id: id, ownerId: owner).tracks.await.map(toTrackInfo), (id, owner))
 
   property bool shuffle:
     get: config.shuffle
@@ -260,6 +398,13 @@ qobject AudioPlayer:
     notifyStateChanged &= proc() = this.stateChanged
     notifyShuffleChanged &= proc() = this.shuffleChanged
     notifyLoopChanged &= proc() = this.loopChanged
+    notifyTrackEnded &= proc() =
+      cancel self.process
+      self.process = doAsync:
+        if config.loop == LoopMode.track:
+          await play currentTrack
+        else:
+          await play currentSequence.next
 
 registerSingletonInQml AudioPlayer, "DMusic", 1, 0
 

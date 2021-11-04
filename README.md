@@ -11,7 +11,6 @@
   &nbsp;&nbsp;
   <img alt="Nim" src="https://img.shields.io/badge/Nim-Nim.svg?style=flat-square&logo=nim&logoColor=white&color=cb9e50">
   <img alt="QML" src="https://img.shields.io/badge/QML-QML.svg?style=flat-square&logo=qt&logoColor=white&color=3db069">
-  <img alt="С++" src="https://img.shields.io/badge/С++-С++.svg?style=flat-square&color=f34b7d">
   &nbsp;&nbsp;
   <img alt="Code size" src="https://img.shields.io/github/languages/code-size/levovix0/DMusic?style=flat-square">
   <img alt="Total lines" src="https://img.shields.io/tokei/lines/github/levovix0/DMusic?color=purple&style=flat-square">
@@ -25,6 +24,5 @@ nimble install https://github.com/levovix0/DMusic  # (linux-only)
 
 ## Dependencies
 * Nim 1.4.4
-* C++ 17
 * Qt 5.15 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2)
 * TagLib
