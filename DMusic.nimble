@@ -11,6 +11,7 @@ requires "fusion"
 requires "cligen"
 requires "https://github.com/levovix0/impl"
 requires "discord_rpc"
+requires "dbus"
 requires "filetype"
 
 when defined(nimdistros):

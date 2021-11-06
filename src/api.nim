@@ -1,5 +1,5 @@
 import asyncdispatch, strutils, sequtils, os, strformat, base64, times
-import yandexMusicQmlModule, taglib, configuration
+import yandexMusicQmlModule, taglib, configuration, utils
 import yandexMusic except Track
 
 type
@@ -98,9 +98,11 @@ proc cover*(this: Track): Future[string] {.async.} =
   of TrackKind.yandex:
     yandexMusicQmlModule.cover(this.yandex).await
   of TrackKind.yandexFromFile:
-    "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
+    if this.yandexFromFile.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
   of TrackKind.user:
-    "data:image/png;base64," & this.user.metadata.cover.encode
+    if this.user.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.user.metadata.cover.encode
   else: ""
 
 proc title*(this: Track): string =
