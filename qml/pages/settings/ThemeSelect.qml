@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtGraphicalEffects 1.15
+import Qt5Compat.GraphicalEffects
 import DMusic 1.0
 
 Rectangle {
@@ -21,7 +21,7 @@ Rectangle {
     anchors.fill: _bg
 
     radius: 8.0
-    samples: 17
+    // samples: 17
     opacity: 0.5
     color: "#000000"
     source: Rectangle {

@@ -103,6 +103,7 @@ notifyTrackChanged &= proc() =
 
 type
   QMediaPlayer {.importcpp: "QMediaPlayer", header: "QMediaPlayer".} = object
+  QAudioOutput {.importcpp: "QAudioOutput", header: "QAudioOutput".} = object
 
   PlayerState = enum
     psStopped
@@ -110,27 +111,28 @@ type
     psPaused
 
 proc newQMediaPlayer: ptr QMediaPlayer {.importcpp: "new QMediaPlayer()", header: "QMediaPlayer".}
-proc `notifyInterval=`(this: ptr QMediaPlayer, interval: int) {.importcpp: "#->setNotifyInterval(@)", header: "QMediaPlayer".}
-proc `volume=`(this: ptr QMediaPlayer, volume: int) {.importcpp: "#->setVolume(@)", header: "QMediaPlayer".}
 proc position(this: ptr QMediaPlayer): int {.importcpp: "#->position(@)", header: "QMediaPlayer".}
 proc `position=`(this: ptr QMediaPlayer, v: int) {.importcpp: "#->setPosition(@)", header: "QMediaPlayer".}
-proc `media=`(this: ptr QMediaPlayer, media: QUrl) {.importcpp: "#->setMedia({#})", header: "QMediaPlayer".}
+proc `source=`(this: ptr QMediaPlayer, v: QUrl) {.importcpp: "#->setSource(@)", header: "QMediaPlayer".}
 proc play(this: ptr QMediaPlayer) {.importcpp: "#->play()", header: "QMediaPlayer".}
 proc stop(this: ptr QMediaPlayer) {.importcpp: "#->stop()", header: "QMediaPlayer".}
 proc pause(this: ptr QMediaPlayer) {.importcpp: "#->pause()", header: "QMediaPlayer".}
-proc muted(this: ptr QMediaPlayer): bool {.importcpp: "#->isMuted()", header: "QMediaPlayer".}
-proc `muted=`(this: ptr QMediaPlayer, muted: bool) {.importcpp: "#->setMuted(@)", header: "QMediaPlayer".}
-proc state(this: ptr QMediaPlayer): PlayerState {.importcpp: "#->state()", header: "QMediaPlayer".}
+proc state(this: ptr QMediaPlayer): PlayerState {.importcpp: "#->playbackState()", header: "QMediaPlayer".}
+proc `audioOutput=`(this: ptr QMediaPlayer, v: ptr QAudioOutput) {.importcpp: "#->setAudioOutput(@)", header: "QMediaPlayer".}
+
+proc newQAudioOutput: ptr QAudioOutput {.importcpp: "new QAudioOutput()", header: "QAudioOutput".}
+proc `volume=`(this: ptr QAudioOutput, volume: float) {.importcpp: "#->setVolume(@)", header: "QAudioOutput".}
+proc muted(this: ptr QAudioOutput): bool {.importcpp: "#->isMuted()", header: "QAudioOutput".}
+proc `muted=`(this: ptr QAudioOutput, muted: bool) {.importcpp: "#->setMuted(@)", header: "QAudioOutput".}
 
 var player = newQMediaPlayer()
-player.notifyInterval = 50
+var audioOutput = newQAudioOutput()
+player.audioOutput = audioOutput
 
-proc calcVolume(): int =
-  let volume = config.volume
-  if volume > 0: int(pow(config.volume, 2) * 100).max(1)
-  else: 0
+proc calcVolume(): float =
+  pow(config.volume, 2)
 
-player.volume = calcVolume()
+audioOutput.volume = calcVolume()
 
 proc notifyPositionChangedC {.exportc.} =
   notifyPositionChanged()
@@ -144,7 +146,7 @@ proc notifyTrackEndedC {.exportc.} =
 proc onMain =
   {.emit: """
   QObject::connect(`player`, &QMediaPlayer::positionChanged, []() { `notifyPositionChangedC`(); });
-  QObject::connect(`player`, &QMediaPlayer::stateChanged, []() { `notifyStateChangedC`(); });
+  QObject::connect(`player`, &QMediaPlayer::playbackStateChanged, []() { `notifyStateChangedC`(); });
   QObject::connect(`player`, &QMediaPlayer::mediaStatusChanged, [](QMediaPlayer::MediaStatus status) {
     if (status == QMediaPlayer::EndOfMedia) `notifyTrackEndedC`();
   });
@@ -155,7 +157,7 @@ proc play*(track: Track) {.async.} =
   currentTrack = track
   await fetch currentTrack
   notifyTrackChanged()
-  player.media = track.audio.await
+  player.source = track.audio.await
   player.play
 
 proc play*(tracks: seq[Track], yandexId = (0, 0)) {.async.} =
@@ -342,15 +344,15 @@ qobject AudioPlayer:
     notify
 
   property bool muted:
-    get: player.muted
-    set: player.muted = value; this.mutedChanged
+    get: audioOutput.muted
+    set: audioOutput.muted = value; this.mutedChanged
     notify
   
   property float volume:
     get: config.volume
     set:
       config.volume = value
-      player.volume = calcVolume()
+      audioOutput.volume = calcVolume()
       this.volumeChanged
     notify
 

@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import QtGraphicalEffects 1.15
+import Qt5Compat.GraphicalEffects
 import DMusic 1.0
 import "components"
 
@@ -78,7 +78,7 @@ Item {
   DropShadow {
     anchors.fill: _roundCover
     radius: 8.0
-    samples: 16
+    // samples: 16
     color: "#40000000"
     source: _roundCover
   }
@@ -129,7 +129,7 @@ Item {
     anchors.fill: root
     visible: _play.visible
     radius: 5.0
-    samples: 25
+    // samples: 25
     color: "#60000000"
     source: _play
   }

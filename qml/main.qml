@@ -1,7 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
-import QtQuick.Dialogs 1.2
-import QtGraphicalEffects 1.0
+import Qt5Compat.GraphicalEffects
 import DMusic 1.0
 import "pages"
 
@@ -50,7 +49,7 @@ Window {
     enabled: Config.csd && !maximized
     opacity: 0.6
     radius: shadowRadius
-    samples: 20
+    // samples: 20
     color: "#000000"
     source: Rectangle {
       width: _root.width

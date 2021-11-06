@@ -13,11 +13,11 @@ proc capitalizeFirst(s: string): string =
 
 
 func qso(module: string): string =
-  when defined(windows): &"Qt5{module}.dll"
-  elif defined(MacOsX): &"libQt5{module}.dylib"
-  else: &"/usr/lib/libQt5{module}.so"
+  when defined(windows): &"Qt6{module}.dll"
+  elif defined(MacOsX): &"libQt6{module}.dylib"
+  else: &"/usr/lib/libQt6{module}.so"
 
-const qtpath {.strdefine.} = "/usr/include/qt"
+const qtpath {.strdefine.} = "/usr/include/qt6"
 
 macro qmo(module: static[string]) =
   let c = &"-I{qtpath}" / &"Qt{module}"
@@ -26,7 +26,7 @@ macro qmo(module: static[string]) =
     {.passc: `c`.}
     {.passl: `l`.}
 
-{.passc: &"-I{qtpath} -fPIC".}
+{.passc: &"-I{qtpath} -std=c++17 -fPIC".}
 {.passl: "-lpthread".}
 qmo"Core"
 qmo"Gui"
@@ -292,11 +292,17 @@ proc `fileMode=`*(this: QFileDialog, v: DialogFileMode) {.importcpp: "#.setFileM
 #----------- tools -----------#
 proc moc*(code: string): string {.compileTime.} =
   ## qt moc (meta-compiler) tool wrapper
-  "moc --no-warnings".staticExec(code)
+  when defined(linux):
+    "/usr/lib/qt6/moc --no-warnings".staticExec(code)
+  else:
+    "" #TODO
 
 proc rcc*(file: string): string {.compileTime.} =
   ## qt rcc (resource-compiler) tool wrapper
-  staticExec &"rcc {file.quoted}"
+  when defined(linux):
+    staticExec &"/usr/lib/qt6/rcc {file.quoted}"
+  else:
+    "" #TODO
 
 
 
