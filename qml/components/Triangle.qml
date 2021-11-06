@@ -9,6 +9,7 @@ Item {
     id: _icon
     anchors.horizontalCenter: root.horizontalCenter
     anchors.top: root.top
+    anchors.topMargin: -1
 
     src: "qrc:/resources/tri.svg"
   }
