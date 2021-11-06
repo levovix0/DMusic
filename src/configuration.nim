@@ -1,3 +1,4 @@
+{.used.}
 import json, os, math, macros, options
 import fusion/matching, fusion/astdsl
 import qt, utils

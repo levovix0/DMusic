@@ -106,6 +106,7 @@ proc getHomePlaylists: Future[seq[Playlist]] {.async.} =
   result = x.mapit(it.playlist)
   result.insert Playlist(
     id: 3,
+    ownerId: currentUser().await.id,
     title: tr"Favorites"
   )
 

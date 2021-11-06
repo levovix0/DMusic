@@ -43,6 +43,8 @@ type
     illustration
     bandLogo
     publisherLogo
+  
+  TrackMetadata* = tuple[title, comment, artists, cover: string; liked: bool; duration: Duration]
 
 
 
@@ -195,7 +197,7 @@ impl PAttachedPictureFrame:
 const coverKinds = {PictureKind.other, PictureKind.frontCover, PictureKind.backCover, PictureKind.illustration}
 
 
-proc readTrackMetadata*(filename: string): tuple[title, comment, artists, cover: string; liked: bool; duration: Duration] =
+proc readTrackMetadata*(filename: string): TrackMetadata =
   if not fileExists filename: return
   let file = MpegFile.read(filename)
   let tag = file.id3v2Tag

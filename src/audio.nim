@@ -1,28 +1,19 @@
 {.used.}
 import sequtils, strutils, options, times, math, random, algorithm
-import qt, configuration, yandexMusic, utils, yandexMusicQmlModule, async, messages
+import qt, configuration, api, utils, async, messages
+import yandexMusic except Track
 
 randomize()
 
 type
-  TrackKind = enum
-    tkNone
-    tkYandex
-    
-  TrackInfo = ref object
-    case kind: TrackKind
-    of tkYandex:
-      yandex: yandexMusic.Track
-    else: discard
-  
   TrackSequence = object
-    tracks: seq[TrackInfo]
+    tracks: seq[Track]
     yandexId: (int, int)
     history: seq[int]
     current: int
     shuffle, loop: bool
 
-var currentTrack = TrackInfo()
+var currentTrack = Track()
 var currentSequence: TrackSequence
 
 var notifyTrackChanged: proc() = proc() = discard
@@ -30,18 +21,15 @@ var notifyPositionChanged: proc() = proc() = discard
 var notifyStateChanged: proc() = proc() = discard
 var notifyTrackEnded: proc() = proc() = discard
 
-converter toTrackInfo(x: yandexMusic.Track): TrackInfo =
-  TrackInfo(kind: tkYandex, yandex: x)
-
-proc curr(x: var TrackSequence): TrackInfo =
+proc curr(x: var TrackSequence): Track =
   try:
     if x.shuffle: x.tracks[x.history[x.current]]
     else: x.tracks[x.current]
-  except: TrackInfo(kind: tkNone)
+  except: Track()
 
-proc next(x: var TrackSequence): TrackInfo =
+proc next(x: var TrackSequence): Track =
   if x.shuffle:
-    if x.current > x.history.high: return TrackInfo(kind: tkNone)
+    if x.current > x.history.high: return Track()
     x.history.delete 0
     x.history.add:
       toSeq(0..x.tracks.high)
@@ -52,12 +40,12 @@ proc next(x: var TrackSequence): TrackInfo =
     inc x.current
     if x.current > x.tracks.high:
       if x.loop: x.current = 0
-    if x.current notin 0..x.tracks.high: TrackInfo(kind: tkNone)
+    if x.current notin 0..x.tracks.high: Track()
     else: x.tracks[x.current]
 
-proc prev(x: var TrackSequence): TrackInfo =
+proc prev(x: var TrackSequence): Track =
   if x.shuffle:
-    if x.current > x.history.high: return TrackInfo(kind: tkNone)
+    if x.current > x.history.high: return Track()
     x.history.del x.history.high
     x.history.insert:
       toSeq(0..x.tracks.high)
@@ -68,7 +56,7 @@ proc prev(x: var TrackSequence): TrackInfo =
     dec x.current
     if x.current < 0:
       if x.loop: x.current = x.tracks.high
-    if x.current notin 0..x.tracks.high: TrackInfo(kind: tkNone)
+    if x.current notin 0..x.tracks.high: Track()
     else: x.tracks[x.current]
 
 proc shuffle(x: var TrackSequence, current = -1) =
@@ -108,7 +96,7 @@ notifyLoopChanged &= proc() =
   currentSequence.loop = config.loop == LoopMode.playlist
 
 notifyTrackChanged &= proc() =
-  if currentTrack.kind == tkNone:
+  if currentTrack.kind == TrackKind.none:
     currentSequence = TrackSequence()
 
 
@@ -163,16 +151,14 @@ proc onMain =
   """.}
 onMain()
 
-proc play*(track: TrackInfo) {.async.} =
+proc play*(track: Track) {.async.} =
   currentTrack = track
+  await fetch currentTrack
   notifyTrackChanged()
-  case currentTrack.kind
-  of tkYandex:
-    player.media = track.yandex.audioUrl.await
-    player.play
-  else: player.stop
+  player.media = track.audio.await
+  player.play
 
-proc play*(tracks: seq[TrackInfo], yandexId = (0, 0)) {.async.} =
+proc play*(tracks: seq[Track], yandexId = (0, 0)) {.async.} =
   currentSequence = TrackSequence(tracks: tracks, yandexId: yandexId)
   if config.shuffle: shuffle currentSequence
   currentSequence.loop = config.loop == LoopMode.playlist
@@ -187,18 +173,11 @@ proc play* =
 
 proc stop* =
   player.stop
-  currentTrack = TrackInfo()
+  currentTrack = Track()
   notifyTrackChanged()
 
-proc duration*: int =
-  case currentTrack.kind
-  of tkYandex: currentTrack.yandex.duration
-  else: 0
-
 proc progress*: float =
-  let duration = duration()
-
-  if duration != 0: player.position / duration
+  if currentTrack.duration != 0: player.position / currentTrack.duration
   else: 0.0
 
 
@@ -210,29 +189,20 @@ type PlayingTrackInfo = object
 
 qobject PlayingTrackInfo:
   property string title:
-    get:
-      case currentTrack.kind
-      of tkYandex: currentTrack.yandex.title
-      else: ""
+    get: currentTrack.title
     notify infoChanged
 
   property string artists:
-    get:
-      case currentTrack.kind
-      of tkYandex: currentTrack.yandex.artists.mapit(it.name).join(", ")
-      else: ""
+    get: currentTrack.artists
     notify infoChanged
 
   property string comment:
-    get:
-      case currentTrack.kind
-      of tkYandex: currentTrack.yandex.comment
-      else: ""
+    get: currentTrack.comment
     notify infoChanged
 
   property string duration:
     get:
-      let ms = duration().ms
+      let ms = currentTrack.duration.ms
       if ms.inHours != 0: ms.format("h:m:ss")
       else:               ms.format("m:ss")
     notify infoChanged
@@ -246,7 +216,7 @@ qobject PlayingTrackInfo:
   
   property float progress:
     get: progress()
-    set: player.position = (value * duration().float).int
+    set: player.position = (value * currentTrack.duration.float).int
     notify positionChanged
   
   property int positionMs:
@@ -257,16 +227,10 @@ qobject PlayingTrackInfo:
   property bool liked:
     get: self.liked
     set:
-      case currentTrack.kind
-      of tkYandex:
-        self.process.add: doAsync:
-          if value:
-            currentUser().await.like(currentTrack.yandex).await
-          else:
-            currentUser().await.unlike(currentTrack.yandex).await
-        self.liked = value
-        this.likedChanged
-      else: discard
+      self.process.add: doAsync:
+        await (currentTrack.liked = value)
+      self.liked = value
+      this.likedChanged
     notify
 
   property string cover:
@@ -276,14 +240,14 @@ qobject PlayingTrackInfo:
   property string originalUrl:
     get:
       case currentTrack.kind
-      of tkYandex: currentTrack.yandex.coverUrl
+      of TrackKind.yandex: currentTrack.yandex.coverUrl
       else: ""
     notify coverChanged
   
   property int id:
     get:
       case currentTrack.kind
-      of tkYandex: currentTrack.yandex.id
+      of TrackKind.yandex: currentTrack.yandex.id
       else: 0
     notify infoChanged
   
@@ -308,16 +272,13 @@ qobject PlayingTrackInfo:
       this.coverChanged
       this.likedChanged
       
-      case currentTrack.kind
-      of tkYandex:
-        self.process.add: doAsync:
-          self.cover = currentTrack.yandex.cover.await
-          this.coverChanged
-        
-        self.process.add: doAsync:
-          self.liked = currentTrack.yandex.liked.await
-          this.likedChanged
-      else: discard
+      self.process.add: doAsync:
+        self.cover = currentTrack.cover.await
+        this.coverChanged
+      
+      self.process.add: doAsync:
+        self.liked = currentTrack.liked.await
+        this.likedChanged
 
     notifyPositionChanged &= proc() = this.positionChanged
 
@@ -335,10 +296,7 @@ qobject AudioPlayer:
   proc next =
     cancel self.process
     self.process = doAsync:
-      if config.loop == LoopMode.track:
-        await play currentTrack
-      else:
-        await play currentSequence.next
+      await play currentSequence.next
   
   proc prev =
     if player.position > 10_000:
@@ -355,13 +313,23 @@ qobject AudioPlayer:
   proc playYmTrack(id: int) =
     cancel self.process
     self.process = doAsync:
-      await play @[id.fetch.await[0].toTrackInfo]
+      await play @[yandexTrack id]
   
   proc playYmPlaylist(id: int, owner: int) =
     cancel self.process
     self.process = doAsync:
-      #TODO: user tracks if id==3
-      await play(Playlist(id: id, ownerId: owner).tracks.await.map(toTrackInfo), (id, owner))
+      var tracks: seq[Track]
+      if id == 3:
+        tracks = currentUser().await.likedTracks.await.mapit(yandexTrack it)
+        tracks.insert userTracks().filterit(it.liked.await)
+      else:
+        tracks = Playlist(id: id, ownerId: owner).tracks.await.mapit(yandexTrack it)
+      await play(tracks, (id, owner))
+  
+  proc playUserTrack(id: int) =
+    cancel self.process
+    self.process = doAsync:
+      await play @[userTrack id]
 
   property bool shuffle:
     get: config.shuffle
