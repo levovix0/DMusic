@@ -143,14 +143,12 @@ Window {
       color: Style.window.border.color
     }
 
-    Keys.onSpacePressed: AudioPlayer.playing? AudioPlayer.pause() : AudioPlayer.play()
-    Keys.onRightPressed: AudioPlayer.next()
-    Keys.onLeftPressed: AudioPlayer.prev()
-    Keys.onPressed: {
-      if (event.key === Qt.Key_L) _player.toggleLiked()
-      else if (event.key === Qt.Key_D) AudioPlayer.next()
-      else if (event.key === Qt.Key_A) AudioPlayer.prev()
-    }
+    Shortcut { sequence: "Space"; onActivated: AudioPlayer.playing? AudioPlayer.pause() : AudioPlayer.play() }
+    Shortcut { sequence: "Right"; onActivated: AudioPlayer.next() }
+    Shortcut { sequence: "Left"; onActivated: AudioPlayer.prev() }
+    Shortcut { sequence: "L"; onActivated: _player.toggleLiked() }
+    Shortcut { sequence: "D"; onActivated: AudioPlayer.next() }
+    Shortcut { sequence: "A"; onActivated: AudioPlayer.prev() }
 
     layer.enabled: Config.csd && visibility != 4
     layer.effect: OpacityMask {

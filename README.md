@@ -24,5 +24,5 @@ nimble install https://github.com/levovix0/DMusic  # (linux-only)
 
 ## Dependencies
 * Nim 1.4.4
-* Qt 5.15 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2)
+* Qt 6.2 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2)
 * TagLib
