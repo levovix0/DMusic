@@ -78,7 +78,7 @@ Item {
   DropShadow {
     anchors.fill: _roundCover
     radius: 8.0
-    // samples: 16
+    transparentBorder: true
     color: "#40000000"
     source: _roundCover
   }
@@ -129,7 +129,7 @@ Item {
     anchors.fill: root
     visible: _play.visible
     radius: 5.0
-    // samples: 25
+    transparentBorder: true
     color: "#60000000"
     source: _play
   }

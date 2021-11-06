@@ -33,8 +33,8 @@ Rectangle {
     enabled: root.clientSideDecorations
     acceptedButtons: Qt.LeftButton | Qt.MiddleButton
 
-    onDoubleClicked: if (mouse.button == Qt.LeftButton) _window.maximize()
-    onClicked: if (mouse.button == Qt.MiddleButton) { _window.close() } else { _root.focus = true }
+    onDoubleClicked: (mouse) => { if (mouse.button == Qt.LeftButton) _window.maximize() }
+    onClicked: (mouse) => { if (mouse.button == Qt.MiddleButton) { _window.close() } else { _root.focus = true } }
 
     TitleManualButton {
       id: _home

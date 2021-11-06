@@ -52,7 +52,7 @@ Rectangle {
       DropShadow {
         anchors.fill: _roundCover
         radius: 4.0
-        // samples: 8
+        transparentBorder: true
         color: "#40000000"
         source: _roundCover
       }

@@ -23,18 +23,18 @@ Item {
   DropShadow {
     anchors.fill: root
     radius: 16.0
-    // samples: 30
+    transparentBorder: true
     color: "#40000000"
     source: _background
   }
 
-  Triangle {
-    id: _triangle
-    anchors.horizontalCenter: root.triangleCenter
-    anchors.top: root.triangleTop
-    anchors.horizontalCenterOffset: root.triangleOffset
-    rotation: root.triangleRotation
+  // Triangle {
+  //   id: _triangle
+  //   anchors.horizontalCenter: root.triangleCenter
+  //   anchors.top: root.triangleTop
+  //   anchors.horizontalCenterOffset: root.triangleOffset
+  //   rotation: root.triangleRotation
 
-    color: root.color
-  }
+  //   color: root.color
+  // }
 }

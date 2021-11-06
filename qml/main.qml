@@ -49,7 +49,7 @@ Window {
     enabled: Config.csd && !maximized
     opacity: 0.6
     radius: shadowRadius
-    // samples: 20
+    transparentBorder: true
     color: "#000000"
     source: Rectangle {
       width: _root.width
