@@ -16,22 +16,22 @@ when not defined(linux):
     result = s[0]
     for x in s:
       if dirExists x: return x
-  const qtPath = findExistant("C:/Qt/6.2.1", "D:/Qt/6.2.1")
+  const qtPath = findExistant("C:/Qt/5.15.2", "D:/Qt/5.15.2")
 
 const qtInclude {.strdefine.} =
-  when defined(linux): "/usr/include/qt6"
+  when defined(linux): "/usr/include/qt"
   else:                qtPath / "include"
 const qtBin {.strdefine.} =
-  when defined(linux): "/usr/lib/qt6"
+  when defined(linux): "/usr/bin"
   else:                qtPath / "bin"
 const qtLib {.strdefine.} =
   when defined(linux): "/usr/lib"
   else:                qtPath / "lib"
 
 func qso(module: string): string =
-  when defined(windows): quoted(qtLib / &"Qt6{module}.dll")
-  elif defined(MacOsX):  quoted(qtLib / &"libQt6{module}.dylib")
-  else:                  quoted(qtLib / &"libQt6{module}.so")
+  when defined(windows): quoted(qtLib / &"Qt5{module}.dll")
+  elif defined(MacOsX):  quoted(qtLib / &"libQt5{module}.dylib")
+  else:                  quoted(qtLib / &"libQt5{module}.so")
 
 macro qmo(module: static[string]) =
   let c = (&"-I{qtInclude}" / &"Qt{module}").quoted
@@ -40,7 +40,7 @@ macro qmo(module: static[string]) =
     {.passc: `c`.}
     {.passl: `l`.}
 
-{.passc: &"-I{qtInclude.quoted} -std=c++17 -fPIC".}
+{.passc: &"-I{qtInclude.quoted} -fPIC".}
 when defined(linux): {.passl: &"-lpthread".}
 qmo"Core"
 qmo"Gui"

@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import Qt5Compat.GraphicalEffects
+import QtGraphicalEffects 1.15
 
 // TODO: make it auto-resizible using Control
 

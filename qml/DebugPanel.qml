@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Dialogs
+import QtQuick.Dialogs 1.2
 import DMusic 1.0
 import "components"
 

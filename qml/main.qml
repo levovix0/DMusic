@@ -1,6 +1,6 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
-import Qt5Compat.GraphicalEffects
+import QtGraphicalEffects 1.15
 import DMusic 1.0
 import "pages"
 

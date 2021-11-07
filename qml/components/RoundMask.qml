@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import Qt5Compat.GraphicalEffects
+import QtGraphicalEffects 1.15
 
 OpacityMask {
   id: root
