@@ -11,30 +11,43 @@ proc capitalizeFirst(s: string): string =
   $s.runeAt(0).toUpper & s[1..^1]
 
 
+when not defined(linux):
+  proc findExistant(s: varargs[string]): string =
+    result = s[0]
+    for x in s:
+      if dirExists x: return x
+  const qtPath = findExistant("C:/Qt/6.2.1", "D:/Qt/6.2.1")
+
+const qtInclude {.strdefine.} =
+  when defined(linux): "/usr/include/qt6"
+  else:                qtPath / "include"
+const qtBin {.strdefine.} =
+  when defined(linux): "/usr/lib/qt6"
+  else:                qtPath / "bin"
+const qtLib {.strdefine.} =
+  when defined(linux): "/usr/lib"
+  else:                qtPath / "lib"
 
 func qso(module: string): string =
-  when defined(windows): &"Qt6{module}.dll"
-  elif defined(MacOsX): &"libQt6{module}.dylib"
-  else: &"/usr/lib/libQt6{module}.so"
-
-const qtpath {.strdefine.} = "/usr/include/qt6"
+  when defined(windows): quoted(qtLib / &"Qt6{module}.dll")
+  elif defined(MacOsX):  quoted(qtLib / &"libQt6{module}.dylib")
+  else:                  quoted(qtLib / &"libQt6{module}.so")
 
 macro qmo(module: static[string]) =
-  let c = &"-I{qtpath}" / &"Qt{module}"
+  let c = (&"-I{qtInclude}" / &"Qt{module}").quoted
   let l = qso module
   quote do:
     {.passc: `c`.}
     {.passl: `l`.}
 
-{.passc: &"-I{qtpath} -std=c++17 -fPIC".}
-{.passl: "-lpthread".}
+{.passc: &"-I{qtInclude.quoted} -std=c++17 -fPIC".}
+when defined(linux): {.passl: &"-lpthread".}
 qmo"Core"
 qmo"Gui"
 qmo"Widgets"
 qmo"Quick"
 qmo"Qml"
 qmo"Multimedia"
-qmo"DBus"
 qmo"QuickControls2"
 qmo"Svg"
 
@@ -292,17 +305,13 @@ proc `fileMode=`*(this: QFileDialog, v: DialogFileMode) {.importcpp: "#.setFileM
 #----------- tools -----------#
 proc moc*(code: string): string {.compileTime.} =
   ## qt moc (meta-compiler) tool wrapper
-  when defined(linux):
-    "/usr/lib/qt6/moc --no-warnings".staticExec(code)
-  else:
-    "" #TODO
+  when defined(windows): ((qtBin / "moc.exe").quoted & " --no-warnings").staticExec(code)
+  else:                  ((qtBin / "moc").quoted & " --no-warnings").staticExec(code)
 
 proc rcc*(file: string): string {.compileTime.} =
   ## qt rcc (resource-compiler) tool wrapper
-  when defined(linux):
-    staticExec &"/usr/lib/qt6/rcc {file.quoted}"
-  else:
-    "" #TODO
+  when defined(windows): staticExec (qtBin / "rcc.exe").quoted & " " & file.quoted
+  else:                  staticExec (qtBin / "rcc").quoted & " " & file.quoted
 
 
 

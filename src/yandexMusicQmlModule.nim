@@ -70,7 +70,7 @@ registerSingletonInQml SearchModel, "YandexMusic", 1, 0
 
 var searchHistory: seq[string]
 if fileExists(dataDir / "searchHistory.txt"):
-  searchHistory = readFile(dataDir / "searchHistory.txt").splitLines[0..<5].filterit(it != "")
+  searchHistory = readFile(dataDir / "searchHistory.txt").splitLines{0..<5}.filterit(it != "")
 
 type SearchHistory = object
 

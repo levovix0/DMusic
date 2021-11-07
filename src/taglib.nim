@@ -1,8 +1,24 @@
-import times, os, filetype
-import impl
+import times, os, filetype, strformat
+import impl, utils
 
-{.passc: "-I/usr/include/taglib".}
+when not defined(linux):
+  proc findExistant(s: varargs[string]): string =
+    result = s[0]
+    for x in s:
+      if dirExists x: return x
+  const taglibPath = findExistant("C:/taglib", "D:/taglib", "C:/Libraries/taglib", "D:/Libraries/taglib")
+
+const taglibInclude {.strdefine.} =
+  when defined(linux): "/usr/include/taglib"
+  else:                taglibPath / "include" / "taglib"
+const taglibLib {.strdefine.} =
+  when defined(linux): ""
+  else:                taglibPath / "lib"
+
+{.passc: &"-I{taglibInclude.quoted}".}
 {.passl: "-ltag".}
+when taglibLib != "": {.passl: &"-L{taglibLib.quoted}".}
+when defined(windows): {.passc: "-DTAGLIB_STATIC".}
 
 type
   TaglibString {.importcpp: "TagLib::String", header: "tag.h".} = object

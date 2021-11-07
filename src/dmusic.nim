@@ -10,7 +10,7 @@ macro resourcesFromDir*(dir: static[string] = ".") =
     if k notin {pcFile, pcLinkToFile}: continue
     if not file.endsWith(".qrc"): continue
 
-    let qrc = staticExec &"rcc ../{file}"
+    let qrc = rcc &"../{file}"
     let filename = "build" / &"qrc_{file.splitPath.tail}.cpp"
     writeFile filename, qrc
     result.add quote do:
