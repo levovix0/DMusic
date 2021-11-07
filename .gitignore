@@ -1,11 +1,5 @@
 /.vscode
-/build-*
 /build
-*.user
 /dmusic
-
-# Qt translation binaries
-*.qm
-
-# Linux directory settings
+/dmusic.exe
 .directory

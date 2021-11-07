@@ -14,6 +14,8 @@ requires "discord_rpc"
 requires "dbus"
 requires "filetype"
 
+mkdir "build"
+
 when defined(nimdistros):
   import distros
   if detectOs(Manjaro) or detectOS(ArchLinux):

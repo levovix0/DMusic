@@ -16,7 +16,7 @@ when not defined(linux):
     result = s[0]
     for x in s:
       if dirExists x: return x
-  const qtPath = findExistant("C:/Qt/5.15.2", "D:/Qt/5.15.2")
+  const qtPath = findExistant("C:/Qt/5.15.2/mingw81_64", "D:/Qt/5.15.2/mingw81_64")
 
 const qtInclude {.strdefine.} =
   when defined(linux): "/usr/include/qt"
@@ -29,18 +29,18 @@ const qtLib {.strdefine.} =
   else:                qtPath / "lib"
 
 func qso(module: string): string =
-  when defined(windows): quoted(qtLib / &"Qt5{module}.dll")
-  elif defined(MacOsX):  quoted(qtLib / &"libQt5{module}.dylib")
-  else:                  quoted(qtLib / &"libQt5{module}.so")
+  when defined(windows): qtBin / &"Qt5{module}.dll"
+  elif defined(MacOsX):  qtLib / &"libQt5{module}.dylib"
+  else:                  qtLib / &"libQt5{module}.so"
 
 macro qmo(module: static[string]) =
-  let c = (&"-I{qtInclude}" / &"Qt{module}").quoted
+  let c = "-I" & (qtInclude / &"Qt{module}")
   let l = qso module
   quote do:
     {.passc: `c`.}
     {.passl: `l`.}
 
-{.passc: &"-I{qtInclude.quoted} -fPIC".}
+{.passc: &"-I{qtInclude} -fPIC".}
 when defined(linux): {.passl: &"-lpthread".}
 qmo"Core"
 qmo"Gui"
@@ -305,13 +305,13 @@ proc `fileMode=`*(this: QFileDialog, v: DialogFileMode) {.importcpp: "#.setFileM
 #----------- tools -----------#
 proc moc*(code: string): string {.compileTime.} =
   ## qt moc (meta-compiler) tool wrapper
-  when defined(windows): ((qtBin / "moc.exe").quoted & " --no-warnings").staticExec(code)
-  else:                  ((qtBin / "moc").quoted & " --no-warnings").staticExec(code)
+  when defined(windows): ((qtBin / "moc.exe") & " --no-warnings").staticExec(code)
+  else:                  ((qtBin / "moc") & " --no-warnings").staticExec(code)
 
 proc rcc*(file: string): string {.compileTime.} =
   ## qt rcc (resource-compiler) tool wrapper
-  when defined(windows): staticExec (qtBin / "rcc.exe").quoted & " " & file.quoted
-  else:                  staticExec (qtBin / "rcc").quoted & " " & file.quoted
+  when defined(windows): staticExec (qtBin / "rcc.exe") & " " & file
+  else:                  staticExec (qtBin / "rcc") & " " & file
 
 
 

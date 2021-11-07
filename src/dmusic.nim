@@ -2,7 +2,6 @@ import std/exitprocs, os, times, strformat, macros, strutils
 import qt, messages, async, localize, utils, configuration
 import yandexMusicQmlModule, audio, qmlUtils
 
-
 macro resourcesFromDir*(dir: static[string] = ".") =
   result = newStmtList()
 
