@@ -65,7 +65,8 @@ proc `lang=`*(client: Client, lang: string) =
   client.headers["Accept-Language"] = lang
 
 proc `token=`*(client: Client, token: string) =
-  client.headers["Authorization"] = if token != "": &"OAuth {token}" else: ""
+  if token != "":
+    client.headers["Authorization"] = &"OAuth {token}"
 
 proc newClient*(config = config): Client =
   result = newAsyncHttpClient("Yandex-Music-API")

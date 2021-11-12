@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import DMusic 1.0
+import YandexMusic 1.0
 import "../components"
 
 DPage {
@@ -18,9 +19,7 @@ DPage {
   }
 
   function do_login() {
-    Config.ym_email = _email.text
-    Config.ym_token = YClient.token(_email.text, _password.text)
-    YClient.login(Config.ym_token, Config.ym_proxyServer)
+    YClient.login(_email.text, _password.text)
     switcher("qrc:/qml/pages/SettingsPage.qml")
   }
 

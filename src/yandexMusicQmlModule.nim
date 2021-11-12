@@ -1,6 +1,6 @@
 {.used.}
 import sequtils, strutils, async, base64, strformat, os, sugar, tables
-import qt, yandexMusic, configuration, utils, localize
+import qt, yandexMusic, configuration, utils, localize, messages
 
 var coverCache: CacheTable[(string, int), string]
 onMainLoop: coverCache.garbageCollect
@@ -137,3 +137,19 @@ qmodel HomePlaylistsModel:
           this.layoutChanged
 
 registerSingletonInQml HomePlaylistsModel, "YandexMusic", 1, 0
+
+
+type YClient = object
+  process: seq[Future[void]]
+
+qobject YClient:
+  proc login(email, password: string) =
+    cancel self.process
+
+    self.process.add: doAsync:
+      try:
+        config.ym_token = generateToken(email, password).await
+      except:
+        sendError tr"Failed to login", getCurrentExceptionMsg()
+
+registerSingletonInQml YClient, "YandexMusic", 1, 0

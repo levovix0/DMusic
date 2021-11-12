@@ -3,9 +3,6 @@ import fusion/matching, fusion/astdsl
 
 {.experimental: "caseStmtMacros".}
 
-proc quoted(s: string): string =
-  result.addQuoted s
-
 proc capitalizeFirst(s: string): string =
   if s.len == 0: return
   $s.runeAt(0).toUpper & s[1..^1]

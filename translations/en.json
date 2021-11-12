@@ -5,6 +5,9 @@
     },
     "qrc:/resources/covers/favorite.svg": {
       "": "qrc:/resources/covers/favorite.svg"
+    },
+    "Failed to login": {
+      "": "Failed to login"
     }
   },
   "qmlUtils.nim": {
