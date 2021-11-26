@@ -1,6 +1,6 @@
 {.used.}
 import json, os, math, macros, options
-import fusion/matching, fusion/astdsl
+import fusion/matching, fusion/astdsl, localize
 import qt, utils
 
 {.experimental: "caseStmtMacros".}
@@ -189,3 +189,6 @@ genconfig:
     bool saveAllTracks false
 
 registerSingletonInQml Config, ("DMusic", 1, 0), ("Config", 1, 0)
+
+
+initLocalize Language, call(bindSym"language", bindSym"config")

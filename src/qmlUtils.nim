@@ -1,6 +1,6 @@
 {.used.}
 import strutils, sequtils, re
-import qt, localize
+import qt, configuration
 
 type Clipboard = object
 

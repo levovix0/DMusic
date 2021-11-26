@@ -11,8 +11,8 @@ requires "fusion"
 requires "cligen"
 requires "https://github.com/levovix0/impl"
 requires "discord_rpc"
-requires "dbus"
 requires "filetype"
+requires "localize >= 0.1"
 
 mkdir "build"
 

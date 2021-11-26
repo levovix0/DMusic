@@ -3,6 +3,9 @@ import fusion/matching, fusion/astdsl
 
 {.experimental: "caseStmtMacros".}
 
+proc quoted(s: string): string =
+  result.addQuoted s
+
 proc capitalizeFirst(s: string): string =
   if s.len == 0: return
   $s.runeAt(0).toUpper & s[1..^1]
@@ -47,6 +50,7 @@ qmo"Qml"
 qmo"Multimedia"
 qmo"QuickControls2"
 qmo"Svg"
+qmo"DBus"
 
 
 
@@ -65,6 +69,7 @@ type
   QObject* {.importcpp, header: "QObject", inheritable.} = object
 
   QAbstractListModel* {.importcpp: "QAbstractListModel", header: "QAbstractListModel".} = object of QObject
+  QDBusAbstractAdaptor* {.importcpp: "QDBusAbstractAdaptor", header: "QDBusAbstractAdaptor".} = object of QObject
   QQuickItem* {.importcpp, header: "QQuickItem".} = object of QObject
 
   QApplication* {.importcpp, header: "QApplication".} = object
@@ -374,12 +379,18 @@ proc implslot(t, ct: NimNode, name: string, rettype: NimNode, args: seq[NimNode]
       if rettype.kind == nnkEmpty: body
       else: call(tqv, body)
 
-proc qoClass(name: string, body: string, parent: string = "QObject"): array[3, string] =
-  ["/*TYPESECTION*/ class " & name & " : public " & parent & " {\nQ_OBJECT\npublic:\n  " &
-  name & "(QObject* parent = nullptr);\n  ", body, "\n};"]
+proc qoClass(name: string, body: string, parent: string): array[3, string] =
+  [
+    &"""/*TYPESECTION*/ class {name} : public {parent} {{
+  Q_OBJECT
+  public: {name}(QObject* parent = nullptr);
+  """,
+    body,
+    "\n};"
+  ]
 
 
-proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], impl: var NimNode, constructor: var NimNode, signalNames: var seq[string]) =
+proc qobjectCasesImpl(t, parent, body, ct: NimNode, x: NimNode, decl: var seq[string], impl: var NimNode, constructor: var NimNode, signalNames: var seq[string]) =
   proc declaringArgs(args: seq[NimNode]): string =
     zip(
       args.mapit(it[^2].repeat(it.len - 2)).concat.mapit(it.`$`.toQtTypename),
@@ -499,9 +510,6 @@ proc qobjectCasesImpl(t, body, ct: NimNode, x: NimNode, decl: var seq[string], i
       
       else: error("Unexpected syntax", x)
     
-    if getter != nil and notify == nil:
-      warning("Property with getter has no notify", body)
-    
     if getter == nil and notify != nil:
       warning("Property with notify has no getter", body)
     
@@ -573,7 +581,7 @@ macro qobject*(t, body) =
         call s"wasMoved", i"self"
 
   for x in body:
-    qobjectCasesImpl t, body, ct, x, decl, impl, constructor, signalNames
+    qobjectCasesImpl t, parent, body, ct, x, decl, impl, constructor, signalNames
 
   let moc = moc qoClass($t, decl.join("\n"), $parent).join
   let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)
@@ -677,7 +685,7 @@ macro qmodel*(t, body) =
         decl.add "QHash<int, QByteArray> roleNames() const override;"
       dataImpl[valname] = body
 
-    else: qobjectCasesImpl t, body, ct, x, decl, impl, constructor, signalNames
+    else: qobjectCasesImpl t, parent, body, ct, x, decl, impl, constructor, signalNames
   
   if rowsImpl == nil: error("rows must be declarated")
 
@@ -738,6 +746,80 @@ macro qmodel*(t, body) =
           newLit &"QHash<int, QByteArray> {t}::roleNames() const"
       empty()
       call(s"toQHash", li)
+
+  let moc = moc qoClass($t, decl.join("\n"), $parent).join
+  let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)
+
+  let cts = ident"Ct"
+  copyLineInfo(cts, body)
+
+  buildAst(stmtList):
+    pragma: exprColonExpr i"emit": newLit &"/*INCLUDESECTION*/ #include <{parent}>"
+    pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
+    pragma: exprColonExpr i"emit": bracket(newLit moc)
+    templateDef:
+      cts
+      empty()
+      empty()
+      formalParams:
+        i"type"
+        identDefs:
+          gensym nskParam
+          command i"type", t
+          empty()
+      empty()
+      empty()
+      ct
+    for x in impl: x
+    constructor
+
+
+macro dbusInterface*(t; obj: static string, body) =
+  var t = t
+  var parent = i"QDBusAbstractAdaptor"
+  if t.kind == nnkInfix:
+    parent = t[2]
+    t = t[1]
+
+  var decl: seq[string]
+  var impl = newStmtList()
+  var signalNames: seq[string]
+
+  # add class info
+  decl.add &"""Q_CLASSINFO("D-Bus Interface", {obj.quoted})"""
+
+  let ct = gensym nskType
+  impl.add: buildAst typeSection:
+    typeDef:
+      pragmaExpr(ct, pragma exprColonExpr(i"importcpp", newLit $t))
+      empty()
+      objectTy:
+        empty()
+        ofInherit(parent)
+        recList:
+          identDefs(i"self", t, empty())
+
+  var constructor = buildAst procDef:
+      nskProc.gensym "constructor"
+      empty()
+      empty()
+      formalParams:
+        empty()
+      pragma:
+        i"exportc"
+        exprColonExpr:
+          i"codegenDecl"
+          newLit &"{t}::{t}(QObject* parent)"
+      empty()
+      stmtList:
+        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
+        pragma: exprColonExpr i"emit": bracket(i"this", l" = this;")
+        quote do:
+          template self(): var `t` {.used.} = this[].self
+        call s"wasMoved", i"self"
+
+  for x in body:
+    qobjectCasesImpl t, parent, body, ct, x, decl, impl, constructor, signalNames
 
   let moc = moc qoClass($t, decl.join("\n"), $parent).join
   let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)

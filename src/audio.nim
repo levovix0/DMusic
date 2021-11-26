@@ -17,7 +17,7 @@ var currentTrack = Track()
 var currentSequence: TrackSequence
 
 var notifyTrackChanged: proc() = proc() = discard
-var notifyPositionChanged: proc() = proc() = discard
+var notifyPositionChanged*: proc() = proc() = discard
 var notifyStateChanged: proc() = proc() = discard
 var notifyTrackEnded: proc() = proc() = discard
 
@@ -104,31 +104,35 @@ notifyTrackChanged &= proc() =
 type
   QMediaPlayer {.importcpp: "QMediaPlayer", header: "QMediaPlayer".} = object
 
-  PlayerState = enum
+  PlayerState* = enum
     psStopped
     psPlaying
     psPaused
 
-proc newQMediaPlayer: ptr QMediaPlayer {.importcpp: "new QMediaPlayer()", header: "QMediaPlayer".}
-proc `notifyInterval=`(this: ptr QMediaPlayer, interval: int) {.importcpp: "#->setNotifyInterval(@)", header: "QMediaPlayer".}
-proc `volume=`(this: ptr QMediaPlayer, volume: int) {.importcpp: "#->setVolume(@)", header: "QMediaPlayer".}
-proc position(this: ptr QMediaPlayer): int {.importcpp: "#->position(@)", header: "QMediaPlayer".}
-proc `position=`(this: ptr QMediaPlayer, v: int) {.importcpp: "#->setPosition(@)", header: "QMediaPlayer".}
-proc `media=`(this: ptr QMediaPlayer, media: QUrl) {.importcpp: "#->setMedia({#})", header: "QMediaPlayer".}
-proc play(this: ptr QMediaPlayer) {.importcpp: "#->play()", header: "QMediaPlayer".}
-proc stop(this: ptr QMediaPlayer) {.importcpp: "#->stop()", header: "QMediaPlayer".}
-proc pause(this: ptr QMediaPlayer) {.importcpp: "#->pause()", header: "QMediaPlayer".}
-proc muted(this: ptr QMediaPlayer): bool {.importcpp: "#->isMuted()", header: "QMediaPlayer".}
-proc `muted=`(this: ptr QMediaPlayer, muted: bool) {.importcpp: "#->setMuted(@)", header: "QMediaPlayer".}
-proc state(this: ptr QMediaPlayer): PlayerState {.importcpp: "#->state()", header: "QMediaPlayer".}
+proc newQMediaPlayer*: ptr QMediaPlayer {.importcpp: "new QMediaPlayer()", header: "QMediaPlayer".}
+proc `notifyInterval=`*(this: ptr QMediaPlayer, interval: int) {.importcpp: "#->setNotifyInterval(@)", header: "QMediaPlayer".}
+proc volume*(this: ptr QMediaPlayer): int {.importcpp: "#->volume(@)", header: "QMediaPlayer".}
+proc `volume=`*(this: ptr QMediaPlayer, v: int) {.importcpp: "#->setVolume(@)", header: "QMediaPlayer".}
+proc position*(this: ptr QMediaPlayer): int {.importcpp: "#->position(@)", header: "QMediaPlayer".}
+proc `position=`*(this: ptr QMediaPlayer, v: int) {.importcpp: "#->setPosition(@)", header: "QMediaPlayer".}
+proc `media=`*(this: ptr QMediaPlayer, media: QUrl) {.importcpp: "#->setMedia({#})", header: "QMediaPlayer".}
+proc play*(this: ptr QMediaPlayer) {.importcpp: "#->play()", header: "QMediaPlayer".}
+proc stop*(this: ptr QMediaPlayer) {.importcpp: "#->stop()", header: "QMediaPlayer".}
+proc pause*(this: ptr QMediaPlayer) {.importcpp: "#->pause()", header: "QMediaPlayer".}
+proc muted*(this: ptr QMediaPlayer): bool {.importcpp: "#->isMuted()", header: "QMediaPlayer".}
+proc `muted=`*(this: ptr QMediaPlayer, muted: bool) {.importcpp: "#->setMuted(@)", header: "QMediaPlayer".}
+proc state*(this: ptr QMediaPlayer): PlayerState {.importcpp: "#->state()", header: "QMediaPlayer".}
 
-var player = newQMediaPlayer()
+var player* = newQMediaPlayer()
 player.notifyInterval = 50
 
 proc calcVolume(): int =
   let volume = config.volume
   if volume > 0: int(pow(config.volume, 2) * 100).max(1)
   else: 0
+
+notifyVolumeChanged &= proc() =
+  player.volume = calcVolume()
 
 player.volume = calcVolume()
 
@@ -175,6 +179,22 @@ proc stop* =
   player.stop
   currentTrack = Track()
   notifyTrackChanged()
+
+var getTrackAudioProcess: Future[void]
+
+proc next* =
+  cancel getTrackAudioProcess
+  getTrackAudioProcess = doAsync:
+    await play currentSequence.next
+
+proc prev* =
+  if player.position > 10_000:
+    player.position = 0
+  else:
+    cancel getTrackAudioProcess
+    getTrackAudioProcess = doAsync:
+      await play currentSequence.prev
+
 
 proc progress*: float =
   if currentTrack.duration != 0: player.position / currentTrack.duration
@@ -286,38 +306,22 @@ registerSingletonInQml PlayingTrackInfo, "DMusic", 1, 0
 
 
 type AudioPlayer = object
-  process: Future[void]
 
 qobject AudioPlayer:
   proc play = play()
   proc stop = stop()
   proc pause = pause()
-
-  proc next =
-    cancel self.process
-    self.process = doAsync:
-      await play currentSequence.next
-  
-  proc prev =
-    if player.position > 10_000:
-      player.position = 0
-    
-    else:
-      cancel self.process
-      self.process = doAsync:
-        if config.loop == LoopMode.track:
-          await play currentTrack
-        else:
-          await play currentSequence.prev
+  proc next = next()
+  proc prev = prev()
   
   proc playYmTrack(id: int) =
-    cancel self.process
-    self.process = doAsync:
+    cancel getTrackAudioProcess
+    getTrackAudioProcess = doAsync:
       await play @[yandexTrack id]
   
   proc playYmPlaylist(id: int, owner: int) =
-    cancel self.process
-    self.process = doAsync:
+    cancel getTrackAudioProcess
+    getTrackAudioProcess = doAsync:
       var tracks: seq[Track]
       if id == 3:
         tracks = currentUser().await.likedTracks.await.mapit(yandexTrack it)
@@ -327,8 +331,8 @@ qobject AudioPlayer:
       await play(tracks, (id, owner))
   
   proc playUserTrack(id: int) =
-    cancel self.process
-    self.process = doAsync:
+    cancel getTrackAudioProcess
+    getTrackAudioProcess = doAsync:
       await play @[userTrack id]
 
   property bool shuffle:
@@ -348,10 +352,7 @@ qobject AudioPlayer:
   
   property float volume:
     get: config.volume
-    set:
-      config.volume = value
-      player.volume = calcVolume()
-      this.volumeChanged
+    set: config.volume = value
     notify
 
   property bool playing:
@@ -367,12 +368,15 @@ qobject AudioPlayer:
     notifyShuffleChanged &= proc() = this.shuffleChanged
     notifyLoopChanged &= proc() = this.loopChanged
     notifyTrackEnded &= proc() =
-      cancel self.process
-      self.process = doAsync:
+      # play next track or loop current if needed
+      cancel getTrackAudioProcess
+      getTrackAudioProcess = doAsync:
         if config.loop == LoopMode.track:
           await play currentTrack
         else:
           await play currentSequence.next
+    
+    notifyVolumeChanged &= proc() = this.volumeChanged
 
 registerSingletonInQml AudioPlayer, "DMusic", 1, 0
 
