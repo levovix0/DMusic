@@ -2,6 +2,8 @@ import QtQuick 2.15
 import DMusic 1.0
 import "components"
 
+//TODO: пофиксить анимацию
+
 Item {
   id: root
 
