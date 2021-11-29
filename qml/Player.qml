@@ -92,7 +92,7 @@ Rectangle {
 
       Drag.mimeData: { "text/uri-list": PlayingTrackInfo.file }
       Drag.active: _downloadDrag.active
-      Drag.supportedActions: Qt.CopyAction
+      Drag.supportedActions: Qt.CopyAction | Qt.LinkAction | Qt.MoveAction | Qt.MoveAction
       Drag.dragType: Drag.Automatic
 
       DragHandler {
