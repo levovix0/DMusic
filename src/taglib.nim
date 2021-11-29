@@ -16,7 +16,7 @@ const taglibLib {.strdefine.} =
   else:                taglibPath / "lib"
 
 {.passc: &"-I{taglibInclude}".}
-{.passl: "-ltag".}
+{.passl: "-ltag -lz".}
 when taglibLib != "": {.passl: &"-L{taglibLib}".}
 when defined(windows): {.passc: "-DTAGLIB_STATIC".}
 

@@ -87,7 +87,19 @@ Rectangle {
       height: 32
       src: PlayingTrackInfo.saved? "qrc:/resources/player/downloaded.svg" : "qrc:/resources/player/download.svg"
       style: PlayingTrackInfo.saved? Style.panel.icon.accent : Style.panel.icon.normal
+      
       onClicked: PlayingTrackInfo.save()
+
+      Drag.mimeData: { "text/uri-list": PlayingTrackInfo.file }
+      Drag.active: _downloadDrag.active
+      Drag.supportedActions: Qt.CopyAction
+      Drag.dragType: Drag.Automatic
+
+      DragHandler {
+        id: _downloadDrag
+        enabled: PlayingTrackInfo.saved
+        target: null
+      }
     }
 
     VolumeControl {}

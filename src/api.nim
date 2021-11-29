@@ -197,7 +197,7 @@ proc duration*(this: Track): int =
 proc file*(this: Track): string =
   case this.kind
   of TrackKind.yandexFromFile:
-    this.yandexFromFile.file
+    "file:" & this.yandexFromFile.file
   of TrackKind.user:
-    this.user.file
+    "file:" & this.user.file
   else: ""
