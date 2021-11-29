@@ -82,6 +82,14 @@ Rectangle {
       }
     }
 
+    IconButton {
+      width: 32
+      height: 32
+      src: PlayingTrackInfo.saved? "qrc:/resources/player/downloaded.svg" : "qrc:/resources/player/download.svg"
+      style: PlayingTrackInfo.saved? Style.panel.icon.accent : Style.panel.icon.normal
+      onClicked: PlayingTrackInfo.save()
+    }
+
     VolumeControl {}
   }
 

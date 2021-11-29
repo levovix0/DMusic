@@ -11,7 +11,7 @@ DPage {
   Image {
     id: _background
     anchors.fill: parent
-    source: "qrc:/resources/settings/login-background.png"
+    source: "qrc:/resources/settings/login-background.jpg"
     smooth: true
     antialiasing: true
     fillMode: Image.PreserveAspectCrop

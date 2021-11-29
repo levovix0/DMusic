@@ -206,6 +206,7 @@ type PlayingTrackInfo = object
   cover: string
   liked: bool
   process: seq[Future[void]]
+  saveProcess: Future[void]
 
 qobject PlayingTrackInfo:
   property string title:
@@ -301,6 +302,21 @@ qobject PlayingTrackInfo:
         this.likedChanged
 
     notifyPositionChanged &= proc() = this.positionChanged
+  
+  property bool saved:
+    get: currentTrack.kind in {TrackKind.yandexFromFile, TrackKind.user}
+    notify infoChanged
+  
+  proc save =
+    if self.saveProcess != nil: return
+    self.saveProcess = doAsync:
+      await save currentTrack
+      self.saveProcess = nil
+      this.infoChanged
+  
+  property string file:
+    get: currentTrack.file
+    notify infoChanged
 
 registerSingletonInQml PlayingTrackInfo, "DMusic", 1, 0
 

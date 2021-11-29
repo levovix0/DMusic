@@ -3,6 +3,7 @@
         <file>translations/russian.qm</file>
         <file>resources/player/dislike.svg</file>
         <file>resources/player/download.svg</file>
+        <file>resources/player/downloaded.svg</file>
         <file>resources/player/shuffle.svg</file>
         <file>resources/player/loop-playlist.svg</file>
         <file>resources/player/vol.svg</file>
@@ -86,7 +87,7 @@
         <file>qml/components/Triangle.qml</file>
         <file>qml/pages/settings/AccountsSettingsBlock.qml</file>
         <file>qml/pages/YandexLoginPage.qml</file>
-        <file>resources/settings/login-background.png</file>
+        <file>resources/settings/login-background.jpg</file>
         <file>resources/settings/andex.svg</file>
         <file>resources/settings/Y.svg</file>
         <file>resources/settings/andex-ru.svg</file>
