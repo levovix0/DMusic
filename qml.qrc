@@ -25,6 +25,9 @@
         <file>resources/player/no-cover.svg</file>
         <file>resources/player/vol-muted.svg</file>
         <file>resources/player/vol-quiet.svg</file>
+        <file>resources/player/open-folder.svg</file>
+        <file>resources/player/open-file.svg</file>
+        <file>resources/player/delete.svg</file>
         <file>resources/player/eq/default.svg</file>
         <file>resources/player/eq/eq.svg</file>
         <file>resources/player/eq/high-pass.svg</file>
@@ -108,6 +111,7 @@
         <file>resources/covers/favorite-ru.svg</file>
         <file>resources/covers/favorite.svg</file>
         <file>qml/SearchPanel.qml</file>
+        <file>qml/DownloadPanel.qml</file>
         <file>qml/components/LinkText.qml</file>
         <file>qml/SearchFilterToggle.qml</file>
         <file>resources/search/album.svg</file>

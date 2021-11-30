@@ -122,7 +122,7 @@ QtObject {
     property color background: darkHeader? "#262626" : white
     property color accent: darkHeader? root.accent : root.lightAccent
     property bool shadow: true
-    property real radius: 7.5
+    property real radius: 5
 
     property QtObject border: QtObject {
       property color color: "transparent"
@@ -130,8 +130,9 @@ QtObject {
     }
 
     property QtObject sellection: QtObject {
-      property color background: darkHeader? "#202020" : white
-      property real radius: 7.5
+      property color background: darkHeader? "#202020" : "#F0F0F0"
+      property color pressedBackground: darkHeader? "#181818" : "#E2E2E2"
+      property real radius: 5
 
       property QtObject border: QtObject {
         property color color: darkHeader? "transparent" : cBorder
@@ -141,6 +142,8 @@ QtObject {
 
     property QtObject text: QtObject {
       property color color: darkHeader? white : c40
+      property color unsellectedColor: darkHeader? "#C5C5C5" : c40
+      property color sellectedColor: darkHeader? white : "#202020"
       property color darkColor: "#808080"
       property color artistColor: darkHeader? "#CCCCCC" : "#515151"
       property color commentColor: "#999999"
@@ -184,10 +187,12 @@ QtObject {
       property QtObject normal: QtObject {
         property color color: darkHeader? "#C1C1C1" : c40
         property color hoverColor: darkHeader? white : "#808080"
+        property color pressedColor: darkHeader? Qt.darker(color, 1.25) : Qt.lighter(color, 1.25)
       }
       property QtObject accent: QtObject {
         property color color: panel.accent
-        property color hoverColor: Qt.darker(color, 1.5)
+        property color hoverColor: darkHeader? Qt.lighter(color, 1.25) : Qt.darker(color, 1.25)
+        property color pressedColor: darkHeader? Qt.darker(color, 1.25) : Qt.lighter(color, 1.25)
       }
     }
 

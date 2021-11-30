@@ -19,7 +19,7 @@ Item {
     anchors.centerIn: root
 
     src: icon
-    color: _mouse.containsMouse? root.style.hoverColor : root.style.color
+    color: _mouse.containsPress? root.style.pressedColor : _mouse.containsMouse? root.style.hoverColor : root.style.color
   }
 
   MouseArea {

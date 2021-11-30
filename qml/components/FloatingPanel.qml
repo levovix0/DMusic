@@ -16,7 +16,7 @@ Item {
   Rectangle {
     id: _background
     anchors.fill: root
-    radius: 7.5
+    radius: Style.panel.radius
     color: root.color
   }
 

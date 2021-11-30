@@ -8,8 +8,7 @@ Icon {
 
   signal clicked()
 
-  color: _mouse.containsMouse? style.hoverColor : style.color
-  opacity: _mouse.containsPress? 0.7 : 1
+  color: _mouse.containsPress? style.pressedColor : _mouse.containsMouse? style.hoverColor : style.color
 
   MouseArea {
     id: _mouse

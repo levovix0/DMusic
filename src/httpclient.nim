@@ -225,7 +225,7 @@ type
     bodyStream*: FutureStream[string]
 
 proc code*(response: Response | AsyncResponse): HttpCode
-           {.raises: [ValueError, OverflowDefect].} =
+           {.raises: [ValueError].} =
   ## Retrieves the specified response's ``HttpCode``.
   ##
   ## Raises a ``ValueError`` if the response's ``status`` does not have a
@@ -451,7 +451,7 @@ proc sendFile(socket: Socket | AsyncSocket,
   var buffer: string
   while true:
     buffer =
-      when socket is AsyncSocket: (await read(file, chunkSize)).string
+      when socket is AsyncSocket: (await read(file, chunkSize))
       else: readStr(file, chunkSize).string
     if buffer.len == 0: break
     await socket.send(buffer)
@@ -692,7 +692,7 @@ proc parseChunks(client: HttpClient | AsyncHttpClient): Future[void]
                  {.multisync.} =
   while true:
     var chunkSize = 0
-    var chunkSizeStr = (await client.socket.recvLine()).string
+    var chunkSizeStr = (await client.socket.recvLine())
     var i = 0
     if chunkSizeStr == "":
       httpError("Server terminated connection prematurely")
@@ -793,7 +793,7 @@ proc parseResponse(client: HttpClient | AsyncHttpClient,
     when client is HttpClient:
       line = (await client.socket.recvLine(client.timeout)).string
     else:
-      line = (await client.socket.recvLine()).string
+      line = (await client.socket.recvLine())
     if line == "":
       # We've been disconnected.
       client.close()

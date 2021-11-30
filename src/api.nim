@@ -92,6 +92,16 @@ proc save*(this: Track, progressReport: ProgressReportCallback = nil) {.async.} 
   elif this.kind == TrackKind.yandexIdOnly:
     await this.save(dataDir / "yandex" / &"{this.yandexIdOnly.id}.mp3", progressReport=progressReport)
 
+proc remove*(this: Track) =
+  if this.kind == TrackKind.yandexFromFile:
+    try:
+      removeFile this.yandexFromFile.file
+      this[] = TrackObj(kind: TrackKind.yandexIdOnly, yandexIdOnly: this.yandexFromFile.file.splitFile.name.parseInt)
+    except: this[] = TrackObj(kind: TrackKind.none)
+  elif this.kind == TrackKind.user:
+    removeFile this.user.file
+    this[] = TrackObj(kind: TrackKind.none)
+
 
 proc userTracks*: seq[Track] =
   let dir = dataDir / "user"

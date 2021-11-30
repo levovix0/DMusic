@@ -52,6 +52,21 @@
     </message>
 </context>
 <context>
+    <name>DownloadPanel</name>
+    <message>
+        <source>Show in folder</source>
+        <translation>Показать в папке</translation>
+    </message>
+    <message>
+        <source>Open file</source>
+        <translation>Открыть файл</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Удалить</translation>
+    </message>
+</context>
+<context>
     <name>DebugPanel</name>
     <message>
         <location filename="../qml/DebugPanel.qml" line="22"/>

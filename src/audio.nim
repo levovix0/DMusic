@@ -1,5 +1,5 @@
 {.used.}
-import sequtils, strutils, options, times, math, random, algorithm
+import sequtils, strutils, options, times, math, random, algorithm, os
 import qt, configuration, api, utils, async, messages
 import yandexMusic except Track
 
@@ -270,6 +270,10 @@ qobject PlayingTrackInfo:
     get:
       case currentTrack.kind
       of TrackKind.yandex: currentTrack.yandex.id
+      of TrackKind.yandexIdOnly: currentTrack.yandexIdOnly.id
+      of TrackKind.yandexFromFile:
+        try: currentTrack.yandexFromFile.file.splitFile.name.parseInt
+        except: 0
       else: 0
     notify infoChanged
   
@@ -316,6 +320,10 @@ qobject PlayingTrackInfo:
     get: currentTrack.file
     notify infoChanged
   
+  property string folder:
+    get: currentTrack.file.splitPath.head
+    notify infoChanged
+  
   proc save =
     if self.saveProcess != nil: return
     self.saveProcess = doAsync:
@@ -328,6 +336,13 @@ qobject PlayingTrackInfo:
       self.saveProgress = 0
       this.infoChanged
       this.saveProgressChanged
+  
+  proc remove =
+    self.process.add: doAsync:
+      remove currentTrack
+      await fetch currentTrack
+      if currentTrack.kind == TrackKind.none: next()
+      this.infoChanged
 
 registerSingletonInQml PlayingTrackInfo, "DMusic", 1, 0
 

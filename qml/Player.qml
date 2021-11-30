@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQml 2.15
 import DMusic 1.0
 import "components"
 
@@ -88,7 +89,7 @@ Rectangle {
       src: PlayingTrackInfo.saved? "qrc:/resources/player/downloaded.svg" : "qrc:/resources/player/download.svg"
       style: PlayingTrackInfo.saved? Style.panel.icon.accent : Style.panel.icon.normal
       
-      onClicked: PlayingTrackInfo.save()
+      onClicked: PlayingTrackInfo.saved? (_dpc2.opened = !_dpc2.opened) : PlayingTrackInfo.save()
 
       Drag.mimeData: { "text/uri-list": PlayingTrackInfo.file }
       Drag.active: _downloadDrag.active
@@ -101,7 +102,7 @@ Rectangle {
         target: null
       }
 
-      Rectangle {
+      Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.verticalCenter
         anchors.bottomMargin: -9
@@ -118,6 +119,25 @@ Rectangle {
           src: "qrc:/resources/player/download.svg"
           color: Style.panel.icon.accent.color
         }
+      }
+
+      PopupController {
+        id: _dpc2
+        target: _downloadPanel
+        Binding { target: _dpc2; property: "opened"; value: false; when: !PlayingTrackInfo.saved; restoreMode: Binding.RestoreBinding }
+      }
+
+      DownloadPanel {
+        id: _downloadPanel
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.top
+        anchors.bottomMargin: 30 - _dpc2.shift
+        anchors.horizontalCenterOffset: -50
+
+        triangleOffset: -anchors.horizontalCenterOffset
+        triangleCenter: _downloadPanel.horizontalCenter
+
+        ppc: _dpc2
       }
     }
 
