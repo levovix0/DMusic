@@ -207,6 +207,7 @@ type PlayingTrackInfo = object
   liked: bool
   process: seq[Future[void]]
   saveProcess: Future[void]
+  saveProgress: float
 
 qobject PlayingTrackInfo:
   property string title:
@@ -307,16 +308,26 @@ qobject PlayingTrackInfo:
     get: currentTrack.kind in {TrackKind.yandexFromFile, TrackKind.user}
     notify infoChanged
   
-  proc save =
-    if self.saveProcess != nil: return
-    self.saveProcess = doAsync:
-      await save currentTrack
-      self.saveProcess = nil
-      this.infoChanged
+  property float saveProgress:
+    get: self.saveProgress
+    notify
   
   property string file:
     get: currentTrack.file
     notify infoChanged
+  
+  proc save =
+    if self.saveProcess != nil: return
+    self.saveProcess = doAsync:
+      await currentTrack.save(progressReport = proc(total, progress, speed: BiggestInt) {.async.} =
+        if total == 0: self.saveProgress = 0
+        else: self.saveProgress = progress.int / total.int
+        this.saveProgressChanged
+      )
+      self.saveProcess = nil
+      self.saveProgress = 0
+      this.infoChanged
+      this.saveProgressChanged
 
 registerSingletonInQml PlayingTrackInfo, "DMusic", 1, 0
 

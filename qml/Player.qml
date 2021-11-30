@@ -100,6 +100,25 @@ Rectangle {
         enabled: PlayingTrackInfo.saved
         target: null
       }
+
+      Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.verticalCenter
+        anchors.bottomMargin: -9
+        width: 14
+        height: 18 * PlayingTrackInfo.saveProgress
+        clip: true
+
+        Icon {
+          id: _downloadProgress
+          anchors.bottom: parent.bottom
+          width: 14
+          height: 18
+
+          src: "qrc:/resources/player/download.svg"
+          color: Style.panel.icon.accent.color
+        }
+      }
     }
 
     VolumeControl {}

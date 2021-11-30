@@ -68,26 +68,29 @@ proc fetch*(this: Track) {.async.} =
     let id = this.yandexIdOnly.id
     this[] = TrackObj(kind: TrackKind.yandex, yandex: id.fetch.await[0])
 
-proc save*(this: Track, file: string) {.async.} =
+proc save*(this: Track, file: string, progressReport: ProgressReportCallback = nil) {.async.} =
   if this.kind == TrackKind.yandexIdOnly:
     await fetch this
   if this.kind == TrackKind.yandex:
     createDir file.splitPath.head
-    writeFile file, this.yandex.audioUrl.await.request.await
     let (title, comment, artists) = (this.yandex.title, this.yandex.comment, this.yandex.artists.mapit(it.name).join(", "))
-    let cover = this.yandex.coverUrl(1000).request.await
-    let liked = this.yandex.liked.await
-    writeTrackMetadata(file, title, comment, artists, cover, liked, writeCover=true)
+    let (audio, cover, liked) = (
+      this.yandex.audioUrl.await.request(progressReport=progressReport),
+      this.yandex.coverUrl(1000).request,
+      this.yandex.liked
+    )
+    writeFile file, audio.await
+    writeTrackMetadata(file, title, comment, artists, cover.await, liked.await, writeCover=true)
     this[] = TrackObj(kind: TrackKind.yandexFromFile, yandexFromFile: (
       file: file,
       metadata: readTrackMetadata(file)
     ))
 
-proc save*(this: Track) {.async.} =
+proc save*(this: Track, progressReport: ProgressReportCallback = nil) {.async.} =
   if this.kind == TrackKind.yandex:
-    await this.save(dataDir / "yandex" / &"{this.yandex.id}.mp3")
+    await this.save(dataDir / "yandex" / &"{this.yandex.id}.mp3", progressReport=progressReport)
   elif this.kind == TrackKind.yandexIdOnly:
-    await this.save(dataDir / "yandex" / &"{this.yandexIdOnly.id}.mp3")
+    await this.save(dataDir / "yandex" / &"{this.yandexIdOnly.id}.mp3", progressReport=progressReport)
 
 
 proc userTracks*: seq[Track] =

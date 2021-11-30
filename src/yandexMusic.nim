@@ -9,6 +9,8 @@ type
   UnauthorizedError* = object of HttpError
   BadRequestError* = object of HttpError
   BadGatewayError* = object of HttpError
+
+  ProgressReportCallback* = proc(total, progress, speed: BiggestInt): Future[void] {.gcsafe.}
   
   Client* = AsyncHttpClient
 
@@ -80,7 +82,8 @@ proc request*(
   httpMethod: HttpMethod = HttpGet,
   body = "",
   data: MultipartData = nil,
-  params: seq[(string, string)] = @[]
+  params: seq[(string, string)] = @[],
+  progressReport: ProgressReportCallback = nil
   ): Future[string] {.async.} =
 
   let url =
@@ -88,7 +91,9 @@ proc request*(
     else:
       when url is Uri: $(url ? params) else: $(url.parseUri ? params)
 
-  let response = await httpclient.request(newClient(), url, httpMethod, body, nil, data)
+  let client = newClient()
+  client.onProgressChanged = progressReport
+  let response = await httpclient.request(client, url, httpMethod, body, nil, data)
 
   template formatResponse: string =
     let body = response.body.await.parseJson
