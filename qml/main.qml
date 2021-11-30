@@ -149,6 +149,7 @@ Window {
     Shortcut { sequence: "L"; onActivated: _player.toggleLiked() }
     Shortcut { sequence: "D"; onActivated: AudioPlayer.next() }
     Shortcut { sequence: "A"; onActivated: AudioPlayer.prev() }
+    Shortcut { sequence: "Ctrl+S"; onActivated: PlayingTrackInfo.save() }
 
     layer.enabled: Config.csd && visibility != 4
     layer.effect: OpacityMask {
