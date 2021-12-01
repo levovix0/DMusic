@@ -143,13 +143,16 @@ Window {
       color: Style.window.border.color
     }
 
-    Shortcut { sequence: "Space"; onActivated: AudioPlayer.playing? AudioPlayer.pause() : AudioPlayer.play() }
-    Shortcut { sequence: "Right"; onActivated: AudioPlayer.next() }
-    Shortcut { sequence: "Left"; onActivated: AudioPlayer.prev() }
-    Shortcut { sequence: "L"; onActivated: _player.toggleLiked() }
-    Shortcut { sequence: "D"; onActivated: AudioPlayer.next() }
-    Shortcut { sequence: "A"; onActivated: AudioPlayer.prev() }
-    Shortcut { sequence: "Ctrl+S"; onActivated: PlayingTrackInfo.save() }
+    Shortcut { sequence: "Space"; onActivated: AudioPlayer.playing? AudioPlayer.pause() : AudioPlayer.play(); context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "Right"; onActivated: AudioPlayer.next(); context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "Left"; onActivated: AudioPlayer.prev(); context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "L"; onActivated: _player.toggleLiked(); context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "D"; onActivated: AudioPlayer.next(); context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "A"; onActivated: AudioPlayer.prev(); context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "Ctrl+S"; onActivated: PlayingTrackInfo.save(); context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "Up"; onActivated: AudioPlayer.volume += 0.05; context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "Down"; onActivated: AudioPlayer.volume -= 0.05; context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "M"; onActivated: AudioPlayer.muted = !AudioPlayer.muted; context: Qt.ApplicationShortcut }
 
     layer.enabled: Config.csd && visibility != 4
     layer.effect: OpacityMask {

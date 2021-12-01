@@ -60,6 +60,7 @@ FloatingPanel {
 
           Shortcut {
             sequence: shortcut
+            context: Qt.ApplicationShortcut
             onActivated: {
               action()
               ppc.opened = false
