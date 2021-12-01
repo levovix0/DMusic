@@ -8,13 +8,19 @@ DPage {
 
   Component.onCompleted: HomePlaylistsModel.load()
 
-  Row {
+  Grid {
     id: _yandexHomePlaylists
-    spacing: 25
     anchors.left: parent.left
+    anchors.right: parent.right
     anchors.top: parent.top
     anchors.leftMargin: 25
+    anchors.rightMargin: 25
     anchors.topMargin: 25
+
+    columns: (width + 25) / (115 + 25)
+    spacing: 25
+    rowSpacing: 0
+    horizontalItemAlignment: Qt.AlignHCenter
 
     Repeater {
       id: _yandexHomePlaylistsRepeater
@@ -30,6 +36,10 @@ DPage {
         onPlay: AudioPlayer.playYmPlaylist(objId, objOwner)
         onShowFull: switcher("qrc:/qml/pages/PlaylistPage.qml")
       }
+    }
+
+    move: Transition {
+      NumberAnimation { properties: "x,y"; duration: 200; easing.type: Easing.OutQuad }
     }
   }
 }
