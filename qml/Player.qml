@@ -62,6 +62,7 @@ Rectangle {
       width: 32
       height: 32
       src: "qrc:/resources/player/debug.svg"
+      visible: root.width >= 700
       onClicked: _dpc.opened = !_dpc.opened
 
       PopupController {
