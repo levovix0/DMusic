@@ -62,6 +62,7 @@ proc prev(x: var TrackSequence): Track =
 proc shuffle(x: var TrackSequence, current = -1) =
   if x.shuffle == true: return
   x.shuffle = true
+  if x.tracks.len == 0: return
   
   var
     h1 = toSeq(0..x.tracks.high)

@@ -149,6 +149,7 @@ qobject YClient:
     self.process.add: doAsync:
       try:
         config.ym_token = generateToken(email, password).await
+        config.ym_email = email
       except:
         sendError tr"Failed to login", getCurrentExceptionMsg()
 

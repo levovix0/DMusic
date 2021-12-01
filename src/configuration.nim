@@ -1,6 +1,6 @@
 {.used.}
 import json, os, math, macros, options
-import fusion/matching, fusion/astdsl, localize
+import fusion/matching, fusion/astdsl, localize, locale
 import qt, utils
 
 {.experimental: "caseStmtMacros".}
@@ -22,8 +22,11 @@ type ConfigObj* = distinct JsonNode
 
 proc readConfig*: ConfigObj =
   if fileExists(configDir/"config.json"):
-    readFile(configDir/"config.json").parseJson.ConfigObj
-  else: ConfigObj %{:}
+    return readFile(configDir/"config.json").parseJson.ConfigObj
+  else:
+    result = ConfigObj newJObject()
+    case systemLocale().lang
+    of "ru": JsonNode(result){"language"} = newJString "ru"
 
 proc save*(config: ConfigObj) =
   createDir configDir
