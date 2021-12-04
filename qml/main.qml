@@ -153,6 +153,8 @@ Window {
     Shortcut { sequence: "Up"; onActivated: AudioPlayer.volume += 0.05; context: Qt.ApplicationShortcut }
     Shortcut { sequence: "Down"; onActivated: AudioPlayer.volume -= 0.05; context: Qt.ApplicationShortcut }
     Shortcut { sequence: "M"; onActivated: AudioPlayer.muted = !AudioPlayer.muted; context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "S"; onActivated: AudioPlayer.shuffle = !AudioPlayer.shuffle; context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "C"; onActivated: AudioPlayer.loop = (AudioPlayer.loop + 1) % 3; context: Qt.ApplicationShortcut }
 
     layer.enabled: Config.csd && visibility != 4
     layer.effect: OpacityMask {
