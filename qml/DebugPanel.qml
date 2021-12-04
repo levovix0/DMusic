@@ -13,7 +13,7 @@ FloatingPanel {
 
   DTextBox {
     id: _id
-    width: 155
+    width: 185
     height: 20
     anchors.left: parent.left
     anchors.top: parent.top
@@ -100,27 +100,10 @@ FloatingPanel {
   }
 
   IconButton {
-    id: _track
-    width: 20
-    height: 20
-    anchors.left: _id.right
-    anchors.top: _id.top
-    src: "qrc:/resources/debug/track.svg"
-    anchors.leftMargin: 12
-
-    onClicked: {
-      if (_id.text === "") return
-      try {
-        player.player.play(YClient.oneTrack(parseInt(_id.text)))
-      } catch (e) {}
-    }
-  }
-
-  IconButton {
     id: _playlist
     width: 20
     height: 20
-    anchors.left: _track.right
+    anchors.left: _id.right
     anchors.top: _id.top
     anchors.leftMargin: 12
     src: "qrc:/resources/debug/playlist.svg"
@@ -128,7 +111,7 @@ FloatingPanel {
     onClicked: {
       if (_id.text === "") return
       try {
-        YClient.playYPlaylist(YClient.playlist(parseInt(_id.text)))
+        AudioPlayer.playYmUserPlaylist(parseInt(_id.text))
       } catch (e) {}
     }
   }
@@ -142,7 +125,7 @@ FloatingPanel {
     anchors.leftMargin: 12
     src: "qrc:/resources/debug/downloads.svg"
 
-    onClicked: YClient.playDownloads()
+    onClicked: AudioPlayer.playDownloads()
   }
 
   IconButton {
@@ -157,7 +140,7 @@ FloatingPanel {
     onClicked: {
       if (_id.text === "") return
       try {
-        player.player.play(YClient.userTrack(parseInt(_id.text)))
+        AudioPlayer.playUserTrack(parseInt(_id.text))
       } catch (e) {}
     }
   }
@@ -174,9 +157,9 @@ FloatingPanel {
     onClicked: {
       if (!_media.hasContent) return
       if (!_cover.hasContent) {
-        YClient.addUserTrack(_media.content.toString(), "", _title.text, _artists.text, _comment.text)
+        AudioPlayer.addUserTrack(_media.content.toString(), "", _title.text, _artists.text, _comment.text)
       } else {
-        YClient.addUserTrack(_media.content.toString(), _cover.content.toString(), _title.text, _artists.text, _comment.text)
+        AudioPlayer.addUserTrack(_media.content.toString(), _cover.content.toString(), _title.text, _artists.text, _comment.text)
       }
     }
   }

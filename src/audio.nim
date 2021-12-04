@@ -1,6 +1,6 @@
 {.used.}
 import sequtils, strutils, options, times, math, random, algorithm, os
-import qt, configuration, api, utils, async, messages
+import qt, configuration, api, utils, async, messages, taglib
 import yandexMusic except Track
 
 randomize()
@@ -462,6 +462,34 @@ qobject AudioPlayer:
   property bool paused:
     get: player.state == psPaused
     notify stateChanged
+  
+  proc playYmUserPlaylist(id: int) =
+    cancel getTrackAudioProcess
+    getTrackAudioProcess = doAsync:
+      let owner = currentUser().await.id
+      var tracks: seq[Track]
+      if id == 3:
+        tracks = currentUser().await.likedTracks.await.mapit(yandexTrack it)
+        tracks.insert userTracks().filterit(it.liked.await)
+      else:
+        tracks = Playlist(id: id, ownerId: owner).tracks.await.mapit(yandexTrack it)
+      await play(tracks, (id, owner))
+  
+  proc playDownloads =
+    cancel getTrackAudioProcess
+    getTrackAudioProcess = doAsync:
+      await play(downloadedYandexTracks(), (0, 0))
+  
+  proc addUserTrack(file, cover, title, comment, artists: string) =
+    createDir dataDir / "user"
+    let filename = dataDir / "user" / ($(userTracks().mapit(try: it.file.splitFile.name.parseInt except: 0).max + 1) & ".mp3")
+    copyFile (if file.startsWith("file://"): file[7..^1] else: file), filename
+    let coverdata =
+      if cover == "": ""
+      elif cover.startsWith("file://"): readFile cover[7..^1]
+      else: readFile cover
+      # TODO: http: handling
+    writeTrackMetadata(filename, title, comment, artists, coverdata, false)
     
   proc `=new` =
     notifyStateChanged &= proc() = this.stateChanged

@@ -112,6 +112,15 @@ proc userTracks*: seq[Track] =
         user: (file: path, metadata: readTrackMetadata(path))
       )
 
+proc downloadedYandexTracks*: seq[Track] =
+  let dir = dataDir / "yandex"
+  for (kind, path) in walkDir(dir):
+    if kind in {pcFile, pcLinkToFile} and path.endsWith(".mp3"):
+      result.add Track(
+        kind: TrackKind.yandexFromFile,
+        yandexFromFile: (file: path, metadata: readTrackMetadata(path))
+      )
+
 
 proc audio*(this: Track): Future[string] {.async.} =
   return case this.kind
