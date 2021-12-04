@@ -157,9 +157,9 @@ FloatingPanel {
     onClicked: {
       if (!_media.hasContent) return
       if (!_cover.hasContent) {
-        AudioPlayer.addUserTrack(_media.content.toString(), "", _title.text, _artists.text, _comment.text)
+        AudioPlayer.addUserTrack(_media.content.toString(), "", _title.text, _comment.text, _artists.text)
       } else {
-        AudioPlayer.addUserTrack(_media.content.toString(), _cover.content.toString(), _title.text, _artists.text, _comment.text)
+        AudioPlayer.addUserTrack(_media.content.toString(), _cover.content.toString(), _title.text, _comment.text, _artists.text)
       }
     }
   }
