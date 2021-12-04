@@ -1,20 +1,20 @@
 when defined(windows):
-  type
-    TLocaleName = enum
-      # Numbers are based on hex codes for their respective language in the WinAPI.
-      # See MSDN -> http://msdn.microsoft.com/en-us/library/dd318693(v=VS.85).aspx
-      Chinese = 4,
-      German = 7,
-      English = 9,
-      Spanish = 10,
-      Japanese = 11,
-      French = 12,
-      Italian = 16,
-      Polish = 21
+  const
+    # Numbers are based on hex codes for their respective language in the WinAPI.
+    # See MSDN -> http://msdn.microsoft.com/en-us/library/dd318693(v=VS.85).aspx
+    Chinese = 4
+    German = 7
+    English = 9
+    Spanish = 10
+    Japanese = 11
+    French = 12
+    Italian = 16
+    Polish = 21
+    Russian = 25
   proc GetUserDefaultLangID(): int {.importc, dynlib: "Kernel32.dll".}
 
   proc systemLocale*: tuple[lang, variant: string] =
-    let lang = TLocaleName(GetUserDefaultLangID() and 0x00FF)
+    let lang = GetUserDefaultLangID() and 0x00FF
     case lang
     of Chinese: ("zh", "")
     of German: ("de", "")
@@ -24,6 +24,7 @@ when defined(windows):
     of French: ("fr", "")
     of Italian: ("it", "")
     of Polish: ("pl", "")
+    of Russian: ("ru", "")
     else: ("en", "")
 
 else:

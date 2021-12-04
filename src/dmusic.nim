@@ -19,7 +19,7 @@ resourcesFromDir "."
 
 when defined(windows):
   static:
-    writeFile "build", staticExec "windres ../dmusic.rc ../build/dmusic.o"
+    echo staticExec "windres ../dmusic.rc ../build/dmusic.o"
   {.link: "build/dmusic.o".}
 
 
