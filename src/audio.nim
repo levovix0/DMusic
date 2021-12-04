@@ -346,6 +346,19 @@ qobject PlayingTrackInfo:
       self.process.add: doAsync:
         self.disliked = currentTrack.disliked.await
         this.dislikedChanged
+      
+      if config.ym_saveAllTracks:
+        if self.saveProcess != nil: return
+        self.saveProcess = doAsync:
+          await currentTrack.save(progressReport = proc(total, progress, speed: BiggestInt) {.async.} =
+            if total == 0: self.saveProgress = 0
+            else: self.saveProgress = progress.int / total.int
+            this.saveProgressChanged
+          )
+          self.saveProcess = nil
+          self.saveProgress = 0
+          this.infoChanged
+          this.saveProgressChanged
 
     notifyPositionChanged &= proc() = this.positionChanged
   
