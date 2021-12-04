@@ -2,8 +2,6 @@ import QtQuick 2.15
 import DMusic 1.0
 import "components"
 
-//TODO: пофиксить анимацию
-
 Item {
   id: root
 
@@ -12,6 +10,25 @@ Item {
   property string comment: ""
   property int trackId
   property bool liked: false
+
+  states: [
+    State {
+      name: "hover"
+      when: _mouse_title.containsMouse || _mouse_comment.containsMouse || _mouse_artists.containsMouse
+      PropertyChanges {
+        target: _fullInfo
+        opacity: 1
+      }
+      PropertyChanges {
+        target: _shade
+        opacity: 0
+      }
+    }
+  ]
+
+  transitions: Transition {
+    NumberAnimation { properties: "opacity"; duration: 250; easing.type: Easing.OutQuad; }
+  }
 
   signal toggleLiked()
 
@@ -30,16 +47,14 @@ Item {
       color: Style.panel.text.color
 
       MouseArea {
+        id: _mouse_title
         anchors.fill: parent
         enabled: root.trackId != 0
 
         cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
         hoverEnabled: true
 
-        onClicked: Clipboard.text = root.trackId;
-
-        onEntered: _full_titleAndComment.show()
-        onExited: _full_titleAndComment.hide()
+        onClicked: Clipboard.text = root.trackId
       }
     }
 
@@ -55,12 +70,10 @@ Item {
       color: Style.darkHeader? "#999999" : "#999999"
 
       MouseArea {
+        id: _mouse_comment
         anchors.fill: parent
 
         hoverEnabled: true
-
-        onEntered: _full_titleAndComment.show()
-        onExited: _full_titleAndComment.hide()
       }
     }
 
@@ -74,55 +87,25 @@ Item {
       color: Style.darkHeader? "#CCCCCC" : "#515151"
 
       MouseArea {
+        id: _mouse_artists
         anchors.fill: parent
 
         hoverEnabled: true
-
-        onEntered: _full_artists_box.show()
-        onExited: _full_artists_box.hide()
       }
     }
+  }
 
-    Rectangle {
-      id: _shade_titleAndExtra
-      width: 10
-      height: Math.max(_title.height, _comment.height)
-      anchors.right: parent.right
-      anchors.verticalCenter: _title.verticalCenter
+  Rectangle {
+    id: _shade
+    width: 10
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.right: parent.right
 
-      OpacityAnimator {
-        target: _shade_titleAndExtra
-        id: _anim_shade_titleAndComment_opacity
-        duration: 300
-        easing.type: Easing.OutCubic
-      }
-
-      gradient: Gradient {
-        orientation: Gradient.Horizontal
-        GradientStop { position: 0.0; color: "transparent" }
-        GradientStop { position: 1.0; color: Style.panel.background }
-      }
-    }
-
-    Rectangle {
-      id: _shade_artists
-      width: 10
-      height: _artists.height
-      anchors.right: parent.right
-      anchors.verticalCenter: _artists.verticalCenter
-
-      OpacityAnimator {
-        target: _shade_artists
-        id: _anim_shade_artists_opacity
-        duration: 300
-        easing.type: Easing.OutCubic
-      }
-
-      gradient: Gradient {
-        orientation: Gradient.Horizontal
-        GradientStop { position: 0.0; color: "transparent" }
-        GradientStop { position: 1.0; color: Style.panel.background }
-      }
+    gradient: Gradient {
+      orientation: Gradient.Horizontal
+      GradientStop { position: 0.0; color: "transparent" }
+      GradientStop { position: 1.0; color: Style.panel.background }
     }
   }
 
@@ -139,50 +122,19 @@ Item {
   }
 
   Rectangle {
-    id: _full_titleAndComment
-    height: Math.max(_full_title.height, _full_extra.height) + 6
-    width: _full_title.width + 5 + _full_extra.width + 5 - root.width
-    anchors.bottom: parent.verticalCenter
-    anchors.bottomMargin: -1
-    x: root.width
-
-    property bool showing: false
-
-    clip: true
+    id: _fullInfo
+    anchors.top: parent.top
+    anchors.bottom: parent.bottom
+    anchors.left: parent.right
+    width: Math.max(_full_title.width + 5 + _full_comment.width + 5 - root.width, _full_artists.width + 5 - root.width)
     opacity: 0
     color: Style.panel.background
-
-    OpacityAnimator {
-      target: _full_titleAndComment
-      id: _anim_full_titleAndComment_opacity
-      duration: 300
-      easing.type: Easing.OutCubic
-    }
-
-    function show() {
-      if (showing) return
-      showing = true
-      _anim_full_titleAndComment_opacity.from = 0
-      _anim_full_titleAndComment_opacity.to = 1
-      _anim_full_titleAndComment_opacity.restart()
-      _anim_shade_titleAndComment_opacity.from = 1
-      _anim_shade_titleAndComment_opacity.to = 0
-      _anim_shade_titleAndComment_opacity.restart()
-    }
-    function hide() {
-      if (!showing) return
-      showing = false
-      _anim_full_titleAndComment_opacity.from = 1
-      _anim_full_titleAndComment_opacity.to = 0
-      _anim_full_titleAndComment_opacity.restart()
-      _anim_shade_titleAndComment_opacity.from = 0
-      _anim_shade_titleAndComment_opacity.to = 1
-      _anim_shade_titleAndComment_opacity.restart()
-    }
+    clip: true
 
     DText {
       id: _full_title
-      anchors.verticalCenter: parent.verticalCenter
+      anchors.bottom: parent.verticalCenter
+      anchors.bottomMargin: 2
       x: -root.width
 
       text: title
@@ -191,8 +143,9 @@ Item {
     }
 
     DText {
-      id: _full_extra
-      anchors.verticalCenter: parent.verticalCenter
+      id: _full_comment
+      anchors.bottom: parent.verticalCenter
+      anchors.bottomMargin: 2
       anchors.left: _full_title.right
       anchors.leftMargin: 5
 
@@ -200,54 +153,11 @@ Item {
       font.pointSize: 10.5
       color: Style.darkHeader? "#999999" : "#999999"
     }
-  }
-
-
-  Rectangle {
-    id: _full_artists_box
-    height: Math.max(_full_title.height, _full_extra.height) + 3
-    width: _full_artists.width + 5 - root.width
-    anchors.top: parent.verticalCenter
-    anchors.topMargin: 2
-    x: root.width
-
-    property bool showing: false
-
-    clip: true
-    opacity: 0
-    color: Style.panel.background
-
-    OpacityAnimator {
-      target: _full_artists_box
-      id: _anim_full_artists_opacity
-      duration: 300
-      easing.type: Easing.OutCubic
-    }
-
-    function show() {
-      if (showing) return
-      showing = true
-      _anim_full_artists_opacity.from = 0
-      _anim_full_artists_opacity.to = 1
-      _anim_full_artists_opacity.restart()
-      _anim_shade_artists_opacity.from = 1
-      _anim_shade_artists_opacity.to = 0
-      _anim_shade_artists_opacity.restart()
-    }
-    function hide() {
-      if (!showing) return
-      showing = false
-      _anim_full_artists_opacity.from = 1
-      _anim_full_artists_opacity.to = 0
-      _anim_full_artists_opacity.restart()
-      _anim_shade_artists_opacity.from = 0
-      _anim_shade_artists_opacity.to = 1
-      _anim_shade_artists_opacity.restart()
-    }
 
     DText {
       id: _full_artists
-      anchors.top: parent.top
+      anchors.top: parent.verticalCenter
+      anchors.topMargin: 2
       x: -root.width
 
       text: artists

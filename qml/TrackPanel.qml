@@ -15,7 +15,7 @@ FloatingPanel {
 
     RoundedImage {
       id: _icon
-      source: ppc.opened? PlayingTrackInfo.hqCover : ""
+      source: (ppc.opened || ppc.running)? PlayingTrackInfo.hqCover : ""
       anchors.left: parent.left
       anchors.top: parent.top
       anchors.leftMargin: 15
