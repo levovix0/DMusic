@@ -112,6 +112,7 @@
         <file>resources/covers/favorite.svg</file>
         <file>qml/SearchPanel.qml</file>
         <file>qml/DownloadPanel.qml</file>
+        <file>qml/TrackPanel.qml</file>
         <file>qml/components/LinkText.qml</file>
         <file>qml/SearchFilterToggle.qml</file>
         <file>resources/search/album.svg</file>

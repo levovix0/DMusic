@@ -1,4 +1,5 @@
-import QtQuick 2.0
+import QtQuick 2.15
+import QtQml 2.15
 import "components"
 
 Item {
@@ -22,10 +23,30 @@ Item {
   }
 
   MouseArea {
+    id: _mouse
     anchors.fill: _icon
     enabled: (src.toString().length > 0) && (src.toString().slice(0, 4) !== "qrc:")
 
     cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
-    onClicked: Qt.openUrlExternally(originalUrl)
+    onClicked: _ppc.opened = !_ppc.opened //Qt.openUrlExternally(originalUrl)
+  }
+
+  PopupController {
+    id: _ppc
+    target: _panel
+    Binding { target: _ppc; property: "opened"; value: false; when: !_mouse.enabled; restoreMode: Binding.RestoreBinding }
+  }
+
+  TrackPanel {
+    id: _panel
+    anchors.horizontalCenter: parent.horizontalCenter
+    anchors.bottom: parent.top
+    anchors.bottomMargin: 20 - _ppc.shift
+    anchors.horizontalCenterOffset: 100
+
+    triangleOffset: -anchors.horizontalCenterOffset
+    triangleCenter: _panel.horizontalCenter
+
+    ppc: _ppc
   }
 }

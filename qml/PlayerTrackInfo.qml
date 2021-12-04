@@ -132,7 +132,7 @@ Item {
     x: Math.round(Math.min(_title.width + (_comment.text == ""? 0 : _comment.width + 2) + 5, root.width + 2))
     anchors.bottomMargin: -1
 
-    visible: root.trackId != 0
+    visible: PlayingTrackInfo.hasLiked
     icon: root.liked? "qrc:/resources/player/liked.svg" : "qrc:/resources/player/like.svg"
 
     onClick: root.toggleLiked()

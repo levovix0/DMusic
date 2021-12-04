@@ -206,6 +206,7 @@ proc progress*: float =
 type PlayingTrackInfo = object
   cover: string
   liked: bool
+  hasLiked: bool
   process: seq[Future[void]]
   saveProcess: Future[void]
   saveProgress: float
@@ -255,6 +256,10 @@ qobject PlayingTrackInfo:
       self.liked = value
       this.likedChanged
     notify
+  
+  property bool hasLiked:
+    get: self.hasLiked
+    notify likedChanged
 
   property string cover:
     get: self.cover
@@ -294,6 +299,8 @@ qobject PlayingTrackInfo:
       
       wasMoved self
       self.cover = emptyCover
+      self.liked = false
+      self.hasLiked = false
 
       this.infoChanged
       this.coverChanged
@@ -305,6 +312,7 @@ qobject PlayingTrackInfo:
       
       self.process.add: doAsync:
         self.liked = currentTrack.liked.await
+        self.hasLiked = true
         this.likedChanged
 
     notifyPositionChanged &= proc() = this.positionChanged
