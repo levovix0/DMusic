@@ -17,6 +17,11 @@ macro resourcesFromDir*(dir: static[string] = ".") =
 
 resourcesFromDir "."
 
+when defined(windows):
+  static:
+    writeFile "build", staticExec "windres ../dmusic.rc ../build/dmusic.o"
+  {.link: "build/dmusic.o".}
+
 
 var infinityLoop = doAsync:
   var darkTime = config.darkTheme

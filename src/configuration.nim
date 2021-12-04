@@ -71,13 +71,32 @@ proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts, qobj
         newIdentDefs(i"config", s"ConfigObj")
       empty()
       empty()
-      call i"get":
-        curlyExpr:
-          call i"JsonNode", i"config"
-          for x in path: newLit x
-          newLit $aname
-        command i"type", typ
-        if def.isSome: def.get
+      ifStmt:
+        elifBranch:
+          call i"!=":
+            curlyExpr:
+              call i"JsonNode", i"config"
+              for x in path: newLit x
+              newLit $aname
+            nilLit()
+          call i"get":
+            curlyExpr:
+              call i"JsonNode", i"config"
+              for x in path: newLit x
+              newLit $aname
+            command i"type", typ
+            if def.isSome: def.get
+        Else:
+          if def.isSome: def.get
+          else:
+            call i"default": call i"typeof":
+              call i"get":
+                curlyExpr:
+                  call i"JsonNode", i"config"
+                  for x in path: newLit x
+                  newLit $aname
+                command i"type", typ
+                if def.isSome: def.get
     
     stmts.add: buildAst(procDef):
       postfix i"*", accQuoted(name, i"=")

@@ -1,5 +1,4 @@
 when defined(windows):
-  import windows
   type
     TLocaleName = enum
       # Numbers are based on hex codes for their respective language in the WinAPI.
@@ -12,9 +11,10 @@ when defined(windows):
       French = 12,
       Italian = 16,
       Polish = 21
-  
+  proc GetUserDefaultLangID(): int {.importc, dynlib: "Kernel32.dll".}
+
   proc systemLocale*: tuple[lang, variant: string] =
-    let lang = (GetUserDefaultLangID() and 0x00FF)
+    let lang = TLocaleName(GetUserDefaultLangID() and 0x00FF)
     case lang
     of Chinese: ("zh", "")
     of German: ("de", "")

@@ -1,4 +1,4 @@
-<img alt="DMusic" align="left" width="110" src="https://github.com/levovix0/DMusic/blob/master/resources/app-papirus.svg">
+<img alt="DMusic" align="left" width="110" src="https://github.com/levovix0/DMusic/blob/master/resources/app.svg">
 <p>
   <h3>DMusic: open source Yandex.Music client / music player</h3>
   Uses <a href="https://github.com/MarshalX/yandex-music-api">unoffical Yandex.Music Api</a> translated from Python to Nim
