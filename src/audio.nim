@@ -481,12 +481,17 @@ qobject AudioPlayer:
       await play(downloadedYandexTracks(), (0, 0))
   
   proc addUserTrack(file, cover, title, comment, artists: string) =
+    proc unfile(file: string): string =
+      when defined(windows):
+        if file.startsWith("file:///"): file[8..^1] else: file
+      else:
+        if file.startsWith("file://"): file[7..^1] else: file
     createDir dataDir / "user"
     let filename = dataDir / "user" / ($(userTracks().mapit(try: it.file.splitFile.name.parseInt except: 0).max + 1) & ".mp3")
-    copyFile (if file.startsWith("file://"): file[7..^1] else: file), filename
+    copyFile file.unfile, filename
     let coverdata =
       if cover == "": ""
-      elif cover.startsWith("file://"): readFile cover[7..^1]
+      elif cover.startsWith("file:"): readFile cover.unfile
       else: readFile cover
       # TODO: http: handling
     writeTrackMetadata(filename, title, comment, artists, coverdata, false)
