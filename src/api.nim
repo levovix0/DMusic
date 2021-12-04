@@ -135,6 +135,18 @@ proc cover*(this: Track): Future[string] {.async.} =
     else: "data:image/png;base64," & this.user.metadata.cover.encode
   else: ""
 
+proc hqCover*(this: Track): Future[string] {.async.} =
+  return case this.kind
+  of TrackKind.yandex:
+    yandexMusicQmlModule.cover(this.yandex, quality=1000).await
+  of TrackKind.yandexFromFile:
+    if this.yandexFromFile.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
+  of TrackKind.user:
+    if this.user.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.user.metadata.cover.encode
+  else: ""
+
 proc title*(this: Track): string =
   return case this.kind
   of TrackKind.yandex:
@@ -184,17 +196,34 @@ proc `liked=`*(this: Track, v: bool) {.async.} =
     template x: untyped = this.yandexFromFile.metadata
     this.yandexFromFile.metadata.liked = v
     writeTrackMetadata(this.yandexFromFile.file, x.title, x.comment, x.artists, "", v, writeCover=false)
+    ## TODO fetch and like
   of TrackKind.user:
     template x: untyped = this.user.metadata
     this.user.metadata.liked = v
     writeTrackMetadata(this.user.file, x.title, x.comment, x.artists, "", v, writeCover=false)
   else: discard
 
+proc disliked*(this: Track): Future[bool] {.async.} =
+  return case this.kind
+  of TrackKind.yandex:
+    this.yandex.disliked.await
+  of TrackKind.yandexFromFile:
+    # this.yandexFromFile.metadata.disliked
+    false
+  of TrackKind.user:
+    # this.user.metadata.disliked
+    false
+  else: false
+
 proc `disliked=`*(this: Track, v: bool) {.async.} =
   case this.kind
   of TrackKind.yandex:
     if v: currentUser().await.dislike(this.yandex).await
     else: currentUser().await.undislike(this.yandex).await
+  of TrackKind.yandexFromFile:
+    ## TODO fetch and dislike
+  of TrackKind.user:
+    ## TODO
   else: discard
 
 proc duration*(this: Track): int =

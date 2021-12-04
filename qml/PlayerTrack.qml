@@ -4,7 +4,6 @@ Item {
   id: root
 
   property url icon: ""
-  property url originalUrl: ""
   property string title: ""
   property string artists: ""
   property string comment: ""
@@ -18,7 +17,6 @@ Item {
     anchors.verticalCenter: root.verticalCenter
 
     src: icon
-    originalUrl: root.originalUrl
   }
 
   PlayerTrackInfo {

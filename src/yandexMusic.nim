@@ -270,8 +270,23 @@ proc likedTracks*(user: Account): Future[seq[TrackId]] {.async.} =
   
   result = result.filterit(it.id != 0)
 
+proc dislikedTracks*(user: Account): Future[seq[TrackId]] {.async.} =
+  ## get tracks that user liked
+  let response = request(
+    &"{baseUrl}/users/{user.id}/dislikes/tracks"
+  ).await.parseJson
+
+  for track in response{"result", "library", "tracks"}:
+    result.add track.parseTrackId
+  
+  result = result.filterit(it.id != 0)
+
+
 proc liked*(user: Account, track: TrackId): Future[bool] {.async.} =
   return track in user.likedTracks.await
+
+proc disliked*(user: Account, track: TrackId): Future[bool] {.async.} =
+  return track in user.dislikedTracks.await
 
 
 proc landing*(blocks: string): Future[JsonNode] {.async.} =

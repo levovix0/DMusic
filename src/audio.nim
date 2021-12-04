@@ -205,7 +205,9 @@ proc progress*: float =
 
 type PlayingTrackInfo = object
   cover: string
+  hqCover: string
   liked: bool
+  disliked: bool
   hasLiked: bool
   process: seq[Future[void]]
   saveProcess: Future[void]
@@ -264,6 +266,28 @@ qobject PlayingTrackInfo:
   property string cover:
     get: self.cover
     notify
+
+  property string hqCover:
+    get:
+      if self.hqCover == "":
+        var instant = true
+        self.process.add: doAsync:
+          self.hqCover = currentTrack.hqCover.await
+          if not instant:
+            this.hqCoverChanged
+        instant = false
+      if self.hqCover != "": self.hqCover
+      else: emptyCover
+    notify
+
+  property bool disliked:
+    get: self.disliked
+    set:
+      self.process.add: doAsync:
+        await (currentTrack.disliked = value)
+      self.disliked = value
+      this.dislikedChanged
+    notify
   
   property string originalUrl:
     get:
@@ -299,12 +323,16 @@ qobject PlayingTrackInfo:
       
       wasMoved self
       self.cover = emptyCover
+      self.hqCover = ""
       self.liked = false
       self.hasLiked = false
+      self.disliked = false
 
       this.infoChanged
       this.coverChanged
+      this.hqCoverChanged
       this.likedChanged
+      this.dislikedChanged
       
       self.process.add: doAsync:
         self.cover = currentTrack.cover.await
@@ -314,6 +342,10 @@ qobject PlayingTrackInfo:
         self.liked = currentTrack.liked.await
         self.hasLiked = true
         this.likedChanged
+      
+      self.process.add: doAsync:
+        self.disliked = currentTrack.disliked.await
+        this.dislikedChanged
 
     notifyPositionChanged &= proc() = this.positionChanged
   
@@ -331,6 +363,10 @@ qobject PlayingTrackInfo:
   
   property string folder:
     get: currentTrack.file.splitPath.head
+    notify infoChanged
+  
+  property bool isNone:
+    get: currentTrack.kind == TrackKind.none
     notify infoChanged
   
   proc save =

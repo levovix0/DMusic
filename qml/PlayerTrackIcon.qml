@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtQml 2.15
+import DMusic 1.0
 import "components"
 
 Item {
@@ -8,7 +9,6 @@ Item {
   height: 50
 
   property url src: ""
-  property url originalUrl: ""
 
   RoundedImage {
     id: _icon
@@ -19,16 +19,16 @@ Item {
 
     fillMode: Image.PreserveAspectCrop
     clip: true
-    radius: 8
+    radius: 7.5
   }
 
   MouseArea {
     id: _mouse
     anchors.fill: _icon
-    enabled: (src.toString().length > 0) && (src.toString().slice(0, 4) !== "qrc:")
+    enabled: !PlayingTrackInfo.isNone
 
     cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
-    onClicked: _ppc.opened = !_ppc.opened //Qt.openUrlExternally(originalUrl)
+    onClicked: _ppc.opened = !_ppc.opened
   }
 
   PopupController {

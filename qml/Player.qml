@@ -153,7 +153,6 @@ Rectangle {
     height: root.height
 
     icon: PlayingTrackInfo.cover
-    originalUrl: PlayingTrackInfo.originalUrl
     title: PlayingTrackInfo.title
     artists: PlayingTrackInfo.artists
     comment: PlayingTrackInfo.comment

@@ -146,7 +146,6 @@ Window {
     Shortcut { sequence: "Space"; onActivated: AudioPlayer.playing? AudioPlayer.pause() : AudioPlayer.play(); context: Qt.ApplicationShortcut }
     Shortcut { sequence: "Right"; onActivated: AudioPlayer.next(); context: Qt.ApplicationShortcut }
     Shortcut { sequence: "Left"; onActivated: AudioPlayer.prev(); context: Qt.ApplicationShortcut }
-    Shortcut { sequence: "L"; onActivated: _player.toggleLiked(); context: Qt.ApplicationShortcut }
     Shortcut { sequence: "D"; onActivated: AudioPlayer.next(); context: Qt.ApplicationShortcut }
     Shortcut { sequence: "A"; onActivated: AudioPlayer.prev(); context: Qt.ApplicationShortcut }
     Shortcut { sequence: "Ctrl+S"; onActivated: PlayingTrackInfo.save(); context: Qt.ApplicationShortcut }

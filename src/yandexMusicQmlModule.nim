@@ -27,11 +27,14 @@ type SearchModel = object
 proc search(query: string): Future[seq[Track]] {.async.} =
   result = yandexMusic.search(query).await.tracks
 
-proc cover*(track: Track): Future[string] {.async.} =
-  return track.coverBase64(50).await
+proc cover*(track: Track, quality = 50): Future[string] {.async.} =
+  return track.coverBase64(quality).await
 
 proc liked*(track: Track): Future[bool] {.async.} =
   return currentUser().await.liked(track).await
+
+proc disliked*(track: Track): Future[bool] {.async.} =
+  return currentUser().await.disliked(track).await
 
 const searchModelMaxLen = 5
 
