@@ -125,14 +125,31 @@ Rectangle {
 
     PopupController {
       id: _spc
-      opened: _search.input.focus
+      opened: GlobalFocus.item == "search"
       target: parent
     }
 
+    Component.onCompleted: {
+      _search.input.focusChanged.connect(function() {
+        if (_search.input.focus) GlobalFocus.item = "search"
+        else GlobalFocus.item = ""
+      })
+      GlobalFocus.itemChanged.connect(function() {
+        if (GlobalFocus.item == "search" && !_search.input.focus) _search.input.focus = true
+        else if (GlobalFocus.item != "search" && _search.input.focus) _search.input.focus = false
+      })
+    }
+
     Shortcut {
-      enabled: _search.input.focus
+      enabled: GlobalFocus.item == "search"
       sequence: "Esc"
-      onActivated: _search.input.focus = false
+      onActivated: GlobalFocus.item = ""
+    }
+
+    Shortcut {
+      enabled: GlobalFocus.item != "search"
+      sequence: "F"
+      onActivated: GlobalFocus.item = "search"
     }
   }
 

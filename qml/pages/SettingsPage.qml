@@ -22,24 +22,30 @@ DPage {
     ScrollBar.vertical.policy: ScrollBar.AlwaysOff
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-    ColumnLayout {
-      id: _layout
+    MouseArea {
       width: root.width
-      spacing: 40
+      height: _layout.height
+      onClicked: GlobalFocus.item = ""
 
-      DText {
-        id: _label
-        Layout.alignment: Qt.AlignHCenter
-        visible: root.height >= 400
+      ColumnLayout {
+        id: _layout
+        width: root.width
+        spacing: 40
 
-        font.pointSize: 28
+        DText {
+          id: _label
+          Layout.alignment: Qt.AlignHCenter
+          visible: root.height >= 400
 
-        text: qsTr("Settings")
-      }
+          font.pointSize: 28
 
-      Loader {
-        Layout.alignment: Qt.AlignHCenter
-        sourceComponent: root.width >= 1040? _wide_blocks : _mini_blocks
+          text: qsTr("Settings")
+        }
+
+        Loader {
+          Layout.alignment: Qt.AlignHCenter
+          sourceComponent: root.width >= 1040? _wide_blocks : _mini_blocks
+        }
       }
     }
   }

@@ -34,3 +34,18 @@ qobject FileDialogs:
     matchFilter(file, filter)
 
 registerSingletonInQml FileDialogs, "DMusic", 1, 0
+
+
+type GlobalFocus = object
+  item: string
+
+qobject GlobalFocus:
+  property string item:
+    get: self.item
+    set:
+      if self.item == value: return
+      self.item = value
+      this.itemChanged
+    notify
+
+registerSingletonInQml GlobalFocus, "DMusic", 1, 0

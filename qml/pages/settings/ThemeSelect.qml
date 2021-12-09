@@ -21,6 +21,7 @@ Rectangle {
     anchors.fill: _bg
 
     radius: 8.0
+    samples: 20
     transparentBorder: true
     opacity: 0.5
     color: "#000000"

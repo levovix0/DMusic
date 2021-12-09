@@ -31,6 +31,7 @@ Rectangle {
     anchors.fill: _point
 
     radius: 3.0
+    samples: 7
     transparentBorder: true
     opacity: 0.3
     color: "#000000"

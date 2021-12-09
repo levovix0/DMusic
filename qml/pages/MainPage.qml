@@ -21,39 +21,45 @@ DPage {
 
     ScrollBar.vertical.policy: ScrollBar.AlwaysOff
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-    
-    ColumnLayout {
-      id: _layout
+
+    MouseArea {
       width: root.width
-      spacing: 40
+      height: _layout.height
+      onClicked: GlobalFocus.item = ""
 
-      Grid {
-        Layout.preferredWidth: root.width - 50
-        id: _yandexHomePlaylists
+      ColumnLayout {
+        id: _layout
+        width: root.width
+        spacing: 40
 
-        columns: (width + 25) / (115 + 25)
-        spacing: 25
-        rowSpacing: 0
-        horizontalItemAlignment: Qt.AlignHCenter
+        Grid {
+          Layout.preferredWidth: root.width - 50
+          id: _yandexHomePlaylists
 
-        Repeater {
-          id: _yandexHomePlaylistsRepeater
+          columns: (width + 25) / (115 + 25)
+          spacing: 25
+          rowSpacing: 0
+          horizontalItemAlignment: Qt.AlignHCenter
 
-          model: HomePlaylistsModel
+          Repeater {
+            id: _yandexHomePlaylistsRepeater
 
-          PlaylistEntry {
-            title: objTitle
-            cover: objCover
-            playlistId: objId
-            ownerId: objOwner
+            model: HomePlaylistsModel
 
-            onPlay: AudioPlayer.playYmPlaylist(objId, objOwner)
-            onShowFull: switcher("qrc:/qml/pages/PlaylistPage.qml")
+            PlaylistEntry {
+              title: objTitle
+              cover: objCover
+              playlistId: objId
+              ownerId: objOwner
+
+              onPlay: AudioPlayer.playYmPlaylist(objId, objOwner)
+              onShowFull: switcher("qrc:/qml/pages/PlaylistPage.qml")
+            }
           }
-        }
 
-        move: Transition {
-          NumberAnimation { properties: "x,y"; duration: 200; easing.type: Easing.OutQuad }
+          move: Transition {
+            NumberAnimation { properties: "x,y"; duration: 200; easing.type: Easing.OutQuad }
+          }
         }
       }
     }

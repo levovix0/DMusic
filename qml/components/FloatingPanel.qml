@@ -23,6 +23,7 @@ Item {
   DropShadow {
     anchors.fill: root
     radius: 16.0
+    samples: 30
     transparentBorder: true
     color: "#40000000"
     source: _background

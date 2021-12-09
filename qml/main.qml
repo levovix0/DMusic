@@ -48,6 +48,7 @@ Window {
     anchors.fill: _root
     enabled: Config.csd && !maximized
     opacity: 0.6
+    samples: 20
     radius: shadowRadius
     transparentBorder: true
     color: "#000000"
