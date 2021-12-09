@@ -49,7 +49,6 @@ FloatingPanel {
       PlayerControlsButton {
         icon: PlayingTrackInfo.liked? "qrc:/resources/player/liked.svg" : "qrc:/resources/player/like.svg"
         property bool value: PlayingTrackInfo.liked
-        property string shortcut: "L"
         property var action: function() {
           PlayingTrackInfo.liked = !PlayingTrackInfo.liked
         }
@@ -64,16 +63,15 @@ FloatingPanel {
         }
 
         Shortcut {
-          sequence: parent.shortcut
+          sequence: "L"
           context: Qt.ApplicationShortcut
-          onActivated: action()
+          onActivated: PlayingTrackInfo.liked = !PlayingTrackInfo.liked
         }
       }
 
       PlayerControlsButton {
         icon: "qrc:/resources/player/dislike.svg"
         property bool value: PlayingTrackInfo.disliked
-        property string shortcut: "Ctrl+L"
         property var action: function() {
           PlayingTrackInfo.disliked = !PlayingTrackInfo.disliked
         }
@@ -88,9 +86,9 @@ FloatingPanel {
         }
 
         Shortcut {
-          sequence: parent.shortcut
+          sequence: "Ctrl+L"
           context: Qt.ApplicationShortcut
-          onActivated: action()
+          onActivated: PlayingTrackInfo.disliked = !PlayingTrackInfo.disliked
         }
       }
     }
