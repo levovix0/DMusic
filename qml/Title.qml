@@ -128,6 +128,12 @@ Rectangle {
       opened: _search.input.focus
       target: parent
     }
+
+    Shortcut {
+      enabled: _search.input.focus
+      sequence: "Esc"
+      onActivated: _search.input.focus = false
+    }
   }
 
   ResizeArea {

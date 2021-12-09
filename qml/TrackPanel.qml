@@ -49,18 +49,12 @@ FloatingPanel {
       PlayerControlsButton {
         icon: PlayingTrackInfo.liked? "qrc:/resources/player/liked.svg" : "qrc:/resources/player/like.svg"
         property bool value: PlayingTrackInfo.liked
-        property var action: function() {
-          PlayingTrackInfo.liked = !PlayingTrackInfo.liked
-        }
 
         width: 20
         height: 20
 
         style: value? Style.panel.icon.accent : Style.panel.icon.normal
-        onClick: {
-          action()
-          ppc.opened = false
-        }
+        onClick: PlayingTrackInfo.liked = !PlayingTrackInfo.liked
 
         Shortcut {
           sequence: "L"
@@ -72,18 +66,12 @@ FloatingPanel {
       PlayerControlsButton {
         icon: "qrc:/resources/player/dislike.svg"
         property bool value: PlayingTrackInfo.disliked
-        property var action: function() {
-          PlayingTrackInfo.disliked = !PlayingTrackInfo.disliked
-        }
 
         width: 20
         height: 20
 
         style: value? Style.panel.icon.accent : Style.panel.icon.normal
-        onClick: {
-          action()
-          ppc.opened = false
-        }
+        onClick: PlayingTrackInfo.disliked = !PlayingTrackInfo.disliked
 
         Shortcut {
           sequence: "Ctrl+L"

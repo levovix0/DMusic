@@ -1,6 +1,7 @@
 import QtQuick 2.15
-import DMusic 1.0
+import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
+import DMusic 1.0
 import ".."
 import "../components"
 import "settings"
@@ -8,27 +9,22 @@ import "settings"
 DPage {
   id: root
   property real scroll: 0
-  property real maximumScroll: _layout.height - height + (_label.visible? 30 : 10) + 20
 
-  function boundScroll() {
-    var ms = maximumScroll > 0? maximumScroll : 0
-    if (scroll < 0) scroll = 0
-    else if (scroll > ms) scroll = ms
-  }
-
-  onScrollChanged: boundScroll()
-  onHeightChanged: boundScroll()
-
-  MouseArea {
+  ScrollView {
+    id: _scroll
     anchors.fill: parent
+    clip: true
+    leftPadding: 10
+    bottomPadding: 10
+    rightPadding: 10
+    topPadding: _label.visible? 30 : 10
 
-    onWheel: root.scroll -= wheel.angleDelta.y / 120 * 25
+    ScrollBar.vertical.policy: ScrollBar.AlwaysOff
+    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
     ColumnLayout {
       id: _layout
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.top: parent.top
-      anchors.topMargin: (_label.visible? 30 : 10) - root.scroll
+      width: root.width
       spacing: 40
 
       DText {
@@ -42,6 +38,7 @@ DPage {
       }
 
       Loader {
+        Layout.alignment: Qt.AlignHCenter
         sourceComponent: root.width >= 1040? _wide_blocks : _mini_blocks
       }
     }
