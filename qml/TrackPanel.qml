@@ -10,10 +10,6 @@ FloatingPanel {
 
   property PopupController ppc
 
-  MouseArea {
-    anchors.fill: parent
-  }
-
   Item {
     anchors.fill: parent
 

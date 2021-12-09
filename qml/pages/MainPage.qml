@@ -24,7 +24,7 @@ DPage {
 
     MouseArea {
       width: root.width
-      height: _layout.height
+      height: Math.max(_layout.height, root.height)
       onClicked: GlobalFocus.item = ""
 
       ColumnLayout {

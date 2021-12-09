@@ -38,4 +38,9 @@ Item {
 
     color: root.color
   }
+
+  MouseArea {
+    anchors.fill: parent
+    hoverEnabled: true
+  }
 }
