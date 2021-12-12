@@ -1,4 +1,4 @@
-import unicode, times, sequtils, tables
+import unicode, times, sequtils, tables, json
 
 type
   CacheTable*[K, V] = object
@@ -66,3 +66,14 @@ template `[]=`*[K, V](this: var CacheTable[K, V], k: K, v: V) =
 proc garbageCollect*[K, V](this: var CacheTable[K, V], storeTime: Duration = initDuration(minutes = 1)) =
   let now = getTime()
   this.table.filterit(now - v[1] <= storeTime)
+
+
+proc get*(x: JsonNode, t: type): t =
+  if x == nil: t.default
+  else:
+    try: x.to(t) except: t.default
+
+proc get*(x: JsonNode, t: type, default: t): t =
+  if x == nil: default
+  else:
+    try: x.to(t) except: default

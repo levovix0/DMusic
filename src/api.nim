@@ -74,13 +74,14 @@ proc save*(this: Track, file: string, progressReport: ProgressReportCallback = n
   if this.kind == TrackKind.yandex:
     createDir file.splitPath.head
     let (title, comment, artists) = (this.yandex.title, this.yandex.comment, this.yandex.artists.mapit(it.name).join(", "))
-    let (audio, cover, liked) = (
+    let (audio, cover, liked, disliked) = (
       this.yandex.audioUrl.await.request(progressReport=progressReport),
       this.yandex.coverUrl(1000).request,
-      this.yandex.liked
+      this.yandex.liked,
+      this.yandex.disliked
     )
     writeFile file, audio.await
-    writeTrackMetadata(file, title, comment, artists, cover.await, liked.await, writeCover=true)
+    writeTrackMetadata(file, (title, comment, artists, cover.await, liked.await, disliked.await, Duration.default), writeCover=true)
     this[] = TrackObj(kind: TrackKind.yandexFromFile, yandexFromFile: (
       file: file,
       metadata: readTrackMetadata(file)
@@ -202,14 +203,12 @@ proc `liked=`*(this: Track, v: bool) {.async.} =
     if v: currentUser().await.like(this.yandex).await
     else: currentUser().await.unlike(this.yandex).await
   of TrackKind.yandexFromFile:
-    template x: untyped = this.yandexFromFile.metadata
     this.yandexFromFile.metadata.liked = v
-    writeTrackMetadata(this.yandexFromFile.file, x.title, x.comment, x.artists, "", v, writeCover=false)
+    writeTrackMetadata(this.yandexFromFile.file, this.yandexFromFile.metadata, writeCover=false)
     ## TODO fetch and like
   of TrackKind.user:
-    template x: untyped = this.user.metadata
     this.user.metadata.liked = v
-    writeTrackMetadata(this.user.file, x.title, x.comment, x.artists, "", v, writeCover=false)
+    writeTrackMetadata(this.user.file, this.user.metadata, writeCover=false)
   else: discard
 
 proc disliked*(this: Track): Future[bool] {.async.} =
@@ -217,11 +216,9 @@ proc disliked*(this: Track): Future[bool] {.async.} =
   of TrackKind.yandex:
     this.yandex.disliked.await
   of TrackKind.yandexFromFile:
-    # this.yandexFromFile.metadata.disliked
-    false
+    this.yandexFromFile.metadata.disliked
   of TrackKind.user:
-    # this.user.metadata.disliked
-    false
+    this.user.metadata.disliked
   else: false
 
 proc `disliked=`*(this: Track, v: bool) {.async.} =
@@ -230,9 +227,12 @@ proc `disliked=`*(this: Track, v: bool) {.async.} =
     if v: currentUser().await.dislike(this.yandex).await
     else: currentUser().await.undislike(this.yandex).await
   of TrackKind.yandexFromFile:
+    this.yandexFromFile.metadata.disliked = v
+    writeTrackMetadata(this.yandexFromFile.file, this.yandexFromFile.metadata, writeCover=false)
     ## TODO fetch and dislike
   of TrackKind.user:
-    ## TODO
+    this.user.metadata.disliked = v
+    writeTrackMetadata(this.user.file, this.user.metadata, writeCover=false)
   else: discard
 
 proc duration*(this: Track): int =

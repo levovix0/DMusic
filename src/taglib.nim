@@ -1,4 +1,4 @@
-import times, os, filetype, strformat
+import times, os, filetype, strformat, json
 import impl, utils
 
 when not defined(linux):
@@ -28,14 +28,14 @@ type
   MpegFile {.importcpp: "TagLib::MPEG::File", header: "mpegfile.h".} = object
   Id3v2Tag {.importcpp: "TagLib::ID3v2::Tag", header: "id3v2tag.h".} = object
   Frame {.importcpp: "TagLib::ID3v2::Frame", inheritable, header: "id3v2tag.h".} = object
-  PopularimeterFrame {.importcpp: "TagLib::ID3v2::PopularimeterFrame", header: "popularimeterframe.h".} = object of Frame
   AttachedPictureFrame {.importcpp: "TagLib::ID3v2::AttachedPictureFrame", header: "attachedpictureframe.h".} = object of Frame
+  PrivateFrame {.importcpp: "TagLib::ID3v2::PrivateFrame", header: "privateframe.h".} = object of Frame
 
   PMpegFile = ptr MpegFile
   PId3v2Tag = ptr Id3v2Tag
   PFrame = ptr Frame
-  PPopularimeterFrame = ptr PopularimeterFrame
   PAttachedPictureFrame = ptr AttachedPictureFrame
+  PPrivateFrame = ptr PrivateFrame
 
   PictureKind {.pure.} = enum
     other
@@ -60,7 +60,7 @@ type
     bandLogo
     publisherLogo
   
-  TrackMetadata* = tuple[title, comment, artists, cover: string; liked: bool; duration: Duration]
+  TrackMetadata* = tuple[title, comment, artists, cover: string; liked, disliked: bool; duration: Duration]
 
 
 
@@ -154,29 +154,11 @@ impl PFrame:
     proc dyncast[T](this: PFrame): T {.importcpp: "dynamic_cast<'0>(#)".}
     dyncast[t](this) != nil
   
-  proc asPopularimeterFrame: PPopularimeterFrame =
-    cast[PPopularimeterFrame](this)
-  
   proc asAttachedPictureFrame: PAttachedPictureFrame =
     cast[PAttachedPictureFrame](this)
-
-
-
-proc new(_: type PopularimeterFrame): PPopularimeterFrame =
-  proc impl: PPopularimeterFrame {.importcpp: "new TagLib::ID3v2::PopularimeterFrame", header: "popularimeterframe.h".}
-  impl()
-
-impl PPopularimeterFrame:
-  proc rating: int =
-    proc impl(this: PPopularimeterFrame): cint {.importcpp: "#->rating()", header: "popularimeterframe.h".}
-    impl(this).int
-
-  proc `rating=`(v: int) =
-    proc impl(this: PPopularimeterFrame, v: cint) {.importcpp: "#->setRating(#)", header: "popularimeterframe.h".}
-    impl(this, v.cint)
   
-  proc asFrame: PFrame =
-    cast[PFrame](this)
+  proc asPrivateFrame: PPrivateFrame =
+    cast[PPrivateFrame](this)
 
 
 
@@ -210,6 +192,32 @@ impl PAttachedPictureFrame:
 
 
 
+proc new(_: type PrivateFrame): PPrivateFrame =
+  proc impl: PPrivateFrame {.importcpp: "new TagLib::ID3v2::PrivateFrame", header: "privateframe.h".}
+  impl()
+
+impl PPrivateFrame:
+  proc data: string =
+    proc impl(this: PPrivateFrame): TaglibByteVector {.importcpp: "#->data()", header: "privateframe.h".}
+    impl(this)
+  
+  proc `data=`(v: string) =
+    proc impl(this: PPrivateFrame, v: cstring, l: cuint) {.importcpp: "#->setData({#, #})", header: "privateframe.h".}
+    impl(this, v, v.len.cuint)
+  
+  proc owner: string =
+    proc impl(this: PPrivateFrame): TaglibString {.importcpp: "#->owner()", header: "privateframe.h".}
+    impl(this)
+  
+  proc `owner=`(v: string) =
+    proc impl(this: PPrivateFrame, v: cstring) {.importcpp: "#->setOwner({#, TagLib::String::Type::UTF8})", header: "privateframe.h".}
+    impl(this, v)
+  
+  proc asFrame: PFrame =
+    cast[PFrame](this)
+
+
+
 const coverKinds = {PictureKind.other, PictureKind.frontCover, PictureKind.backCover, PictureKind.illustration}
 
 
@@ -224,51 +232,57 @@ proc readTrackMetadata*(filename: string): TrackMetadata =
   result.artists = tag.artist
   result.duration = file.duration
 
-  var findLiked = false
+  var findData = false
   for frame in tag.frames:
     if result.cover.len == 0 and frame.isOf(PAttachedPictureFrame) and frame.asAttachedPictureFrame.kind in coverKinds:
       result.cover = frame.asAttachedPictureFrame.picture
     
-    if not findLiked and frame.isOf(PPopularimeterFrame):
-      result.liked = frame.asPopularimeterFrame.rating > 128
-      findLiked = true
+    if not findData and frame.isOf(PPrivateFrame) and frame.asPrivateFrame.owner == "DMusic":
+      let data = frame.asPrivateFrame.data.parseJson
+      result.liked = data{"liked"}.get(bool)
+      result.disliked = data{"disliked"}.get(bool)
+      findData = true
   
   destroy file
 
 
-proc writeTrackMetadata*(filename: string; title, comment, artists, cover: string; liked: bool, writeCover = true) =
+proc writeTrackMetadata*(filename: string; data: TrackMetadata, writeCover = true) =
   if not fileExists filename: return
   let file = MpegFile.read(filename)
   let tag = file.id3v2Tag(true)
 
-  tag.title = title
-  tag.comment = comment
-  tag.artist = artists
+  tag.title = data.title
+  tag.comment = data.comment
+  tag.artist = data.artists
 
   var coverFrame: PAttachedPictureFrame
-  var likedFrame: PPopularimeterFrame
+  var dataFrame: PPrivateFrame
 
   for frame in tag.frames:
     if coverFrame == nil and frame.isOf(PAttachedPictureFrame) and frame.asAttachedPictureFrame.kind in coverKinds:
       coverFrame = frame.asAttachedPictureFrame
     
-    if likedFrame == nil and frame.isOf(PPopularimeterFrame):
-      likedFrame = frame.asPopularimeterFrame
+    if dataFrame == nil and frame.isOf(PPrivateFrame) and frame.asPrivateFrame.owner == "DMusic":
+      dataFrame = frame.asPrivateFrame
 
   if coverFrame == nil and writeCover:
     coverFrame = AttachedPictureFrame.new
     tag.add coverFrame.asFrame
 
-  if likedFrame == nil:
-    likedFrame = PopularimeterFrame.new
-    tag.add likedFrame.asFrame
+  if dataFrame == nil:
+    dataFrame = PrivateFrame.new
+    tag.add dataFrame.asFrame
 
-  likedFrame.rating = if liked: 255 else: 128
+  dataFrame.owner = "DMusic"
+  dataFrame.data = $ %*{
+    "liked": data.liked,
+    "disliked": data.disliked
+  }
 
   if writeCover:
-    coverFrame.mime = cast[seq[byte]](cover).match.mime.value
+    coverFrame.mime = cast[seq[byte]](data.cover).match.mime.value
     coverFrame.kind = PictureKind.frontCover
-    coverFrame.picture = cover
+    coverFrame.picture = data.cover
   
   save file
   destroy file

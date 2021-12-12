@@ -88,6 +88,7 @@ qmodel SearchHistory:
       searchHistory.delete searchHistory.find(text)
     searchHistory.insert text, 0
     searchHistory = searchHistory{0..<5}
+    createDir dataDir
     writeFile(dataDir / "searchHistory.txt", searchHistory.join("\n"))
     this.layoutChanged
 
