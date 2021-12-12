@@ -68,6 +68,16 @@ proc fetch*(this: Track) {.async.} =
     let id = this.yandexIdOnly.id
     this[] = TrackObj(kind: TrackKind.yandex, yandex: id.fetch.await[0])
 
+
+proc forceFetch*(this: Track) {.async.} =
+  await fetch this
+  if this.kind == TrackKind.yandexFromFile:
+    try:
+      let id = this.yandexFromFile.file.splitFile.name.parseInt
+      this[] = TrackObj(kind: TrackKind.yandex, yandex: id.fetch.await[0])
+    except: discard
+
+
 proc save*(this: Track, file: string, progressReport: ProgressReportCallback = nil) {.async.} =
   if this.kind == TrackKind.yandexIdOnly:
     await fetch this
@@ -202,13 +212,22 @@ proc `liked=`*(this: Track, v: bool) {.async.} =
   of TrackKind.yandex:
     if v: currentUser().await.like(this.yandex).await
     else: currentUser().await.unlike(this.yandex).await
+  
   of TrackKind.yandexFromFile:
     this.yandexFromFile.metadata.liked = v
     writeTrackMetadata(this.yandexFromFile.file, this.yandexFromFile.metadata, writeCover=false)
-    ## TODO fetch and like
+    
+    # like real track
+    let t = deepcopy this
+    await forceFetch t
+    if t.kind == TrackKind.yandex:
+      if v: currentUser().await.like(t.yandex).await
+      else: currentUser().await.unlike(t.yandex).await
+  
   of TrackKind.user:
     this.user.metadata.liked = v
     writeTrackMetadata(this.user.file, this.user.metadata, writeCover=false)
+  
   else: discard
 
 proc disliked*(this: Track): Future[bool] {.async.} =
@@ -226,13 +245,22 @@ proc `disliked=`*(this: Track, v: bool) {.async.} =
   of TrackKind.yandex:
     if v: currentUser().await.dislike(this.yandex).await
     else: currentUser().await.undislike(this.yandex).await
+  
   of TrackKind.yandexFromFile:
     this.yandexFromFile.metadata.disliked = v
     writeTrackMetadata(this.yandexFromFile.file, this.yandexFromFile.metadata, writeCover=false)
-    ## TODO fetch and dislike
+    
+    # dislike real track
+    let t = deepcopy this
+    await forceFetch t
+    if t.kind == TrackKind.yandex:
+      if v: currentUser().await.dislike(t.yandex).await
+      else: currentUser().await.undislike(t.yandex).await
+  
   of TrackKind.user:
     this.user.metadata.disliked = v
     writeTrackMetadata(this.user.file, this.user.metadata, writeCover=false)
+  
   else: discard
 
 proc duration*(this: Track): int =
