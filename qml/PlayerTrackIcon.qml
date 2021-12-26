@@ -28,13 +28,21 @@ Item {
     enabled: !PlayingTrackInfo.isNone
 
     cursorShape: enabled? Qt.PointingHandCursor : Qt.ArrowCursor
-    onClicked: _ppc.opened = !_ppc.opened
+    onClicked: GlobalFocus.item = _ppc.opened? "" : "playingTrack"
   }
 
   PopupController {
     id: _ppc
     target: _panel
-    Binding { target: _ppc; property: "opened"; value: false; when: !_mouse.enabled; restoreMode: Binding.RestoreBinding }
+    opened: GlobalFocus.item == "playingTrack"
+
+    Binding {
+      target: GlobalFocus
+      property: "item"
+      value: ""
+      when: PlayingTrackInfo.isNone && GlobalFocus.item == "playingTrack"
+      restoreMode: Binding.RestoreBindingOrValue
+    }
   }
 
   TrackPanel {

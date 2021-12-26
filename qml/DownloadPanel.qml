@@ -8,8 +8,6 @@ FloatingPanel {
   width: 250
   height: 105
 
-  property PopupController ppc
-
   Item {
     anchors.fill: parent
 
@@ -54,7 +52,7 @@ FloatingPanel {
             hoverEnabled: true
             onClicked: {
               action()
-              ppc.opened = false
+              GlobalFocus.item = ""
             }
           }
 
@@ -63,7 +61,7 @@ FloatingPanel {
             context: Qt.ApplicationShortcut
             onActivated: {
               action()
-              ppc.opened = false
+              GlobalFocus.item = ""
             }
           }
 

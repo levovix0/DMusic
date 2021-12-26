@@ -132,7 +132,7 @@ Rectangle {
     Component.onCompleted: {
       _search.input.focusChanged.connect(function() {
         if (_search.input.focus) GlobalFocus.item = "search"
-        else GlobalFocus.item = ""
+        else if (GlobalFocus.item == "search") GlobalFocus.item = ""
       })
       GlobalFocus.itemChanged.connect(function() {
         if (GlobalFocus.item == "search" && !_search.input.focus) _search.input.focus = true
@@ -141,13 +141,11 @@ Rectangle {
     }
 
     Shortcut {
-      enabled: GlobalFocus.item == "search"
       sequence: "Esc"
       onActivated: GlobalFocus.item = ""
     }
 
     Shortcut {
-      enabled: GlobalFocus.item != "search"
       sequence: "F"
       onActivated: GlobalFocus.item = "search"
     }

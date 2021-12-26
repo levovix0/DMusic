@@ -63,11 +63,12 @@ Rectangle {
       height: 32
       src: "qrc:/resources/player/debug.svg"
       visible: root.width >= 700
-      onClicked: _dpc.opened = !_dpc.opened
+      onClicked: GlobalFocus.item = _dpc.opened? "" : "debug"
 
       PopupController {
         id: _dpc
         target: _debug
+        opened: GlobalFocus.item == "debug"
       }
 
       DebugPanel {
@@ -90,7 +91,7 @@ Rectangle {
       src: PlayingTrackInfo.saved? "qrc:/resources/player/downloaded.svg" : "qrc:/resources/player/download.svg"
       style: PlayingTrackInfo.saved? Style.panel.icon.accent : Style.panel.icon.normal
       
-      onClicked: PlayingTrackInfo.saved? (_dpc2.opened = !_dpc2.opened) : PlayingTrackInfo.save()
+      onClicked: PlayingTrackInfo.saved? (GlobalFocus.item = _dpc2.opened? "" : "download") : PlayingTrackInfo.save()
 
       Drag.mimeData: { "text/uri-list": PlayingTrackInfo.file }
       Drag.active: _downloadDrag.active
@@ -125,7 +126,15 @@ Rectangle {
       PopupController {
         id: _dpc2
         target: _downloadPanel
-        Binding { target: _dpc2; property: "opened"; value: false; when: !PlayingTrackInfo.saved; restoreMode: Binding.RestoreBinding }
+        opened: GlobalFocus.item == "download"
+
+        Binding {
+          target: GlobalFocus
+          property: "item"
+          value: ""
+          when: !PlayingTrackInfo.saved && GlobalFocus.item == "download"
+          restoreMode: Binding.RestoreBindingOrValue
+        }
       }
 
       DownloadPanel {
@@ -137,8 +146,6 @@ Rectangle {
 
         triangleOffset: -anchors.horizontalCenterOffset
         triangleCenter: _downloadPanel.horizontalCenter
-
-        ppc: _dpc2
       }
     }
 
