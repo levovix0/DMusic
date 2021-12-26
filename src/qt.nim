@@ -461,25 +461,11 @@ proc qobjectCasesImpl(t, parent, body, ct: NimNode, x: NimNode, decl: var seq[st
       for x in body: x
   
   of ProcDef[@name is AccQuoted[Ident(strVal: "="), Ident(strVal: "new")], Empty(), Empty(), FormalParams[Empty()], Empty(), Empty(), @body]:
-    constructor = buildAst procDef:
-      nskProc.gensym "constructor"
-      empty()
-      empty()
-      formalParams:
-        empty()
-      pragma:
-        i"exportc"
-        exprColonExpr:
-          i"codegenDecl"
-          newLit &"{t}::{t}(QObject* parent)"
-      empty()
-      stmtList:
-        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
-        pragma: exprColonExpr i"emit": bracket(i"this", l" = this;")
-        quote do:
-          template self(): var `t` {.used.} = this[].self
-        call s"wasMoved", i"self"
-        body
+    constructor.body = buildAst stmtList:
+      quote do:
+        template self(): var `t` {.used.} = this[].self
+      call s"wasMoved", i"self"
+      body
   
   of Command[Ident(strVal: "property"), Command[@propType, Ident(strVal: @name)], @body is StmtList()]:
     var getter: NimNode
@@ -561,24 +547,20 @@ macro qobject*(t, body) =
         recList:
           identDefs(i"self", t, empty())
 
+  let ctorSym = nskProc.gensym "constructor"
   var constructor = buildAst procDef:
-      nskProc.gensym "constructor"
+    ctorSym
+    empty()
+    empty()
+    formalParams:
       empty()
-      empty()
-      formalParams:
-        empty()
-      pragma:
-        i"exportc"
-        exprColonExpr:
-          i"codegenDecl"
-          newLit &"{t}::{t}(QObject* parent)"
-      empty()
-      stmtList:
-        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
-        pragma: exprColonExpr i"emit": bracket(i"this", l" = this;")
-        quote do:
-          template self(): var `t` {.used.} = this[].self
-        call s"wasMoved", i"self"
+      identDefs i"this", ptrTy ct, empty()
+    empty()
+    empty()
+    stmtList:
+      quote do:
+        template self(): var `t` {.used.} = this[].self
+      call s"wasMoved", i"self"
 
   for x in body:
     qobjectCasesImpl t, parent, body, ct, x, decl, impl, constructor, signalNames
@@ -608,6 +590,12 @@ macro qobject*(t, body) =
       ct
     for x in impl: x
     constructor
+    pragma:
+      exprColonExpr i"emit":
+        bracket:
+          newLit fmt "{t}::{t}(QObject* parent): {parent}(parent) {{ "
+          ctorSym
+          l"(this); }"
 
 
 macro qmodel*(t, body) =
@@ -635,24 +623,20 @@ macro qmodel*(t, body) =
         recList:
           identDefs(i"self", t, empty())
 
+  let ctorSym = nskProc.gensym "constructor"
   var constructor = buildAst procDef:
-      nskProc.gensym "constructor"
+    ctorSym
+    empty()
+    empty()
+    formalParams:
       empty()
-      empty()
-      formalParams:
-        empty()
-      pragma:
-        i"exportc"
-        exprColonExpr:
-          i"codegenDecl"
-          newLit &"{t}::{t}(QObject* parent)"
-      empty()
-      stmtList:
-        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
-        pragma: exprColonExpr i"emit": bracket(i"this", l" = this;")
-        quote do:
-          template self(): var `t` {.used.} = this[].self
-        call s"wasMoved", i"self"
+      identDefs i"this", ptrTy ct, empty()
+    empty()
+    empty()
+    stmtList:
+      quote do:
+        template self(): var `t` {.used.} = this[].self
+      call s"wasMoved", i"self"
 
   for x in body:
     case x
@@ -772,6 +756,12 @@ macro qmodel*(t, body) =
       ct
     for x in impl: x
     constructor
+    pragma:
+      exprColonExpr i"emit":
+        bracket:
+          newLit fmt "{t}::{t}(QObject* parent): {parent}(parent) {{ "
+          ctorSym
+          l"(this); }"
 
 
 macro dbusInterface*(t; obj: static string, body) =
@@ -799,24 +789,20 @@ macro dbusInterface*(t; obj: static string, body) =
         recList:
           identDefs(i"self", t, empty())
 
+  let ctorSym = nskProc.gensym "constructor"
   var constructor = buildAst procDef:
-      nskProc.gensym "constructor"
+    ctorSym
+    empty()
+    empty()
+    formalParams:
       empty()
-      empty()
-      formalParams:
-        empty()
-      pragma:
-        i"exportc"
-        exprColonExpr:
-          i"codegenDecl"
-          newLit &"{t}::{t}(QObject* parent)"
-      empty()
-      stmtList:
-        varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
-        pragma: exprColonExpr i"emit": bracket(i"this", l" = this;")
-        quote do:
-          template self(): var `t` {.used.} = this[].self
-        call s"wasMoved", i"self"
+      identDefs i"this", ptrTy ct, empty()
+    empty()
+    empty()
+    stmtList:
+      quote do:
+        template self(): var `t` {.used.} = this[].self
+      call s"wasMoved", i"self"
 
   for x in body:
     qobjectCasesImpl t, parent, body, ct, x, decl, impl, constructor, signalNames
@@ -846,6 +832,12 @@ macro dbusInterface*(t; obj: static string, body) =
       ct
     for x in impl: x
     constructor
+    pragma:
+      exprColonExpr i"emit":
+        bracket:
+          newLit fmt "{t}::{t}(QObject* parent): {parent}(parent) {{ "
+          ctorSym
+          l"(this); }"
 
 
 type
