@@ -313,6 +313,11 @@ usage: %1 [options]
         <source>Artists</source>
         <translation>Исполнители</translation>
     </message>
+    <message>
+        <location filename="../qml/SearchPanel.qml" line="39"/>
+        <source>Nothing found</source>
+        <translation>Ничего не найдено</translation>
+    </message>
 </context>
 <context>
     <name>SearchResult</name>

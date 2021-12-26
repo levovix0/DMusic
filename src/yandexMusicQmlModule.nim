@@ -23,6 +23,7 @@ type SearchModel = object
   result: seq[Track] #TODO: albums, artists
   covers: seq[string]
   process: seq[Future[void]]
+  nothingFound: bool
 
 proc search(query: string): Future[seq[Track]] {.async.} =
   result = yandexMusic.search(query).await.tracks
@@ -48,6 +49,10 @@ qmodel SearchModel:
   elem objArtist:  self.result[i].artists.mapit(it.name).join(", ")
   elem objKind:    "track"
 
+  property bool nothingFound:
+    get: self.nothingFound
+    notify
+
   proc search(query: string) =
     cancel self.process
     self.process = @[]
@@ -58,6 +63,9 @@ qmodel SearchModel:
       try:
         self.result.insert query.parseInt.fetch.await[0]
       except: discard
+
+      self.nothingFound = self.result.len == 0
+      this.nothingFoundChanged
 
       self.covers = sequtils.repeat(emptyCover, self.result.len)
       this.layoutChanged

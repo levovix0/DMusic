@@ -45,6 +45,11 @@ Item {
     }
   }
 
+  Shortcut {
+    sequence: "T"
+    onActivated: GlobalFocus.item = "search"
+  }
+
   TrackPanel {
     id: _panel
     anchors.horizontalCenter: parent.horizontalCenter

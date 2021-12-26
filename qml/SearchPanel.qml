@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import QtQuick.Layouts 1.15
 import DMusic 1.0
 import YandexMusic 1.0
 import "components"
@@ -24,12 +25,19 @@ FloatingPanel {
     SearchModel.search(root.text)
   }
 
-  Column {
+  ColumnLayout {
     id: _column
     anchors.centerIn: parent
     width: root.width - 40
 
     spacing: 15
+
+    DText {
+      Layout.alignment: Qt.AlignHCenter
+      color: Style.panel.text.color
+      visible: SearchModel.nothingFound && root.text != ""
+      text: qsTr("Nothing found")
+    }
 
     Loader {
       sourceComponent: root.text == ""? _hisroty : _searchResults
