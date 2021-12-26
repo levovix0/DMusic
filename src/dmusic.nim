@@ -1,5 +1,5 @@
-import std/exitprocs, os, times, strformat, macros, strutils
-import qt, messages, async, utils, configuration
+import std/exitprocs, os, times, strformat, macros, strutils, sequtils
+import qt, messages, async, utils, configuration, yandexMusic
 import yandexMusicQmlModule, audio, qmlUtils, remoteAudio
 
 macro resourcesFromDir*(dir: static[string] = ".") =
@@ -38,7 +38,7 @@ var infinityLoop = doAsync:
         darkTime = true
 
 
-proc dmusic: string =
+proc gui: string =
   QApplication.appName = "DMusic"
   QApplication.organizationName = "DTeam"
   QApplication.organizationDomain = "zxx.ru"
@@ -77,9 +77,43 @@ proc dmusic: string =
   complete infinityLoop
 
 
+proc download(tracks: seq[string], file: string = ""): string =
+  if tracks.len == 0:
+    echo tr"No tracks specified"
+    return
+  
+  if file != "" and tracks.len != 1:
+    echo tr"Can't download multiple tracks to same file"
+    return
+
+  for i, track in tracks:
+    let id = try: parseInt track
+    except:
+      let (path, name) = track.splitPath
+      if not path.endsWith "track/": 0
+      else:
+        try: parseInt name except: 0
+    
+    if id in 1..int.high:
+      let track = yandexMusic.TrackId(id: id).fetch.waitFor[0]
+      let file =
+        if file == "": track.artists.mapit(it.name).join(", ") & " - " & track.title & ".mp3"
+        else: file
+      writeFile file, request(track.audioUrl.waitFor).waitFor
+    else:
+      let track = yandexMusic.search(track).waitFor.tracks[0]
+      let file =
+        if file == "": track.artists.mapit(it.name).join(", ") & " - " & track.title & ".mp3"
+        else: file
+      writeFile file, request(track.audioUrl.waitFor).waitFor
+
+
 when isMainModule:
   import cligen
   clcfg.version = "0.3"
-  dispatch dmusic
+  if paramCount() == 0:
+    dispatch gui
+  else:
+    dispatchMulti [gui], [download]
 
   updateTranslations()

@@ -18,6 +18,12 @@
   "dmusic.nim": {
     "Exception during async operation": {
       "": "Exception during async operation"
+    },
+    "No tracks specified": {
+      "": "No tracks specified"
+    },
+    "Can't download multiple tracks to same file": {
+      "": "Can't download multiple tracks to same file"
     }
   }
 }
