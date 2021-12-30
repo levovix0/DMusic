@@ -10,17 +10,15 @@ DPage {
   id: root
   property real scroll: 0
 
-  ScrollView {
+  Flickable {
     id: _scroll
     anchors.fill: parent
     clip: true
-    leftPadding: 10
-    bottomPadding: 10
-    rightPadding: 10
-    topPadding: _label.visible? 30 : 10
+    bottomMargin: 10
+    topMargin: _label.visible? 30 : 10
 
-    ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+    contentWidth: root.width
+    contentHeight: _layout.height
 
     MouseArea {
       width: root.width

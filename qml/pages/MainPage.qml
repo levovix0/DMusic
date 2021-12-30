@@ -10,17 +10,17 @@ DPage {
 
   Component.onCompleted: HomePlaylistsModel.load()
 
-  ScrollView {
+  Flickable {
     id: _scroll
     anchors.fill: parent
     clip: true
-    leftPadding: 25
-    bottomPadding: 25
-    rightPadding: 25
-    topPadding: 25
+    leftMargin: 25
+    bottomMargin: 25
+    rightMargin: 25
+    topMargin: 25
 
-    ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+    contentWidth: root.width - 50
+    contentHeight: _layout.height
 
     MouseArea {
       width: root.width
