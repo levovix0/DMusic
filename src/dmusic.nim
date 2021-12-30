@@ -77,7 +77,7 @@ proc gui: string =
   complete infinityLoop
 
 
-proc download(tracks: seq[string], file: string = ""): string =
+proc download(tracks: seq[string], file: string = "") =
   if tracks.len == 0:
     echo tr"No tracks specified"
     return
@@ -114,6 +114,6 @@ when isMainModule:
   if paramCount() == 0:
     dispatch gui
   else:
-    dispatchMulti [gui], [download]
+    dispatchMulti [gui], [download, short={"file": 'o'}]
 
   updateTranslations()

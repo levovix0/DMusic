@@ -89,7 +89,7 @@ Window {
 
       windowSize: Qt.size(_root.width, _root.height)
       clientSideDecorations: Config.csd
-      maximized: maximized
+      maximized: _window.maximized
     }
 
     ListModel {
