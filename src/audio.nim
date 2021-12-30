@@ -13,13 +13,15 @@ type
     current: int
     shuffle, loop: bool
 
-var currentTrack = Track()
-var currentSequence: TrackSequence
+var current_track = Track()
+var current_sequence: TrackSequence
 
-var notifyTrackChanged: proc() = proc() = discard
-var notifyPositionChanged*: proc() = proc() = discard
-var notifyStateChanged: proc() = proc() = discard
-var notifyTrackEnded: proc() = proc() = discard
+var notify_track_changed: proc() = proc() = discard
+var notify_position_changed*: proc() = proc() = discard
+var notify_state_changed: proc() = proc() = discard
+var notify_track_ended: proc() = proc() = discard
+var notify_track_failed_to_load: proc() = proc() = discard
+var notify_lost_internet_connection: proc() = proc() = discard
 
 proc curr(x: var TrackSequence): Track =
   try:
@@ -146,12 +148,22 @@ proc notifyStateChangedC {.exportc.} =
 proc notifyTrackEndedC {.exportc.} =
   notifyTrackEnded()
 
+proc notify_track_failed_to_load_c {.exportc.} =
+  notify_track_failed_to_load()
+
+proc notify_lost_internet_connection_c {.exportc.} =
+  notify_lost_internet_connection()
+
 proc onMain =
   {.emit: """
   QObject::connect(`player`, &QMediaPlayer::positionChanged, []() { `notifyPositionChangedC`(); });
   QObject::connect(`player`, &QMediaPlayer::stateChanged, []() { `notifyStateChangedC`(); });
   QObject::connect(`player`, &QMediaPlayer::mediaStatusChanged, [](QMediaPlayer::MediaStatus status) {
     if (status == QMediaPlayer::EndOfMedia) `notifyTrackEndedC`();
+  });
+  QObject::connect(`player`, QOverload<QMediaPlayer::Error>::of(&QMediaPlayer::error), [](QMediaPlayer::Error error){
+    if (error == QMediaPlayer::NetworkError) `notify_lost_internet_connection_c`();
+    else `notify_track_failed_to_load_c`();
   });
   """.}
 onMain()
@@ -510,6 +522,14 @@ qobject AudioPlayer:
           await play currentSequence.next
     
     notifyVolumeChanged &= proc() = this.volumeChanged
+    notify_track_failed_to_load &= proc() =
+      # todo: delete current track from playing track sequence
+      get_track_audio_process = doasync:
+        await play current_sequence.next
+    
+    notify_lost_internet_connection &= proc() =
+      pause()
+
 
 registerSingletonInQml AudioPlayer, "DMusic", 1, 0
 
