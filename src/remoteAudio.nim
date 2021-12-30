@@ -1,7 +1,7 @@
 {.used.}
 import options, strformat, times
 import discord_rpc
-import audio, api, configuration
+import audio, api, configuration, utils
 
 when defined(linux):
   import math
