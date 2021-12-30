@@ -13,15 +13,15 @@ type
     current: int
     shuffle, loop: bool
 
-var current_track = Track()
+var current_track* = Track()
 var current_sequence: TrackSequence
 
-var notify_track_changed: proc() = proc() = discard
-var notify_position_changed*: proc() = proc() = discard
-var notify_state_changed: proc() = proc() = discard
-var notify_track_ended: proc() = proc() = discard
-var notify_track_failed_to_load: proc() = proc() = discard
-var notify_lost_internet_connection: proc() = proc() = discard
+var notify_track_changed*: proc() = proc = discard
+var notify_position_changed*: proc() = proc = discard
+var notify_state_changed: proc() = proc = discard
+var notify_track_ended: proc() = proc = discard
+var notify_track_failed_to_load: proc() = proc = discard
+var notify_lost_internet_connection: proc() = proc = discard
 
 proc curr(x: var TrackSequence): Track =
   try:
@@ -522,12 +522,11 @@ qobject AudioPlayer:
           await play currentSequence.next
     
     notifyVolumeChanged &= proc() = this.volumeChanged
-    notify_track_failed_to_load &= proc() =
-      # todo: delete current track from playing track sequence
+    notify_track_failed_to_load &= proc =
       get_track_audio_process = doasync:
         await play current_sequence.next
     
-    notify_lost_internet_connection &= proc() =
+    notify_lost_internet_connection &= proc =
       pause()
 
 

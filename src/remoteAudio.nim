@@ -1,4 +1,7 @@
 {.used.}
+import options, strformat, times
+import discord_rpc
+import audio, api, configuration
 
 when defined(linux):
   import math
@@ -45,7 +48,7 @@ when defined(linux):
     # property seq[string] SupportedMimeTypes:
     #   get: @[]
 
-#   registerSingletonInQml MprisRoot, "DMusic", 1, 1
+  # registerSingletonInQml MprisRoot, "DMusic", 1, 1
 
 
   type
@@ -144,3 +147,35 @@ when defined(linux):
 
   # registerSingletonInQml MprisPlayer, "DMusic", 1, 1
   # todo: fix crush
+
+let discord = newDiscordRPC(830725995769626624)
+if config.discord_presence:
+  discard discord.connect
+
+notify_discord_presence_changed &= proc =
+  try:
+    if config.discord_presence:
+      discard discord.connect
+  except: discard
+
+proc update_discord_presence =
+  discord.setActivity Activity(
+    details:
+      if current_track.comment == "": current_track.title
+      else: &"{current_track.title} ({current_track.comment})",
+    state: current_track.artists,
+    assets: some ActivityAssets(
+      large_image: "app",
+      large_text:
+        if current_track.kind == TrackKind.yandex: $current_track.yandex.id
+        else: ""
+    ),
+    timestamps: ActivityTimestamps(
+      start: epochTime().int64
+    )
+  )
+
+notify_track_changed &= proc =
+  if config.discord_presence:
+    try: update_discord_presence()
+    except: discard
