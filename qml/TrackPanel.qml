@@ -79,6 +79,23 @@ FloatingPanel {
           onActivated: PlayingTrackInfo.disliked = !PlayingTrackInfo.disliked
         }
       }
+
+      PlayerControlsButton {
+        visible: Avc.enabled
+        icon: "qrc:/resources/player/share.svg"
+
+        width: 20
+        height: 20
+
+        style: Style.panel.icon.normal
+        onClick: if (Avc.enabled) Avc.copyCurrentTrackPicture()
+
+        Shortcut {
+          sequence: "Ctrl+C"
+          context: Qt.ApplicationShortcut
+          onActivated: if (Avc.enabled) Avc.copyCurrentTrackPicture()
+        }
+      }
     }
 
     layer.enabled: true

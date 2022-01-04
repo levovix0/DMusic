@@ -149,8 +149,10 @@ when defined(linux):
   # todo: fix crush
 
 let discord = newDiscordRPC(830725995769626624)
-if config.discord_presence:
-  discard discord.connect
+try:
+  if config.discord_presence:
+    discard discord.connect
+except: discard
 
 notify_discord_presence_changed &= proc =
   try:

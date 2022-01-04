@@ -77,6 +77,7 @@ type
   
   QTranslator* {.importcpp, header: "QTranslator".} = object
   QClipboard* {.importcpp, header: "QClipboard".} = object
+  QImage* {.importcpp, header: "QImage".} = object
 
   QFileDialog* {.importcpp, byref, header: "QFileDialog".} = object
   DialogAcceptMode* = enum
@@ -279,6 +280,16 @@ proc retranslate*(this: ptr QQmlApplicationEngine)
 proc `text=`*(this: ptr QClipboard, text: string) =
   proc impl(this: ptr QClipboard, text: QString) {.importcpp: "#->setText(@)", header: "QClipboard".}
   impl(this, text)
+
+proc `image=`*(this: ptr QClipboard, v: QImage) =
+  proc impl(this: ptr QClipboard, text: QImage) {.importcpp: "#->setImage(@, QClipboard::Clipboard)", header: "QClipboard".}
+  impl(this, v)
+
+
+
+#----------- QImage -----------#
+proc qimageFromFile*(filename: cstring): ptr QImage
+  {.importcpp: "new QImage(@)", header: "QImage", constructor.}
 
 
 
