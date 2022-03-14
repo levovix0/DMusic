@@ -89,7 +89,7 @@ when defined avc:
         font.paint.color = color(0.85, 0.85, 0.85, 1)
         image.fillText ats, translate vec2(60, 6 + 14 + 7)
         image.writeFile(data_dir/"img.png")
-        QApplication.clipboard.image = qimageFromFile(data_dir/"img.png")[]
+        QApplication.clipboard.image = qimageFromFile((data_dir/"img.png").cstring)[]
 
   registerSingletonInQml Avc, "DMusic", 1, 0
 

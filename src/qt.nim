@@ -874,11 +874,11 @@ template registerSingletonInQml*(t: type, module: string, verMajor, verMinor: in
   bind registerSingletonInQmlC, cnew
   var x = cnew t.Ct
   proc instance(a: ptr QQmlEngine, b: ptr QJSEngine): ptr t.Ct {.cdecl.} = x
-  registerSingletonInQmlC[t.Ct](module, verMajor.cint, verMinor.cint, $t, instance, nil)
+  registerSingletonInQmlC[t.Ct](module.cstring, verMajor.cint, verMinor.cint, $t, instance, nil)
 
 template registerSingletonInQml*(t: type, modules: varargs[(string, int, int)]) =
   bind registerSingletonInQmlC, cnew
   var x = cnew t.Ct
   proc instance(a: ptr QQmlEngine, b: ptr QJSEngine): ptr t.Ct {.cdecl.} = x
   for module in modules:
-    registerSingletonInQmlC[t.Ct](module[0], module[1].cint, module[2].cint, $t, instance, nil)
+    registerSingletonInQmlC[t.Ct](module[0].cstring, module[1].cint, module[2].cint, $t, instance, nil)

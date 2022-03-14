@@ -19,10 +19,10 @@ const
 proc ms*(i: int): Duration = initDuration(milliseconds=i)
 
 proc format*(d: Duration, format: static string): string =
-  times.format(initDateTime(1, mJan, 0, 0, 0, 0) + d, format)
+  times.format(dateTime(1, mJan, 1, 0, 0, 0) + d, format)
 
 proc formatTime*(format: static string, ns=0, mis=0, ms=0, s=0, m=0, h=0, d=0): string =
-  times.format(initDateTime(1, mJan, 0, 0, 0, 0) + initDuration(ns, mis, ms, s, m, h, d), format)
+  times.format(dateTime(1, mJan, 1, 0, 0, 0) + initDuration(ns, mis, ms, s, m, h, d), format)
 
 proc `&`*(x: proc(), f: proc()): proc() =
   ## concatenate procs

@@ -6,7 +6,7 @@ srcDir        = "src"
 bin           = @["dmusic"]
 backend       = "cpp"
 
-requires "nim >= 1.4.4"
+requires "nim >= 1.6.4"
 requires "fusion"
 requires "cligen"
 requires "https://github.com/levovix0/impl"
