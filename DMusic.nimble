@@ -14,6 +14,7 @@ requires "discord_rpc"
 requires "filetype"
 requires "localize >= 0.2"
 requires "pixie"
+requires "chronos"
 
 mkdir "build"
 

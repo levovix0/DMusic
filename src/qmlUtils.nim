@@ -1,12 +1,40 @@
 {.used.}
-import strutils, sequtils, re
-import qt, configuration
+import strutils, sequtils, re, os
+import pixie
+import qt, configuration, async, audio, api
 
 type Clipboard = object
 
 qobject Clipboard:
   property string text:
     set: QApplication.clipboard.text = value
+
+  proc copyCurrentTrackPicture =
+    asyncCheck: do_async:
+      let cover = current_track.coverImage.await.decodeImage
+      let font = readFont(config_dir/"font.ttf")
+      font.size = 16
+      font.paint.color = color(1, 1, 1, 1)
+      let tts = font.typeset(current_track.title)
+      font.paint.color = color(0.6, 0.6, 0.6, 1)
+      let cts = font.typeset(current_track.comment)
+      font.size = 14
+      font.paint.color = color(0.85, 0.85, 0.85, 1)
+      let ats = font.typeset(current_track.artists)
+      let image = newImage(70 + max(tts.computeBounds.x + (if current_track.comment != "": 10 else: 0) + cts.computeBounds.x, ats.computeBounds.x).ceil.int, 50)
+      image.fill color(0.15, 0.15, 0.15, 1)
+      let r = image.newContext
+      r.drawImage cover, rect(0, 0, 50, 50)
+      font.size = 16
+      font.paint.color = color(1, 1, 1, 1)
+      image.fillText tts, translate vec2(60, 7)
+      font.paint.color = color(0.6, 0.6, 0.6, 1)
+      image.fillText cts, translate vec2(60 + tts.computeBounds.x + 10, 7)
+      font.size = 14
+      font.paint.color = color(0.85, 0.85, 0.85, 1)
+      image.fillText ats, translate vec2(60, 6 + 14 + 7)
+      image.writeFile(data_dir/"img.png")
+      QApplication.clipboard.image = qimageFromFile((data_dir/"img.png").cstring)[]
 
 registerSingletonInQml Clipboard, "DMusic", 1, 0
 
@@ -49,57 +77,3 @@ qobject GlobalFocus:
     notify
 
 registerSingletonInQml GlobalFocus, "DMusic", 1, 0
-
-when defined avc:
-  import os
-  import pixie
-  import audio, api, async, configuration
-
-  type Avc = object
-    process: Future[void]
-
-  qobject Avc:
-    property bool enabled:
-      get: true
-      set: discard value; this.enabledChanged
-      notify
-    
-    proc copyCurrentTrackPicture =
-      asyncCheck: do_async:
-        let cover = current_track.coverImage.await.decodeImage
-        let font = readFont(config_dir/"font.ttf")
-        font.size = 16
-        font.paint.color = color(1, 1, 1, 1)
-        let tts = font.typeset(current_track.title)
-        font.paint.color = color(0.6, 0.6, 0.6, 1)
-        let cts = font.typeset(current_track.comment)
-        font.size = 14
-        font.paint.color = color(0.85, 0.85, 0.85, 1)
-        let ats = font.typeset(current_track.artists)
-        let image = newImage(70 + max(tts.computeBounds.x + (if current_track.comment != "": 10 else: 0) + cts.computeBounds.x, ats.computeBounds.x).ceil.int, 50)
-        image.fill color(0.15, 0.15, 0.15, 1)
-        let r = image.newContext
-        r.drawImage cover, rect(0, 0, 50, 50)
-        font.size = 16
-        font.paint.color = color(1, 1, 1, 1)
-        image.fillText tts, translate vec2(60, 7)
-        font.paint.color = color(0.6, 0.6, 0.6, 1)
-        image.fillText cts, translate vec2(60 + tts.computeBounds.x + 10, 7)
-        font.size = 14
-        font.paint.color = color(0.85, 0.85, 0.85, 1)
-        image.fillText ats, translate vec2(60, 6 + 14 + 7)
-        image.writeFile(data_dir/"img.png")
-        QApplication.clipboard.image = qimageFromFile((data_dir/"img.png").cstring)[]
-
-  registerSingletonInQml Avc, "DMusic", 1, 0
-
-else:
-  type Avc = object
-
-  qobject Avc:
-    property bool enabled:
-      get: false
-      set: discard value; this.enabledChanged
-      notify
-
-  registerSingletonInQml Avc, "DMusic", 1, 0

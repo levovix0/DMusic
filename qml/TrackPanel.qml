@@ -81,19 +81,18 @@ FloatingPanel {
       }
 
       PlayerControlsButton {
-        visible: Avc.enabled
         icon: "qrc:/resources/player/share.svg"
 
         width: 20
         height: 20
 
         style: Style.panel.icon.normal
-        onClick: if (Avc.enabled) Avc.copyCurrentTrackPicture()
+        onClick: Clipboard.copyCurrentTrackPicture()
 
         Shortcut {
           sequence: "Ctrl+C"
           context: Qt.ApplicationShortcut
-          onActivated: if (Avc.enabled) Avc.copyCurrentTrackPicture()
+          onActivated: Clipboard.copyCurrentTrackPicture()
         }
       }
     }
