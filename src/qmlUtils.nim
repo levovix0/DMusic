@@ -1,6 +1,6 @@
 {.used.}
 import strutils, sequtils, re, os
-import pixie
+import pixie, os, osproc
 import qt, configuration, async, audio, api, utils
 
 type Clipboard = object
@@ -74,12 +74,8 @@ qobject FileDialogs:
     
     elif defined(windows):
       # try to open explorer
-      if execShellCmd("explorer.exe /select," & file.quoted) == 0: return
+      discard startProcess("explorer.exe", "", ["/select,", file.absolutePath]) 
 
-      # use qt to open directory in default app
-      let dir = file.splitPath.head
-      openUrlInDefaultApplication("file:" & dir)
-    
     else:
       # use qt to open directory in default app
       let dir = file.splitPath.head
