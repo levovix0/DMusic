@@ -73,7 +73,7 @@ qobject FileDialogs:
       openUrlInDefaultApplication("file:" & dir)
     
     elif defined(windows):
-      # try to open explorer
+      # open explorer
       discard startProcess("explorer.exe", "", ["/select,", file.absolutePath]) 
 
     else:
