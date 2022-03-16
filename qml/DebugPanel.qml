@@ -13,7 +13,7 @@ FloatingPanel {
 
   DTextBox {
     id: _id
-    width: 185
+    width: 215
     height: 20
     anchors.left: parent.left
     anchors.top: parent.top
@@ -117,22 +117,10 @@ FloatingPanel {
   }
 
   IconButton {
-    id: _downloads
-    width: 20
-    height: 20
-    anchors.left: _playlist.right
-    anchors.top: _id.top
-    anchors.leftMargin: 12
-    src: "qrc:/resources/debug/downloads.svg"
-
-    onClicked: AudioPlayer.playDownloads()
-  }
-
-  IconButton {
     id: _user
     width: 20
     height: 20
-    anchors.left: _downloads.right
+    anchors.left: _playlist.right
     anchors.top: _id.top
     anchors.leftMargin: 12
     src: "qrc:/resources/debug/user.svg"

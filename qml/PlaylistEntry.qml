@@ -8,7 +8,7 @@ Item {
   width: 115
   height: root.width + _name.height + 10
 
-  property bool playing: PlayingTrackInfo.playlistId == playlistId && PlayingTrackInfo.playlistOwner == ownerId && playlistId != 0 && ownerId != 0
+  property bool playing: PlayingTrackInfo.playlistId == playlistId && PlayingTrackInfo.playlistOwner == ownerId && playlistId != 0
 
   property real _anim_n: 0
   property real _anim2_n: 0

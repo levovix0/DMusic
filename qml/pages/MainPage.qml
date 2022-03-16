@@ -52,7 +52,10 @@ DPage {
               playlistId: objId
               ownerId: objOwner
 
-              onPlay: AudioPlayer.playYmPlaylist(objId, objOwner)
+              onPlay: {
+                if (objOwner != 0) AudioPlayer.playYmPlaylist(objId, objOwner)
+                else AudioPlayer.playDmPlaylist(objId)
+              }
               onShowFull: switcher("qrc:/qml/pages/PlaylistPage.qml")
             }
           }

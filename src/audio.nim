@@ -486,11 +486,13 @@ qobject AudioPlayer:
       else:
         tracks = Playlist(id: id, ownerId: owner).tracks.await.mapit(yandexTrack it)
       await play(tracks, (id, owner))
-  
-  proc playDownloads =
+
+  proc playDmPlaylist(id: int) =
     cancel getTrackAudioProcess
     getTrackAudioProcess = doAsync:
-      await play(downloadedYandexTracks(), (0, 0))
+      case id
+      of 1: await play(downloadedYandexTracks(), (1, 0))
+      else: discard
   
   proc addUserTrack(file, cover, title, comment, artists: string) =
     proc unfile(file: string): string =

@@ -6,6 +6,12 @@
     "qrc:/resources/covers/favorite.svg": {
       "": "qrc:/resources/covers/favorite-ru.svg"
     },
+    "qrc:/resources/covers/downloads.svg": {
+      "": "qrc:/resources/covers/downloads-ru.svg"
+    },
+    "Downloads": {
+      "": "Загружено"
+    },
     "Failed to login": {
       "": "Не удалось войти"
     }

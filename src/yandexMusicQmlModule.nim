@@ -128,12 +128,27 @@ proc cover(playlist: Playlist): Future[string] {.async.} =
     else: playlist.coverBase64(400).await
 
 qmodel HomePlaylistsModel:
-  rows: self.result.len
+  rows: self.result.len + 1
 
-  elem objId:      self.result[i].id
-  elem objTitle:   self.result[i].title
-  elem objCover:   self.covers[i]
-  elem objOwner:   self.result[i].ownerId
+  elem objId:
+    case i - self.result.high
+    of 1: 1
+    else: self.result[i].id
+
+  elem objTitle:
+    case i - self.result.high
+    of 1: tr"Downloads"
+    else: self.result[i].title
+
+  elem objCover:
+    case i - self.result.high
+    of 1: tr"qrc:/resources/covers/downloads.svg"
+    else: self.covers[i]
+
+  elem objOwner:
+    case i - self.result.high
+    of 1: 0
+    else: self.result[i].ownerId
 
   proc load =
     cancel self.process
