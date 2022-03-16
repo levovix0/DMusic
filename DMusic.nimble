@@ -1,4 +1,4 @@
-version       = "0.3"
+version       = "0.4"
 author        = "DTeam"
 description   = "Music player"
 license       = "GPL"
@@ -6,13 +6,15 @@ srcDir        = "src"
 bin           = @["dmusic"]
 backend       = "cpp"
 
-requires "nim >= 1.4.4"
+requires "nim >= 1.6.4"
 requires "fusion"
 requires "cligen"
 requires "https://github.com/levovix0/impl"
 requires "discord_rpc"
 requires "filetype"
 requires "localize >= 0.2"
+requires "pixie"
+requires "chronos"
 
 mkdir "build"
 

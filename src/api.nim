@@ -155,6 +155,18 @@ proc cover*(this: Track): Future[string] {.async.} =
     else: "data:image/png;base64," & this.user.metadata.cover.encode
   else: ""
 
+proc coverImage*(this: Track): Future[string] {.async.} =
+  return case this.kind
+  of TrackKind.yandex:
+    this.yandex.coverUrl.request.await
+  of TrackKind.yandexFromFile:
+    if this.yandexFromFile.metadata.cover == "": emptyCover
+    else: this.yandexFromFile.metadata.cover
+  of TrackKind.user:
+    if this.user.metadata.cover == "": emptyCover
+    else: this.user.metadata.cover
+  else: ""
+
 proc hqCover*(this: Track): Future[string] {.async.} =
   return case this.kind
   of TrackKind.yandex:

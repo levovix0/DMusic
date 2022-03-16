@@ -19,7 +19,7 @@ FloatingPanel {
             title: qsTr("Show in folder")
             shortcut: "Ctrl+E"
             action: function() {
-              Qt.openUrlExternally(PlayingTrackInfo.folder)
+              FileDialogs.showInExplorer(PlayingTrackInfo.file)
             }
           }
           ListElement {

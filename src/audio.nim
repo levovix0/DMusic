@@ -523,8 +523,7 @@ qobject AudioPlayer:
     
     notifyVolumeChanged &= proc() = this.volumeChanged
     notify_track_failed_to_load &= proc =
-      get_track_audio_process = doasync:
-        await play current_sequence.next
+      next()
     
     notify_lost_internet_connection &= proc =
       pause()

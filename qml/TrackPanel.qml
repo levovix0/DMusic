@@ -79,6 +79,22 @@ FloatingPanel {
           onActivated: PlayingTrackInfo.disliked = !PlayingTrackInfo.disliked
         }
       }
+
+      PlayerControlsButton {
+        icon: "qrc:/resources/player/share.svg"
+
+        width: 20
+        height: 20
+
+        style: Style.panel.icon.normal
+        onClick: Clipboard.copyCurrentTrackPicture()
+
+        Shortcut {
+          sequence: "Ctrl+C"
+          context: Qt.ApplicationShortcut
+          onActivated: Clipboard.copyCurrentTrackPicture()
+        }
+      }
     }
 
     layer.enabled: true

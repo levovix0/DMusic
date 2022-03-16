@@ -1,12 +1,40 @@
 {.used.}
-import strutils, sequtils, re
-import qt, configuration
+import strutils, sequtils, re, os
+import pixie
+import qt, configuration, async, audio, api, utils
 
 type Clipboard = object
 
 qobject Clipboard:
   property string text:
     set: QApplication.clipboard.text = value
+
+  proc copyCurrentTrackPicture =
+    asyncCheck: do_async:
+      let cover = current_track.coverImage.await.decodeImage
+      let font = readFont(config_dir/"font.ttf")
+      font.size = 16
+      font.paint.color = color(1, 1, 1, 1)
+      let tts = font.typeset(current_track.title)
+      font.paint.color = color(0.6, 0.6, 0.6, 1)
+      let cts = font.typeset(current_track.comment)
+      font.size = 14
+      font.paint.color = color(0.85, 0.85, 0.85, 1)
+      let ats = font.typeset(current_track.artists)
+      let image = newImage(70 + max(tts.computeBounds.x + (if current_track.comment != "": 10 else: 0) + cts.computeBounds.x, ats.computeBounds.x).ceil.int, 50)
+      image.fill color(0.15, 0.15, 0.15, 1)
+      let r = image.newContext
+      r.drawImage cover, rect(0, 0, 50, 50)
+      font.size = 16
+      font.paint.color = color(1, 1, 1, 1)
+      image.fillText tts, translate vec2(60, 7)
+      font.paint.color = color(0.6, 0.6, 0.6, 1)
+      image.fillText cts, translate vec2(60 + tts.computeBounds.x + 10, 7)
+      font.size = 14
+      font.paint.color = color(0.85, 0.85, 0.85, 1)
+      image.fillText ats, translate vec2(60, 6 + 14 + 7)
+      image.writeFile(data_dir/"img.png")
+      QApplication.clipboard.image = qimageFromFile((data_dir/"img.png").cstring)[]
 
 registerSingletonInQml Clipboard, "DMusic", 1, 0
 
@@ -32,6 +60,30 @@ qobject FileDialogs:
   
   proc checkFilter(file: string, filter: string): bool =
     matchFilter(file, filter)
+  
+  proc showInExplorer(path: string) =
+    let file = if path.startsWith("file:"): path[5..^1] else: path
+    
+    when defined(linux):
+      # try to open dolphin
+      if execShellCmd("dolphin --select " & file.quoted) == 0: return
+
+      # use qt to open directory in default app
+      let dir = file.splitPath.head
+      openUrlInDefaultApplication("file:" & dir)
+    
+    elif defined(windows):
+      # try to open explorer
+      if execShellCmd("explorer.exe /select," & file.quoted) == 0: return
+
+      # use qt to open directory in default app
+      let dir = file.splitPath.head
+      openUrlInDefaultApplication("file:" & dir)
+    
+    else:
+      # use qt to open directory in default app
+      let dir = file.splitPath.head
+      openUrlInDefaultApplication("file:" & dir)
 
 registerSingletonInQml FileDialogs, "DMusic", 1, 0
 

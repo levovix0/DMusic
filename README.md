@@ -7,7 +7,6 @@
 ![Screenshot](https://ia.wampi.ru/2021/09/23/85.png)  
 <p align="center">
   <img alt="Version" src="https://img.shields.io/badge/Version-0.3-x.svg?style=flat-square&logoColor=white&color=blue">
-  <img alt="Version" src="https://img.shields.io/badge/Stable-0.2-x.svg?style=flat-square&logoColor=white&color=blue">
   &nbsp;&nbsp;
   <img alt="Nim" src="https://img.shields.io/badge/Nim-Nim.svg?style=flat-square&logo=nim&logoColor=white&color=cb9e50">
   <img alt="QML" src="https://img.shields.io/badge/QML-QML.svg?style=flat-square&logo=qt&logoColor=white&color=3db069">

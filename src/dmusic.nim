@@ -109,7 +109,7 @@ proc download(tracks: seq[string], file: string = "") =
 
 when isMainModule:
   import cligen
-  clcfg.version = "0.3"
+  clcfg.version = "0.4"
   if paramCount() == 0:
     dispatch gui
   else:

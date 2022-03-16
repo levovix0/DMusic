@@ -77,6 +77,7 @@ type
   
   QTranslator* {.importcpp, header: "QTranslator".} = object
   QClipboard* {.importcpp, header: "QClipboard".} = object
+  QImage* {.importcpp, header: "QImage".} = object
 
   QFileDialog* {.importcpp, byref, header: "QFileDialog".} = object
   DialogAcceptMode* = enum
@@ -280,6 +281,16 @@ proc `text=`*(this: ptr QClipboard, text: string) =
   proc impl(this: ptr QClipboard, text: QString) {.importcpp: "#->setText(@)", header: "QClipboard".}
   impl(this, text)
 
+proc `image=`*(this: ptr QClipboard, v: QImage) =
+  proc impl(this: ptr QClipboard, text: QImage) {.importcpp: "#->setImage(@, QClipboard::Clipboard)", header: "QClipboard".}
+  impl(this, v)
+
+
+
+#----------- QImage -----------#
+proc qimageFromFile*(filename: cstring): ptr QImage
+  {.importcpp: "new QImage(@)", header: "QImage", constructor.}
+
 
 
 #----------- QFileDialog -----------#
@@ -301,6 +312,13 @@ proc `title=`*(this: QFileDialog, v: string) =
 
 proc `acceptMode=`*(this: QFileDialog, v: DialogAcceptMode) {.importcpp: "#.setAcceptMode(@)", header: "QFileDialog".}
 proc `fileMode=`*(this: QFileDialog, v: DialogFileMode) {.importcpp: "#.setFileMode(@)", header: "QFileDialog".}
+
+
+
+#----------- QDesktopServices -----------#
+proc openUrlInDefaultApplication*(path: string) =
+  proc impl(v: QString) {.importcpp: "QDesktopServices::openUrl(@)", header: "QDesktopServices".}
+  impl(path)
 
 
 
@@ -863,11 +881,11 @@ template registerSingletonInQml*(t: type, module: string, verMajor, verMinor: in
   bind registerSingletonInQmlC, cnew
   var x = cnew t.Ct
   proc instance(a: ptr QQmlEngine, b: ptr QJSEngine): ptr t.Ct {.cdecl.} = x
-  registerSingletonInQmlC[t.Ct](module, verMajor.cint, verMinor.cint, $t, instance, nil)
+  registerSingletonInQmlC[t.Ct](module.cstring, verMajor.cint, verMinor.cint, $t, instance, nil)
 
 template registerSingletonInQml*(t: type, modules: varargs[(string, int, int)]) =
   bind registerSingletonInQmlC, cnew
   var x = cnew t.Ct
   proc instance(a: ptr QQmlEngine, b: ptr QJSEngine): ptr t.Ct {.cdecl.} = x
   for module in modules:
-    registerSingletonInQmlC[t.Ct](module[0], module[1].cint, module[2].cint, $t, instance, nil)
+    registerSingletonInQmlC[t.Ct](module[0].cstring, module[1].cint, module[2].cint, $t, instance, nil)
