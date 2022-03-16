@@ -76,7 +76,6 @@ proc gui: string =
 
   complete infinityLoop
 
-
 proc download(tracks: seq[string], file: string = "") =
   if tracks.len == 0:
     echo tr"No tracks specified"
