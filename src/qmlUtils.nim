@@ -1,7 +1,7 @@
 {.used.}
 import strutils, sequtils, re, os
 import pixie
-import qt, configuration, async, audio, api
+import qt, configuration, async, audio, api, utils
 
 type Clipboard = object
 
@@ -60,6 +60,30 @@ qobject FileDialogs:
   
   proc checkFilter(file: string, filter: string): bool =
     matchFilter(file, filter)
+  
+  proc showInExplorer(path: string) =
+    let file = if path.startsWith("file:"): path[5..^1] else: path
+    
+    when defined(linux):
+      # try to open dolphin
+      if execShellCmd("dolphin --select " & file.quoted) == 0: return
+
+      # use qt to open directory in default app
+      let dir = file.splitPath.head
+      openUrlInDefaultApplication("file:" & dir)
+    
+    elif defined(windows):
+      # try to open explorer
+      if execShellCmd("explorer.exe /select," & file.quoted) == 0: return
+
+      # use qt to open directory in default app
+      let dir = file.splitPath.head
+      openUrlInDefaultApplication("file:" & dir)
+    
+    else:
+      # use qt to open directory in default app
+      let dir = file.splitPath.head
+      openUrlInDefaultApplication("file:" & dir)
 
 registerSingletonInQml FileDialogs, "DMusic", 1, 0
 

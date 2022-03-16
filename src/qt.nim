@@ -315,6 +315,13 @@ proc `fileMode=`*(this: QFileDialog, v: DialogFileMode) {.importcpp: "#.setFileM
 
 
 
+#----------- QDesktopServices -----------#
+proc openUrlInDefaultApplication*(path: string) =
+  proc impl(v: QString) {.importcpp: "QDesktopServices::openUrl(@)", header: "QDesktopServices".}
+  impl(path)
+
+
+
 #----------- tools -----------#
 proc moc*(code: string): string {.compileTime.} =
   ## qt moc (meta-compiler) tool wrapper
