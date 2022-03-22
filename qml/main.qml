@@ -155,6 +155,7 @@ Window {
     Shortcut { sequence: "M"; onActivated: AudioPlayer.muted = !AudioPlayer.muted; context: Qt.ApplicationShortcut }
     Shortcut { sequence: "S"; onActivated: AudioPlayer.shuffle = !AudioPlayer.shuffle; context: Qt.ApplicationShortcut }
     Shortcut { sequence: "C"; onActivated: AudioPlayer.loop = (AudioPlayer.loop + 1) % 3; context: Qt.ApplicationShortcut }
+    Shortcut { sequence: "Ctrl+Y"; onActivated: Qt.openUrlExternally(PlayingTrackInfo.page); context: Qt.ApplicationShortcut }
 
     layer.enabled: Config.csd && visibility != 4
     layer.effect: OpacityMask {

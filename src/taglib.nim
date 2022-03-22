@@ -246,6 +246,10 @@ proc readTrackMetadata*(filename: string): TrackMetadata =
   destroy file
 
 
+proc readTrackMetadata2*(filename: string): TrackMetadata =
+  ## todo: read id3v2 without taglib
+
+
 proc writeTrackMetadata*(filename: string; data: TrackMetadata, writeCover = true) =
   if not fileExists filename: return
   let file = MpegFile.read(filename)

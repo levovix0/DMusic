@@ -394,6 +394,10 @@ qobject PlayingTrackInfo:
     get: currentTrack.kind == TrackKind.none
     notify infoChanged
   
+  property string page:
+    get: currentTrack.page
+    notify infoChanged
+  
   proc save =
     if self.saveProcess != nil: return
     self.saveProcess = doAsync:

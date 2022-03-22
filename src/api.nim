@@ -292,3 +292,11 @@ proc file*(this: Track): string =
   of TrackKind.user:
     "file:" & this.user.file.absolutePath
   else: ""
+
+proc page*(this: Track): string =
+  case this.kind
+  of TrackKind.yandex:
+    "https://music.yandex.ru/track/" & $this.yandex.id
+  of TrackKind.yandexFromFile:
+    "https://music.yandex.ru/track/" & this.yandexFromFile.file.splitFile.name
+  else: ""

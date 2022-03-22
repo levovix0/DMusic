@@ -1,7 +1,11 @@
 {.used.}
 import strutils, sequtils, re, os
-import pixie, os, osproc
+import pixie
 import qt, configuration, async, audio, api, utils
+
+when defined(windows):
+  import osproc
+
 
 type Clipboard = object
 
