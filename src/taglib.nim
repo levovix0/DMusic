@@ -301,6 +301,14 @@ when not defined(dmusic_useTaglib):
             dmusicFrameReaded = true
           except: discard
     )
+
+    block:
+      let file = MpegFile.read(filename)
+      let tag = file.id3v2Tag
+      if tag == nil: destroy file; return
+      res.duration = file.duration
+      
+      destroy file
     res
 
   proc readTrackCover*(filename: string): string =
