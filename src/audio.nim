@@ -512,7 +512,7 @@ qobject AudioPlayer:
       elif cover.startsWith("file:"): readFile cover.unfile
       else: readFile cover
       # TODO: http: handling
-    writeTrackMetadata(filename, (title, comment, artists, coverdata, false, false, Duration.default))
+    writeTrackMetadata(filename, (title, comment, artists, false, false, Duration.default), coverdata)
     
   proc `=new` =
     notifyStateChanged &= proc() = this.stateChanged

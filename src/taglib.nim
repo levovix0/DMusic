@@ -1,4 +1,4 @@
-import times, os, filetype, strformat, json
+import times, os, filetype, strformat, json, streams, strutils
 import impl, utils
 
 when not defined(linux):
@@ -60,7 +60,7 @@ type
     bandLogo
     publisherLogo
   
-  TrackMetadata* = tuple[title, comment, artists, cover: string; liked, disliked: bool; duration: Duration]
+  TrackMetadata* = tuple[title, comment, artists: string; liked, disliked: bool; duration: Duration]
 
 
 
@@ -220,37 +220,142 @@ impl PPrivateFrame:
 
 const coverKinds = {PictureKind.other, PictureKind.frontCover, PictureKind.backCover, PictureKind.illustration}
 
+when not defined(dmusic_useTaglib):
+  proc readZeroTerminatedStr(s: Stream): string =
+    while true:
+      let c = s.readUint8.char
+      if c == '\0': break
+      result.add c
 
-proc readTrackMetadata*(filename: string): TrackMetadata =
-  if not fileExists filename: return
-  let file = MpegFile.read(filename)
-  let tag = file.id3v2Tag
-  if tag == nil: destroy file; return
-
-  result.title = tag.title
-  result.comment = tag.comment
-  result.artists = tag.artist
-  result.duration = file.duration
-
-  var findData = false
-  for frame in tag.frames:
-    if result.cover.len == 0 and frame.isOf(PAttachedPictureFrame) and frame.asAttachedPictureFrame.kind in coverKinds:
-      result.cover = frame.asAttachedPictureFrame.picture
-    
-    if not findData and frame.isOf(PPrivateFrame) and frame.asPrivateFrame.owner == "DMusic":
-      let data = frame.asPrivateFrame.data.parseJson
-      result.liked = data{"liked"}.get(bool)
-      result.disliked = data{"disliked"}.get(bool)
-      findData = true
+  proc readReversedUint32(s: Stream): uint32 =
+    let b0 = s.readUint8
+    let b1 = s.readUint8
+    let b2 = s.readUint8
+    let b3 = s.readUint8
+    cast[uint32]([b3, b2, b1, b0])
   
-  destroy file
+  proc skip(s: Stream, n: int) =
+    s.setPosition(s.getPosition + n)
+
+  proc readID3v2*(filename: string, onFrame: proc(s: Stream, id: string, size: int, pos: int)) =
+    if not fileExists filename: return
+    var s = newFileStream(filename, fmRead)
+    if s.isNil: return
+    try:
+      let head = s.readStr(6)
+      let size = s.readUint32.int
+      if not head.startsWith("ID3"): return
+
+      let version = (head[3].int, head[4].int)
+      if version[0] < 2: return
+
+      let extendedHeader = bool(head[5].byte and 0b10)
+      if extendedHeader:
+        discard s.readStr(s.readReversedUint32.int + 6)
+      
+      while true:
+        if s.atEnd or s.getPosition >= size + 10: break
+        let id = s.readStr(4)
+        if id == "\0\0\0\0": break
+        let size = s.readReversedUint32.int
+        s.skip(2)
+        let pos = s.getPosition
+
+        onFrame(s, id, size, pos)
+
+        s.setPosition(pos + size)
+
+    except: return
+    finally: close s
+
+  proc readTrackMetadata*(filename: string): TrackMetadata =
+    var
+      titleFrameReaded = false
+      commentFrameReaded = false
+      artistsFrameReaded = false
+      dmusicFrameReaded = false
+
+    var res: TrackMetadata
+    filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
+      if id == "TIT2" and not titleFrameReaded:
+        res.title = s.readStr(size)
+        titleFrameReaded = true
+      
+      elif id in ["COMM", "TIT3"] and not commentFrameReaded:
+        res.comment = s.readStr(size)
+        commentFrameReaded = true
+      
+      elif id == "TPE1" and not artistsFrameReaded:
+        res.artists = s.readStr(size).split("/").join(", ")
+        artistsFrameReaded = true
+
+      elif id == "PRIV" and not dmusicFrameReaded:
+        let owner = s.readZeroTerminatedStr
+        if owner == "DMusic":
+          try:
+            let data = s.readStr(size - (s.getPosition - pos)).parseJson
+            res.liked = data{"liked"}.get(bool)
+            res.disliked = data{"disliked"}.get(bool)
+            dmusicFrameReaded = true
+          except: discard
+    )
+    res
+
+  proc readTrackCover*(filename: string): string =
+    var coverFrameReaded = false
+
+    var res: string
+    filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
+      if id == "APIC" and not coverFrameReaded:
+        let size = s.readReversedUint32.int
+        discard s.readStr(2)
+
+        discard s.readUint8
+        discard s.readZeroTerminatedStr
+        discard s.readUint8
+        discard s.readZeroTerminatedStr
+        res = s.readStr(size - (s.getPosition - pos))
+        coverFrameReaded = true
+    )
+    res
+
+else:
+  proc readTrackMetadata*(filename: string): TrackMetadata =
+    if not fileExists filename: return
+    let file = MpegFile.read(filename)
+    let tag = file.id3v2Tag
+    if tag == nil: destroy file; return
+
+    result.title = tag.title
+    result.comment = tag.comment
+    result.artists = tag.artist
+    result.duration = file.duration
+
+    var findData = false
+    for frame in tag.frames:      
+      if not findData and frame.isOf(PPrivateFrame) and frame.asPrivateFrame.owner == "DMusic":
+        let data = frame.asPrivateFrame.data.parseJson
+        result.liked = data{"liked"}.get(bool)
+        result.disliked = data{"disliked"}.get(bool)
+        findData = true
+    
+    destroy file
+  
+  proc readTrackCover*(filename: string): string =
+    if not fileExists filename: return
+    let file = MpegFile.read(filename)
+    let tag = file.id3v2Tag
+    if tag == nil: destroy file; return
+
+    for frame in tag.frames:
+      if result.len == 0 and frame.isOf(PAttachedPictureFrame):
+        result = frame.asAttachedPictureFrame.picture
+    
+    destroy file
 
 
-proc readTrackMetadata2*(filename: string): TrackMetadata =
-  ## todo: read id3v2 without taglib
 
-
-proc writeTrackMetadata*(filename: string; data: TrackMetadata, writeCover = true) =
+proc writeTrackMetadata*(filename: string; data: TrackMetadata, cover = "") =
   if not fileExists filename: return
   let file = MpegFile.read(filename)
   let tag = file.id3v2Tag(true)
@@ -269,7 +374,7 @@ proc writeTrackMetadata*(filename: string; data: TrackMetadata, writeCover = tru
     if dataFrame == nil and frame.isOf(PPrivateFrame) and frame.asPrivateFrame.owner == "DMusic":
       dataFrame = frame.asPrivateFrame
 
-  if coverFrame == nil and writeCover:
+  if coverFrame == nil and cover != "":
     coverFrame = AttachedPictureFrame.new
     tag.add coverFrame.asFrame
 
@@ -283,10 +388,10 @@ proc writeTrackMetadata*(filename: string; data: TrackMetadata, writeCover = tru
     "disliked": data.disliked
   }
 
-  if writeCover:
-    coverFrame.mime = cast[seq[byte]](data.cover).match.mime.value
+  if cover != "":
+    coverFrame.mime = cast[seq[byte]](cover).match.mime.value
     coverFrame.kind = PictureKind.frontCover
-    coverFrame.picture = data.cover
+    coverFrame.picture = cover
   
   save file
   destroy file
