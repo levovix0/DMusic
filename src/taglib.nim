@@ -278,15 +278,17 @@ when not defined(dmusic_useTaglib):
     var res: TrackMetadata
     filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
       if id == "TIT2" and not titleFrameReaded:
-        res.title = s.readStr(size)
+        res.title = s.readStr(size).strip(chars={'\3'})
         titleFrameReaded = true
       
       elif id in ["COMM", "TIT3"] and not commentFrameReaded:
-        res.comment = s.readStr(size)
+        res.comment = s.readStr(size).strip(chars={'\3'})
+        if res.comment.startsWith("\0XXX\0"):
+          res.comment = res.comment[5..^1]
         commentFrameReaded = true
       
       elif id == "TPE1" and not artistsFrameReaded:
-        res.artists = s.readStr(size).split("/").join(", ")
+        res.artists = s.readStr(size).strip(chars={'\3'}).split("/").join(", ")
         artistsFrameReaded = true
 
       elif id == "PRIV" and not dmusicFrameReaded:
