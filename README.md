@@ -20,6 +20,11 @@ See [releases](https://github.com/levovix0/DMusic/releases) or use nimble
 ```sh
 nimble install https://github.com/levovix0/DMusic  # (linux-only)
 ```
+<details><summary>Compile flags</summary><p>
+  <code>-d:debugRequests</code> - print all requested urls to stdout
+  
+  <code>-d:yandexMusic_oneRequestAtOnce</code> - make only one request to yandex music at once (may fix infinity wait time from y.m. server)
+</p></details>
 
 ## Dependencies
 * Nim 1.4.4

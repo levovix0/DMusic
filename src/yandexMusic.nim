@@ -77,6 +77,10 @@ proc newClient*(config = config): Client =
     of Language.ru: "ru"
     else: "en"
 
+
+when defined(yandexMusic_oneRequestAtOnce):
+  var requestLock: bool
+
 proc request*(
   url: string|Uri,
   httpMethod: HttpMethod = HttpGet,
@@ -90,10 +94,22 @@ proc request*(
     if params.len == 0: $url
     else:
       when url is Uri: $(url ? params) else: $(url.parseUri ? params)
+  
+  when defined(debugRequests):
+    echo &"Request: {url}"
 
   let client = newClient()
   client.onProgressChanged = progressReport
+
+  when defined(yandexMusic_oneRequestAtOnce):
+    while requestLock:
+      await sleepAsync(1)
+    requestLock = true
+    
   let response = await httpclient.request(client, url, httpMethod, body, nil, data)
+
+  when defined(yandexMusic_oneRequestAtOnce):
+    requestLock = false
 
   template formatResponse: string =
     let body = response.body.await.parseJson
