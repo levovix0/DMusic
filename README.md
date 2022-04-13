@@ -24,8 +24,6 @@ nimble install https://github.com/levovix0/DMusic  # (linux-only)
   <code>-d:debugRequests</code> - print all requested urls to stdout
   
   <code>-d:yandexMusic_oneRequestAtOnce</code> - make only one request to yandex music at once (may fix infinity wait time from y.m. server)
-  
-  <code>-d:dmusic_useTaglib</code> - use taglib to parse id3v2 tags (added for compatibility, will be removed)
 </p></details>
 
 ## Dependencies

@@ -1,4 +1,4 @@
-import times, os, filetype, strformat, json, streams, strutils
+import times, os, filetype, strformat, json, streams, strutils, bitops
 import impl, utils
 
 when not defined(linux):
@@ -23,7 +23,6 @@ when defined(windows): {.passc: "-DTAGLIB_STATIC".}
 type
   TaglibString {.importcpp: "TagLib::String", header: "tag.h".} = object
   TaglibList[T] {.importcpp: "TagLib::List", header: "tag.h".} = object
-  TaglibByteVector {.importcpp: "TagLib::ByteVector", header: "tag.h".} = object
 
   MpegFile {.importcpp: "TagLib::MPEG::File", header: "mpegfile.h".} = object
   Id3v2Tag {.importcpp: "TagLib::ID3v2::Tag", header: "id3v2tag.h".} = object
@@ -85,16 +84,6 @@ converter toSeq[T](this: TaglibList[T]): seq[T] =
 
 
 
-#----------- TaglibByteVector -----------#
-converter `$`(this: TaglibByteVector): string =
-  proc len(this: TaglibByteVector): int {.importcpp: "#.size()", header: "tag.h".}
-  proc data(this: TaglibByteVector): cstring {.importcpp: "#.data()", header: "tag.h".}
-  result.setLen this.len
-  if result.len == 0: return
-  copyMem result[0].addr, this.data, result.len
-
-
-
 proc read(_: type MpegFile, filename: string): ptr MpegFile =
   proc impl(filename: cstring): PMpegFile {.importcpp: "new TagLib::MPEG::File(@)", header: "mpegfile.h".}
   impl(filename)
@@ -104,10 +93,6 @@ impl PMpegFile:
     proc impl(this: PMpegFile, create: bool): PId3v2Tag {.importcpp: "#->ID3v2Tag(@)", header: "mpegfile.h".}
     impl(this, create)
 
-  proc duration: Duration =
-    proc impl(this: PMpegFile): int {.importcpp: "TagLib::MPEG::Properties(#).lengthInMilliseconds()", header: "id3v2tag.h".}
-    initDuration(milliseconds=impl(this))
-
   proc destroy {.importcpp: "delete #".}
 
   proc save {.importcpp: "#->save()".}
@@ -115,25 +100,14 @@ impl PMpegFile:
 
 
 impl PId3v2Tag:
-  proc title: string =
-    proc impl(this: PId3v2Tag): TaglibString {.importcpp: "#->title()", header: "id3v2tag.h".}
-    impl(this)
 
   proc `title=`(v: string) =
     proc impl(this: PId3v2Tag, v: TaglibString) {.importcpp: "#->setTitle(#)", header: "id3v2tag.h".}
     impl(this, v)
 
-  proc comment: string =
-    proc impl(this: PId3v2Tag): TaglibString {.importcpp: "#->comment()", header: "id3v2tag.h".}
-    impl(this)
-
   proc `comment=`(v: string) =
     proc impl(this: PId3v2Tag, v: TaglibString) {.importcpp: "#->setComment(#)", header: "id3v2tag.h".}
     impl(this, v)
-
-  proc artist: string =
-    proc impl(this: PId3v2Tag): TaglibString {.importcpp: "#->artist()", header: "id3v2tag.h".}
-    impl(this)
 
   proc `artist=`(v: string) =
     proc impl(this: PId3v2Tag, v: TaglibString) {.importcpp: "#->setArtist(#)", header: "id3v2tag.h".}
@@ -175,10 +149,6 @@ impl PAttachedPictureFrame:
     proc impl(this: PAttachedPictureFrame, v: PictureKind) {.importcpp: "#->setType((TagLib::ID3v2::AttachedPictureFrame::Type)#)", header: "attachedpictureframe.h".}
     impl(this, v)
 
-  proc picture: string =
-    proc impl(this: PAttachedPictureFrame): TaglibByteVector {.importcpp: "#->picture()", header: "attachedpictureframe.h".}
-    impl(this)
-
   proc `picture=`(v: string) =
     proc impl(this: PAttachedPictureFrame, v: cstring, l: cuint) {.importcpp: "#->setPicture({#, #})", header: "attachedpictureframe.h".}
     impl(this, v, v.len.cuint)
@@ -196,11 +166,7 @@ proc new(_: type PrivateFrame): PPrivateFrame =
   proc impl: PPrivateFrame {.importcpp: "new TagLib::ID3v2::PrivateFrame", header: "privateframe.h".}
   impl()
 
-impl PPrivateFrame:
-  proc data: string =
-    proc impl(this: PPrivateFrame): TaglibByteVector {.importcpp: "#->data()", header: "privateframe.h".}
-    impl(this)
-  
+impl PPrivateFrame:  
   proc `data=`(v: string) =
     proc impl(this: PPrivateFrame, v: cstring, l: cuint) {.importcpp: "#->setData({#, #})", header: "privateframe.h".}
     impl(this, v, v.len.cuint)
@@ -220,148 +186,215 @@ impl PPrivateFrame:
 
 const coverKinds = {PictureKind.other, PictureKind.frontCover, PictureKind.backCover, PictureKind.illustration}
 
-when not defined(dmusic_useTaglib):
-  proc readZeroTerminatedStr(s: Stream): string =
+proc readZeroTerminatedStr(s: Stream): string =
+  while true:
+    let c = s.readUint8.char
+    if c == '\0': break
+    result.add c
+
+proc reverseBytes[T](x: T): T =
+  let x = cast[array[T.sizeof, byte]](x)
+  var y: array[T.sizeof, byte]
+  for i in 0..y.high:
+    y[i] = x[^(i + 1)]
+  cast[T](y)
+
+proc readReversedUint32(s: Stream): uint32 =
+  s.readUint32.reverseBytes
+
+proc to(x: string, t: type): t =
+  when t.sizeof == 0: return
+  if x.len < t.sizeof: return
+  cast[ptr t](x[0].unsafeaddr)[]
+
+proc skip(s: Stream, n: int) =
+  s.setPosition(s.getPosition + n)
+
+proc readTagSize(s: Stream): int =
+  let n = s.readReversedUint32
+  for i in 0..6:
+    if n.testBit(i): result.setBit(i)
+  for i in 8..8+6:
+    if n.testBit(i): result.setBit(i - 1)
+  for i in 16..16+6:
+    if n.testBit(i): result.setBit(i - 2)
+  for i in 24..24+6:
+    if n.testBit(i): result.setBit(i - 3)
+
+proc readID3v2*(filename: string, onFrame: proc(s: Stream, id: string, size: int, pos: int)) =
+  if not fileExists filename: return
+  var s = newFileStream(filename, fmRead)
+  if s.isNil: return
+  try:
+    let head = s.readStr(6)
+    let size = s.readTagSize
+    if not head.startsWith("ID3"): return
+
+    let version = (head[3].int, head[4].int)
+    if version[0] < 2: return
+
+    let extendedHeader = bool(head[5].byte and 0b10)
+    if extendedHeader:
+      discard s.readStr(s.readReversedUint32.int + 6)
+    
     while true:
-      let c = s.readUint8.char
-      if c == '\0': break
-      result.add c
+      if s.atEnd or s.getPosition >= size + 10: break
+      let id = s.readStr(4)
+      if id == "\0\0\0\0": break
+      let size = s.readReversedUint32.int
+      s.skip(2)
+      let pos = s.getPosition
 
-  proc readReversedUint32(s: Stream): uint32 =
-    let b0 = s.readUint8
-    let b1 = s.readUint8
-    let b2 = s.readUint8
-    let b3 = s.readUint8
-    cast[uint32]([b3, b2, b1, b0])
-  
-  proc skip(s: Stream, n: int) =
-    s.setPosition(s.getPosition + n)
+      onFrame(s, id, size, pos)
 
-  proc readID3v2*(filename: string, onFrame: proc(s: Stream, id: string, size: int, pos: int)) =
-    if not fileExists filename: return
+      s.setPosition(pos + size)
+
+  except: discard
+  finally: close s
+
+proc readTrackMetadata*(filename: string): TrackMetadata =
+  var
+    titleFrameReaded = false
+    commentFrameReaded = false
+    artistsFrameReaded = false
+    dmusicFrameReaded = false
+
+  var res: TrackMetadata
+  filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
+    if id == "TIT2" and not titleFrameReaded:
+      res.title = s.readStr(size).strip(chars={'\3', '\0'})
+      titleFrameReaded = true
+    
+    elif id in ["COMM", "TIT3"] and not commentFrameReaded:
+      res.comment = s.readStr(size).strip(chars={'\3', '\0'})
+      if res.comment.startsWith("XXX\0"):
+        res.comment = res.comment[4..^1]
+      commentFrameReaded = true
+    
+    elif id == "TPE1" and not artistsFrameReaded:
+      res.artists = s.readStr(size).strip(chars={'\3', '\0'}).split("/").join(", ")
+      artistsFrameReaded = true
+
+    elif id == "PRIV" and not dmusicFrameReaded:
+      let owner = s.readZeroTerminatedStr
+      if owner == "DMusic":
+        try:
+          let data = s.readStr(size - (s.getPosition - pos)).parseJson
+          res.liked = data{"liked"}.get(bool)
+          res.disliked = data{"disliked"}.get(bool)
+          dmusicFrameReaded = true
+        except: discard
+  )
+
+  block readDuration:
+    if not fileExists filename: break
     var s = newFileStream(filename, fmRead)
-    if s.isNil: return
+    if s.isNil: break
     try:
-      let head = s.readStr(6)
-      let size = s.readUint32.int
-      if not head.startsWith("ID3"): return
+      var tagSize = 0
+      block skipTag:
+        let head = s.readStr(6)
+        if not head.startsWith("ID3"): break
+        tagSize = s.readTagSize
+        s.skip(tagSize)
+        
+      const bitrates = [
+        [ # Version 1
+          [0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 0], # layer 1
+          [0, 32, 48, 56, 64,  80,  96,  112, 128, 160, 192, 224, 256, 320, 384, 0], # layer 2
+          [0, 32, 40, 48, 56,  64,  80,  96,  112, 128, 160, 192, 224, 256, 320, 0], # layer 3
+        ], [ # Version 2 or 2.5
+          [0, 32, 48, 56, 64, 80, 96, 112, 128, 144, 160, 176, 192, 224, 256, 0], # layer 1
+          [0, 8,  16, 24, 32, 40, 48, 56,  64,  80,  96,  112, 128, 144, 160, 0], # layer 2
+          [0, 8,  16, 24, 32, 40, 48, 56,  64,  80,  96,  112, 128, 144, 160, 0], # layer 3
+        ]
+      ]
 
-      let version = (head[3].int, head[4].int)
-      if version[0] < 2: return
+      const sampleRates = [
+        [44100, 48000, 32000, 0], # Version 1
+        [22050, 24000, 16000, 0], # Version 2
+        [11025, 12000, 8000,  0], # Version 2.5
+      ]
 
-      let extendedHeader = bool(head[5].byte and 0b10)
-      if extendedHeader:
-        discard s.readStr(s.readReversedUint32.int + 6)
+      const samplesPerFrames = [
+        [384,  384 ], # Layer 1
+        [1152, 1152], # Layer 2
+        [1152, 576 ], # Layer 3
+      ]
+
+      let head = s.readStr(10)
+
+      let version = case (head[1].byte shr 3) and 0x3:
+        of 0: 2
+        of 2: 1
+        of 3: 0
+        else: break
       
-      while true:
-        if s.atEnd or s.getPosition >= size + 10: break
-        let id = s.readStr(4)
-        if id == "\0\0\0\0": break
-        let size = s.readReversedUint32.int
-        s.skip(2)
-        let pos = s.getPosition
+      let layer = case (head[1].byte shr 1) and 0x3:
+        of 1: 2
+        of 2: 1
+        of 3: 0
+        else: break
+      
+      let bitrate = bitrates[version.min(1)][layer][(head[2].byte shr 4) and 0xF]
+      if bitrate == 0: break
 
-        onFrame(s, id, size, pos)
+      let sampleRate = sampleRates[version][(head[2].byte shr 2) and 0x3]
+      if sampleRate == 0: break
 
-        s.setPosition(pos + size)
+      let samplesPerFrame = samplesPerFrames[layer][version.min(1)]
 
-    except: return
+      var size = samplesPerFrame * bitrate * 125 div sampleRate
+      if head[2].byte.testBit(2): size += [4, 1, 1][layer]
+
+      let data = s.readStr(128)
+
+      proc find(s: string, sub: string): int =
+        result = -1
+        for i in 0..(s.high - sub.len):
+          block a:
+            for j in 0..sub.high:
+              if s[i + j] != sub[j]: break a
+            return i
+
+      var vbrOffset = data.find("Xing")
+      if vbrOffset < 0: vbrOffset = data.find("Info")
+      if vbrOffset >= 0:
+        let frames = data[vbrOffset + 8 ..< vbrOffset + 12].to(uint32).reverseBytes.int
+        res.duration = initDuration(milliseconds = frames * samplesPerFrame * 1000 div sampleRate)
+        break
+      
+      vbrOffset = data.find("VBRI")
+      if vbrOffset >= 0:
+        let frames = data[vbrOffset + 14 ..< vbrOffset + 18].to(uint32).reverseBytes.int
+        res.duration = initDuration(milliseconds = frames * samplesPerFrame * 1000 div sampleRate)
+        break
+      
+      # todo: calculate relative to last frame, not to file size
+      res.duration = initDuration(milliseconds = (filename.getFileSize - tagSize) * 8 div bitrate)
+
+    except: discard
     finally: close s
 
-  proc readTrackMetadata*(filename: string): TrackMetadata =
-    var
-      titleFrameReaded = false
-      commentFrameReaded = false
-      artistsFrameReaded = false
-      dmusicFrameReaded = false
+  res
 
-    var res: TrackMetadata
-    filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
-      if id == "TIT2" and not titleFrameReaded:
-        res.title = s.readStr(size).strip(chars={'\3'})
-        titleFrameReaded = true
-      
-      elif id in ["COMM", "TIT3"] and not commentFrameReaded:
-        res.comment = s.readStr(size).strip(chars={'\3'})
-        if res.comment.startsWith("\0XXX\0"):
-          res.comment = res.comment[5..^1]
-        commentFrameReaded = true
-      
-      elif id == "TPE1" and not artistsFrameReaded:
-        res.artists = s.readStr(size).strip(chars={'\3'}).split("/").join(", ")
-        artistsFrameReaded = true
+proc readTrackCover*(filename: string): string =
+  var coverFrameReaded = false
 
-      elif id == "PRIV" and not dmusicFrameReaded:
-        let owner = s.readZeroTerminatedStr
-        if owner == "DMusic":
-          try:
-            let data = s.readStr(size - (s.getPosition - pos)).parseJson
-            res.liked = data{"liked"}.get(bool)
-            res.disliked = data{"disliked"}.get(bool)
-            dmusicFrameReaded = true
-          except: discard
-    )
+  var res: string
+  filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
+    if id == "APIC" and not coverFrameReaded:
+      let size = s.readReversedUint32.int
+      discard s.readStr(2)
 
-    block:
-      let file = MpegFile.read(filename)
-      let tag = file.id3v2Tag
-      if tag == nil: destroy file; return
-      res.duration = file.duration
-      
-      destroy file
-    res
-
-  proc readTrackCover*(filename: string): string =
-    var coverFrameReaded = false
-
-    var res: string
-    filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
-      if id == "APIC" and not coverFrameReaded:
-        let size = s.readReversedUint32.int
-        discard s.readStr(2)
-
-        discard s.readUint8
-        discard s.readZeroTerminatedStr
-        discard s.readUint8
-        discard s.readZeroTerminatedStr
-        res = s.readStr(size - (s.getPosition - pos))
-        coverFrameReaded = true
-    )
-    res
-
-else:
-  proc readTrackMetadata*(filename: string): TrackMetadata =
-    if not fileExists filename: return
-    let file = MpegFile.read(filename)
-    let tag = file.id3v2Tag
-    if tag == nil: destroy file; return
-
-    result.title = tag.title
-    result.comment = tag.comment
-    result.artists = tag.artist
-    result.duration = file.duration
-
-    var findData = false
-    for frame in tag.frames:      
-      if not findData and frame.isOf(PPrivateFrame) and frame.asPrivateFrame.owner == "DMusic":
-        let data = frame.asPrivateFrame.data.parseJson
-        result.liked = data{"liked"}.get(bool)
-        result.disliked = data{"disliked"}.get(bool)
-        findData = true
-    
-    destroy file
-  
-  proc readTrackCover*(filename: string): string =
-    if not fileExists filename: return
-    let file = MpegFile.read(filename)
-    let tag = file.id3v2Tag
-    if tag == nil: destroy file; return
-
-    for frame in tag.frames:
-      if result.len == 0 and frame.isOf(PAttachedPictureFrame):
-        result = frame.asAttachedPictureFrame.picture
-    
-    destroy file
+      discard s.readUint8
+      discard s.readZeroTerminatedStr
+      discard s.readUint8
+      discard s.readZeroTerminatedStr
+      res = s.readStr(size - (s.getPosition - pos))
+      coverFrameReaded = true
+  )
+  res
 
 
 
