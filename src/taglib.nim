@@ -221,9 +221,9 @@ proc readTagSize(s: Stream): int =
   for i in 24..24+6:
     if n.testBit(i): result.setBit(i - 3)
 
-proc readID3v2*(filename: string, onFrame: proc(s: Stream, id: string, size: int, pos: int)) =
+template readID3v2(filename: string, onFrame: untyped) =
   if not fileExists filename: return
-  var s = newFileStream(filename, fmRead)
+  var s {.inject.} = newFileStream(filename, fmRead)
   if s.isNil: return
   try:
     let head = s.readStr(6)
@@ -239,13 +239,13 @@ proc readID3v2*(filename: string, onFrame: proc(s: Stream, id: string, size: int
     
     while true:
       if s.atEnd or s.getPosition >= size + 10: break
-      let id = s.readStr(4)
+      let id {.inject.} = s.readStr(4)
       if id == "\0\0\0\0": break
-      let size = s.readReversedUint32.int
+      let size {.inject.} = s.readReversedUint32.int
       s.skip(2)
-      let pos = s.getPosition
+      let pos {.inject.} = s.getPosition
 
-      onFrame(s, id, size, pos)
+      onFrame
 
       s.setPosition(pos + size)
 
@@ -259,20 +259,19 @@ proc readTrackMetadata*(filename: string): TrackMetadata =
     artistsFrameReaded = false
     dmusicFrameReaded = false
 
-  var res: TrackMetadata
-  filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
+  filename.readID3v2:
     if id == "TIT2" and not titleFrameReaded:
-      res.title = s.readStr(size).strip(chars={'\3', '\0'})
+      result.title = s.readStr(size).strip(chars={'\3', '\0'})
       titleFrameReaded = true
     
     elif id in ["COMM", "TIT3"] and not commentFrameReaded:
-      res.comment = s.readStr(size).strip(chars={'\3', '\0'})
-      if res.comment.startsWith("XXX\0"):
-        res.comment = res.comment[4..^1]
+      result.comment = s.readStr(size).strip(chars={'\3', '\0'})
+      if result.comment.startsWith("XXX\0"):
+        result.comment = result.comment[4..^1]
       commentFrameReaded = true
     
     elif id == "TPE1" and not artistsFrameReaded:
-      res.artists = s.readStr(size).strip(chars={'\3', '\0'}).split("/").join(", ")
+      result.artists = s.readStr(size).strip(chars={'\3', '\0'}).split("/").join(", ")
       artistsFrameReaded = true
 
     elif id == "PRIV" and not dmusicFrameReaded:
@@ -280,12 +279,11 @@ proc readTrackMetadata*(filename: string): TrackMetadata =
       if owner == "DMusic":
         try:
           let data = s.readStr(size - (s.getPosition - pos)).parseJson
-          res.liked = data{"liked"}.get(bool)
-          res.disliked = data{"disliked"}.get(bool)
+          result.liked = data{"liked"}.get(bool)
+          result.disliked = data{"disliked"}.get(bool)
           dmusicFrameReaded = true
         except: discard
-  )
-
+    
   block readDuration:
     if not fileExists filename: break
     var s = newFileStream(filename, fmRead)
@@ -361,29 +359,24 @@ proc readTrackMetadata*(filename: string): TrackMetadata =
       if vbrOffset < 0: vbrOffset = data.find("Info")
       if vbrOffset >= 0:
         let frames = data[vbrOffset + 8 ..< vbrOffset + 12].to(uint32).reverseBytes.int
-        res.duration = initDuration(milliseconds = frames * samplesPerFrame * 1000 div sampleRate)
+        result.duration = initDuration(milliseconds = frames * samplesPerFrame * 1000 div sampleRate)
         break
       
       vbrOffset = data.find("VBRI")
       if vbrOffset >= 0:
         let frames = data[vbrOffset + 14 ..< vbrOffset + 18].to(uint32).reverseBytes.int
-        res.duration = initDuration(milliseconds = frames * samplesPerFrame * 1000 div sampleRate)
+        result.duration = initDuration(milliseconds = frames * samplesPerFrame * 1000 div sampleRate)
         break
       
       # todo: calculate relative to last frame, not to file size
-      res.duration = initDuration(milliseconds = (filename.getFileSize - tagSize) * 8 div bitrate)
+      result.duration = initDuration(milliseconds = (filename.getFileSize - tagSize) * 8 div bitrate)
 
     except: discard
     finally: close s
 
-  res
-
 proc readTrackCover*(filename: string): string =
-  var coverFrameReaded = false
-
-  var res: string
-  filename.readID3v2 (proc(s: Stream, id: string, size: int, pos: int) =
-    if id == "APIC" and not coverFrameReaded:
+  filename.readID3v2:
+    if id == "APIC":
       let size = s.readReversedUint32.int
       discard s.readStr(2)
 
@@ -391,10 +384,7 @@ proc readTrackCover*(filename: string): string =
       discard s.readZeroTerminatedStr
       discard s.readUint8
       discard s.readZeroTerminatedStr
-      res = s.readStr(size - (s.getPosition - pos))
-      coverFrameReaded = true
-  )
-  res
+      return s.readStr(size - (s.getPosition - pos))
 
 
 

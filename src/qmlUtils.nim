@@ -25,7 +25,11 @@ qobject Clipboard:
       font.size = 14
       font.paint.color = color(0.85, 0.85, 0.85, 1)
       let ats = font.typeset(current_track.artists)
-      let image = newImage(70 + max(tts.computeBounds.x + (if current_track.comment != "": 10 else: 0) + cts.computeBounds.x, ats.computeBounds.x).ceil.int, 50)
+      let image = newImage(
+        70 + max(font.layoutBounds(current_track.title).x + (if current_track.comment != "": 10 else: 0) +
+          font.layoutBounds(current_track.comment).x, font.layoutBounds(current_track.artists).x).ceil.int,
+        50
+      )
       image.fill color(0.15, 0.15, 0.15, 1)
       let r = image.newContext
       r.drawImage cover, rect(0, 0, 50, 50)
@@ -33,7 +37,7 @@ qobject Clipboard:
       font.paint.color = color(1, 1, 1, 1)
       image.fillText tts, translate vec2(60, 7)
       font.paint.color = color(0.6, 0.6, 0.6, 1)
-      image.fillText cts, translate vec2(60 + tts.computeBounds.x + 10, 7)
+      image.fillText cts, translate vec2(60 + font.layoutBounds(current_track.title).x + 10, 7)
       font.size = 14
       font.paint.color = color(0.85, 0.85, 0.85, 1)
       image.fillText ats, translate vec2(60, 6 + 14 + 7)
