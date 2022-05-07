@@ -91,7 +91,7 @@ proc save*(this: Track, file: string, progressReport: ProgressReportCallback = n
       this.yandex.disliked
     )
     writeFile file, audio.await
-    writeTrackMetadata(file, (title, comment, artists, liked.await, disliked.await, Duration.default), cover.await)
+    writeTrackMetadata(file, (title, comment, artists, cover.await, liked.await, disliked.await, Duration.default), writeCover=true)
     this[] = TrackObj(kind: TrackKind.yandexFromFile, yandexFromFile: (
       file: file,
       metadata: readTrackMetadata(file)
@@ -148,13 +148,11 @@ proc cover*(this: Track): Future[string] {.async.} =
   of TrackKind.yandex:
     yandexMusicQmlModule.cover(this.yandex).await
   of TrackKind.yandexFromFile:
-    let data = readTrackCover(this.yandexFromFile.file)
-    if data == "": emptyCover
-    else: "data:image/png;base64," & data.encode
+    if this.yandexFromFile.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
   of TrackKind.user:
-    let data = readTrackCover(this.user.file)
-    if data == "": emptyCover
-    else: "data:image/png;base64," & data.encode
+    if this.user.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.user.metadata.cover.encode
   else: ""
 
 proc coverImage*(this: Track): Future[string] {.async.} =
@@ -162,13 +160,11 @@ proc coverImage*(this: Track): Future[string] {.async.} =
   of TrackKind.yandex:
     this.yandex.coverUrl.request.await
   of TrackKind.yandexFromFile:
-    let data = readTrackCover(this.yandexFromFile.file)
-    if data == "": emptyCover
-    else: data
+    if this.yandexFromFile.metadata.cover == "": emptyCover
+    else: this.yandexFromFile.metadata.cover
   of TrackKind.user:
-    let data = readTrackCover(this.user.file)
-    if data == "": emptyCover
-    else: data
+    if this.user.metadata.cover == "": emptyCover
+    else: this.user.metadata.cover
   else: ""
 
 proc hqCover*(this: Track): Future[string] {.async.} =
@@ -176,13 +172,11 @@ proc hqCover*(this: Track): Future[string] {.async.} =
   of TrackKind.yandex:
     yandexMusicQmlModule.cover(this.yandex, quality=1000).await
   of TrackKind.yandexFromFile:
-    let data = readTrackCover(this.yandexFromFile.file)
-    if data == "": emptyCover
-    else: "data:image/png;base64," & data.encode
+    if this.yandexFromFile.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
   of TrackKind.user:
-    let data = readTrackCover(this.user.file)
-    if data == "": emptyCover
-    else: "data:image/png;base64," & data.encode
+    if this.user.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.user.metadata.cover.encode
   else: ""
 
 proc title*(this: Track): string =
@@ -233,7 +227,7 @@ proc `liked=`*(this: Track, v: bool) {.async.} =
   
   of TrackKind.yandexFromFile:
     this.yandexFromFile.metadata.liked = v
-    writeTrackMetadata(this.yandexFromFile.file, this.yandexFromFile.metadata)
+    writeTrackMetadata(this.yandexFromFile.file, this.yandexFromFile.metadata, writeCover=false)
     
     # like real track
     let t = deepcopy this
@@ -244,7 +238,7 @@ proc `liked=`*(this: Track, v: bool) {.async.} =
   
   of TrackKind.user:
     this.user.metadata.liked = v
-    writeTrackMetadata(this.user.file, this.user.metadata)
+    writeTrackMetadata(this.user.file, this.user.metadata, writeCover=false)
   
   else: discard
 
@@ -266,7 +260,7 @@ proc `disliked=`*(this: Track, v: bool) {.async.} =
   
   of TrackKind.yandexFromFile:
     this.yandexFromFile.metadata.disliked = v
-    writeTrackMetadata(this.yandexFromFile.file, this.yandexFromFile.metadata)
+    writeTrackMetadata(this.yandexFromFile.file, this.yandexFromFile.metadata, writeCover=false)
     
     # dislike real track
     let t = deepcopy this
@@ -277,7 +271,7 @@ proc `disliked=`*(this: Track, v: bool) {.async.} =
   
   of TrackKind.user:
     this.user.metadata.disliked = v
-    writeTrackMetadata(this.user.file, this.user.metadata)
+    writeTrackMetadata(this.user.file, this.user.metadata, writeCover=false)
   
   else: discard
 
