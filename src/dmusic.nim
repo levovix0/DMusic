@@ -1,6 +1,6 @@
 import std/exitprocs, os, times, strformat, macros, strutils, sequtils
 import qt, messages, async, utils, configuration, yandexMusic
-import yandexMusicQmlModule, audio, qmlUtils, remoteAudio
+import yandexMusicQmlModule, audio, qmlUtils, remoteAudio, playlist
 
 macro resourcesFromDir*(dir: static[string] = ".") =
   result = newStmtList()

@@ -68,6 +68,9 @@
         <!-- qml/external -->
         <file>qml/external/Border.qml</file>
 
+        <!-- qml/playlist -->
+        <file>qml/playlist/TrackItem.qml</file>
+
         <!-- resources -->
         <file>resources/logo.svg</file>
         <file>resources/tri.svg</file>
@@ -153,5 +156,9 @@
         <!-- resources/placeholders -->
         <file>resources/placeholders/playlist.svg</file>
         <file>resources/placeholders/search.svg</file>
+
+        <!-- resources/playlist -->
+        <file>resources/playlist/like.svg</file>
+        <file>resources/playlist/liked.svg</file>
     </qresource>
 </RCC>

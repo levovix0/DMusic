@@ -1,14 +1,39 @@
 import QtQuick 2.15
+import DMusic 1.0
 import "../components"
+import "../playlist"
 
 DPage {
   id: root
 
-  PagePlaceholder {
-    anchors.centerIn: parent
+  Flickable {
+    id: _scroll
+    anchors.fill: parent
+    clip: true
+    anchors.leftMargin: 20
+    anchors.rightMargin: 20
 
-    icon: "qrc:/resources/placeholders/playlist.svg"
-    text: qsTr("There must be playlist")
-    text2: qsTr("but there isn't")
+    contentWidth: root.width - 40
+    contentHeight: _layout.height + 40
+
+    Column {
+      id: _layout
+      width: parent.width
+      y: 20
+      
+      Repeater {
+        model: PlaylistView
+
+        TrackItem {
+          width: _layout.width
+          cover: objCover
+          title: objTitle
+          author: objAuthor
+          duration: objDuration
+
+          onPlay: AudioPlayer.playYmPlaylist(PlaylistView.id, PlaylistView.ownerId, objI)
+        }
+      }
+    }
   }
 }

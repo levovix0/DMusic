@@ -9,14 +9,6 @@ type
     yandexFromFile
     yandexIdOnly
     user
-
-  UserTrack* = tuple
-    file: string
-    metadata: TrackMetadata
-
-  YandexFromFileTrack* = tuple
-    file: string
-    metadata: TrackMetadata
   
   Track* = ref TrackObj
   TrackObj* = object
@@ -30,6 +22,43 @@ type
     of TrackKind.user:
       user*: UserTrack
     else: discard
+
+  UserTrack* = tuple
+    file: string
+    metadata: TrackMetadata
+
+  YandexFromFileTrack* = tuple
+    file: string
+    metadata: TrackMetadata
+  
+
+  PlaylistKind* = enum
+    yandex
+    user
+    temporary
+  
+  Playlist* = ref PlaylistObj
+  PlaylistObj* = object
+    case kind*: PlaylistKind
+    of PlaylistKind.yandex:
+      yandex*: YandexPlaylist
+    of PlaylistKind.user:
+      user*: UserPlaylist
+    of PlaylistKind.temporary:
+      temporary*: TemporaryPlaylist
+  
+  YandexPlaylist* = tuple
+    info: yandexMusic.Playlist
+    tracks: seq[Track]
+  
+  UserPlaylist* = tuple
+    name: string
+    tracks: seq[Track]
+    file: string
+  
+  TemporaryPlaylist* = tuple
+    name: string
+    tracks: seq[Track]
 
 
 proc yandexTrack*(id: TrackId): Track =
@@ -300,3 +329,19 @@ proc page*(this: Track): string =
   of TrackKind.yandexFromFile:
     "https://music.yandex.ru/track/" & this.yandexFromFile.file.splitFile.name
   else: ""
+
+
+proc fetch*(playlist: Playlist) {.async.} =
+  case playlist.kind
+  of PlaylistKind.yandex:
+    playlist.yandex.tracks = playlist.yandex.info.tracks.await.mapit(it.yandexTrack)
+  else: discard
+
+proc tracks*(playlist: Playlist): ptr seq[Track] =
+  case playlist.kind
+  of PlaylistKind.yandex:
+    playlist.yandex.tracks.addr
+  of PlaylistKind.user:
+    playlist.user.tracks.addr
+  of PlaylistKind.temporary:
+    playlist.temporary.tracks.addr

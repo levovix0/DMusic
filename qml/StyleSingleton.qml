@@ -23,6 +23,17 @@ QtObject {
       property real width: darkTheme? 0 : 2
     }
 
+    property QtObject sellection: QtObject {
+      property color background: darkTheme? "#303030" : "#F0F0F0"
+      property color pressedBackground: darkTheme? "#181818" : "#E2E2E2"
+      property real radius: 5
+
+      // property QtObject border: QtObject {
+      //   property color color: darkTheme? "transparent" : cBorder
+      //   property real width: darkTheme? 0 : 2
+      // }
+    }
+
     property QtObject text: QtObject {
       property color color: darkTheme? white : c40
       property color darkColor: "#808080"

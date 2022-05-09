@@ -181,6 +181,12 @@ proc play*(tracks: seq[Track], yandexId = (0, 0)) {.async.} =
   currentSequence.loop = config.loop == LoopMode.playlist
   await play currentSequence.curr
 
+proc play*(tracks: seq[Track], yandexId = (0, 0), trackToStartFrom: int) {.async.} =
+  currentSequence = TrackSequence(tracks: tracks, yandexId: yandexId, current: trackToStartFrom)
+  if config.shuffle: shuffle currentSequence, trackToStartFrom
+  currentSequence.loop = config.loop == LoopMode.playlist
+  await play currentSequence.curr
+
 
 proc pause* =
   player.pause
@@ -443,8 +449,19 @@ qobject AudioPlayer:
         tracks = currentUser().await.likedTracks.await.mapit(yandexTrack it)
         tracks.insert userTracks().filterit(it.liked.await)
       else:
-        tracks = Playlist(id: id, ownerId: owner).tracks.await.mapit(yandexTrack it)
+        tracks = yandexMusic.Playlist(id: id, ownerId: owner).tracks.await.mapit(yandexTrack it)
       await play(tracks, (id, owner))
+  
+  proc playYmPlaylist(id: int, owner: int, trackToStartFrom: int) =
+    cancel getTrackAudioProcess
+    getTrackAudioProcess = doAsync:
+      var tracks: seq[Track]
+      if id == 3:
+        tracks = currentUser().await.likedTracks.await.mapit(yandexTrack it)
+        tracks.insert userTracks().filterit(it.liked.await)
+      else:
+        tracks = yandexMusic.Playlist(id: id, ownerId: owner).tracks.await.mapit(yandexTrack it)
+      await play(tracks, (id, owner), trackToStartFrom)
   
   proc playUserTrack(id: int) =
     cancel getTrackAudioProcess
@@ -488,7 +505,7 @@ qobject AudioPlayer:
         tracks = currentUser().await.likedTracks.await.mapit(yandexTrack it)
         tracks.insert userTracks().filterit(it.liked.await)
       else:
-        tracks = Playlist(id: id, ownerId: owner).tracks.await.mapit(yandexTrack it)
+        tracks = yandexMusic.Playlist(id: id, ownerId: owner).tracks.await.mapit(yandexTrack it)
       await play(tracks, (id, owner))
 
   proc playDmPlaylist(id: int) =
