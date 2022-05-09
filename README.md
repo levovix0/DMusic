@@ -6,7 +6,8 @@
 
 ![Screenshot](https://ia.wampi.ru/2021/09/23/85.png)  
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/Version-0.3-x.svg?style=flat-square&logoColor=white&color=blue">
+  <img alt="Version" src="https://img.shields.io/badge/Version-0.4-x.svg?style=flat-square&logoColor=white&color=blue">
+  <img alt="Stable" src="https://img.shields.io/badge/Stable-0.3-x.svg?style=flat-square&logoColor=white&color=blue">
   &nbsp;&nbsp;
   <img alt="Nim" src="https://img.shields.io/badge/Nim-Nim.svg?style=flat-square&logo=nim&logoColor=white&color=cb9e50">
   <img alt="QML" src="https://img.shields.io/badge/QML-QML.svg?style=flat-square&logo=qt&logoColor=white&color=3db069">
@@ -26,7 +27,7 @@ nimble install https://github.com/levovix0/DMusic  # (linux-only)
   <code>-d:yandexMusic_oneRequestAtOnce</code> - make only one request to yandex music at once (may fix infinity wait time from y.m. server)
 </p></details>
 
-## Dependencies
-* Nim 1.4.4
-* Qt 6.2 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2)
+## Dependencies (excluding nim libraries)
+* Nim 1.6.0
+* Qt 5.15 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2)
 * TagLib
