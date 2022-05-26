@@ -20,12 +20,12 @@
         <translation>Войти в </translation>
     </message>
     <message>
-        <source>Yandex account</source>
-        <translation type="vanished">Аккаунт Яндекс</translation>
-    </message>
-    <message>
         <source>Login</source>
         <translation type="vanished">Войти</translation>
+    </message>
+    <message>
+        <source>Token</source>
+        <translation type="vanished">Токен</translation>
     </message>
 </context>
 <context>
@@ -548,44 +548,6 @@ usage: %1 [options]
     <message>
         <source>Failed to check like state of track</source>
         <translation type="vanished">Не удалось получить состояние лайка для трека</translation>
-    </message>
-</context>
-<context>
-    <name>YandexLoginPage</name>
-    <message>
-        <location filename="../qml/pages/YandexLoginPage.qml" line="46"/>
-        <source>qrc:/resources/settings/Y.svg</source>
-        <translation>qrc:/resources/settings/Y-ru.svg</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/YandexLoginPage.qml" line="51"/>
-        <source>qrc:/resources/settings/andex.svg</source>
-        <translation>qrc:/resources/settings/andex-ru.svg</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/YandexLoginPage.qml" line="59"/>
-        <source>Login to account</source>
-        <translation>Войдите в аккант</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/YandexLoginPage.qml" line="104"/>
-        <source>Email</source>
-        <translation>Почта</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/YandexLoginPage.qml" line="152"/>
-        <source>Password</source>
-        <translation>Пароль</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/YandexLoginPage.qml" line="163"/>
-        <source>Login</source>
-        <translation>Войти</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/YandexLoginPage.qml" line="174"/>
-        <source>Back</source>
-        <translation>Назад</translation>
     </message>
 </context>
 <context>

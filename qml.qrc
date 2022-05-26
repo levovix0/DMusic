@@ -55,7 +55,6 @@
         <file>qml/pages/PageSwitcher.qml</file>
         <file>qml/pages/SettingsPage.qml</file>
         <file>qml/pages/settings/AccountsSettingsBlock.qml</file>
-        <file>qml/pages/YandexLoginPage.qml</file>
         <file>qml/pages/settings/ThemeSettingsBlock.qml</file>
         <file>qml/pages/settings/ThemeSelect.qml</file>
         <file>qml/pages/settings/LanguageSettingsBlock.qml</file>
@@ -139,11 +138,6 @@
         <file>resources/search/history.svg</file>
         
         <!-- resources/settings -->
-        <file>resources/settings/login-background.jpg</file>
-        <file>resources/settings/andex.svg</file>
-        <file>resources/settings/Y.svg</file>
-        <file>resources/settings/andex-ru.svg</file>
-        <file>resources/settings/Y-ru.svg</file>
         <file>resources/settings/selected.svg</file>
         <file>resources/settings/GitHub.svg</file>
 

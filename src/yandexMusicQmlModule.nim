@@ -164,20 +164,3 @@ qmodel HomePlaylistsModel:
           this.layoutChanged
 
 registerSingletonInQml HomePlaylistsModel, "YandexMusic", 1, 0
-
-
-type YClient = object
-  process: seq[Future[void]]
-
-qobject YClient:
-  proc login(email, password: string) =
-    cancel self.process
-
-    self.process.add: doAsync:
-      try:
-        config.ym_token = generateToken(email, password).await
-        config.ym_email = email
-      except:
-        sendError tr"Failed to login", getCurrentExceptionMsg()
-
-registerSingletonInQml YClient, "YandexMusic", 1, 0

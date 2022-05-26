@@ -61,7 +61,7 @@ DPage {
         Layout.maximumWidth: 250
         spacing: 20
 
-        AccountsSettingsBlock { switcher: root.switcher }
+        AccountsSettingsBlock {}
         ColorSettingsBlock {}
       }
 
@@ -71,7 +71,7 @@ DPage {
         Layout.maximumWidth: 600
         spacing: 20
 
-        ThemeSettingsBlock {}
+        ThemeSettingsBlock { z: 0 }
         GeneralSettingsBlock {}
       }
 
@@ -115,7 +115,7 @@ DPage {
           Layout.preferredWidth: 215
           spacing: 20
 
-          AccountsSettingsBlock { switcher: root.switcher }
+          AccountsSettingsBlock {}
           ColorSettingsBlock {}
         }
       }
