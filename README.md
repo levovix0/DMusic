@@ -17,10 +17,15 @@
 </p>
 
 ## Installation
-See [releases](https://github.com/levovix0/DMusic/releases) or use nimble
-```sh
-nimble install https://github.com/levovix0/DMusic  # (linux-only)
-```
+* See [releases](https://github.com/levovix0/DMusic/releases)
+
+* flatpak (from source code)
+  ```sh
+  git clone https://github.com/levovix0/DMusic
+  cd DMusic
+  flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml
+  ```
+
 <details><summary>Compile flags</summary><p>
   <code>-d:debugRequests</code> - print all requested urls to stdout
   
@@ -28,6 +33,6 @@ nimble install https://github.com/levovix0/DMusic  # (linux-only)
 </p></details>
 
 ## Dependencies (excluding nim libraries)
-* Nim 1.6.0
+* Nim 1.6.6
 * Qt 5.15 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2)
 * TagLib

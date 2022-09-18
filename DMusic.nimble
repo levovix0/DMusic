@@ -6,7 +6,7 @@ srcDir        = "src"
 bin           = @["dmusic"]
 backend       = "cpp"
 
-requires "nim >= 1.6.0"
+requires "nim >= 1.6.6"
 requires "fusion"
 requires "cligen"
 requires "https://github.com/levovix0/impl"
@@ -27,3 +27,7 @@ when defined(nimdistros):
     foreignDep "qt5-quickcontrols"
     foreignDep "qt5-quickcontrols2"
     foreignDep "taglib"
+
+
+task installFlatpak, "build and install flatpak package":
+  exec "flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml"

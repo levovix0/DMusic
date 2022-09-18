@@ -2,11 +2,10 @@
 !*.*
 !*/
 
+.*
 /.vscode
 /build
+/build-flatpak
 /dmusic
 /dmusic.exe
-.directory
-.dll
-.exe
 /config.nims

@@ -1,0 +1,69 @@
+app-id: org.DTeam.DMusic
+runtime: org.kde.Platform
+runtime-version: '5.15'
+sdk: org.kde.Sdk
+command: dmusic
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --share=network
+  - --filesystem=host
+  - --socket=pulseaudio
+  - --device=dri
+
+modules:
+  - name: nim
+    buildsystem: simple
+    build-commands:
+      # the downloaded archive is automatically unpacked
+      # and used as current working dir
+      - sh install.sh /app
+      - cp bin/nimble /app/nim/bin/nimble
+    sources:
+      - type: archive
+        url: https://nim-lang.org/download/nim-1.6.6-linux_x64.tar.xz
+        # this checksum is from:
+        # https://nim-lang.org/download/nim-1.6.6-linux_x64.tar.xz.sha256
+        sha256: 3e88df45dbbec2f083d31e00e6f2c07e0c70c392c91b2a934f7f283dd0fdf5f9
+
+  - name: taglib
+    config-opts:
+      - -DBUILD_SHARED_LIBS=ON
+    buildsystem: cmake-ninja
+    sources:
+      - type: archive
+        url: https://taglib.github.io/releases/taglib-1.12.tar.gz
+        sha256: 7fccd07669a523b07a15bd24c8da1bbb92206cb19e9366c3692af3d79253b703
+        x-checker-data:
+          type: anitya
+          project-id: 1982
+          stable-only: true
+          url-template: https://taglib.github.io/releases/taglib-$version.tar.gz
+
+  - name: dmusic
+    buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+    build-commands:
+      - /app/nim/bin/nimble -y --nim:/app/nim/bin/nim --nimbleDir:.nimble --nimcache:.cache -d:flatpak build
+      - install -D dmusic /app/bin/dmusic
+    sources:
+      - type: dir
+        path: src
+        dest: src
+      - type: dir
+        path: resources
+        dest: resources
+      - type: dir
+        path: qml
+        dest: qml
+      - type: dir
+        path: translations
+        dest: translations
+      - type: file
+        path: qml.qrc
+      - type: file
+        path: DMusic.nimble
+

@@ -19,13 +19,15 @@ when not defined(linux):
   const qtPath = findExistant("C:/Qt/5.15.2/mingw81_64", "D:/Qt/5.15.2/mingw81_64")
 
 const qtInclude {.strdefine.} =
-  when defined(linux): "/usr/include/qt"
+  when defined(flatpak): "/usr/include"
+  elif defined(linux): "/usr/include/qt"
   else:                qtPath / "include"
 const qtBin {.strdefine.} =
   when defined(linux): "/usr/bin"
   else:                qtPath / "bin"
 const qtLib {.strdefine.} =
-  when defined(linux): "/usr/lib"
+  when defined(flatpak): "/usr/lib/x86_64-linux-gnu"
+  elif defined(linux): "/usr/lib"
   else:                qtPath / "lib"
 
 func qso(module: string): string =

@@ -9,10 +9,12 @@ when not defined(linux):
   const taglibPath = findExistant("C:/taglib", "D:/taglib", "C:/Libraries/taglib", "D:/Libraries/taglib")
 
 const taglibInclude {.strdefine.} =
-  when defined(linux): "/usr/include/taglib"
+  when defined(flatpak): "/app/include/taglib"
+  elif defined(linux): "/usr/include/taglib"
   else:                taglibPath / "include" / "taglib"
 const taglibLib {.strdefine.} =
-  when defined(linux): ""
+  when defined(flatpak): "/app/lib"
+  elif defined(linux): ""
   else:                taglibPath / "lib"
 
 {.passc: &"-I{taglibInclude}".}
