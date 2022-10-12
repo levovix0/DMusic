@@ -514,6 +514,13 @@ qobject AudioPlayer:
       case id
       of 1: await play(downloadedYandexTracks(), (1, 0))
       else: discard
+
+  proc playDmPlaylist(id: int, trackToStartFrom: int) =
+    cancel getTrackAudioProcess
+    getTrackAudioProcess = doAsync:
+      case id
+      of 1: await play(downloadedYandexTracks(), (1, 0), trackToStartFrom)
+      else: discard
   
   proc addUserTrack(file, cover, title, comment, artists: string) =
     proc unfile(file: string): string =

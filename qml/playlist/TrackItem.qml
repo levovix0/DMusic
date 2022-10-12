@@ -17,7 +17,7 @@ MouseArea {
   property string duration: "0:00"
   property int idInt
 
-  property bool playing: false
+  property bool playing: false  // todo
 
   property bool sellectedIn: playing || containsMouse
 
@@ -30,7 +30,8 @@ MouseArea {
     id: _background
     anchors.fill: parent
     radius: 7.5
-    color: sellectedIn? Style.window.sellection.background : "transparent"
+    color: Style.window.sellection.background
+    visible: sellectedIn
   }
 
   MouseArea {

@@ -57,7 +57,7 @@ type
     file: string
   
   TemporaryPlaylist* = tuple
-    name: string
+    id: int
     tracks: seq[Track]
 
 

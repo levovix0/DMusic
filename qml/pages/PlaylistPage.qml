@@ -31,7 +31,10 @@ DPage {
           author: objAuthor
           duration: objDuration
 
-          onPlay: AudioPlayer.playYmPlaylist(PlaylistView.id, PlaylistView.ownerId, objI)
+          onPlay: {
+            if (PlaylistView.ownerId != 0) AudioPlayer.playYmPlaylist(PlaylistView.id, PlaylistView.ownerId, objI)
+            else AudioPlayer.playDmPlaylist(PlaylistView.id, objI)
+          }
         }
       }
     }

@@ -57,7 +57,7 @@ DPage {
                 else AudioPlayer.playDmPlaylist(objId)
               }
               onShowFull: {
-                if (objOwner != 0) PlaylistView.initYandex(objId, objOwner)
+                PlaylistView.init(objId, objOwner)
                 switcher("qrc:/qml/pages/PlaylistPage.qml")
               }
             }
