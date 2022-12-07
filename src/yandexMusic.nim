@@ -56,6 +56,15 @@ type
     coverUri*: string
     duration*: int ## in milliseconds
     len*: int
+
+  RadioStation* = object
+    id*: string
+  
+  Radio* = object
+    station*: RadioStation
+    tracksPassed*: seq[Track]
+    tracks*: seq[Track]
+    current*: Track
   
   Account* = object
     id*: int
@@ -339,6 +348,33 @@ proc playlist*(user: Account, id: int): Future[Playlist] {.async.} =
   ).await.parseJson
 
   return response{"result"}.parsePlaylist
+
+
+proc getRadioStation*(x: Track|TrackId): RadioStation =
+  RadioStation(id: "track:" & $x.id)
+
+proc getTracks*(x: RadioStation, prev: Track = Track()): Future[seq[Track]] {.async.} =
+  var params = @{
+    "settings2": "true",
+  }
+  if prev.id != 0:
+    params.add ("queue", $prev.id)
+  let response = request(
+    &"{baseUrl}/rotor/station/{x.id}/tracks", params=params
+  ).await.parseJson
+  for track in response{"result", "sequence"}:
+    if track{"type"}.to(string) == "track":
+      result.add track{"track"}.parseTrack
+
+proc toRadio*(x: RadioStation): Future[Radio] {.async.} =
+  result.station = x
+  result.tracks = x.getTracks.await
+
+proc next*(x: Radio): Future[Track] {.async.} =
+  ## todo
+
+proc skip*(x: Radio): Future[Track] {.async.} =
+  ## todo
 
 
 template trackLikeAction(name; url: string) {.dirty.} =

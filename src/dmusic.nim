@@ -106,6 +106,9 @@ proc download(tracks: seq[string], file: string = "") =
         else: file
       writeFile file, request(track.audioUrl.waitFor).waitFor
 
+proc getRadioTracks*(station: string) =
+  for i, track in RadioStation(id: station).getTracks.waitFor:
+    echo i+1, ". [", track.id, "] ", track.title, (if track.comment != "": " (" & track.comment & ")" else: ""), " - ", track.artists.mapit(it.name).join(", ")
 
 when isMainModule:
   import cligen
@@ -113,6 +116,10 @@ when isMainModule:
   if paramCount() == 0:
     dispatch gui
   else:
-    dispatchMulti [gui], [download, short={"file": 'o'}]
+    dispatchMulti(
+      [gui],
+      [download, short={"file": 'o'}],
+      [getRadioTracks, help={"station": "for stations based on track, use `track:TRACK_ID`"}]
+    )
 
   updateTranslations()
