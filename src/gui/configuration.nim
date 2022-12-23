@@ -1,7 +1,8 @@
 {.used.}
 import json, os, math, macros, options
 import fusion/matching, fusion/astdsl, localize
-import qt, utils
+import ../utils
+import qt
 
 {.experimental: "caseStmtMacros".}
 

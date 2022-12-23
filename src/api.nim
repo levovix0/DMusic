@@ -1,5 +1,6 @@
 import asyncdispatch, strutils, sequtils, os, strformat, base64, times
-import yandexMusicQmlModule, taglib, configuration, utils
+import gui/yandexMusicQmlModule, gui/configuration  # todo: refactor to not use anthing from gui
+import taglib, utils
 import yandexMusic except Track
 
 type

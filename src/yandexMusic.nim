@@ -2,7 +2,8 @@ import
   strformat, strutils, sequtils, options,
   json, uri, xmltree, xmlparser, md5, os
 import httpclient except request
-import async, configuration
+import gui/configuration
+import async
 
 type
   HttpError* = object of CatchableError

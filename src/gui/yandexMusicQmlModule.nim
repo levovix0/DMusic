@@ -1,6 +1,7 @@
 {.used.}
-import sequtils, strutils, async, base64, strformat, os, sugar, tables
-import qt, yandexMusic, configuration, utils, messages
+import sequtils, strutils, base64, strformat, os, sugar, tables
+import ../yandexMusic, ../utils, ../async
+import qt, messages, configuration
 
 var coverCache: CacheTable[(string, int), string]
 onMainLoop: coverCache.garbageCollect

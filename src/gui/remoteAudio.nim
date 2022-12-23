@@ -1,12 +1,13 @@
 {.used.}
 import options, strformat, times
 import discord_rpc
-import utils
-import audio, api, configuration
+import ../utils, ../api
+import audio, configuration
 
 when defined(linux):
   import math
-  import qt, audio, configuration, utils
+  import ../utils
+  import qt, audio, configuration
   
   {.emit: """
   #include <QDBusConnection>

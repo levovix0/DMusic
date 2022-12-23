@@ -1,7 +1,8 @@
 {.used.}
 import sequtils, strutils, options, times, math, random, algorithm, os
-import qt, configuration, api, utils, async, messages, taglib
-import yandexMusic except Track
+import ../api, ../utils, ../async, ../taglib
+import qt, messages, configuration
+import ../yandexMusic except Track
 
 randomize()
 

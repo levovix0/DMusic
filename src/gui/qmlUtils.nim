@@ -1,7 +1,8 @@
 {.used.}
 import strutils, sequtils, re, os
 import pixie
-import qt, configuration, async, audio, api, utils
+import ../api, ../utils, ../async
+import qt, configuration, audio
 
 when defined(windows):
   import osproc

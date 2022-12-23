@@ -1,7 +1,8 @@
 {.used.}
-import sequtils, times, utils
-import async, qt, api, configuration
-import yandexMusic except Track
+import sequtils, times
+import ../utils, ../api, ../async
+import ../yandexMusic except Track
+import qt, configuration
 
 type PlaylistView = object
   playlist: api.Playlist

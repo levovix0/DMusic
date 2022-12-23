@@ -1,6 +1,7 @@
 import std/exitprocs, os, times, strformat, macros, strutils, sequtils
-import qt, messages, async, utils, configuration, yandexMusic
-import yandexMusicQmlModule, audio, qmlUtils, remoteAudio, playlist
+import gui/[qt, messages, configuration]
+import gui/[yandexMusicQmlModule, audio, qmlUtils, remoteAudio, playlist]
+import async, utils, yandexMusic
 
 macro resourcesFromDir*(dir: static[string] = ".") =
   result = newStmtList()
@@ -9,7 +10,7 @@ macro resourcesFromDir*(dir: static[string] = ".") =
     if k notin {pcFile, pcLinkToFile}: continue
     if not file.endsWith(".qrc"): continue
 
-    let qrc = rcc &"../{file}"
+    let qrc = rcc &"../../{file}"  # todo: may cause bugs, should be refactored
     let filename = "build" / &"qrc_{file.splitPath.tail}.cpp"
     writeFile filename, qrc
     result.add quote do:
