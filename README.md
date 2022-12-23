@@ -19,11 +19,16 @@
 ## Installation
 * See [releases](https://github.com/levovix0/DMusic/releases)
 
-* flatpak (from source code)
+* Flatpak (from source code)
   ```sh
   git clone https://github.com/levovix0/DMusic
   cd DMusic
   flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml
+  ```
+
+* AUR (from source code), see [package](https://aur.archlinux.org/packages/dmusic)
+  ```sh
+  yay -S dmusic
   ```
 
 <details><summary>Compile flags</summary><p>
