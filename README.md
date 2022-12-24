@@ -34,7 +34,7 @@
 <details><summary>Compile flags</summary><p>
   <code>-d:debugRequests</code> - print all requested urls to stdout
   
-  <code>-d:yandexMusic_oneRequestAtOnce</code> - make only one request to yandex music at once (may fix infinity wait time from y.m. server)
+  <code>-d:yandexMusic_oneRequestAtOnce</code> - make only one request to yandex music at once
 </p></details>
 
 ## Dependencies (excluding nim libraries)

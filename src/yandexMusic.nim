@@ -82,6 +82,7 @@ proc `token=`*(client: Client, token: string) =
 
 proc newClient*(config = config): Client =
   result = newAsyncHttpClient("Yandex-Music-API")
+  result.headers["X-Yandex-Music-Client"] = "YandexMusicAndroid/23020251"
   result.token = config.ym_token
   result.lang = case config.language
     of Language.ru: "ru"
@@ -204,6 +205,7 @@ proc parseAccount*(a: JsonNode): Account =
 
 
 proc generateToken*(username, password: string): Future[string] {.async.} =
+  ## todo: remove
   return request(
     &"{oauthUrl}/token", HttpPost, data = newMultipartData {
       "grant_type": "password",
@@ -264,9 +266,13 @@ proc fetch*(ids: seq[TrackId], withPositions = true): Future[seq[Track]] {.async
 proc audioUrl*(track: TrackId): Future[string] {.async.} =
   ## get direct link to track's audio
   ## ! works only one minute after call
-  let infoUrl = request(
+  let response = request(
     &"{baseUrl}/tracks/{track.id}/download-info"
-  ).await.parseJson["result"][0]["downloadInfoUrl"].getStr
+  ).await
+
+  let infoUrl = response.parseJson["result"][0]["downloadInfoUrl"].getStr
+
+  # todo: check if link is direct
     
   let result = request(infoUrl).await.parseXml
   let host = result.findAll("host")[0].innerText
@@ -275,6 +281,8 @@ proc audioUrl*(track: TrackId): Future[string] {.async.} =
   let s = result.findAll("s")[0].innerText
   let sign = getMd5(&"XGRlBW9FXlekgbPrRHuSiA{path[1..^1]}{s}")
   
+  if defined(debugRequests):
+    echo "Builded link: ", &"https://{host}/get-mp3/{sign}/{ts}{path}"
   return &"https://{host}/get-mp3/{sign}/{ts}{path}"
 
 
