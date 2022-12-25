@@ -11,12 +11,12 @@ proc capitalizeFirst(s: string): string =
   $s.runeAt(0).toUpper & s[1..^1]
 
 
-when not defined(linux):
+when defined(windows):
   proc findExistant(s: varargs[string]): string =
     result = s[0]
     for x in s:
       if dirExists x: return x
-  const qtPath = findExistant("C:/Qt/5.15.2/mingw81_64", "D:/Qt/5.15.2/mingw81_64")
+  const qtPath {.strdefine.} = findExistant("C:/Qt/5.15.2/mingw81_64", "D:/Qt/5.15.2/mingw81_64")
 
 const qtInclude {.strdefine.} =
   when defined(flatpak): "/usr/include"

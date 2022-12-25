@@ -31,6 +31,22 @@
   yay -S dmusic
   ```
 
+* Compile for Linux (from source code)
+  ```sh
+  yay -S nim  # or use other way to install nim in your linux distribution
+  git clone https://github.com/levovix0/DMusic
+  cd DMusic
+  nimble install  # result will be ~/.nimble/bin/dmusic
+  ```
+  add nimble dir to path (bash):
+  ```bash
+  echo "export PATH='\$PATH:~/.nimble/bin/dmusic'" >> ~/.bashrc
+  ```
+  add nimble dir to path (fish):
+  ```fish
+  fish_add_path ~/.nimble/bin/dmusic
+  ```
+
 <details><summary>Compile flags</summary><p>
   <code>-d:debugRequests</code> - print all requested urls to stdout
   

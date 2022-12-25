@@ -5,7 +5,7 @@
 .*
 /.vscode
 /build
-/build-flatpak
+/build-*
 /dmusic
 /dmusic.exe
 /config.nims
