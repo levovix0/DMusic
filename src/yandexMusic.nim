@@ -1,6 +1,6 @@
 import
   strformat, strutils, sequtils, options,
-  json, uri, xmltree, xmlparser, md5, os
+  json, uri, xmltree, xmlparser, md5, os, times
 import httpclient except request
 import gui/configuration
 import async
@@ -60,9 +60,11 @@ type
 
   RadioStation* = object
     id*: string
+    stationFrom*: string
   
-  Radio* = object
+  Radio* = ref object
     station*: RadioStation
+    batchId*: string
     tracksPassed*: seq[Track]
     tracks*: seq[Track]
     current*: Track
@@ -248,6 +250,9 @@ converter asIdSeq*(x: TrackId): seq[TrackId] = @[x]
 converter asIdSeq*(x: Track): seq[TrackId] = @[TrackId(id: x.id)]
 converter asIdSeq*(x: int): seq[TrackId] = @[TrackId(id: x)]
 
+proc parseTrackId*(s: string): TrackId =
+  TrackId(id: s.parseInt)
+
 proc fetch*(ids: seq[TrackId], withPositions = true): Future[seq[Track]] {.async.} =
   ## get full track information by ids
   if ids.len < 1: return
@@ -360,9 +365,9 @@ proc playlist*(user: Account, id: int): Future[Playlist] {.async.} =
 
 
 proc getRadioStation*(x: Track|TrackId): RadioStation =
-  RadioStation(id: "track:" & $x.id)
+  RadioStation(id: "track:" & $x.id, stationFrom: "track")
 
-proc getTracks*(x: RadioStation, prev: Track = Track()): Future[seq[Track]] {.async.} =
+proc getTracks*(x: RadioStation, prev: Track = Track()): Future[tuple[tracks: seq[Track], batchId: string]] {.async.} =
   var params = @{
     "settings2": "true",
   }
@@ -371,19 +376,69 @@ proc getTracks*(x: RadioStation, prev: Track = Track()): Future[seq[Track]] {.as
   let response = request(
     &"{baseUrl}/rotor/station/{x.id}/tracks", params=params
   ).await.parseJson
+  result.batchId = response["result"]["batchId"].to(string)
   for track in response{"result", "sequence"}:
     if track{"type"}.to(string) == "track":
-      result.add track{"track"}.parseTrack
+      result.tracks.add track{"track"}.parseTrack
 
-proc toRadio*(x: RadioStation): Future[Radio] {.async.} =
+proc sendFeedback(
+  x: RadioStation,
+  kind: string,
+  track: Option[TrackId],
+  batchId: string,
+  totalPlayedSeconds: Option[int],
+  time: DateTime = now()
+) {.async.} =
+  var data = %*{
+    "type": kind,
+    "from": x.stationFrom,
+    "timestamp": time.toTime.toUnixFloat,
+  }
+
+  if track.isSome:
+    data["trackId"] = newJString $track.get
+
+  if totalPlayedSeconds.isSome:
+    data["totalPlayedSeconds"] = newJString $totalPlayedSeconds.get
+
+  try:
+    let response = request(
+      &"{baseUrl}/rotor/station/{x.id}/feedback", HttpPost, body = $data, params = @{
+        "batch-id": batchId,
+      }
+    ).await
+
+    when defined(debugRequests):
+      echo "feedback response: ", response
+    else:
+      discard response
+
+  except:
+    when defined(debugRequests):
+      echo "feedback error: ", getCurrentExceptionMsg()
+
+proc toRadio*(x: RadioStation, time: DateTime = now()): Future[Radio] {.async.} =
+  new result
   result.station = x
-  result.tracks = x.getTracks.await
+  (result.tracks, result.batchId) = x.getTracks.await
+  result.current = result.tracks[0]
+  await x.sendFeedback("radioStarted", none TrackId, result.batchId, none int, time)
 
-proc next*(x: Radio): Future[Track] {.async.} =
-  ## todo
+proc next*(x: Radio, totalPlayedSeconds: int, time: DateTime = now()): Future[Track] {.async.} =
+  x.tracksPassed.add x.current
+  await x.station.sendFeedback("trackFinished", some x.current.asId, x.batchId, some totalPlayedSeconds, time)
+  (x.tracks, x.batchId) = x.station.getTracks(x.current).await
+  x.current = x.tracks[0]  # todo: handle errors
+  await x.station.sendFeedback("trackStarted", some x.current.asId, x.batchId, some totalPlayedSeconds, time)
+  return x.current
 
-proc skip*(x: Radio): Future[Track] {.async.} =
-  ## todo
+proc skip*(x: Radio, totalPlayedSeconds: int, time: DateTime = now()): Future[Track] {.async.} =
+  x.tracksPassed.add x.current
+  await x.station.sendFeedback("skip", some x.current.asId, x.batchId, some totalPlayedSeconds, time)
+  (x.tracks, x.batchId) = x.station.getTracks(x.current).await
+  x.current = x.tracks[0]  # todo: handle errors
+  await x.station.sendFeedback("trackStarted", some x.current.asId, x.batchId, some totalPlayedSeconds, time)
+  return x.current
 
 
 template trackLikeAction(name; url: string) {.dirty.} =

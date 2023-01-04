@@ -2,20 +2,25 @@
 import sequtils, strutils, options, times, math, random, algorithm, os
 import ../api, ../utils, ../async, ../taglib
 import qt, messages, configuration
-import ../yandexMusic except Track
+import ../yandexMusic except Track, Radio
 
 randomize()
 
 type
-  TrackSequence = object
-    tracks: seq[Track]
-    yandexId: (int, int)
-    history: seq[int]
+  TrackSequence = ref object
     current: int
-    shuffle, loop: bool
+    case isRadio: bool
+    of false:
+      tracks: seq[Track]
+      yandexId: (int, int)
+      history: seq[int]
+      shuffle, loop: bool
+    of true:
+      radio: Radio
+      radioHistory: seq[Track]
 
-var current_track* = Track()
-var current_sequence: TrackSequence
+var currentTrack* = Track()
+var currentSequence = new TrackSequence
 
 var notify_track_changed*: proc() = proc = discard
 var notify_position_changed*: proc() = proc = discard
@@ -24,45 +29,71 @@ var notify_track_ended: proc() = proc = discard
 var notify_track_failed_to_load: proc() = proc = discard
 var notify_lost_internet_connection: proc() = proc = discard
 
-proc curr(x: var TrackSequence): Track =
+proc curr(x: TrackSequence): Track =
   try:
-    if x.shuffle: x.tracks[x.history[x.current]]
-    else: x.tracks[x.current]
+    if x.isRadio:
+      if x.current < x.radioHistory.len:
+        x.radioHistory[x.current]
+      else:
+        x.radio.current
+    else:
+      if x.shuffle: x.tracks[x.history[x.current]]
+      else: x.tracks[x.current]
   except: Track()
 
-proc next(x: var TrackSequence): Track =
-  if x.shuffle:
-    if x.current > x.history.high: return Track()
-    x.history.delete 0
-    x.history.add:
-      toSeq(0..x.tracks.high)
-      .filterit(it notin x.history[^(x.tracks.len div 2)..^1])
-      .sample
-    x.tracks[x.history[x.current]]
-  else:
+proc next(x: TrackSequence, totalPlayedSeconds: int, skip=true): Future[Track] {.async.} =
+  if x.isRadio:
+    if x.current >= x.radioHistory.len:
+      x.radioHistory.add x.radio.current
+      if skip:
+        x.radio.skip(totalPlayedSeconds).await
+      else:
+        x.radio.next(totalPlayedSeconds).await
     inc x.current
-    if x.current > x.tracks.high:
-      if x.loop: x.current = 0
-    if x.current notin 0..x.tracks.high: Track()
-    else: x.tracks[x.current]
-
-proc prev(x: var TrackSequence): Track =
-  if x.shuffle:
-    if x.current > x.history.high: return Track()
-    x.history.del x.history.high
-    x.history.insert:
-      toSeq(0..x.tracks.high)
-      .filterit(it notin x.history[0..<(x.tracks.len div 2)])
-      .sample
-    x.tracks[x.history[x.current]]
+    return x.curr
   else:
-    dec x.current
-    if x.current < 0:
-      if x.loop: x.current = x.tracks.high
-    if x.current notin 0..x.tracks.high: Track()
-    else: x.tracks[x.current]
+    if x.shuffle:
+      if x.current > x.history.high: return Track()
+      x.history.delete 0
+      x.history.add:
+        toSeq(0..x.tracks.high)
+        .filterit(it notin x.history[^(x.tracks.len div 2)..^1])
+        .sample
+      return x.tracks[x.history[x.current]]
+    else:
+      inc x.current
+      if x.current > x.tracks.high:
+        if x.loop: x.current = 0
+      if x.current notin 0..x.tracks.high:
+        return Track()
+      else:
+        return x.tracks[x.current]
 
-proc shuffle(x: var TrackSequence, current = -1) =
+proc prev(x: TrackSequence): Track =
+  if x.isRadio:
+    if x.current < 1:
+      return Track()
+    dec x.current
+    return x.curr
+  else:
+    if x.shuffle:
+      if x.current > x.history.high: return Track()
+      x.history.del x.history.high
+      x.history.insert:
+        toSeq(0..x.tracks.high)
+        .filterit(it notin x.history[0..<(x.tracks.len div 2)])
+        .sample
+      return x.tracks[x.history[x.current]]
+    else:
+      dec x.current
+      if x.current < 0:
+        if x.loop: x.current = x.tracks.high
+      if x.current notin 0..x.tracks.high:
+        return Track()
+      else:
+        return x.tracks[x.current]
+
+proc shuffle(x: TrackSequence, current = -1) =
   if x.shuffle == true: return
   x.shuffle = true
   if x.tracks.len == 0: return
@@ -82,7 +113,7 @@ proc shuffle(x: var TrackSequence, current = -1) =
   x.history = h1 & @[current] & h2
   x.current = x.tracks.len
 
-proc unshuffle(x: var TrackSequence, current = 0) =
+proc unshuffle(x: TrackSequence, current = 0) =
   if x.shuffle == false: return
   x.shuffle = false
   
@@ -177,15 +208,19 @@ proc play*(track: Track) {.async.} =
   player.play
 
 proc play*(tracks: seq[Track], yandexId = (0, 0)) {.async.} =
-  currentSequence = TrackSequence(tracks: tracks, yandexId: yandexId)
+  currentSequence = TrackSequence(isRadio: false, tracks: tracks, yandexId: yandexId)
   if config.shuffle: shuffle currentSequence
   currentSequence.loop = config.loop == LoopMode.playlist
   await play currentSequence.curr
 
 proc play*(tracks: seq[Track], yandexId = (0, 0), trackToStartFrom: int) {.async.} =
-  currentSequence = TrackSequence(tracks: tracks, yandexId: yandexId, current: trackToStartFrom)
+  currentSequence = TrackSequence(isRadio: false, tracks: tracks, yandexId: yandexId, current: trackToStartFrom)
   if config.shuffle: shuffle currentSequence, trackToStartFrom
   currentSequence.loop = config.loop == LoopMode.playlist
+  await play currentSequence.curr
+
+proc play*(radio: Radio) {.async.} =
+  currentSequence = TrackSequence(isRadio: true, radio: radio)
   await play currentSequence.curr
 
 
@@ -202,10 +237,10 @@ proc stop* =
 
 var getTrackAudioProcess: Future[void]
 
-proc next* =
-  cancel getTrackAudioProcess
+proc next*(skip=true) =
+  cancel getTrackAudioProcess  # todo: cancel it really
   getTrackAudioProcess = doAsync:
-    await play currentSequence.next
+    await play currentSequence.next(if skip: player.position div 1000 else: currentTrack.duration div 1000, skip).await
 
 proc prev* =
   if player.position > 10_000:
@@ -327,11 +362,19 @@ qobject PlayingTrackInfo:
     notify infoChanged
   
   property int playlistId:
-    get: currentSequence.yandexId[0]
+    get:
+      if currentSequence.isRadio:
+        currentSequence.radio.current.id
+      else:
+        currentSequence.yandexId[0]
     notify infoChanged
   
   property int playlistOwner:
-    get: currentSequence.yandexId[1]
+    get:
+      if currentSequence.isRadio:
+        0
+      else:
+        currentSequence.yandexId[0]
     notify infoChanged
 
   proc `=new` =
@@ -538,6 +581,10 @@ qobject AudioPlayer:
       else: readFile cover
       # TODO: http: handling
     writeTrackMetadata(filename, (title, comment, artists, coverdata, false, false, Duration.default))
+  
+  proc playRadioFromYmTrack(id: int) =
+    asyncCheck: doAsync:
+      await play id.yandexTrack.toRadio.await
     
   proc `=new` =
     notifyStateChanged &= proc() = this.stateChanged
@@ -550,7 +597,7 @@ qobject AudioPlayer:
         if config.loop == LoopMode.track:
           await play currentTrack
         else:
-          await play currentSequence.next
+          next(skip=false)
     
     notifyVolumeChanged &= proc() = this.volumeChanged
     notify_track_failed_to_load &= proc =

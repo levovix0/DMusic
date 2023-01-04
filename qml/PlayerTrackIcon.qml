@@ -55,7 +55,7 @@ Item {
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.bottom: parent.top
     anchors.bottomMargin: 20 - _ppc.shift
-    anchors.horizontalCenterOffset: 100
+    anchors.horizontalCenterOffset: 120
 
     triangleOffset: -anchors.horizontalCenterOffset
     triangleCenter: _panel.horizontalCenter

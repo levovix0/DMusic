@@ -107,6 +107,7 @@
         <file>resources/player/like.svg</file>
         <file>resources/player/liked.svg</file>
         <file>resources/player/debug.svg</file>
+        <file>resources/player/radio.svg</file>
 
         <!-- resources/title -->
         <file>resources/title/back.svg</file>

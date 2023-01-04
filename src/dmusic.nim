@@ -108,7 +108,7 @@ proc download(tracks: seq[string], file: string = "") =
       writeFile file, request(track.audioUrl.waitFor).waitFor
 
 proc getRadioTracks*(station: string) =
-  for i, track in RadioStation(id: station).getTracks.waitFor:
+  for i, track in RadioStation(id: station).getTracks.waitFor.tracks:
     echo i+1, ". [", track.id, "] ", track.title, (if track.comment != "": " (" & track.comment & ")" else: ""), " - ", track.artists.mapit(it.name).join(", ")
 
 when isMainModule:

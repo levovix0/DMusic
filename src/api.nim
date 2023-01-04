@@ -3,8 +3,10 @@ import gui/yandexMusicQmlModule, gui/configuration  # todo: refactor to not use 
 import taglib, utils
 import yandexMusic except Track
 
+{.experimental: "overloadableEnums".}
+
 type
-  TrackKind* {.pure.} = enum
+  TrackKind* = enum
     none
     yandex
     yandexFromFile
@@ -29,6 +31,7 @@ type
     metadata: TrackMetadata
 
   YandexFromFileTrack* = tuple
+    id: yandexMusic.TrackId
     file: string
     metadata: TrackMetadata
   
@@ -60,6 +63,15 @@ type
   TemporaryPlaylist* = tuple
     id: int
     tracks: seq[Track]
+  
+  RadioKind* = enum
+    yandex
+  
+  Radio* = ref RadioObj
+  RadioObj* = object
+    case kind*: RadioKind
+    of yandex:
+      yandex*: yandexMusic.Radio
 
 
 proc yandexTrack*(id: TrackId): Track =
@@ -67,7 +79,7 @@ proc yandexTrack*(id: TrackId): Track =
   if fileExists filename:
     return Track(
       kind: TrackKind.yandexFromFile,
-      yandexFromFile: (file: filename, metadata: readTrackMetadata(filename))
+      yandexFromFile: (id: id, file: filename, metadata: readTrackMetadata(filename))
     )
   else:
     return Track(kind: TrackKind.yandexIdOnly, yandexIdOnly: id)
@@ -77,7 +89,7 @@ proc yandexTrack*(x: yandexMusic.Track): Track =
   if fileExists filename:
     return Track(
       kind: TrackKind.yandexFromFile,
-      yandexFromFile: (file: filename, metadata: readTrackMetadata(filename))
+      yandexFromFile: (id: x.asId, file: filename, metadata: readTrackMetadata(filename))
     )
   else:
     return Track(kind: TrackKind.yandex, yandex: x)
@@ -123,6 +135,7 @@ proc save*(this: Track, file: string, progressReport: ProgressReportCallback = n
     writeFile file, audio.await
     writeTrackMetadata(file, (title, comment, artists, cover.await, liked.await, disliked.await, Duration.default), writeCover=true)
     this[] = TrackObj(kind: TrackKind.yandexFromFile, yandexFromFile: (
+      id: this.yandex.asId,
       file: file,
       metadata: readTrackMetadata(file)
     ))
@@ -159,7 +172,7 @@ proc downloadedYandexTracks*: seq[Track] =
     if kind in {pcFile, pcLinkToFile} and path.endsWith(".mp3"):
       result.add Track(
         kind: TrackKind.yandexFromFile,
-        yandexFromFile: (file: path, metadata: readTrackMetadata(path))
+        yandexFromFile: (id: path.splitFile.name.parseTrackId, file: path, metadata: readTrackMetadata(path))
       )
 
 
@@ -332,6 +345,17 @@ proc page*(this: Track): string =
   else: ""
 
 
+proc id*(track: Track): int =
+  case track.kind
+  of yandex:
+    track.yandex.id
+  of yandexFromFile:
+    track.yandexFromFile.id.id
+  of yandexIdOnly:
+    track.yandexIdOnly.id
+  else: 0
+
+
 proc fetch*(playlist: Playlist) {.async.} =
   case playlist.kind
   of PlaylistKind.yandex:
@@ -346,3 +370,42 @@ proc tracks*(playlist: Playlist): ptr seq[Track] =
     playlist.user.tracks.addr
   of PlaylistKind.temporary:
     playlist.temporary.tracks.addr
+
+
+# todo: refactor all above to do not specifing enum type, like as in proc below
+proc toRadio*(track: Track): Future[Radio] {.async.} =
+  case track.kind
+  of yandex:
+    return Radio(kind: yandex, yandex: track.yandex.getRadioStation.toRadio.await)
+  of yandexFromFile:
+    return Radio(kind: yandex, yandex: track.yandexFromFile.id.getRadioStation.toRadio.await)
+  of yandexIdOnly:
+    return Radio(kind: yandex, yandex: track.yandexIdOnly.getRadioStation.toRadio.await)
+  else:
+    raise ValueError.newException("can't convert this track to radio")
+
+proc next*(radio: Radio, totalPlayedSeconds: int) {.async.} =
+  case radio.kind
+  of yandex:
+    discard radio.yandex.next(totalPlayedSeconds).await
+
+proc skip*(radio: Radio, totalPlayedSeconds: int) {.async.} =
+  case radio.kind
+  of yandex:
+    discard radio.yandex.next(totalPlayedSeconds).await
+
+proc current*(radio: Radio): Track =
+  case radio.kind
+  of yandex:
+    radio.yandex.current.yandexTrack
+
+proc nextTracks*(radio: Radio): Future[seq[Track]] {.async.} =
+  case radio.kind
+  of yandex:
+    return radio.yandex.tracks[1..^1].mapit(it.yandexTrack)
+
+proc prevTracks*(radio: Radio): Future[seq[Track]] {.async.} =
+  ## note: unused
+  case radio.kind
+  of yandex:
+    return radio.yandex.tracksPassed.mapit(it.yandexTrack)

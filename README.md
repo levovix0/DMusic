@@ -55,5 +55,5 @@
 
 ## Dependencies (excluding nim libraries)
 * Nim 1.6.6
-* Qt 5.15 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2)
+* Qt 5.15 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2, svg)
 * TagLib

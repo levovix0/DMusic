@@ -5,7 +5,7 @@ import "components"
 
 FloatingPanel {
   id: root
-  width: 245
+  width: 280
   height: 265
 
   property PopupController ppc
@@ -39,10 +39,11 @@ FloatingPanel {
     }
 
     Column {
+      id: _buttonsLeft
       width: 20
-      anchors.right: parent.right
+      anchors.left: _icon.right
       anchors.top: parent.top
-      anchors.rightMargin: 15
+      anchors.leftMargin: 15
       anchors.topMargin: 20
       spacing: 18
 
@@ -93,6 +94,32 @@ FloatingPanel {
           sequence: "Ctrl+C"
           context: Qt.ApplicationShortcut
           onActivated: Clipboard.copyCurrentTrackPicture()
+        }
+      }
+    }
+
+    Column {
+      id: _buttonsRight
+      width: 20
+      anchors.left: _buttonsLeft.right
+      anchors.top: parent.top
+      anchors.leftMargin: 15
+      anchors.topMargin: 20
+      spacing: 18
+
+      PlayerControlsButton {
+        icon: "qrc:/resources/player/radio.svg"
+
+        width: 20
+        height: 20
+
+        style: Style.panel.icon.normal
+        onClick: AudioPlayer.playRadioFromYmTrack(PlayingTrackInfo.id)
+
+        Shortcut {
+          sequence: "Ctrl+R"
+          context: Qt.ApplicationShortcut
+          onActivated: AudioPlayer.playRadioFromYmTrack(PlayingTrackInfo.id)
         }
       }
     }
