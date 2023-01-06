@@ -49,6 +49,13 @@ proc next(x: TrackSequence, totalPlayedSeconds: int, skip=true): Future[Track] {
         x.radio.skip(totalPlayedSeconds).await
       else:
         x.radio.next(totalPlayedSeconds).await
+
+      if config.ym_skipRadioDuplicates:
+        let history = x.radioHistory.mapit(it.id)
+        for i in 1..1000:
+          if x.curr.id in history:
+            x.radio.skip(1).await
+
     inc x.current
     return x.curr
   else:

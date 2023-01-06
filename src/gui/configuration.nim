@@ -186,6 +186,7 @@ genconfig:
     string email
     
     bool saveAllTracks false
+    bool skipRadioDuplicates true
 
 registerSingletonInQml Config, ("DMusic", 1, 0), ("Config", 1, 0)
 

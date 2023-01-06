@@ -186,6 +186,11 @@
         <translation>Сохранять все треки</translation>
     </message>
     <message>
+        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="30"/>
+        <source>Skip duplicates in radio</source>
+        <translation>Пропускать повторяющиеся треки в радио</translation>
+    </message>
+    <message>
         <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="16"/>
         <source>Discord presence</source>
         <translation>Статус в дискорде</translation>

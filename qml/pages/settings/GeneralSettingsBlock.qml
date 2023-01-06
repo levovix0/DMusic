@@ -25,5 +25,12 @@ SettingsBlock {
       checked: Config.ym_saveAllTracks
       onCheckedChanged: Config.ym_saveAllTracks = checked
     }
+
+    DCheckBox {
+      text: qsTr("Skip duplicates in radio")
+      fontSize: 10.5
+      checked: Config.ym_skipRadioDuplicates
+      onCheckedChanged: Config.ym_skipRadioDuplicates = checked
+    }
   }
 }

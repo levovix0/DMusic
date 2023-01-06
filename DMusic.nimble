@@ -29,5 +29,9 @@ when defined(nimdistros):
     foreignDep "taglib"
 
 
+task translate, "generate translations":
+  exec "lrelease translations/russian.ts -qm translations/russian.qm"
+
+
 task installFlatpak, "build and install flatpak package":
   exec "flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml"

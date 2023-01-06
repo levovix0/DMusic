@@ -402,17 +402,11 @@ proc sendFeedback(
     data["totalPlayedSeconds"] = newJString $totalPlayedSeconds.get
 
   try:
-    let response = request(
+    discard request(
       &"{baseUrl}/rotor/station/{x.id}/feedback", HttpPost, body = $data, params = @{
         "batch-id": batchId,
       }
     ).await
-
-    when defined(debugRequests):
-      echo "feedback response: ", response
-    else:
-      discard response
-
   except:
     when defined(debugRequests):
       echo "feedback error: ", getCurrentExceptionMsg()
