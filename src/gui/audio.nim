@@ -52,8 +52,10 @@ proc next(x: TrackSequence, totalPlayedSeconds: int, skip=true): Future[Track] {
 
       if config.ym_skipRadioDuplicates:
         let history = x.radioHistory.mapit(it.id)
-        for i in 1..1000:
-          if x.curr.id in history:
+        for i in 1..10:
+          if x.radio.current.id in history:
+            when defined(debugYandexMusicBehaviour):
+              echo "[debugYandexMusicBehaviour] skip in radio: ", x.curr.id
             x.radio.skip(1).await
 
     inc x.current

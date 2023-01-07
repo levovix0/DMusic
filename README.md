@@ -51,6 +51,8 @@
   <code>-d:debugRequests</code> - print all requested urls to stdout
   
   <code>-d:yandexMusic_oneRequestAtOnce</code> - make only one request to yandex music at once
+
+  <code>-d:debugYandexMusicBehaviour</code> - debug Yandex.Music service and api behaviour
 </p></details>
 
 ## Dependencies (excluding nim libraries)

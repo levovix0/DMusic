@@ -392,7 +392,7 @@ proc next*(radio: Radio, totalPlayedSeconds: int) {.async.} =
 proc skip*(radio: Radio, totalPlayedSeconds: int) {.async.} =
   case radio.kind
   of yandex:
-    discard radio.yandex.next(totalPlayedSeconds).await
+    discard radio.yandex.skip(totalPlayedSeconds).await
 
 proc current*(radio: Radio): Track =
   case radio.kind
