@@ -4,6 +4,8 @@ import ../api, ../utils, ../async, ../taglib
 import qt, messages, configuration
 import ../yandexMusic except Track, Radio
 
+{.experimental: "overloadableEnums".}
+
 randomize()
 
 type
@@ -380,10 +382,13 @@ qobject PlayingTrackInfo:
   
   property int playlistOwner:
     get:
+      const yandexRadioOwner = -2
       if currentSequence.isRadio:
-        0
+        case currentSequence.radio.kind
+        of yandex:
+          yandexRadioOwner
       else:
-        currentSequence.yandexId[0]
+        currentSequence.yandexId[1]
     notify infoChanged
 
   proc `=new` =
