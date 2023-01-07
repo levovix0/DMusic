@@ -6,7 +6,8 @@ Control {
   id: root
 
   property string title: ""
-  padding: 15
+  rightPadding: 15
+  leftPadding: 15
   topPadding: _title.height + 30
   bottomPadding: 20
 
