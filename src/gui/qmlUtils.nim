@@ -79,7 +79,7 @@ qobject FileDialogs:
     
     elif defined(windows):
       # open explorer
-      discard startProcess("explorer.exe", "", ["/select,", file.absolutePath]) 
+      discard startProcess("explorer.exe", "", ["/select,", file.absolutePath])
 
     else:
       # use qt to open directory in default app

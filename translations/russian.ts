@@ -119,38 +119,8 @@
     <name>DevelopersBlock</name>
     <message>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="8"/>
-        <source>Developers</source>
-        <translation>Разработчики</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="23"/>
-        <source>levovix</source>
-        <translation>levovix</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="29"/>
-        <source> - code, design</source>
-        <translation> - код, дизайн</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="38"/>
-        <source>LightFly</source>
-        <translation>LightFly</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="44"/>
-        <source> - design, code</source>
-        <translation> - дизайн, код</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="53"/>
-        <source>Elidder</source>
-        <translation>Elidder</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/settings/DevelopersBlock.qml" line="58"/>
-        <source> - design</source>
-        <translation> - дизайн</translation>
+        <source>Source code</source>
+        <translation>Исходный код</translation>
     </message>
     <message>
         <location filename="../qml/pages/settings/DevelopersBlock.qml" line="86"/>
@@ -257,35 +227,6 @@
         <location filename="../qml/pages/PlaylistPage.qml" line="12"/>
         <source>but there isn&apos;t</source>
         <translation>но его тут нет</translation>
-    </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message>
-        <source>Failed to import python module &apos;%1&apos;, it will be auto-installed</source>
-        <translation type="vanished">Не удалось импортировать модуль python &apos;%1&apos;, он был установлен автоматически</translation>
-    </message>
-    <message>
-        <source>Failed to auto-install python module &apos;%1&apos;</source>
-        <translation type="vanished">Ошибка автоматической установки модуля python &apos;%1&apos;</translation>
-    </message>
-    <message>
-        <source>DMusic - music player
-usage: %1 [options]
-
--h --help     show help
--v --version  show version
--g --gui      run application
--verbose      show more logs
-</source>
-        <translation type="vanished">DMusic - проигрыватель музыки
-использование: %1 [параметры]
-
--h --help     показать помощь
--v --version  показать версию
--g --gui      запустить приложение
--verbose      показать больше логов
-</translation>
     </message>
 </context>
 <context>

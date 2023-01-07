@@ -5,61 +5,12 @@ import ".."
 import "../../components"
 
 SettingsBlock {
-  title: qsTr("Developers")
+  title: qsTr("Source code")
   Layout.fillWidth: true
 
   ColumnLayout {
     spacing: 15
     Layout.maximumWidth: 250
-
-    ColumnLayout {
-      Layout.alignment: Qt.AlignHCenter
-      spacing: 5
-
-      Row {
-        Layout.alignment: Qt.AlignHCenter
-
-        LinkText {
-          text: qsTr("levovix")
-          font.pointSize: 10.5
-          url: "https://github.com/levovix0"
-        }
-
-        DText {
-          text: qsTr(" - code, design")
-          font.pointSize: 10.5
-        }
-      }
-
-      Row {
-        Layout.alignment: Qt.AlignHCenter
-
-        LinkText {
-          text: qsTr("LightFly")
-          font.pointSize: 10.5
-          url: "https://www.youtube.com/c/LightFlyzzz"
-        }
-
-        DText {
-          text: qsTr(" - design, code")
-          font.pointSize: 10.5
-        }
-      }
-
-      Row {
-        Layout.alignment: Qt.AlignHCenter
-
-        DText {
-          text: qsTr("Elidder")
-          font.pointSize: 10.5
-        }
-
-        DText {
-          text: qsTr(" - design")
-          font.pointSize: 10.5
-        }
-      }
-    }
 
     RowLayout {
       Layout.alignment: Qt.AlignHCenter
