@@ -108,6 +108,8 @@ FloatingPanel {
       spacing: 18
 
       PlayerControlsButton {
+        enabled: PlayingTrackInfo.canStartYandexRadio
+
         icon: "qrc:/resources/player/radio.svg"
 
         width: 20

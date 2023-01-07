@@ -390,6 +390,10 @@ qobject PlayingTrackInfo:
       else:
         currentSequence.yandexId[1]
     notify infoChanged
+  
+  property bool canStartYandexRadio:
+    get: currentTrack.kind in {TrackKind.yandex, TrackKind.yandexIdOnly, TrackKind.yandexFromFile}
+    notify infoChanged
 
   proc `=new` =
     self.cover = emptyCover

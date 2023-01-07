@@ -8,7 +8,7 @@ Icon {
 
   signal clicked()
 
-  color: _mouse.containsPress? style.pressedColor : _mouse.containsMouse? style.hoverColor : style.color
+  color: enabled? (_mouse.containsPress? style.pressedColor : _mouse.containsMouse? style.hoverColor : style.color) : (stile.unavailableColor)
 
   MouseArea {
     id: _mouse

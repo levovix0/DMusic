@@ -199,6 +199,7 @@ QtObject {
         property color color: darkHeader? "#C1C1C1" : c40
         property color hoverColor: darkHeader? white : "#808080"
         property color pressedColor: darkHeader? Qt.darker(color, 1.25) : Qt.lighter(color, 1.25)
+        property color unavailableColor: darkHeader? "#808080" : "#C1C1C1"
       }
       property QtObject accent: QtObject {
         property color color: panel.accent
