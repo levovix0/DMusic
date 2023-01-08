@@ -33,7 +33,7 @@
 
 * Compile for Linux (from source code)
   ```sh
-  yay -S nim  # or use other way to install nim in your linux distribution
+  sudo pacman -S nim  # or use other way to install nim in your linux distribution
   git clone https://github.com/levovix0/DMusic
   cd DMusic
   nimble install  # result will be ~/.nimble/bin/dmusic
