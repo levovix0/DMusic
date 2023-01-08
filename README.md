@@ -47,6 +47,9 @@
   fish_add_path ~/.nimble/bin/dmusic
   ```
 
+* Compile for Windows (from source code)  
+  see [wiki](https://github.com/levovix0/DMusic/wiki/Building-on-Windows)
+
 <details><summary>Compile flags</summary><p>
   <code>-d:debugRequests</code> - print all requested urls to stdout
   
