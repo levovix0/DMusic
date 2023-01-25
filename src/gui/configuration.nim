@@ -3,8 +3,21 @@ import json, os, math, macros, options
 import fusion/matching, fusion/astdsl, localize
 import ../utils
 import qt
+export localize
 
 {.experimental: "caseStmtMacros".}
+
+type
+  Language* {.pure.} = enum
+    en, ru
+
+  LoopMode* {.pure.} = enum
+    none, playlist, track
+  
+  ConfigObj* = distinct JsonNode
+
+
+requireLocalesToBeTranslated ("ru", "")
 
 let configDir* =
   when defined(linux): getHomeDir() / ".config/DMusic"
@@ -13,8 +26,6 @@ let configDir* =
 let dataDir* =
   when defined(linux): getHomeDir() / ".local/share/DMusic"
   else: "."
-
-type ConfigObj* = distinct JsonNode
 
 proc readConfig*: ConfigObj =
   if fileExists(configDir/"config.json"):
@@ -29,14 +40,6 @@ proc save*(config: ConfigObj) =
   writeFile(configDir/"config.json", config.JsonNode.pretty)
 
 var config* = readConfig()
-
-
-type
-  Language* {.pure.} = enum
-    en, ru
-
-  LoopMode* {.pure.} = enum
-    none, playlist, track
 
 
 type Config = object
@@ -189,6 +192,3 @@ genconfig:
     bool skipRadioDuplicates true
 
 registerSingletonInQml Config, ("DMusic", 1, 0), ("Config", 1, 0)
-
-
-initLocalize Language, call(bindSym"language", bindSym"config")

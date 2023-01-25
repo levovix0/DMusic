@@ -54,6 +54,7 @@ proc gui: string =
   var tr = newQTranslator()
 
   notifyLanguageChanged &= proc() =
+    globalLocale = (($config.language, ""), LocaleTable.default)
     if not tr.isEmpty: QApplication.remove tr
     case config.language
     of Language.ru: tr.load ":translations/russian"; QApplication.install tr
