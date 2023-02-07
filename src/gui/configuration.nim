@@ -184,6 +184,9 @@ genconfig:
 
   bool discordPresence
 
+  string proxyServer
+  string proxyAuth
+
   ym "Yandex.Music":
     string token
     string email

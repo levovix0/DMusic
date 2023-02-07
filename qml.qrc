@@ -63,6 +63,7 @@
         <file>qml/pages/settings/ColorSelect.qml</file>
         <file>qml/pages/settings/DevelopersBlock.qml</file>
         <file>qml/pages/settings/GeneralSettingsBlock.qml</file>
+        <file>qml/pages/settings/ProxySettingsBlock.qml</file>
 
         <!-- qml/external -->
         <file>qml/external/Border.qml</file>

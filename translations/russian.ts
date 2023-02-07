@@ -129,6 +129,21 @@
     </message>
 </context>
 <context>
+    <name>ProxySettingsBlock</name>
+    <message>
+        <source>Server (for example, https://100.100.100.100:1010)</source>
+        <translation>Сервер (например, https://100.100.100.100:1010)</translation>
+    </message>
+    <message>
+        <source>Authorization</source>
+        <translation>Авторизация</translation>
+    </message>
+    <message>
+        <source>Proxy</source>
+        <translation>Прокси</translation>
+    </message>
+</context>
+<context>
     <name>DiscordPresence</name>
     <message>
         <source>Failed to initialize discord pressence</source>

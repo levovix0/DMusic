@@ -73,6 +73,7 @@ DPage {
 
         ThemeSettingsBlock { z: 0 }
         GeneralSettingsBlock {}
+        ProxySettingsBlock {}
       }
 
       ColumnLayout {
@@ -97,6 +98,7 @@ DPage {
 
       ThemeSettingsBlock {}
       GeneralSettingsBlock {}
+      ProxySettingsBlock {}
 
       RowLayout {
         spacing: 20
