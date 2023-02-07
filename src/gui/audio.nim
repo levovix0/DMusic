@@ -603,6 +603,13 @@ qobject AudioPlayer:
   proc playRadioFromYmTrack(id: int) =
     asyncCheck: doAsync:
       await play id.yandexTrack.toRadio.await
+  
+  proc setTrackLiked(kind: string, id: int, v: bool) =
+    case kind
+    of "yandex", "yandexFromFile", "yandexIdOnly":
+      asyncCheck: doAsync:
+        (id.yandexTrack.liked = v).await
+    else: sendError(tr"Unimplemented", tr"toglleLiked() unknown track kind: {kind}")
     
   proc `=new` =
     notifyStateChanged &= proc() = this.stateChanged

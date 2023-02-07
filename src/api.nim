@@ -279,6 +279,10 @@ proc `liked=`*(this: Track, v: bool) {.async.} =
       if v: currentUser().await.like(t.yandex).await
       else: currentUser().await.unlike(t.yandex).await
   
+  of TrackKind.yandexIdOnly:
+    if v: currentUser().await.like(this.yandexIdOnly).await
+    else: currentUser().await.unlike(this.yandexIdOnly).await
+  
   of TrackKind.user:
     this.user.metadata.liked = v
     writeTrackMetadata(this.user.file, this.user.metadata, writeCover=false)
@@ -370,6 +374,19 @@ proc tracks*(playlist: Playlist): ptr seq[Track] =
     playlist.user.tracks.addr
   of PlaylistKind.temporary:
     playlist.temporary.tracks.addr
+
+proc liked*(playlist: Playlist): Future[seq[bool]] {.async.} =
+  case playlist.kind
+  of yandex:
+    let liked = currentUser().await.likedTracks.await
+    for x in playlist.yandex.tracks:
+      result.add x.id in liked
+  of user:
+    for x in playlist.user.tracks:
+      result.add x.liked.await
+  of temporary:
+    for x in playlist.temporary.tracks:
+      result.add x.liked.await
 
 
 # todo: refactor all above to do not specifing enum type, like as in proc below

@@ -10,6 +10,14 @@
       "": "Исключение во время асинхронной операции"
     }
   },
+  "src/gui/audio.nim": {
+    "Unimplemented": {
+      "": "Нереализовано"
+    },
+    "toglleLiked() unknown track kind: {kind}": {
+      "": "toglleLiked() неизвестный тип трека: {kind}"
+    }
+  },
   "src/gui/yandexMusicQmlModule.nim": {
     "Downloads": {
       "": "Загружено"

@@ -4,9 +4,13 @@ import ../utils, ../api, ../async
 import ../yandexMusic except Track
 import qt, configuration
 
+{.experimental: "overloadableEnums".}
+
 type PlaylistView = object
   playlist: api.Playlist
   covers: seq[tuple[data: string, fetched: bool]]
+  liked: tuple[data: seq[bool]; fetched: bool]
+
 
 qmodel PlaylistView:
   rows: self.playlist.tracks[].len
@@ -14,6 +18,8 @@ qmodel PlaylistView:
   elem objComment: self.playlist.tracks[i].comment
   elem objAuthor: self.playlist.tracks[i].artists
   elem objI: i
+  elem objId: self.playlist.tracks[i].id
+  elem objKind: $self.playlist.tracks[i].kind
 
   elem objCover:
     var instant = true
@@ -32,6 +38,19 @@ qmodel PlaylistView:
     if ms.inHours != 0: ms.format("h:m:ss")
     else:               ms.format("m:ss")
   
+  elem objLiked:
+    if self.liked.fetched:
+      if i in 0..self.liked.data.high:
+        self.liked.data[i]
+      else:
+        false
+    else:
+      self.liked.fetched = true
+      asyncCheck: doAsync:
+        self.liked.data = self.playlist.liked.await
+        this.layoutChanged
+      false
+
 
   property int id:
     get:

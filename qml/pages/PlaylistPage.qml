@@ -30,10 +30,16 @@ DPage {
           title: objTitle
           author: objAuthor
           duration: objDuration
+          liked: objLiked
 
           onPlay: {
             if (PlaylistView.ownerId != 0) AudioPlayer.playYmPlaylist(PlaylistView.id, PlaylistView.ownerId, objI)
             else AudioPlayer.playDmPlaylist(PlaylistView.id, objI)
+          }
+
+          onToggleLiked: {
+            AudioPlayer.setTrackLiked(objKind, objId, !liked)
+            liked = !liked
           }
         }
       }
