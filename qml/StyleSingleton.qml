@@ -44,6 +44,8 @@ QtObject {
       property QtObject normal: QtObject {
         property color color: darkTheme? "#C1C1C1" : c40
         property color hoverColor: darkTheme? white : "#808080"
+        property color pressedColor: darkTheme? Qt.darker(color, 1.25) : Qt.lighter(color, 1.25)
+        property color unavailableColor: darkTheme? "#808080" : "#C1C1C1"
       }
       property QtObject accent: QtObject {
         property color color: window.accent

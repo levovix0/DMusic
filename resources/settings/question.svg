@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="20"
+   height="20"
+   viewBox="0 0 20 20"
+   fill="none"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="question.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs10" />
+  <sodipodi:namedview
+     id="namedview8"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="28"
+     inkscape:cx="14.678571"
+     inkscape:cy="10.910714"
+     inkscape:window-width="1920"
+     inkscape:window-height="971"
+     inkscape:window-x="0"
+     inkscape:window-y="36"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg6" />
+  <g
+     id="g172"
+     transform="translate(7.9153345e-8,0.56529015)">
+    <path
+       fill-rule="evenodd"
+       clip-rule="evenodd"
+       d="m 7.0942905,7.2104097 c -0.2485,0 -0.44975,-0.20738 -0.41125,-0.45238 0.24063,-1.48837 1.37463,-2.57337 3.3425005,-2.57337 1.96875,0 3.29616,1.19 3.29616,2.81313 0,1.176 -0.58191,2.00199 -1.56628,2.60137 -0.9625,0.5766193 -1.23725,0.9782493 -1.23725,1.7587503 v 0.02625 c 0,0.11603 -0.0461,0.22731 -0.12814,0.30936 -0.08205,0.08205 -0.19333,0.12814 -0.30936,0.12814 H 9.4069205 c -0.11528,10e-6 -0.2259,-0.04549 -0.30783,-0.12659 -0.08192,-0.0811 -0.12852,-0.19126 -0.12967,-0.30654 l -0.00263,-0.175 c -0.03762,-1.068371 0.41738,-1.7508703 1.4393805,-2.3729903 0.90125,-0.553 1.22237,-0.99313 1.22237,-1.7745 0,-0.85663 -0.66325,-1.48576 -1.6852508,-1.48576 -0.8828697,0 -1.4962497,0.46288 -1.6957497,1.22676 -0.05775,0.22225 -0.24325,0.40337 -0.4725,0.40337 h -0.67987 z"
+       fill="#7c7c7c"
+       id="path2" />
+    <path
+       fill-rule="evenodd"
+       clip-rule="evenodd"
+       d="m 9.7368502,14.68476 c 0.5442508,0 0.9581208,-0.4148 0.9581208,-0.9538 0,-0.5407 -0.41387,-0.9555 -0.9581208,-0.9555 -0.5302497,0 -0.9511297,0.4148 -0.9511297,0.9546 0,0.5399 0.42088,0.9547 0.9511297,0.9547 z"
+       fill="#7c7c7c"
+       id="path4" />
+  </g>
+</svg>

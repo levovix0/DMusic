@@ -17,6 +17,8 @@ Rectangle {
 
   property bool clearButton: false
 
+  property real textRightPadding: 0
+
   property QtObject style: Style.panel.textBox
 
   MouseArea {
@@ -31,7 +33,7 @@ Rectangle {
     TextInput {
       id: _input
       anchors.fill: parent
-      anchors.rightMargin: (clearButton && contentWidth > parent.width - _clear.width * 2)? _clear.width : 0
+      anchors.rightMargin: ((clearButton && contentWidth > parent.width - _clear.width * 2)? _clear.width : 0) + root.textRightPadding
       verticalAlignment: Text.AlignVCenter
       horizontalAlignment: root.style.text.hAlign
       clip: true
@@ -47,6 +49,7 @@ Rectangle {
       anchors.fill: _input
       verticalAlignment: Text.AlignVCenter
       horizontalAlignment: root.style.text.hAlign
+      anchors.rightMargin: root.textRightPadding
 
       visible: _input.text == ""
 
@@ -59,6 +62,7 @@ Rectangle {
     MouseArea {
       id: _clear
       anchors.right: parent.right
+      anchors.rightMargin: root.textRightPadding
       visible: clearButton && root.text !== ""
       height: parent.height
       width: height

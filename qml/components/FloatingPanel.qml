@@ -8,8 +8,10 @@ Item {
   property color color: Style.panel.background
   property var triangleCenter: root.horizontalCenter
   property var triangleTop: root.bottom
+  property var triangleBottom: root.top
   property real triangleOffset: 0
   property real triangleRotation: 0
+  property bool triangleOnTop: false
 
   opacity: 0
 
@@ -32,9 +34,10 @@ Item {
   Triangle {
     id: _triangle
     anchors.horizontalCenter: root.triangleCenter
-    anchors.top: root.triangleTop
+    anchors.top: triangleOnTop? undefined : root.triangleTop
+    anchors.bottom: triangleOnTop? root.triangleBottom : undefined
     anchors.horizontalCenterOffset: root.triangleOffset
-    rotation: root.triangleRotation
+    rotation: root.triangleRotation + (triangleOnTop? 180 : 0)
 
     color: root.color
   }

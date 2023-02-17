@@ -6,8 +6,11 @@ import ".."
 import "../../components"
 
 SettingsBlock {
+  id: root
   title: qsTr("Accounts")
   Layout.fillWidth: true
+
+  property var rootComponent
 
   ColumnLayout {
     spacing: 10
@@ -57,6 +60,7 @@ SettingsBlock {
         id: _YandexMusic_login
 
         Item {
+          id: _YandexMusic_login_root
           width: _text1.width + _text2.width
           height: Math.max(_text1.height, _text2.height)
 
@@ -98,16 +102,51 @@ SettingsBlock {
 
           FloatingPanel {
             id: _ymLoginPanel
-            width: 220
+            width: 250
             height: 30
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: parent.bottom
-            anchors.topMargin: 10 - _ppc.shift
+            parent: root.rootComponent
+            x: _YandexMusic_login_root.mapToItem(root.rootComponent, _YandexMusic_login_root.width / 2 - width / 2, 0).x
+            y: _YandexMusic_login_root.mapToItem(root.rootComponent, 0, _YandexMusic_login_root.height).y + 10 - _ppc.shift
+            triangleOnTop: true
 
             Item {
               anchors.fill: parent
 
+              DTextBox {
+                id: _token
+                anchors.fill: parent
+                anchors.margins: 5
+                anchors.rightMargin: 30
+                textRightPadding: 20
+                
+                hint: qsTr("Token")
 
+                IconButton {
+                  width: 20
+                  height: 20
+                  anchors.verticalCenter: parent.verticalCenter
+                  anchors.right: parent.right
+                  
+                  style: Style.window.icon.normal
+                  src: "qrc:resources/settings/question.svg"
+                  onClicked: Qt.openUrlExternally("https://github.com/MarshalX/yandex-music-api/discussions/513")
+                }
+              }
+
+              IconButton {
+                width: 20
+                height: 20
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: _token.right
+                anchors.leftMargin: 5
+                
+                style: Style.window.icon.normal
+                src: "qrc:resources/settings/ok.svg"
+                onClicked: {
+                  Config.ym_token = _token.text
+                  _ppc.opened = false
+                }
+              }
             }
           }
         }

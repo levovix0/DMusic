@@ -20,27 +20,8 @@
         <translation>Войти в </translation>
     </message>
     <message>
-        <source>Login</source>
-        <translation type="vanished">Войти</translation>
-    </message>
-    <message>
         <source>Token</source>
-        <translation type="vanished">Токен</translation>
-    </message>
-</context>
-<context>
-    <name>AudioPlayer</name>
-    <message>
-        <source>Failed to load track</source>
-        <translation type="vanished">Не удалось загрузить трек</translation>
-    </message>
-    <message>
-        <source>Failed to play Yandex.Music track (id: %1)</source>
-        <translation type="vanished">Не удалось проиграть трек Яндекс.Музыки (id: %1)</translation>
-    </message>
-    <message>
-        <source>Failed to play track</source>
-        <translation type="vanished">Не удалось проиграть трек</translation>
+        <translation>Токен</translation>
     </message>
 </context>
 <context>

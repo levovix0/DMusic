@@ -61,7 +61,7 @@ DPage {
         Layout.maximumWidth: 250
         spacing: 20
 
-        AccountsSettingsBlock {}
+        AccountsSettingsBlock { rootComponent: _scroll }
         ColorSettingsBlock {}
       }
 
@@ -117,7 +117,7 @@ DPage {
           Layout.preferredWidth: 215
           spacing: 20
 
-          AccountsSettingsBlock {}
+          AccountsSettingsBlock { rootComponent: _scroll }
           ColorSettingsBlock {}
         }
       }

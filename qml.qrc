@@ -142,6 +142,8 @@
         <!-- resources/settings -->
         <file>resources/settings/selected.svg</file>
         <file>resources/settings/GitHub.svg</file>
+        <file>resources/settings/ok.svg</file>
+        <file>resources/settings/question.svg</file>
 
         <!-- resources/covers -->
         <file>resources/covers/favorite.svg</file>

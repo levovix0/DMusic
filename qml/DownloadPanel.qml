@@ -68,10 +68,8 @@ FloatingPanel {
           Icon {
             id: _icon
             anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: 10
-            width: 20
-            height: 20
+            anchors.horizontalCenter: parent.left
+            anchors.horizontalCenterOffset: 18
 
             color: _mouse.containsMouse? Style.panel.text.sellectedColor : Style.panel.text.unsellectedColor
             src: icon
@@ -80,8 +78,9 @@ FloatingPanel {
           DText {
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: _icon.right
-            anchors.leftMargin: 10
+            anchors.leftMargin: 13
 
+            font.pointSize: 10
             color: _mouse.containsMouse? Style.panel.text.sellectedColor : Style.panel.text.unsellectedColor
             text: title
           }
@@ -89,8 +88,9 @@ FloatingPanel {
           DText {
             anchors.verticalCenter: parent.verticalCenter
             anchors.right: parent.right
-            anchors.rightMargin: 10
+            anchors.rightMargin: 13
 
+            font.pointSize: 10
             color: Style.panel.text.darkColor
             text: shortcut
           }
