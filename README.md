@@ -4,7 +4,7 @@
   Uses <a href="https://github.com/MarshalX/yandex-music-api">unoffical Yandex.Music Api</a> translated from Python to Nim
 </p>
 
-![Screenshot](https://ia.wampi.ru/2021/09/23/85.png)  
+![Screenshot](https://i.imgur.com/zjiXeOh.png)  
 <p align="center">
   <img alt="Version" src="https://img.shields.io/badge/Version-0.4.1-x.svg?style=flat-square&logoColor=white&color=blue">
   <img alt="Stable" src="https://img.shields.io/badge/Stable-0.4-x.svg?style=flat-square&logoColor=white&color=blue">
