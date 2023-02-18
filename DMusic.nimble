@@ -1,4 +1,4 @@
-version       = "0.4"
+version       = "0.4.1"
 author        = "DTeam"
 description   = "Music player"
 license       = "GPL"
@@ -35,3 +35,7 @@ task translate, "generate translations":
 
 task installFlatpak, "build and install flatpak package":
   exec "flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml"
+
+task buildWindows, "cross-compile from Linux to Windows":
+  # note: just draft, it doesn't work
+  exec "nim cpp -d:mingw --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc src/dmusic.nim -o:build-windows/dmusic.exe"
