@@ -16,16 +16,14 @@ modules:
   - name: nim
     buildsystem: simple
     build-commands:
-      # the downloaded archive is automatically unpacked
-      # and used as current working dir
       - sh install.sh /app
       - cp bin/nimble /app/nim/bin/nimble
     sources:
       - type: archive
-        url: https://nim-lang.org/download/nim-1.6.6-linux_x64.tar.xz
+        url: https://nim-lang.org/download/nim-1.6.10-linux_x64.tar.xz
         # this checksum is from:
-        # https://nim-lang.org/download/nim-1.6.6-linux_x64.tar.xz.sha256
-        sha256: 3e88df45dbbec2f083d31e00e6f2c07e0c70c392c91b2a934f7f283dd0fdf5f9
+        # https://nim-lang.org/download/nim-1.6.10-linux_x64.tar.xz.sha256
+        sha256: 2cdf8f4666f731a0197805fa16e147c739e47fbbced35c1d3d1fa33d8659efc3
 
   - name: taglib
     config-opts:
