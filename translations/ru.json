@@ -19,6 +19,9 @@
     }
   },
   "src/gui/yandexMusicQmlModule.nim": {
+    "My wave": {
+      "": "Моя волна"
+    },
     "Downloads": {
       "": "Загружено"
     },
@@ -27,6 +30,9 @@
     },
     "Favorites": {
       "": "Нравится"
+    },
+    "qrc:/resources/covers/my wave.svg": {
+      "": "qrc:/resources/covers/my wave-ru.svg"
     },
     "qrc:/resources/covers/favorite.svg": {
       "": "qrc:/resources/covers/favorite-ru.svg"

@@ -150,6 +150,8 @@
         <file>resources/covers/favorite-ru.svg</file>
         <file>resources/covers/downloads.svg</file>
         <file>resources/covers/downloads-ru.svg</file>
+        <file>resources/covers/my wave.svg</file>
+        <file>resources/covers/my wave-ru.svg</file>
 
         <!-- resources/placeholders -->
         <file>resources/placeholders/playlist.svg</file>

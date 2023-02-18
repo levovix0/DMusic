@@ -122,11 +122,23 @@ proc getHomePlaylists: Future[seq[Playlist]] {.async.} =
     ownerId: currentUser().await.id,
     title: tr"Favorites"
   )
+  result.insert Playlist(
+    id: 2,
+    ownerId: 0,
+    title: tr"My wave"
+  ), 1
 
 proc cover(playlist: Playlist): Future[string] {.async.} =
   return
-    if playlist.id == 3: tr"qrc:/resources/covers/favorite.svg"
-    else: playlist.coverBase64(400).await
+    case playlist.ownerId
+    of 0:
+      case playlist.id
+      of 2: tr"qrc:/resources/covers/my wave.svg"
+      else: emptyCover
+    else:
+      case playlist.id
+      of 3: tr"qrc:/resources/covers/favorite.svg"
+      else: playlist.coverBase64(400).await
 
 qmodel HomePlaylistsModel:
   rows: self.result.len + 1

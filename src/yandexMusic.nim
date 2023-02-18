@@ -370,6 +370,11 @@ proc playlist*(user: Account, id: int): Future[Playlist] {.async.} =
 proc getRadioStation*(x: Track|TrackId): RadioStation =
   RadioStation(id: "track:" & $x.id, stationFrom: "track")
 
+
+proc myWaveRadioStation*: RadioStation =
+  RadioStation(id: "user:onyourwave", stationFrom: "user")
+
+
 proc getTracks*(x: RadioStation, prev: Track = Track()): Future[tuple[tracks: seq[Track], batchId: string]] {.async.} =
   var params = @{
     "settings2": "true",

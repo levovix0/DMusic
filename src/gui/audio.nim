@@ -2,7 +2,7 @@
 import sequtils, strutils, options, times, math, random, algorithm, os
 import ../api, ../utils, ../async, ../taglib
 import qt, messages, configuration
-import ../yandexMusic except Track, Radio
+import ../yandexMusic except Track, Radio, toRadio
 
 {.experimental: "overloadableEnums".}
 
@@ -11,10 +11,10 @@ randomize()
 type
   TrackSequence = ref object
     current: int
+    yandexId: (int, int)
     case isRadio: bool
     of false:
       tracks: seq[Track]
-      yandexId: (int, int)
       history: seq[int]
       shuffle, loop: bool
     of true:
@@ -230,8 +230,8 @@ proc play*(tracks: seq[Track], yandexId = (0, 0), trackToStartFrom: int) {.async
   currentSequence.loop = config.loop == LoopMode.playlist
   await play currentSequence.curr
 
-proc play*(radio: Radio) {.async.} =
-  currentSequence = TrackSequence(isRadio: true, radio: radio)
+proc play*(radio: Radio, yandexId = (0, 0)) {.async.} =
+  currentSequence = TrackSequence(isRadio: true, radio: radio, yandexId: yandexId)
   await play currentSequence.curr
 
 
@@ -374,21 +374,12 @@ qobject PlayingTrackInfo:
   
   property int playlistId:
     get:
-      if currentSequence.isRadio:
-        currentSequence.radio.current.id
-      else:
-        currentSequence.yandexId[0]
+      currentSequence.yandexId[0]
     notify infoChanged
   
   property int playlistOwner:
     get:
-      const yandexRadioOwner = -2
-      if currentSequence.isRadio:
-        case currentSequence.radio.kind
-        of yandex:
-          yandexRadioOwner
-      else:
-        currentSequence.yandexId[1]
+      currentSequence.yandexId[1]
     notify infoChanged
   
   property bool canStartYandexRadio:
@@ -575,6 +566,7 @@ qobject AudioPlayer:
     getTrackAudioProcess = doAsync:
       case id
       of 1: await play(downloadedYandexTracks(), (1, 0))
+      of 2: await play(myWaveRadioStation().toRadio.await, (2, 0))
       else: discard
 
   proc playDmPlaylist(id: int, trackToStartFrom: int) =
@@ -582,6 +574,7 @@ qobject AudioPlayer:
     getTrackAudioProcess = doAsync:
       case id
       of 1: await play(downloadedYandexTracks(), (1, 0), trackToStartFrom)
+      of 2: await play(myWaveRadioStation().toRadio.await, (2, 0))  # todo
       else: discard
   
   proc addUserTrack(file, cover, title, comment, artists: string) =

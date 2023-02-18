@@ -393,13 +393,16 @@ proc liked*(playlist: Playlist): Future[seq[bool]] {.async.} =
 proc toRadio*(track: Track): Future[Radio] {.async.} =
   case track.kind
   of yandex:
-    return Radio(kind: yandex, yandex: track.yandex.getRadioStation.toRadio.await)
+    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandex.getRadioStation).await)
   of yandexFromFile:
-    return Radio(kind: yandex, yandex: track.yandexFromFile.id.getRadioStation.toRadio.await)
+    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandexFromFile.id.getRadioStation).await)
   of yandexIdOnly:
-    return Radio(kind: yandex, yandex: track.yandexIdOnly.getRadioStation.toRadio.await)
+    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandexIdOnly.getRadioStation).await)
   else:
     raise ValueError.newException("can't convert this track to radio")
+
+proc toRadio*(station: RadioStation): Future[Radio] {.async.} =
+  return Radio(kind: yandex, yandex: yandexMusic.toRadio(station).await)
 
 proc next*(radio: Radio, totalPlayedSeconds: int) {.async.} =
   case radio.kind
