@@ -50,7 +50,6 @@
         <!-- qml/pages -->
         <file>qml/pages/SearchPage.qml</file>
         <file>qml/pages/PlaylistPage.qml</file>
-        <file>qml/pages/DPage.qml</file>
         <file>qml/pages/MainPage.qml</file>
         <file>qml/pages/PageSwitcher.qml</file>
         <file>qml/pages/SettingsPage.qml</file>

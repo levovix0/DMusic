@@ -1,4 +1,5 @@
-import QtQuick 2.0
+import QtQuick 2.15
+import DMusic.Components 1.0
 
 Loader {
   id: root
@@ -38,7 +39,6 @@ Loader {
     gotoPageOrBack("qrc:/qml/pages/SettingsPage.qml")
   }
 
-  property DPage page
   Component.onCompleted: {
     gotoMainPage()
   }

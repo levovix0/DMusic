@@ -2,6 +2,7 @@ import os, strformat, macros, strutils, sequtils, tables, unicode
 import fusion/matching, fusion/astdsl
 
 {.experimental: "caseStmtMacros".}
+{.experimental: "overloadableEnums".}
 
 proc quoted(s: string): string =
   result.addQuoted s
@@ -70,9 +71,18 @@ type
 
   QObject* {.importcpp, header: "QObject", inheritable.} = object
 
+  QJsValue* {.importcpp: "QJSValue", header: "QJSValue", bycopy.} = object
+
   QAbstractListModel* {.importcpp: "QAbstractListModel", header: "QAbstractListModel".} = object of QObject
   QDBusAbstractAdaptor* {.importcpp: "QDBusAbstractAdaptor", header: "QDBusAbstractAdaptor".} = object of QObject
   QQuickItem* {.importcpp, header: "QQuickItem".} = object of QObject
+
+  QQuickItemFlag* = enum
+    clipsChildrenToShape
+    acceptsInputMethod
+    isFocusScope
+    hasContents
+    acceptsDrops
 
   QApplication* {.importcpp, header: "QApplication".} = object
   QQmlApplicationEngine* {.importcpp, header: "QQmlApplicationEngine".} = object
@@ -178,12 +188,31 @@ proc isWidget*(this: QObject): bool {.importcpp: "#.isWidgetType()".}
 proc isWindow*(this: QObject): bool {.importcpp: "#.isWindowType()".}
 proc signalsBlocked*(this: QObject): bool {.importcpp: "#.signalsBlocked()".}
 
+proc dynamicCast*(this: ptr QObject, t: type): ptr t {.importcpp: "dynamic_cast<'0>(#)".}
+
+proc connect*(a: QObject, signal: static string, b: QObject, slot: static string) =
+  {.emit: [a, "->connect(", a, ", SIGNAL(" & signal & "), ", b, ", SLOT(" & slot & "));"].}
+
 
 
 #----------- QAbstractListModel -----------#
 proc layoutChanged*(this: ptr QAbstractListModel) =
   if this != nil:
     {.emit: "emit `this`->layoutChanged();".}
+
+
+
+#----------- QQuickItem -----------#
+proc clip*(this: QQuickItem): bool {.importcpp: "#.clip(@)", header: "QQuickItem".}
+proc `clip=`*(this: QQuickItem, v: bool) {.importcpp: "#.setClip(@)", header: "QQuickItem".}
+
+proc width*(this: QQuickItem): float {.importcpp: "#.width(@)", header: "QQuickItem".}
+proc height*(this: QQuickItem): float {.importcpp: "#.height(@)", header: "QQuickItem".}
+
+proc `width=`*(this: QQuickItem, v: float) {.importcpp: "#.setWidth(@)", header: "QQuickItem".}
+proc `height=`*(this: QQuickItem, v: float) {.importcpp: "#.setHeight(@)", header: "QQuickItem".}
+
+proc `[]=`*(this: QQuickItem, flag: QQuickItemFlag, v: bool) {.importcpp: "#.setFlag(@)", header: "QQuickItem".}
 
 
 
@@ -355,8 +384,10 @@ proc fromQtVal[T](v: T): auto =
   else: v
 
 proc toQtTypename(s: string): string =
+  ## todo: use types instead of strings
   case s
   of "string": "QString"
+  of "QJsValue": "QJSValue"
   else: s
 
 proc argNames(args: NimNode|seq[NimNode]): seq[NimNode] =
@@ -494,6 +525,28 @@ proc qobjectCasesImpl(t, parent, body, ct: NimNode, x: NimNode, decl: var seq[st
     
     for x in body:
       case x
+      of Ident(strVal: "auto"):
+        if getter == nil:
+          getter = buildAst:
+            dotExpr:
+              ident "self"
+              ident name
+        if notify == nil:
+          notify = ident &"{name}Changed"
+          copyLineInfo notify, x
+          newSignal notify, newEmptyNode(), @[], decl, impl, signalNames
+        if setter == nil:
+          setter = buildAst(stmtList):
+            asgn:
+              dotExpr:
+                ident "self"
+                ident name
+              ident "value"
+            call:
+              notify
+              ident "this"
+
+
       of Call[Ident(strVal: "get"), @body]:
         if getter != nil: error("getter is already declared", x)
         getter = body

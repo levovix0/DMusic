@@ -1,4 +1,5 @@
 import QtQuick 2.15
+import DMusic.Components 1.0
 import "../components"
 
 DPage {

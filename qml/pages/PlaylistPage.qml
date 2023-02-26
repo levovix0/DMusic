@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import DMusic 1.0
+import DMusic.Components 1.0
 import "../components"
 import "../playlist"
 

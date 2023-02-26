@@ -23,6 +23,8 @@
   ```sh
   git clone https://github.com/levovix0/DMusic
   cd DMusic
+  flatpak install org.kde.Sdk/x86_64/5.15-21.08
+  flatpak install org.kde.Platform/x86_64/5.15-21.08
   flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml
   ```
 
