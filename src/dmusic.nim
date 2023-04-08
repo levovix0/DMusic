@@ -1,7 +1,7 @@
 import std/exitprocs, os, times, strformat, macros, strutils, sequtils
 import gui/[qt, messages, configuration]
 import gui/[yandexMusicQmlModule, audio, qmlUtils, remoteAudio, playlist]
-import gui/components/[page]
+import gui/components/[page, searchPage]
 import async, utils, yandexMusic
 
 macro resourcesFromDir*(dir: static[string] = ".") =

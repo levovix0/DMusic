@@ -28,7 +28,7 @@ Control {
       id: _text
       anchors.centerIn: parent
 
-      text: "Скачать"
+      text: "Скачать"  // ?!? wtf
     }
 
     MouseArea {

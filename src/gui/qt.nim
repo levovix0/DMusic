@@ -84,6 +84,9 @@ type
     hasContents
     acceptsDrops
 
+  QQuickImplicitSizeItem* {.importcpp, header: "QQuickImplicitSizeItem".} = object of QQuickItem
+  QQuickText* {.importcpp, header: "QQuickText".} = object of QQuickImplicitSizeItem
+
   QApplication* {.importcpp, header: "QApplication".} = object
   QQmlApplicationEngine* {.importcpp, header: "QQmlApplicationEngine".} = object
   
@@ -649,7 +652,9 @@ macro qobject*(t, body) =
     pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
     pragma: exprColonExpr i"emit": bracket(newLit moc)
     templateDef:
-      cts
+      postfix:
+        ident"*"
+        cts
       empty()
       empty()
       formalParams:
