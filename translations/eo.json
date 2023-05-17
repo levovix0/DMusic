@@ -5,9 +5,6 @@
     },
     "Can't download multiple tracks to same file": {
       "": "Ne eblas elŝuti plurajn trakojn al la sama dosiero"
-    },
-    "Exception during async operation": {
-      "": "Escepto dum asinkra operacio"
     }
   },
   "src/gui/audio.nim": {
@@ -36,6 +33,11 @@
     },
     "qrc:/resources/covers/favorite.svg": {
       "": "qrc:/resources/covers/favorite-eo.svg"
+    }
+  },
+  "src/gui.nim": {
+    "Exception during async operation": {
+      "": "Escepto dum asinkra operacio"
     }
   },
   "src/gui/qmlUtils.nim": {

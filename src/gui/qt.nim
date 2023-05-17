@@ -86,9 +86,9 @@ new app, (proc(_: ref QApplication) = destroy app[])
 init cast[ptr QApplication](app)
 
 
-proc exec*(this: type QApplication): int32 {.importcpp: "QApplication::exec()".}
+proc exec*(this: type QApplication): int32 {.importcpp: "QApplication::exec()", header: "QApplication".}
   ## executes main loop and returns allication return code
-proc processEvents*(this: type QApplication) {.importcpp: "QApplication::processEvents()".}
+proc processEvents*(this: type QApplication) {.importcpp: "QApplication::processEvents()", header: "QApplication".}
   ## do main loop step, can be called without anything instead of exec
 
 proc `appName=`*(this: type QApplication, v: string) =

@@ -1,8 +1,6 @@
-import std/exitprocs, os, times, strformat, macros, strutils, sequtils
-import gui/[qt, messages, configuration]
-import gui/[yandexMusicQmlModule, audio, qmlUtils, remoteAudio, playlist]
-import gui/components/[page, searchPage]
-import async, utils, yandexMusic
+import os, strformat, macros, strutils, sequtils
+import gui/[qt, configuration]
+import async, yandexMusic, gui
 
 macro resourcesFromDir*(dir: static[string] = ".") =
   result = newStmtList()
@@ -24,60 +22,6 @@ when defined(windows):
     echo staticExec "windres ../dmusic.rc ../build/dmusic.o"
   {.link: "build/dmusic.o".}
 
-
-var infinityLoop = doAsync:
-  var darkTime = config.darkTheme
-
-  while true:
-    await sleepAsync(1000)
-
-    if config.themeByTime:
-      if now().hour in 7..18:
-        if darkTime: config.darkTheme = false
-        darkTime = false
-      else:
-        if not darkTime: config.darkTheme = true
-        darkTime = true
-
-
-proc gui: string =
-  QApplication.appName = "DMusic"
-  QApplication.organizationName = "DTeam"
-  QApplication.organizationDomain = "zxx.ru"
-
-  {.emit: """
-  qmlRegisterSingletonType(QUrl("qrc:/qml/StyleSingleton.qml"), "DMusic", 1, 0, "Style");
-  """.}
-
-  let engine = newQQmlApplicationEngine()
-  engine.load "qrc:/qml/main.qml"
-
-  var tr = newQTranslator()
-
-  notifyLanguageChanged &= proc() =
-    globalLocale = (($config.language, ""), LocaleTable.default)
-    if not tr.isEmpty: qApplicationRemove tr
-    case config.language
-    of Language.ru: tr.load ":translations/russian"; qApplicationInstall tr
-    else: discard
-    retranslate engine
-  
-  notifyCsdChanged &= proc() =
-    when defined(windows): QApplication.icon = ":resources/app.svg"
-    else: QApplication.icon = ":resources/app-papirus.svg"
-
-  notifyLanguageChanged()
-  notifyCsdChanged()
-
-  onMainLoop:
-    try: async.poll(5)
-    except:
-      echo getCurrentExceptionMsg()
-      sendError tr"Exception during async operation", getCurrentExceptionMsg()
-
-  setProgramResult QApplication.exec
-
-  complete infinityLoop
 
 proc download(tracks: seq[string], file: string = "") =
   if tracks.len == 0:
@@ -117,10 +61,10 @@ when isMainModule:
   import cligen
   clcfg.version = "0.4"
   if paramCount() == 0:
-    dispatch gui
+    dispatch gui.gui
   else:
     dispatchMulti(
-      [gui],
+      [gui.gui],
       [download, short={"file": 'o'}],
       [getRadioTracks, help={"station": "for stations based on track, use `track:TRACK_ID`"}]
     )
