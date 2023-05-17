@@ -17,7 +17,7 @@ type
   ConfigObj* = distinct JsonNode
 
 
-requireLocalesToBeTranslated ("ru", "")
+requireLocalesToBeTranslated ("ru", ""), ("eo", "")
 
 let configDir* =
   when defined(linux): getHomeDir() / ".config/DMusic"
