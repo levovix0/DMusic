@@ -11,7 +11,7 @@ macro resourcesFromDir*(dir: static[string] = ".") =
     if k notin {pcFile, pcLinkToFile}: continue
     if not file.endsWith(".qrc"): continue
 
-    let qrc = rcc &"../../{file}"  # todo: may cause bugs, should be refactored
+    let qrc = rcc ".."/file
     let filename = "build" / &"qrc_{file.splitPath.tail}.cpp"
     writeFile filename, qrc
     result.add quote do:
@@ -56,9 +56,9 @@ proc gui: string =
 
   notifyLanguageChanged &= proc() =
     globalLocale = (($config.language, ""), LocaleTable.default)
-    if not tr.isEmpty: QApplication.remove tr
+    if not tr.isEmpty: qApplicationRemove tr
     case config.language
-    of Language.ru: tr.load ":translations/russian"; QApplication.install tr
+    of Language.ru: tr.load ":translations/russian"; qApplicationInstall tr
     else: discard
     retranslate engine
   

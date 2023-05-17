@@ -1,5 +1,5 @@
 {.used.}
-import ../qt
+# import ../qt
 import page
 
 # type SearchPage* = object

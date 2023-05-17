@@ -1,5 +1,7 @@
 import os, strformat, macros, strutils, sequtils, tables, unicode
 import fusion/matching, fusion/astdsl
+import qt/[modules, smartptrs, core]
+export modules, smartptrs, core
 
 {.experimental: "caseStmtMacros".}
 {.experimental: "overloadableEnums".}
@@ -11,69 +13,22 @@ proc capitalizeFirst(s: string): string =
   if s.len == 0: return
   $s.runeAt(0).toUpper & s[1..^1]
 
-
-when defined(windows):
-  proc findExistant(s: varargs[string]): string =
-    result = s[0]
-    for x in s:
-      if dirExists x: return x
-  const qtPath {.strdefine.} = findExistant("C:/Qt/5.15.2/mingw81_64", "D:/Qt/5.15.2/mingw81_64")
-
-const qtInclude {.strdefine.} =
-  when defined(flatpak): "/usr/include"
-  elif defined(linux): "/usr/include/qt"
-  else:                qtPath / "include"
-const qtBin {.strdefine.} =
-  when defined(linux): "/usr/bin"
-  else:                qtPath / "bin"
-const qtLib {.strdefine.} =
-  when defined(flatpak): "/usr/lib/x86_64-linux-gnu"
-  elif defined(linux): "/usr/lib"
-  else:                qtPath / "lib"
-
-func qso(module: string): string =
-  when defined(windows): qtBin / &"Qt5{module}.dll"
-  elif defined(MacOsX):  qtLib / &"libQt5{module}.dylib"
-  else:                  qtLib / &"libQt5{module}.so"
-
-macro qmo(module: static[string]) =
-  let c = "-I" & (qtInclude / &"Qt{module}")
-  let l = qso module
-  quote do:
-    {.passc: `c`.}
-    {.passl: `l`.}
-
-{.passc: &"-I{qtInclude} -fPIC".}
-when defined(linux): {.passl: &"-lpthread".}
-qmo"Core"
-qmo"Gui"
-qmo"Widgets"
-qmo"Quick"
-qmo"Qml"
-qmo"Multimedia"
-qmo"QuickControls2"
-qmo"Svg"
-qmo"DBus"
+qtBuildModule "Gui"
+qtBuildModule "Widgets"
+qtBuildModule "Quick"
+qtBuildModule "Qml"
+qtBuildModule "Multimedia"
+qtBuildModule "QuickControls2"
+qtBuildModule "Svg"
+qtBuildModule "DBus"
 
 
 
 {.emit: """#include <QTimer>""".}
 
 type
-  QString* {.importcpp, header: "QString".} = object
-  QUrl* {.importcpp, header: "QUrl".} = object
-  QList*[T] {.importcpp, header: "QList".} = object
-  QVariant* {.importcpp, header: "QVariant".} = object
-  QModelIndex* {.importcpp, header: "QModelIndex".} = object
-  QHash*[K, V] {.importcpp, header: "QHash".} = object
-  QByteArray* {.importcpp, header: "QByteArray".} = object
-  QByteArrayData* {.importcpp: "QByteArrayData", header: "QArrayData".} = object
-
-  QObject* {.importcpp, header: "QObject", inheritable.} = object
-
   QJsValue* {.importcpp: "QJSValue", header: "QJSValue", bycopy.} = object
 
-  QAbstractListModel* {.importcpp: "QAbstractListModel", header: "QAbstractListModel".} = object of QObject
   QDBusAbstractAdaptor* {.importcpp: "QDBusAbstractAdaptor", header: "QDBusAbstractAdaptor".} = object of QObject
   QQuickItem* {.importcpp, header: "QQuickItem".} = object of QObject
 
@@ -90,7 +45,6 @@ type
   QApplication* {.importcpp, header: "QApplication".} = object
   QQmlApplicationEngine* {.importcpp, header: "QQmlApplicationEngine".} = object
   
-  QTranslator* {.importcpp, header: "QTranslator".} = object
   QClipboard* {.importcpp, header: "QClipboard".} = object
   QImage* {.importcpp, header: "QImage".} = object
 
@@ -99,109 +53,6 @@ type
     damOpen, damSave
   DialogFileMode* = enum
     dfmAnyFile, dfmExistingFile, dfmDirectory, dfmExistingFiles
-
-
-
-#----------- QString -----------#
-converter toQString*(this: string): QString =
-  proc impl(data: cstring, len: int): QString {.importcpp: "QString::fromUtf8(@)", header: "QString".}
-  impl(this, this.len)
-
-converter `$`*(this: QString): string =
-  proc impl(this: QString): cstring {.importcpp: "#.toUtf8().data()", header: "QString".}
-  $impl(this)
-
-
-
-#----------- QUrl -----------#
-converter toQUrl*(this: QString): QUrl =
-  proc impl(this: QString): QUrl {.importcpp: "QUrl(@)", header: "QUrl".}
-  impl(this)
-
-converter toQUrl*(this: string): QUrl = this.toQString.toQUrl
-
-proc path*(this: QUrl): string =
-  proc impl(this: QUrl): QString {.importcpp: "#.path()", header: "QUrl".}
-  impl(this)
-
-converter `$`*(this: QUrl): string =
-  proc impl(this: QUrl): QString {.importcpp: "#.toString()", header: "QUrl".}
-  impl(this)
-
-
-
-#----------- QList -----------#
-converter toQList*[T](this: seq[T]): QList[T] =
-  proc ctor(len: int): QList {.importcpp: "QList(@)", header: "QList", constructor.}
-  proc `[]`(this: QList, i: int): var T {.importcpp: "#[#]", header: "QList".}
-  result = ctor(this.len)
-  for i, v in this:
-    result[i] = v
-
-converter toSeq*[T](this: QList[T]): seq[T] =
-  proc len(this: QList): int {.importcpp: "#.size()", header: "QList".}
-  proc `[]`(this: QList, i: int): var T {.importcpp: "#[#]", header: "QList".}
-  result.setLen this.len
-  for i, v in result.mpairs:
-    v = this[i]
-
-
-
-#----------- QVariant -----------#
-converter toQVariant*[T: bool|SomeInteger|QString|SomeFloat](v: T): QVariant =
-  proc ctor(): QVariant {.importcpp: "QVariant(@)", header: "QVariant", constructor.}
-  proc setValue(this: QVariant, v: T){.importcpp: "#.setValue(@)", header: "QVariant".}
-  result = ctor()
-  result.setValue v
-
-
-
-#----------- QByteArray -----------#
-converter toQByteArray*(this: string): QByteArray =
-  proc impl(data: cstring, len: int): QByteArray {.importcpp: "QByteArray(@)", header: "QByteArray".}
-  impl(this, this.len)
-
-
-
-#----------- QHash -----------#
-converter toQHash*(v: openarray[(int, string)]): QHash[cint, QByteArray] =
-  proc ctor(): QHash[cint, QByteArray] {.importcpp: "QHash<int, QByteArray>(@)", header: "QHash".}
-  proc `[]=`(this: QHash[cint, QByteArray], k: cint, v: QByteArray){.importcpp: "#[#] = #", header: "QHash".}
-  result = ctor()
-  for (k, v) in v:
-    result[k.cint] = v.toQByteArray
-
-
-
-#----------- QModelIndex -----------#
-proc row*(this: QModelIndex): int =
-  proc impl(this: QModelIndex): int {.importcpp: "#.row(@)", header: "QModelIndex".}
-  this.impl
-
-proc column*(this: QModelIndex): int =
-  proc impl(this: QModelIndex): int {.importcpp: "#.column(@)", header: "QModelIndex".}
-  this.impl
-
-
-
-#----------- QObject -----------#
-proc parent*(this: QObject): ptr QObject {.importcpp: "#.parent()".}
-
-proc isWidget*(this: QObject): bool {.importcpp: "#.isWidgetType()".}
-proc isWindow*(this: QObject): bool {.importcpp: "#.isWindowType()".}
-proc signalsBlocked*(this: QObject): bool {.importcpp: "#.signalsBlocked()".}
-
-proc dynamicCast*(this: ptr QObject, t: type): ptr t {.importcpp: "dynamic_cast<'0>(#)".}
-
-proc connect*(a: QObject, signal: static string, b: QObject, slot: static string) =
-  {.emit: [a, "->connect(", a, ", SIGNAL(" & signal & "), ", b, ", SLOT(" & slot & "));"].}
-
-
-
-#----------- QAbstractListModel -----------#
-proc layoutChanged*(this: ptr QAbstractListModel) =
-  if this != nil:
-    {.emit: "emit `this`->layoutChanged();".}
 
 
 
@@ -277,24 +128,15 @@ proc clipboard*(this: type QApplication): ptr QClipboard
   {.importcpp: "QApplication::clipboard()", header: "QApplication".}
 
 
-#----------- QTranslator -----------#
-proc newQTranslator*: ptr QTranslator {.importcpp: "new QTranslator(@)", header: "QTranslator", constructor.}
 
-proc load*(this: ptr QTranslator, file: string) =
-  proc impl(this: ptr QTranslator, file: QString) {.importcpp: "#->load(@)", header: "QTranslator".}
-  this.impl(file)
-
-proc isEmpty*(this: ptr QTranslator): bool =
-  proc impl(this: ptr QTranslator): bool {.importcpp: "#->isEmpty(@)", header: "QTranslator".}
-  this.impl
-
-proc install*(this: type QApplication, translator: ptr QTranslator) =
+#----------- QApplication + QTranslator -----------#
+proc qApplicationInstall*(translator: Ref[QTranslator]) =
   proc impl(translator: ptr QTranslator) {.importcpp: "QApplication::installTranslator(@)", header: "QApplication".}
-  impl(translator)
+  impl(translator.raw)
 
-proc remove*(this: type QApplication, translator: ptr QTranslator) =
+proc qApplicationRemove*(translator: Ref[QTranslator]) =
   proc impl(translator: ptr QTranslator) {.importcpp: "QApplication::removeTranslator(@)", header: "QApplication".}
-  impl(translator)
+  impl(translator.raw)
 
 
 
@@ -353,19 +195,6 @@ proc `fileMode=`*(this: QFileDialog, v: DialogFileMode) {.importcpp: "#.setFileM
 proc openUrlInDefaultApplication*(path: string) =
   proc impl(v: QString) {.importcpp: "QDesktopServices::openUrl(@)", header: "QDesktopServices".}
   impl(path)
-
-
-
-#----------- tools -----------#
-proc moc*(code: string): string {.compileTime.} =
-  ## qt moc (meta-compiler) tool wrapper
-  when defined(windows): ((qtBin / "moc.exe") & " --no-warnings").staticExec(code)
-  else:                  ((qtBin / "moc") & " --no-warnings").staticExec(code)
-
-proc rcc*(file: string): string {.compileTime.} =
-  ## qt rcc (resource-compiler) tool wrapper
-  when defined(windows): staticExec (qtBin / "rcc.exe") & " " & file
-  else:                  staticExec (qtBin / "rcc") & " " & file
 
 
 
