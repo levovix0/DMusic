@@ -2,7 +2,7 @@
 name: Change dependency
 about: Change/add/delete dependency
 title: ''
-labels: change dependency
+labels: change dependecy
 assignees: ''
 
 ---
