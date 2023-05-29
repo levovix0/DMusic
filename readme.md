@@ -82,9 +82,9 @@ If you want to support this project, here is some tasks to do:
 * Make better Qt wrapper (see [my wrapper](https://github.com/levovix0/DMusic/blob/master/src/gui/qt.nim))
 * Create simpler way to build DMusic on Windows
 * Port DMusic on other platforms
-* Create any Qt infrastructure replacement (this includes: easy 2d gpu rendering, components, markup language/macros, audio output, etc)
+* Create any Qt infrastructure replacement (this includes: easy 2d gpu rendering, components, markup language/macros, audio output, etc)  
+  *Qt is not made for Nim*  
   * note: i already made [windowing library](https://github.com/levovix0/siwin), and i am trying to make [audio output library](https://github.com/levovix0/siaud)
-  *Qt is not made for Nim*
 * Make cool site that adverts DMusic
 * Make DMusic **legal**?
 
