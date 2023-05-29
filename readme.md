@@ -64,3 +64,29 @@
 * Nim 1.6.10
 * Qt 5.15.2 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2, svg)
 * TagLib
+
+## Contributions
+If you want to support this project, here is some tasks to do:
+* See [issues](https://github.com/levovix0/DMusic/issues)
+* Any bugfixes is always accepted, just describe somethere what you fixed
+* Refactoring (my code is bad, i know it)
+  if you doing big refactoring, first create issue to ask is all your changes needed, and if it is, refactor
+* Add/fix translations (see `translations` directory, translations is made via [localize](https://github.com/levovix0/localize))  
+  *note: currently, there is no much text to translate there, because most of UI is translated via qt translator, but i want to migrate to localize*
+* Documentation
+* Optimization
+  * Force Qml to compile to C++ at compile time instead of be interpreted like js in runtime
+* Add integrations to other music streaming platforms (for example, soundcloud, spotify, etc)
+* Design (pin figma project to issue or something like it)
+  original design [document](https://www.figma.com/file/1AKzO6gCKcZDQuvVvdpJnu/DMusic?type=design&node-id=0%3A1&t=2griF3xoo4AxuTSx-1)
+* Make better Qt wrapper (see [my wrapper](https://github.com/levovix0/DMusic/blob/master/src/gui/qt.nim))
+* Create simpler way to build DMusic on Windows
+* Port DMusic on other platforms
+* Create any Qt infrastructure replacement (this includes: easy 2d gpu rendering, components, markup language/macros, audio output, etc)  
+  note: i already made [windowing library](https://github.com/levovix0/siwin), and i am trying to make [audio output library](https://github.com/levovix0/siaud)
+  *Qt is not made for Nim*
+* Make cool site that adverts DMusic
+* Make DMusic **legal**?
+
+Just fork levovix0/DMusic to your account, make changes and submit a pull request.  
+*Or if it requires new repository to be created, create it and add an "change dependency" issue.*
