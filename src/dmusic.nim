@@ -2,15 +2,15 @@ import os, strformat, macros, strutils, sequtils
 import gui/[qt, configuration]
 import async, yandexMusic, gui
 
-macro resourcesFromDir*(dir: static[string] = ".") =
+macro resourcesFromDir*(dir: static string) =
   result = newStmtList()
 
   for k, file in dir.walkDir:
     if k notin {pcFile, pcLinkToFile}: continue
     if not file.endsWith(".qrc"): continue
 
-    let qrc = rcc ".."/file
-    let filename = "build" / &"qrc_{file.splitPath.tail}.cpp"
+    let qrc = rcc "../" & file
+    let filename = "build" & "/" & &"qrc_{file.splitPath.tail}.cpp"
     writeFile filename, qrc
     result.add quote do:
       {.compile: `filename`.}
@@ -18,8 +18,12 @@ macro resourcesFromDir*(dir: static[string] = ".") =
 resourcesFromDir "."
 
 when defined(windows):
+  import compileutils
   static:
-    echo staticExec "windres ../dmusic.rc ../build/dmusic.o"
+    when compiletimeOs == "linux":
+      echo staticExec "/usr/bin/x86_64-w64-mingw32-windres ../dmusic.rc ../build/dmusic.o"
+    else:
+      echo staticExec "windres ../dmusic.rc ../build/dmusic.o"
   {.link: "build/dmusic.o".}
 
 
@@ -34,11 +38,11 @@ proc download(tracks: seq[string], file: string = "") =
 
   for i, track in tracks:
     let id = try: parseInt track
-    except:
+    except ValueError:
       let (path, name) = track.splitPath
       if not path.endsWith "track/": 0
       else:
-        try: parseInt name except: 0
+        try: parseInt name except ValueError: 0
     
     if id in 1..int.high:
       let track = yandexMusic.TrackId(id: id).fetch.waitFor[0]

@@ -1,6 +1,6 @@
 import
   strformat, strutils, sequtils, options,
-  json, uri, xmltree, xmlparser, md5, os, times
+  json, uri, xmltree, xmlparser, checksums/md5, os, times
 import httpclient except request
 import gui/configuration
 import async

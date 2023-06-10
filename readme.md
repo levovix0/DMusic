@@ -68,7 +68,7 @@
 ## Contributions
 If you want to support this project, here is some tasks to do:
 * See [issues](https://github.com/levovix0/DMusic/issues)
-* Any bugfixes is always accepted, just describe somethere what you fixed
+* Any bugfixes is always accepted, just describe somewhere what you fixed
 * Refactoring (my code is bad, i know it)
   * if you doing big refactoring, first create issue to ask is all your changes needed, and if it is, refactor
 * Add/fix translations (see `translations` directory, translations is made via [localize](https://github.com/levovix0/localize))

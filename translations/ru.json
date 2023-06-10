@@ -36,8 +36,11 @@
     }
   },
   "src/gui.nim": {
-    "Exception during async operation": {
-      "": "Исключение во время асинхронной операции"
+    "Defect during async operation": {
+      "": "Дефект во время выполнения асинхронной операции"
+    },
+    "Error during async operation": {
+      "": "Ошибка во время выполнения асинхронной операции"
     }
   },
   "src/gui/qmlUtils.nim": {

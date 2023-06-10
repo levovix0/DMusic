@@ -1,6 +1,6 @@
 import times, std/exitprocs
 import gui/[qt, messages, configuration]
-import gui/[yandexMusicQmlModule, audio, qmlUtils, remoteAudio, playlist]
+import gui/[yandexMusicQmlModule, audio, qmlUtils, playlist]
 import gui/components/[page, searchPage]
 import async, utils
 
@@ -50,9 +50,12 @@ proc gui*: string =
 
   onMainLoop:
     try: async.poll(5)
-    except:
+    except CatchableError:
       echo getCurrentExceptionMsg()
-      sendError tr"Exception during async operation", getCurrentExceptionMsg()
+      sendError tr"Error during async operation", getCurrentExceptionMsg()
+    except Defect:
+      echo getCurrentExceptionMsg()
+      sendError tr"Defect during async operation", getCurrentExceptionMsg()
 
   setProgramResult QApplication.exec
 

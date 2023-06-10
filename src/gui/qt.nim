@@ -20,7 +20,6 @@ qtBuildModule "Qml"
 qtBuildModule "Multimedia"
 qtBuildModule "QuickControls2"
 qtBuildModule "Svg"
-qtBuildModule "DBus"
 
 
 
@@ -29,7 +28,6 @@ qtBuildModule "DBus"
 type
   QJsValue* {.importcpp: "QJSValue", header: "QJSValue", bycopy.} = object
 
-  QDBusAbstractAdaptor* {.importcpp: "QDBusAbstractAdaptor", header: "QDBusAbstractAdaptor".} = object of QObject
   QQuickItem* {.importcpp, header: "QQuickItem".} = object of QObject
 
   QQuickItemFlag* = enum
@@ -637,82 +635,6 @@ macro qmodel*(t, body) =
           newLit &"QHash<int, QByteArray> {t}::roleNames() const"
       empty()
       call(s"toQHash", li)
-
-  let moc = moc qoClass($t, decl.join("\n"), $parent).join
-  let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)
-
-  let cts = ident"Ct"
-  copyLineInfo(cts, body)
-
-  buildAst(stmtList):
-    pragma: exprColonExpr i"emit": newLit &"/*INCLUDESECTION*/ #include <{parent}>"
-    pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
-    pragma: exprColonExpr i"emit": bracket(newLit moc)
-    templateDef:
-      cts
-      empty()
-      empty()
-      formalParams:
-        i"type"
-        identDefs:
-          gensym nskParam
-          command i"type", t
-          empty()
-      empty()
-      empty()
-      ct
-    for x in impl: x
-    constructor
-    pragma:
-      exprColonExpr i"emit":
-        bracket:
-          newLit fmt "{t}::{t}(QObject* parent): {parent}(parent) {{ "
-          ctorSym
-          l"(this); }"
-
-
-macro dbusInterface*(t; obj: static string, body) =
-  var t = t
-  var parent = i"QDBusAbstractAdaptor"
-  if t.kind == nnkInfix:
-    parent = t[2]
-    t = t[1]
-
-  var decl: seq[string]
-  var impl = newStmtList()
-  var signalNames: seq[string]
-
-  # add class info
-  decl.add &"""Q_CLASSINFO("D-Bus Interface", {obj.quoted})"""
-
-  let ct = gensym nskType
-  impl.add: buildAst typeSection:
-    typeDef:
-      pragmaExpr(ct, pragma exprColonExpr(i"importcpp", newLit $t))
-      empty()
-      objectTy:
-        empty()
-        ofInherit(parent)
-        recList:
-          identDefs(i"self", t, empty())
-
-  let ctorSym = nskProc.gensym "constructor"
-  var constructor = buildAst procDef:
-    ctorSym
-    empty()
-    empty()
-    formalParams:
-      empty()
-      identDefs i"this", ptrTy ct, empty()
-    empty()
-    empty()
-    stmtList:
-      quote do:
-        template self(): var `t` {.used.} = this[].self
-      call s"wasMoved", i"self"
-
-  for x in body:
-    qobjectCasesImpl t, parent, body, ct, x, decl, impl, constructor, signalNames
 
   let moc = moc qoClass($t, decl.join("\n"), $parent).join
   let toEmit = qoClass($t, decl.join("\n").indent(2), $parent)

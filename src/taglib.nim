@@ -1,21 +1,19 @@
 import times, os, filetype, strformat, json
-import impl, utils
+import impl, utils, compileutils
 
-when not defined(linux):
-  proc findExistant(s: varargs[string]): string =
-    result = s[0]
-    for x in s:
-      if dirExists x: return x
-  const taglibPath = findExistant("C:/taglib", "D:/taglib", "C:/Libraries/taglib", "D:/Libraries/taglib")
+const taglibPath = findExistant("C:/taglib", "D:/taglib", "C:/Libraries/taglib", "D:/Libraries/taglib")
 
 const taglibInclude {.strdefine.} =
   when defined(flatpak): "/app/include/taglib"
-  elif defined(linux): "/usr/include/taglib"
-  else:                taglibPath / "include" / "taglib"
+  else:
+    case compiletimeOs
+    of "windows": taglibPath / "include" / "taglib"
+    else: "/usr/include/taglib"
+
 const taglibLib {.strdefine.} =
   when defined(flatpak): "/app/lib"
-  elif defined(linux): ""
-  else:                taglibPath / "lib"
+  elif defined(linux):   ""
+  else:                  taglibPath / "lib"
 
 {.passc: &"-I{taglibInclude}".}
 {.passl: "-ltag -lz".}
