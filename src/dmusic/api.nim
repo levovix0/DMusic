@@ -1,7 +1,5 @@
 import asyncdispatch, strutils, sequtils, os, strformat, base64, times
-import gui/yandexMusicQmlModule, gui/configuration  # todo: refactor to not use anthing from gui
-import taglib, utils
-import yandexMusic except Track
+import ./[configuration, yandexMusic, taglib, utils]  # todo: refactor to not use anthing from gui
 
 {.experimental: "overloadableEnums".}
 
@@ -189,7 +187,7 @@ proc audio*(this: Track): Future[string] {.async.} =
 proc cover*(this: Track): Future[string] {.async.} =
   return case this.kind
   of TrackKind.yandex:
-    yandexMusicQmlModule.cover(this.yandex).await
+    yandexMusic.cover(this.yandex).await
   of TrackKind.yandexFromFile:
     if this.yandexFromFile.metadata.cover.encode == "": emptyCover
     else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
@@ -213,7 +211,7 @@ proc coverImage*(this: Track): Future[string] {.async.} =
 proc hqCover*(this: Track): Future[string] {.async.} =
   return case this.kind
   of TrackKind.yandex:
-    yandexMusicQmlModule.cover(this.yandex, quality=1000).await
+    yandexMusic.cover(this.yandex, quality=1000).await
   of TrackKind.yandexFromFile:
     if this.yandexFromFile.metadata.cover.encode == "": emptyCover
     else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode

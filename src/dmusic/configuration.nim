@@ -1,9 +1,8 @@
-{.used.}
-import json, os, math, macros, options
+import json, os, math, macros, options, logging
 import fusion/matching, fusion/astdsl, localize
-import ../utils
-import qt
+import ./utils
 export localize
+export logging except error, warning, info
 
 {.experimental: "caseStmtMacros".}
 
@@ -42,21 +41,15 @@ proc save*(config: ConfigObj) =
 var config* = readConfig()
 
 
-type Config = object
-
 template i(s: string{lit}): NimNode = ident s
 template s(s: string{lit}): NimNode = bindSym s
 
-proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts, qobj, ctor: var NimNode) =
-  proc entry(typ: NimNode, aname: NimNode, def: Option[NimNode]; stmts, qobj, ctor: var NimNode, sethook = ident"v") =
+proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts: var NimNode) =
+  proc entry(typ: NimNode, aname: NimNode, def: Option[NimNode]; stmts: var NimNode, sethook = ident"v") =
     let name = ident prefix & $aname
     copyLineInfo(name, aname)
 
     let notify = ident("notify" & ($name).capitalizeFirst & "Changed")
-
-    let qtyp = case $typ
-      of "string", "float", "int", "bool": typ
-      else: i"int"
 
     stmts.add quote do:
       var `notify`*: proc() = proc() = discard
@@ -100,68 +93,27 @@ proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts, qobj
           call i"%*", sethook
         call i"save", i"config"
         call notify
-    
-    qobj.add: buildAst(command):
-      i"property"
-      command qtyp, name
-      stmtList:
-        call i"get":
-          if qtyp == typ:
-            call name, i"config"
-          else:
-            call qtyp, call(name, i"config")
-        call i"set":
-          if qtyp == typ:
-            asgn dotExpr(i"config", name), i"value"
-          else:
-            asgn dotExpr(i"config", name), call(typ, i"value")
-        i"notify"
-    
-    ctor.add: buildAst:
-      call i"&=", notify:
-        Lambda:
-          empty()
-          empty()
-          empty()
-          formalParams: empty()
-          empty()
-          empty()
-          call ident($name & "Changed"), i"this"
 
   for x in body:
     case x
     
     of Command[@typ, Command[@name is Ident(), Command[@def, @sethook]]]:
-      entry(typ, name, some def, stmts, qobj, ctor, sethook)
+      entry(typ, name, some def, stmts, sethook)
     
     of Command[@typ, Command[@name is Ident(), @def]]:
-      entry(typ, name, some def, stmts, qobj, ctor)
+      entry(typ, name, some def, stmts)
     
     of Command[@typ, @name is Ident()]:
-      entry(typ, name, none NimNode, stmts, qobj, ctor)
+      entry(typ, name, none NimNode, stmts)
     
     of Command[Ident(strVal: @prefix2), StrLit(strVal: @name), @body is StmtList()]:
-      genconfigImpl(body, path & name, prefix & prefix2 & "_", stmts, qobj, ctor)
+      genconfigImpl(body, path & name, prefix & prefix2 & "_", stmts)
     
     else: error("Unexpected syntax", x)
 
 macro genconfig(body) =
   result = newStmtList()
-  var qobj = newStmtList()
-  var ctor = newStmtList()
-  genconfigImpl(body, @[], "", result, qobj, ctor)
-
-  result.add: buildAst:
-    call s"qobject", s"Config": stmtList:
-      for x in qobj: x
-      procDef accQuoted(i"=", i"new"):
-        empty()
-        empty()
-        formalParams: empty()
-        empty()
-        empty()
-        stmtList:
-          for x in ctor: x
+  genconfigImpl(body, @[], "", result)
 
 
 genconfig:
@@ -179,13 +131,15 @@ genconfig:
   LoopMode loop
 
   bool darkTheme true
-  bool darkHeader true
-  bool themeByTime true
+  bool darkHeader false
+  bool themeByTime false
 
   bool discordPresence
 
   string proxyServer
   string proxyAuth
+
+  string logFile "log.txt"
 
   ym "Yandex.Music":
     string token
@@ -194,4 +148,9 @@ genconfig:
     bool saveAllTracks false
     bool skipRadioDuplicates true
 
-registerSingletonInQml Config, ("DMusic", 1, 0), ("Config", 1, 0)
+
+var logger* =
+  if config.logFile == "": newConsoleLogger()
+  elif config.logFile.isAbsolute: newFileLogger(config.logFile)
+  else: newFileLogger(dataDir / config.logFile)
+logger.log(lvlInfo, "new session")

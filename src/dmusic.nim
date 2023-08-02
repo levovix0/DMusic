@@ -1,30 +1,6 @@
-import os, strformat, macros, strutils, sequtils
-import gui/[qt, configuration]
-import async, yandexMusic, gui
-
-macro resourcesFromDir*(dir: static string) =
-  result = newStmtList()
-
-  for k, file in dir.walkDir:
-    if k notin {pcFile, pcLinkToFile}: continue
-    if not file.endsWith(".qrc"): continue
-
-    let qrc = rcc "../" & file
-    let filename = "build" & "/" & &"qrc_{file.splitPath.tail}.cpp"
-    writeFile filename, qrc
-    result.add quote do:
-      {.compile: `filename`.}
-
-resourcesFromDir "."
-
-when defined(windows):
-  import compileutils
-  static:
-    when compiletimeOs == "linux":
-      echo staticExec "/usr/bin/x86_64-w64-mingw32-windres ../dmusic.rc ../build/dmusic.o"
-    else:
-      echo staticExec "windres ../dmusic.rc ../build/dmusic.o"
-  {.link: "build/dmusic.o".}
+import os, strformat, strutils, sequtils
+import dmusic/configuration
+import asyncdispatch, dmusic/yandexMusic
 
 
 proc download(tracks: seq[string], file: string = "") =
@@ -57,12 +33,16 @@ proc download(tracks: seq[string], file: string = "") =
         else: file
       writeFile file, request(track.audioUrl.waitFor).waitFor
 
+
 proc getRadioTracks*(station: string) =
   for i, track in RadioStation(id: station).getTracks.waitFor.tracks:
     echo i+1, ". [", track.id, "] ", track.title, (if track.comment != "": " (" & track.comment & ")" else: ""), " - ", track.artists.mapit(it.name).join(", ")
 
+
 when isMainModule:
   import cligen
+  import dmusic/gui
+
   clcfg.version = "0.4"
   if paramCount() == 0:
     dispatch gui.gui

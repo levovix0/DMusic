@@ -1,5 +1,2 @@
---define:ssl
---define:pixieUseStb
 --gc:orc
---threads:on
---deepcopy:on
+--define:ssl

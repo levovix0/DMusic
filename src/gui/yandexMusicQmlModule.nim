@@ -3,14 +3,6 @@ import sequtils, strutils, base64, strformat, os, sugar, tables
 import ../yandexMusic, ../utils, ../async
 import qt, messages, configuration
 
-var coverCache: CacheTable[(string, int), string]
-onMainLoop: coverCache.garbageCollect
-
-
-proc coverBase64(t: Track|Playlist, quality = 1000): Future[string] {.async.} =
-  ## download cover and encode it to base64
-  coverCache[(t.coverUri, quality)] = request(t.coverUrl(quality)).await
-  return &"data:image/png;base64,{coverCache[(t.coverUri, quality)].encode}"
 
 proc `{}`[T](x: seq[T], s: Slice[int]): seq[T] =
   ## safe slice a seq
@@ -18,7 +10,7 @@ proc `{}`[T](x: seq[T], s: Slice[int]): seq[T] =
   let s = Slice[int](a: s.a.max(x.low).min(x.high), b: s.b.max(x.low).min(x.high))
   x[s]
 
-
+const searchModelMaxLen = 5
 
 type SearchModel = object
   result: seq[Track] #TODO: albums, artists
@@ -28,17 +20,6 @@ type SearchModel = object
 
 proc search(query: string): Future[seq[Track]] {.async.} =
   result = yandexMusic.search(query).await.tracks
-
-proc cover*(track: Track, quality = 50): Future[string] {.async.} =
-  return track.coverBase64(quality).await
-
-proc liked*(track: Track): Future[bool] {.async.} =
-  return currentUser().await.liked(track).await
-
-proc disliked*(track: Track): Future[bool] {.async.} =
-  return currentUser().await.disliked(track).await
-
-const searchModelMaxLen = 5
 
 qmodel SearchModel:
   rows: self.result.len

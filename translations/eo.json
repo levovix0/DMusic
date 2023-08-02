@@ -6,46 +6,5 @@
     "Can't download multiple tracks to same file": {
       "": "Ne eblas elŝuti plurajn trakojn al la sama dosiero"
     }
-  },
-  "src/gui/audio.nim": {
-    "Unimplemented": {
-      "": "Ne efektivigita"
-    },
-    "toglleLiked() unknown track kind: {kind}": {
-      "": "toglleLiked() nekonata trako speco: {kind}"
-    }
-  },
-  "src/gui/yandexMusicQmlModule.nim": {
-    "My wave": {
-      "": "Mia ondo"
-    },
-    "Downloads": {
-      "": "Elŝutoj"
-    },
-    "qrc:/resources/covers/downloads.svg": {
-      "": "qrc:/resources/covers/downloads-eo.svg"
-    },
-    "Favorites": {
-      "": "Favoratoj"
-    },
-    "qrc:/resources/covers/my wave.svg": {
-      "": "qrc:/resources/covers/my wave-eo.svg"
-    },
-    "qrc:/resources/covers/favorite.svg": {
-      "": "qrc:/resources/covers/favorite-eo.svg"
-    }
-  },
-  "src/gui.nim": {
-    "Defect during async operation": {
-      "": "Defect during async operation"
-    },
-    "Error during async operation": {
-      "": "Error during async operation"
-    }
-  },
-  "src/gui/qmlUtils.nim": {
-    "Open file": {
-      "": "Malfermi dosieron"
-    }
   }
 }

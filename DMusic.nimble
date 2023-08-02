@@ -1,21 +1,24 @@
 version       = "0.4.1"
 author        = "DTeam"
-description   = "Music player"
-license       = "GPL"
+description   = "Music player from streaming services like Yandex Music"
+license       = "MIT"
 srcDir        = "src"
 bin           = @["dmusic"]
 backend       = "cpp"
 
-requires "nim >= 1.6.12"
-requires "fusion"
-requires "cligen"
-requires "https://github.com/levovix0/impl"
-requires "discord_rpc"
-requires "filetype"
-requires "localize >= 0.3.2"
-requires "pixie"
-requires "checksums"
+requires "nim >= 1.6.14"
+requires "fusion"  # to write macros using pattern matching
+requires "cligen"  # to parse command line arguments
+requires "https://github.com/levovix0/impl"  # used in taglib wrapper # todo: remove
+requires "filetype"  # to detect file type?
+requires "localize >= 0.3.2"  # to translate app into many languages
+requires "checksums"  # ???
+requires "https://github.com/jerous86/nimqt >= 0.1"  # to make gui
+requires "imageman"  # to decode png
 
+
+# note: build is broken
+# note: completely broken
 mkdir "build"
 
 when defined(nimdistros):
@@ -37,7 +40,8 @@ task translate, "generate translations":
 task installFlatpak, "build and install flatpak package":
   exec "flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml"
 
-task buildWindows, "cross-compile from Linux to Windows":
+
+proc buildWindows(release: bool) =
   template cmake(args, body) =
     if not dirExists("build"):
       mkdir "build"
@@ -97,7 +101,7 @@ task buildWindows, "cross-compile from Linux to Windows":
       exec "7z x x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z"
       rmFile "x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z"
 
-  exec "nimble cpp --warnings:off -d:mingw -d:compiletimeOs:linux --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++ -d:taglibLib:build-windows/taglib-1.12/build/taglib -d:qtLib:build-windows/dmusic-0.4/DMusic --passl:-Lbuild-windows/zlib-1.2.13/build -o:build-windows/dmusic.exe -d:danger --app:gui src/dmusic.nim"
+  exec "nimble cpp --warnings:off -d:mingw -d:compiletimeOs:linux --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++ -d:taglibLib:build-windows/taglib-1.12/build/taglib -d:qtLib:build-windows/dmusic-0.4/DMusic --passl:-Lbuild-windows/zlib-1.2.13/build -o:build-windows/dmusic.exe " & (if release: "-d:danger --app:gui" else: "") & " src/dmusic.nim"
   # exec "nimble cpp -d:mingw --d:compiletimeOs:linux --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++ -o:build-windows/dmusic.exe src/dmusic.nim"
 
   withDir "build-windows":
@@ -145,3 +149,9 @@ task buildWindows, "cross-compile from Linux to Windows":
     cpFile "nim-1.6.12/bin/cacert.pem", "DMusic/cacert.pem"
 
     exec "zip -r DMusic.zip DMusic"
+
+task buildWindows, "cross-compile from Linux to Windows":
+  buildWindows(release=true)
+
+task buildWindowsDebug, "cross-compile from Linux to Windows":
+  buildWindows(release=false)

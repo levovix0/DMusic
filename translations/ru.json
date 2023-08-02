@@ -6,46 +6,5 @@
     "Can't download multiple tracks to same file": {
       "": "Невозвожно скачать несколько треков в один файл"
     }
-  },
-  "src/gui/audio.nim": {
-    "Unimplemented": {
-      "": "Нереализовано"
-    },
-    "toglleLiked() unknown track kind: {kind}": {
-      "": "toglleLiked() неизвестный тип трека: {kind}"
-    }
-  },
-  "src/gui/yandexMusicQmlModule.nim": {
-    "My wave": {
-      "": "Моя волна"
-    },
-    "Downloads": {
-      "": "Загружено"
-    },
-    "qrc:/resources/covers/downloads.svg": {
-      "": "qrc:/resources/covers/downloads-ru.svg"
-    },
-    "Favorites": {
-      "": "Нравится"
-    },
-    "qrc:/resources/covers/my wave.svg": {
-      "": "qrc:/resources/covers/my wave-ru.svg"
-    },
-    "qrc:/resources/covers/favorite.svg": {
-      "": "qrc:/resources/covers/favorite-ru.svg"
-    }
-  },
-  "src/gui.nim": {
-    "Defect during async operation": {
-      "": "Дефект во время выполнения асинхронной операции"
-    },
-    "Error during async operation": {
-      "": "Ошибка во время выполнения асинхронной операции"
-    }
-  },
-  "src/gui/qmlUtils.nim": {
-    "Open file": {
-      "": "Открыть файл"
-    }
   }
 }

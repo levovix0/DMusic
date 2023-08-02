@@ -1,15 +1,15 @@
 import
-  strformat, strutils, sequtils, options,
-  json, uri, xmltree, xmlparser, checksums/md5, os, times
+  strformat, strutils, sequtils, options, os, times,
+  json, uri, xmltree, xmlparser, checksums/md5, asyncdispatch, asyncfutures {.all.}
 import httpclient except request
-import gui/configuration
-import async
-
+import ./[configuration, utils]
+ 
 type
   HttpError* = object of CatchableError
   UnauthorizedError* = object of HttpError
   BadRequestError* = object of HttpError
   BadGatewayError* = object of HttpError
+  RequestCanceled* = object of CatchableError
 
   ProgressReportCallback* = proc(total, progress, speed: BiggestInt): Future[void] {.gcsafe.}
   
@@ -90,7 +90,7 @@ proc newClient*(config = config): Client =
   result.headers["X-Yandex-Music-Client"] = "YandexMusicAndroid/23020251"
   result.token = config.ym_token
   result.lang = case config.language
-    of Language.ru: "ru"
+    of ru: "ru"
     else: "en"
 
 
@@ -103,16 +103,16 @@ proc request*(
   body = "",
   data: MultipartData = nil,
   params: seq[(string, string)] = @[],
-  progressReport: ProgressReportCallback = nil
+  progressReport: ProgressReportCallback = nil,
+  cancel: ref bool = nil,
   ): Future[string] {.async.} =
 
   let url =
     if params.len == 0: $url
     else:
       when url is Uri: $(url ? params) else: $(url.parseUri ? params)
-  
-  when defined(debugRequests):
-    echo &"Request: {url}"
+
+  logger.log(lvlInfo, &"Request: {url}") 
 
   let client = newClient()
   client.onProgressChanged = progressReport
@@ -121,8 +121,11 @@ proc request*(
     while requestLock:
       await sleepAsync(1)
     requestLock = true
-    
+  
   let response = await httpclient.request(client, url, httpMethod, body, nil, data)
+
+  if cancel != nil and cancel[]:
+    raise RequestCanceled.newException("request canceled, ingore it")
 
   when defined(yandexMusic_oneRequestAtOnce):
     requestLock = false
@@ -133,13 +136,22 @@ proc request*(
       response.status & ", " & body["error"]["message"].getStr
     else:
       response.status
-
+  
   case response.code
   of Http200..Http206: return await response.body
   of Http400: raise BadRequestError.newException(formatResponse)
   of Http401, Http403: raise UnauthorizedError.newException(formatResponse)
   of Http502: raise BadGatewayError.newException(formatResponse)
   else: raise HttpError.newException(formatResponse)
+
+
+proc asyncCheckOrCanceled*[T](f: Future[T]) =
+  assert(not future.isNil, "Future is nil")
+  proc callback =
+    if f.failed and not(f.error of RequestCanceled):
+      injectStacktrace(f)
+      raise f.error
+  f.callback = callback
 
 
 iterator items(a: JsonNode): JsonNode =
@@ -221,11 +233,11 @@ proc generateToken*(username, password: string): Future[string] {.async.} =
     }
   ).await.parseJson["access_token"].getStr
 
-proc search*(text: string, kind = "all", correct = true): Future[tuple[tracks: seq[Track]]] {.async.} =
+proc search*(text: string, kind = "all", correct = true, cancel: ref bool = nil): Future[tuple[tracks: seq[Track]]] {.async.} =
   if text == "": return
 
   let response = request(
-    &"{baseUrl}/search", params = @{
+    &"{baseUrl}/search", cancel = cancel, params = @{
       "text": text,
       "nocorrect": $(not correct),
       "type": kind,
@@ -256,12 +268,12 @@ converter asIdSeq*(x: int): seq[TrackId] = @[TrackId(id: x)]
 proc parseTrackId*(s: string): TrackId =
   TrackId(id: s.parseInt)
 
-proc fetch*(ids: seq[TrackId], withPositions = true): Future[seq[Track]] {.async.} =
+proc fetch*(ids: seq[TrackId], withPositions = true, cancel: ref bool = nil): Future[seq[Track]] {.async.} =
   ## get full track information by ids
   if ids.len < 1: return
   
   let response = request(
-    &"{baseUrl}/tracks", HttpPost, data = newMultipartData {
+    &"{baseUrl}/tracks", HttpPost, cancel = cancel, data = newMultipartData {
       "track-ids": ids.join(","),
       "with-positions": $withPositions
     }
@@ -271,40 +283,40 @@ proc fetch*(ids: seq[TrackId], withPositions = true): Future[seq[Track]] {.async
     result.add res.parseTrack
 
 
-proc audioUrl*(track: TrackId): Future[string] {.async.} =
+proc audioUrl*(track: TrackId, cancel: ref bool = nil): Future[string] {.async.} =
   ## get direct link to track's audio
   ## ! works only one minute after call
   let response = request(
-    &"{baseUrl}/tracks/{track.id}/download-info"
+    &"{baseUrl}/tracks/{track.id}/download-info", cancel = cancel
   ).await
 
   let infoUrl = response.parseJson["result"][0]["downloadInfoUrl"].getStr
 
   # todo: check if link is direct
     
-  let result = request(infoUrl).await.parseXml
+  let result = request(infoUrl, cancel = cancel).await.parseXml
   let host = result.findAll("host")[0].innerText
   let path = result.findAll("path")[0].innerText
   let ts = result.findAll("ts")[0].innerText
   let s = result.findAll("s")[0].innerText
   let sign = getMd5(&"XGRlBW9FXlekgbPrRHuSiA{path[1..^1]}{s}")
+  let link = &"https://{host}/get-mp3/{sign}/{ts}{path}"
   
-  if defined(debugRequests):
-    echo "Builded link: ", &"https://{host}/get-mp3/{sign}/{ts}{path}"
-  return &"https://{host}/get-mp3/{sign}/{ts}{path}"
+  logger.log(lvlInfo, "Builded link: ", link)
+  return link
 
 
-proc currentUser*: Future[Account] {.async.} =
+proc currentUser*(cancel: ref bool = nil): Future[Account] {.async.} =
   let response = request(
-    &"{baseUrl}/account/status"
+    &"{baseUrl}/account/status", cancel = cancel
   ).await.parseJson
   return response{"result", "account"}.parseAccount
 
 
-proc likedTracks*(user: Account): Future[seq[TrackId]] {.async.} =
+proc likedTracks*(user: Account, cancel: ref bool = nil): Future[seq[TrackId]] {.async.} =
   ## get tracks that user liked
   let response = request(
-    &"{baseUrl}/users/{user.id}/likes/tracks"
+    &"{baseUrl}/users/{user.id}/likes/tracks", cancel = cancel
   ).await.parseJson
 
   for track in response{"result", "library", "tracks"}:
@@ -312,10 +324,10 @@ proc likedTracks*(user: Account): Future[seq[TrackId]] {.async.} =
   
   result = result.filterit(it.id != 0)
 
-proc dislikedTracks*(user: Account): Future[seq[TrackId]] {.async.} =
+proc dislikedTracks*(user: Account, cancel: ref bool = nil): Future[seq[TrackId]] {.async.} =
   ## get tracks that user liked
   let response = request(
-    &"{baseUrl}/users/{user.id}/dislikes/tracks"
+    &"{baseUrl}/users/{user.id}/dislikes/tracks", cancel = cancel
   ).await.parseJson
 
   for track in response{"result", "library", "tracks"}:
@@ -324,11 +336,11 @@ proc dislikedTracks*(user: Account): Future[seq[TrackId]] {.async.} =
   result = result.filterit(it.id != 0)
 
 
-proc liked*(user: Account, track: TrackId): Future[bool] {.async.} =
-  return track in user.likedTracks.await
+proc liked*(user: Account, track: TrackId, cancel: ref bool = nil): Future[bool] {.async.} =
+  return track in user.likedTracks(cancel = cancel).await
 
-proc disliked*(user: Account, track: TrackId): Future[bool] {.async.} =
-  return track in user.dislikedTracks.await
+proc disliked*(user: Account, track: TrackId, cancel: ref bool = nil): Future[bool] {.async.} =
+  return track in user.dislikedTracks(cancel = cancel).await
 
 
 proc landing*(blocks: string): Future[JsonNode] {.async.} =
@@ -416,8 +428,7 @@ proc sendFeedback(
       }
     ).await
   except:
-    when defined(debugRequests):
-      echo "feedback error: ", getCurrentExceptionMsg()
+    logger.log(lvlError, "feedback error: ", getCurrentExceptionMsg())
 
 proc toRadio*(x: RadioStation, time: DateTime = now()): Future[Radio] {.async.} =
   new result
@@ -457,3 +468,24 @@ trackLikeAction like, "likes/tracks/add-multiple"
 trackLikeAction unlike, "likes/tracks/remove"
 trackLikeAction dislike, "dislikes/tracks/add-multiple"
 trackLikeAction undislike, "dislikes/tracks/remove"
+
+
+var coverCache*: CacheTable[(string, int), string]
+
+proc cover*(track: Track, quality = 50, cancel: ref bool = nil): Future[string] {.async.} =
+  {.cast(gcsafe).}:
+    if (track.coverUri, quality) notin coverCache:
+      coverCache[(track.coverUri, quality)] = request(track.coverUrl(quality), cancel = cancel).await
+    return coverCache[(track.coverUri, quality)]
+
+proc liked*(track: Track, cancel: ref bool = nil): Future[bool] {.async.} =
+  return currentUser(cancel = cancel).await.liked(track, cancel = cancel).await
+
+proc disliked*(track: Track, cancel: ref bool = nil): Future[bool] {.async.} =
+  return currentUser(cancel = cancel).await.disliked(track, cancel = cancel).await
+
+
+when isMainModule:
+  let track = TrackId(id: 87086984).fetch.waitFor[0]
+  let file = track.artists.mapit(it.name).join(", ") & " - " & track.title & ".mp3"
+  writeFile file, request(track.audioUrl.waitFor).waitFor

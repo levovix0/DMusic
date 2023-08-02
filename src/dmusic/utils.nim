@@ -71,9 +71,9 @@ proc garbageCollect*[K, V](this: var CacheTable[K, V], storeTime: Duration = ini
 proc get*(x: JsonNode, t: type): t =
   if x == nil: t.default
   else:
-    try: x.to(t) except: t.default
+    try: x.to(t) except ValueError: t.default
 
 proc get*(x: JsonNode, t: type, default: t): t =
   if x == nil: default
   else:
-    try: x.to(t) except: default
+    try: x.to(t) except ValueError: default
