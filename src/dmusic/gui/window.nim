@@ -1,104 +1,83 @@
-import nimqt
-import nimqt/[qpushbutton, qstackedlayout, qboxlayout, qevent, qwindow]
-import ..//qt/[QGraphicsDropShadowEffect, QFlags]
+import siwin, fusion/matching
+import uibase
 
-nimqt.init
+type
+  DmusicWindow* = ref object of UiRect
+    edge: int  # 8 edges (1..8), from top to top-left 
+    borderWidth: float32
 
 
-inheritQObject(DmusicWindow, QWidget):
-  var edge: int  # 8 edges (1..8), from top to top-left 
-  var borderWidth: int
-
-  override mouseMoveEvent(e: ptr QMouseEvent):
-    let pos = e.localPos.toPoint
-    let box = this.frameGeometry
-
-    let left = pos.x in 0..(box.x + this.borderWidth)
-    let top = pos.y in 0..(box.y + this.borderWidth)
-    let right = pos.x in (box.width - this.borderWidth)..(box.width)
-    let bottom = pos.y in (box.height - this.borderWidth)..(box.height)
-
-    if left and top:
-      this.setCursor(newQCursor(SizeFDiagCursor))
-      this.edge = 8
-    elif right and top:
-      this.setCursor(newQCursor(SizeBDiagCursor))
-      this.edge = 2
-    elif right and bottom:
-      this.setCursor(newQCursor(SizeFDiagCursor))
-      this.edge = 4
-    elif left and bottom:
-      this.setCursor(newQCursor(SizeBDiagCursor))
-      this.edge = 6
-    elif left:
-      this.setCursor(newQCursor(SizeHorCursor))
-      this.edge = 7
-    elif top:
-      this.setCursor(newQCursor(SizeVerCursor))
-      this.edge = 1
-    elif right:
-      this.setCursor(newQCursor(SizeHorCursor))
-      this.edge = 3
-    elif bottom:
-      this.setCursor(newQCursor(SizeVerCursor))
-      this.edge = 5
-    else:
-      this.unsetCursor()
-      this.edge = 0
-  
-  override mousePressEvent(e: ptr QMouseEvent):
-    if e.buttons == newQFlags(LeftButton):
+method recieve*(this: DmusicWindow, signal: Signal) =
+  case signal
+  of of WindowEvent(event: @ea is of MouseMoveEvent()):
+    let e = (ref MouseMoveEvent)ea
+    if MouseButton.left in e.window.mouse.pressed:
       if this.edge != 0:
-        discard this.window.windowHandle.startSystemResize(
+        e.window.startInteractiveResize(
           case this.edge
-          of 1: newQFlags(TopEdge)
-          of 2: newQFlags(TopEdge) | RightEdge
-          of 3: newQFlags(RightEdge)
-          of 4: newQFlags(RightEdge) | BottomEdge
-          of 5: newQFlags(BottomEdge)
-          of 6: newQFlags(BottomEdge) | LeftEdge
-          of 7: newQFlags(LeftEdge)
-          of 8: newQFlags(LeftEdge) | TopEdge
-          else: newQFlags(LeftEdge)
+          of 1: Edge.top
+          of 2: Edge.topRight
+          of 3: Edge.right
+          of 4: Edge.bottomRight
+          of 5: Edge.bottom
+          of 6: Edge.bottomLeft
+          of 7: Edge.left
+          of 8: Edge.topLeft
+          else: Edge.left
         )
-  
-  override leaveEvent(e: ptr QEvent):
-    this.unsetCursor()
-  
-  override eventFilter(obj: ptr QObject, e: ptr QEvent): bool:
-    if obj != this and e.`type` == Enter:
-      this.unsetCursor()
+      else:
+        procCall this.UiRect.recieve(signal)
+    else:
+      let pos = e.pos.vec2.posToLocal(this)
+      let box = this.box
+
+      let left = pos.x in 0'f32..(box.x + this.borderWidth)
+      let top = pos.y in 0'f32..(box.y + this.borderWidth)
+      let right = pos.x in (box.w - this.borderWidth)..(box.w)
+      let bottom = pos.y in (box.h - this.borderWidth)..(box.h)
+
+      if left and top:
+        e.window.cursor = Cursor(kind: builtin, builtin: sizeTopLeft)
+        this.edge = 8
+      elif right and top:
+        e.window.cursor = Cursor(kind: builtin, builtin: sizeTopRight)
+        this.edge = 2
+      elif right and bottom:
+        e.window.cursor = Cursor(kind: builtin, builtin: sizeBottomRight)
+        this.edge = 4
+      elif left and bottom:
+        e.window.cursor = Cursor(kind: builtin, builtin: sizeBottomLeft)
+        this.edge = 6
+      elif left:
+        e.window.cursor = Cursor(kind: builtin, builtin: sizeHorisontal)
+        this.edge = 7
+      elif top:
+        e.window.cursor = Cursor(kind: builtin, builtin: sizeVertical)
+        this.edge = 1
+      elif right:
+        e.window.cursor = Cursor(kind: builtin, builtin: sizeHorisontal)
+        this.edge = 3
+      elif bottom:
+        e.window.cursor = Cursor(kind: builtin, builtin: sizeVertical)
+        this.edge = 5
+      else:
+        e.window.cursor = Cursor(kind: builtin, builtin: arrow)
+        this.edge = 0
+        procCall this.Uiobj.recieve(signal)
+
+  else:
+    procCall this.UiRect.recieve(signal)
 
 
-proc createWindow*(root: ptr QWidget): ptr QWidget =
-  result = newQWidget(
-    nil,
-    newQFlags(Qt_WindowType.FramelessWindowHint) |
-    newQFlags(Qt_WindowType.Window)
-  )
+proc createWindow*(root: Uiobj): UiWindow =
+  result = newOpenglWindow(title="DMusic2", transparent=true, frameless=true).newUiWindow
+  result.siwinWindow.minSize = ivec2(60, 60)
 
-  result.makeLayout:
-    setAttribute(WA_NoSystemBackground)
-    setAttribute(WA_TranslucentBackground)
-    setObjectName(Q "window")
+  let win = DmusicWindow(borderWidth: 10, color: vec4(32/255, 32/255, 32/255, 1), radius: 7.5)
+  result.addChild win
+  win.anchors.fill(result)
 
-    - newDmusicWindow() as win:
-      setObjectName(Q "windowInner")
-      
-      installEventFilter(win)
-      setMouseTracking(true)
-      win.borderWidth = 10
+  # todo: shadow
 
-      setGraphicsEffect(
-        block:
-          let effect = newQGraphicsDropShadowEffect()
-          effect.setXOffset(0)
-          effect.setYOffset(0)
-          effect.setColor(newQColor(0, 0, 0, 144))
-          effect.setBlurRadius(10)
-          effect
-      )
-      
-      - newQHBoxLayout():
-        - useObject root:
-          installEventFilter(win)
+  win.addChild root
+  root.anchors.fill(win, 10)

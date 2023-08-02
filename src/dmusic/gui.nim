@@ -1,38 +1,28 @@
-import std/exitprocs, os, times
-import nimqt, asyncdispatch
-import nimqt/[qpushbutton, qtimer]
+import times, asyncdispatch, pixie
+import siwin
 import ./[configuration, utils, yandexMusic]
-import ./qt/[QApplication]
-import ./gui/[window, windowHeader]
-
-
-nimqt.init()
-let qapp* = newQApplication(commandLineParams())
-
-
-inheritQObject(App, QObject):
-  slot_decl on_helloWorld_clicked()
-
-proc on_helloWorld_clicked(this: ptr App) =
-  let sender = cast[ptr QPushButton](this.get_sender())
-  sender.setText(Q "Привет, мир!")
-
-
-var gui_on_timer_timeout: proc()
+import ./gui/[uibase, window, windowHeader]
 
 
 proc gui*: string =
-  qapp.appName = Q "DMusic"
-  qapp.organizationName = Q "DTeam"
-  qapp.organizationDomain = Q "levovix.ru"
+  let root = Uiobj()
+  
+  let windowHandle = newWindowHeader()
+  root.addChild windowHandle
+  windowHandle.anchors.fillHorizontal(root)
+  windowHandle.box.h = 40
+
+  let win = createWindow(root)
 
 
   notifyLanguageChanged &= proc() =
     globalLocale = (($config.language, ""), LocaleTable.default)
   
-  # notifyCsdChanged &= proc() =
-  #   when defined(windows): qapp.icon = newQIcon(Q ":resources/app.svg")
-  #   else: qapp.icon = newQIcon(Q ":resources/app-papirus.svg")
+  notifyCsdChanged &= proc() =
+    let icon =
+      when defined(windows): decodeImage(static(staticRead "../../resources/app.svg"))
+      else: decodeImage(static(staticRead "../../resources/app-papirus.svg"))
+    win.siwinWindow.icon = (icon.data.toBgrx.toOpenArray(0, icon.data.high), ivec2(icon.width.int32, icon.height.int32))
 
   notifyLanguageChanged()
   notifyCsdChanged()
@@ -40,12 +30,9 @@ proc gui*: string =
 
   var darkTime = config.darkTheme
 
-  let timer = newQTimer()
-  proc on_timer_timeout() {.exportc, cdecl.} =
-    gui_on_timer_timeout()
-  connect(timer, SIGNAL "timeout()", on_timer_timeout)
+  win.siwinWindow.firstStep(makeVisible=true)
 
-  gui_on_timer_timeout = proc =
+  while win.siwinWindow.opened:
     try: poll()
     except CatchableError:
       logger.log(lvlError, "Error during async operation: ", getCurrentExceptionMsg())
@@ -62,20 +49,5 @@ proc gui*: string =
       else:
         if not darkTime: config.darkTheme = true
         darkTime = true
-  
-
-  let app = newApp()
-  let root = newQWidget()
-
-  root.makeLayout:
-    - createWindowHeader()
-    - newQPushButton(Q "Hello, world!"):
-      connect(SIGNAL "clicked()", app, SLOT "on_helloWorld_clicked()")
-
-
-  const styleSheet = staticRead("../../resources/themes/dark.qss")
-  qapp.setStyleSheet(Q styleSheet)
-
-
-  show createWindow(root)
-  setProgramResult qapp.exec
+    
+    win.siwinWindow.step

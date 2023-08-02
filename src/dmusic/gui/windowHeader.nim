@@ -1,25 +1,28 @@
-import nimqt
-import ../qt/[QFlags]
+import siwin, fusion/matching
+import uibase
 
-const titleHeight = 40
-
-
-nimqt.init
+type
+  WindowHeader* = ref object of UiRect
 
 
-inheritQObject(DmusicWindowHeader, QWidget):
-  override mouseMoveEvent(e: ptr QMouseEvent):
-    if e.buttons == newQFlags(LeftButton):
-      discard this.window.windowHandle.startSystemMove()
+method recieve*(this: WindowHeader, signal: Signal) =
+  case signal
+  of of WindowEvent(event: @ea is of MouseMoveEvent()):
+    let e = (ref MouseMoveEvent)ea
+    if MouseButton.left in e.window.mouse.pressed:
+      signal.WindowEvent.handled = true
+      e.window.startInteractiveMove()
 
-  override enterEvent(e: ptr QEvent):
-    this.unsetCursor
+  else:
+    procCall this.UiRect.recieve(signal)
+  
+  case signal
+  of of WindowEvent(event: @ea of ClickEvent(), handled: false):
+    let e = (ref ClickEvent)ea
+    if e.double:
+      e.window.maximized = not e.window.maximized
+      signal.WindowEvent.handled = true
 
 
-proc createWindowHeader*(): ptr QWidget =
-  result = newDmusicWindowHeader()
-  result.makeLayout:
-    setObjectName(Q "windowHeader")
-    setMouseTracking(true)
-    resize(100, titleHeight)
-    setSizePolicy(Expanding, Expanding)
+proc newWindowHeader*(): WindowHeader =
+  result = WindowHeader(color: vec4(1, 1, 1, 1))

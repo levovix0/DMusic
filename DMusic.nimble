@@ -6,15 +6,18 @@ srcDir        = "src"
 bin           = @["dmusic"]
 backend       = "cpp"
 
-requires "nim >= 1.6.14"
+requires "nim >= 2.0"
 requires "fusion"  # to write macros using pattern matching
 requires "cligen"  # to parse command line arguments
 requires "https://github.com/levovix0/impl"  # used in taglib wrapper # todo: remove
 requires "filetype"  # to detect file type?
 requires "localize >= 0.3.2"  # to translate app into many languages
 requires "checksums"  # ???
-requires "https://github.com/jerous86/nimqt >= 0.1"  # to make gui
+requires "siwin >= 0.8.2"  # to make window
 requires "imageman"  # to decode png
+requires "bumpy"  # for rects
+requires "opengl"  # for graphics
+requires "shady"  # for writing shaders in Nim istead of GLSL
 
 
 # note: build is broken
