@@ -2,7 +2,7 @@ import siwin, fusion/matching
 import uibase
 
 type
-  DmusicWindow* = ref object of UiRect
+  DmusicWindow* = ref object of Uiobj
     edge: int  # 8 edges (1..8), from top to top-left 
     borderWidth: float32
 
@@ -26,7 +26,7 @@ method recieve*(this: DmusicWindow, signal: Signal) =
           else: Edge.left
         )
       else:
-        procCall this.UiRect.recieve(signal)
+        procCall this.super.recieve(signal)
     else:
       let pos = e.pos.vec2.posToLocal(this)
       let box = this.box
@@ -63,21 +63,25 @@ method recieve*(this: DmusicWindow, signal: Signal) =
       else:
         e.window.cursor = Cursor(kind: builtin, builtin: arrow)
         this.edge = 0
-        procCall this.Uiobj.recieve(signal)
+        procCall this.super.recieve(signal)
 
   else:
-    procCall this.UiRect.recieve(signal)
+    procCall this.super.recieve(signal)
 
 
-proc createWindow*(root: Uiobj): UiWindow =
-  result = newOpenglWindow(title="DMusic2", transparent=true, frameless=true).newUiWindow
+proc createWindow*(rootObj: Uiobj): UiWindow =
+  result = newOpenglWindow(title="DMusic", transparent=true, frameless=true).newUiWindow
   result.siwinWindow.minSize = ivec2(60, 60)
 
-  let win = DmusicWindow(borderWidth: 10, color: vec4(32/255, 32/255, 32/255, 1), radius: 7.5)
-  result.addChild win
-  win.anchors.fill(result)
+  result.makeLayout:
+    - UiRectShadow(radius: 7.5, blurRadius: 10, color: vec4(0, 0, 0, 0.3)):
+      this.anchors.fill(parent)
 
-  # todo: shadow
+    - DmusicWindow(borderWidth: 10):
+      this.anchors.fill(parent)
 
-  win.addChild root
-  root.anchors.fill(win, 10)
+      - UiRect(color: vec4(32/255, 32/255, 32/255, 1), radius: 7.5):
+        this.anchors.fill(parent, 10)
+        
+        - rootObj:
+          this.anchors.fill(parent)

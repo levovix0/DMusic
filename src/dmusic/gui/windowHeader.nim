@@ -14,7 +14,7 @@ method recieve*(this: WindowHeader, signal: Signal) =
       e.window.startInteractiveMove()
 
   else:
-    procCall this.UiRect.recieve(signal)
+    procCall this.super.recieve(signal)
   
   case signal
   of of WindowEvent(event: @ea of ClickEvent(), handled: false):
@@ -25,4 +25,4 @@ method recieve*(this: WindowHeader, signal: Signal) =
 
 
 proc newWindowHeader*(): WindowHeader =
-  result = WindowHeader(color: vec4(1, 1, 1, 1))
+  result = WindowHeader(color: vec4(48/255, 48/255, 48/255, 1))

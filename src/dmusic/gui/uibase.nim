@@ -1,5 +1,5 @@
-import times
-import vmath, bumpy, siwin, shady
+import times, macros, algorithm
+import vmath, bumpy, siwin, shady, fusion/[matching, astdsl]
 import gl
 export vmath, bumpy, gl
 
@@ -17,6 +17,10 @@ type
   
   Anchors* = object
     left*, right*, top*, bottom*, centerX*, centerY*: Anchor
+  
+  RepopsitionDirection* = enum
+    parentToChild
+    childToParent
 
   Uiobj* = ref object of RootObj
     parent* {.cursor.}: Uiobj
@@ -24,7 +28,7 @@ type
       ## note: object can have no parent
     childs*: seq[owned(Uiobj)]
       ## childs that should be deleted when this object is deleted
-    baseTransformOnParent*: bool = true
+    globalTransform*: bool
     box*: Rect
     anchors*: Anchors
   
@@ -40,7 +44,6 @@ type
       size: GlInt,
       px: GlInt,
       radius: GlInt,
-      
       color: GlInt,
     ]
     image: tuple[
@@ -56,7 +59,15 @@ type
       size: GlInt,
       px: GlInt,
       radius: GlInt,
-
+      color: GlInt,
+    ]
+    rectShadow: tuple[
+      shader: Shader,
+      transform: GlInt,
+      size: GlInt,
+      px: GlInt,
+      radius: GlInt,
+      blurRadius: GlInt,
       color: GlInt,
     ]
 
@@ -79,8 +90,12 @@ type
 
 
   UiRect* = ref object of Uiobj
-    color*: Vec4
+    color*: Vec4 = vec4(0, 0, 0, 1)
     radius*: float32
+  
+
+  UiRectShadow* = ref object of Uirect
+    blurRadius*: float32
 
 
 
@@ -105,8 +120,8 @@ proc posToLocal*(pos: Vec2, obj: Uiobj): Vec2 =
   var obj {.cursor.} = obj
   while true:
     if obj == nil: return
-    if not obj.baseTransformOnParent: return
     result -= obj.box.xy
+    if obj.globalTransform: return
     obj = obj.parent
 
 proc posToGlobal*(pos: Vec2, obj: Uiobj): Vec2 =
@@ -114,8 +129,8 @@ proc posToGlobal*(pos: Vec2, obj: Uiobj): Vec2 =
   var obj {.cursor.} = obj
   while true:
     if obj == nil: return
-    if not obj.baseTransformOnParent: return
     result += obj.box.xy
+    if obj.globalTransform: return
     obj = obj.parent
 
 
@@ -127,7 +142,7 @@ method recieve*(obj: Uiobj, signal: Signal) {.base.} =
   if signal of WindowEvent:
     template handlePositionalEvent(ev) =
       let e {.cursor.} = (ref ev)signal.WindowEvent.event
-      for x in obj.childs:
+      for x in obj.childs.reversed:
         let pos = x.box.xy.posToGlobal(x)
         if e.window.mouse.pos.x.float32 in pos.x..(pos.x + x.box.w) and e.window.mouse.pos.y.float32 in pos.y..(pos.y + x.box.h):
           x.recieve(signal)
@@ -146,14 +161,11 @@ method recieve*(obj: Uiobj, signal: Signal) {.base.} =
         x.recieve(signal)
 
 
-proc pos*(anchor: Anchor, isY: bool): float32 =
+proc pos*(anchor: Anchor, isY: bool): Vec2 =
   assert anchor.obj != nil
-  case anchor.offsetFrom
+  let p = case anchor.offsetFrom
   of start:
-    if isY:
-      anchor.offset
-    else:
-      anchor.offset
+    anchor.offset
   of `end`:
     if isY:
       anchor.obj.box.h - anchor.offset
@@ -164,43 +176,48 @@ proc pos*(anchor: Anchor, isY: bool): float32 =
       anchor.obj.box.h / 2 - anchor.offset
     else:
       anchor.obj.box.w / 2 - anchor.offset
+  if isY: vec2(0, p).posToGlobal(anchor.obj)
+  else: vec2(p, 0).posToGlobal(anchor.obj)
 
+#--- Reposition ---
 
-method reposition*(obj: Uiobj) {.base.}
+method reposition*(obj: Uiobj, direction: RepopsitionDirection = parentToChild) {.base.}
 
-proc broadcastReposition*(obj: Uiobj) =
-  for x in obj.childs: reposition x
+proc broadcastReposition*(obj: Uiobj, direction: RepopsitionDirection) =
+  for x in obj.childs: reposition(x, direction)
 
 proc anchorReposition*(obj: Uiobj) =
   # x and w
   if obj.anchors.left.obj != nil:
-    obj.box.x = vec2(obj.anchors.left.pos(isY=false)).posToGlobal(obj.anchors.left.obj).posToLocal(obj.parent).x
+    obj.box.x = obj.anchors.left.pos(isY=false).posToLocal(obj.parent).x
   
   if obj.anchors.right.obj != nil:
     if obj.anchors.left.obj != nil:
-      obj.box.w = vec2(obj.anchors.right.pos(isY=false)).posToGlobal(obj.anchors.right.obj).posToLocal(obj.parent).x - obj.box.x
+      obj.box.w = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.box.x
     else:
-      obj.box.x = vec2(obj.anchors.right.pos(isY=false)).posToGlobal(obj.anchors.right.obj).posToLocal(obj.parent).x - obj.box.w
+      obj.box.x = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.box.w
   
   if obj.anchors.centerX.obj != nil:
-    obj.box.x = vec2(obj.anchors.right.pos(isY=false)).posToGlobal(obj.anchors.right.obj).posToLocal(obj.parent).x - obj.box.w / 2
+    obj.box.x = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.box.w / 2
 
   # y and h
   if obj.anchors.top.obj != nil:
-    obj.box.y = vec2(obj.anchors.top.pos(isY=true)).posToGlobal(obj.anchors.top.obj).posToLocal(obj.parent).y
+    obj.box.y = obj.anchors.top.pos(isY=true).posToLocal(obj.parent).y
   
   if obj.anchors.bottom.obj != nil:
     if obj.anchors.top.obj != nil:
-      obj.box.h = vec2(obj.anchors.bottom.pos(isY=true)).posToGlobal(obj.anchors.bottom.obj).posToLocal(obj.parent).y - obj.box.y
+      obj.box.h = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.box.y
     else:
-      obj.box.y = vec2(obj.anchors.bottom.pos(isY=true)).posToGlobal(obj.anchors.bottom.obj).posToLocal(obj.parent).y - obj.box.h
+      obj.box.y = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.box.h
   
   if obj.anchors.centerY.obj != nil:
-    obj.box.y = vec2(obj.anchors.bottom.pos(isY=true)).posToGlobal(obj.anchors.bottom.obj).posToLocal(obj.parent).y - obj.box.h / 2
+    obj.box.y = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.box.h / 2
 
-method reposition*(obj: Uiobj) {.base.} =
+method reposition*(obj: Uiobj, direction: RepopsitionDirection = parentToChild) {.base.} =
   anchorReposition obj
-  broadcastReposition obj
+  broadcastReposition obj, direction
+
+#--- Anchors ---
 
 proc fillHorizontal*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
   anchors.left = Anchor(obj: obj, offset: margin)
@@ -210,16 +227,32 @@ proc fillVertical*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
   anchors.top = Anchor(obj: obj, offset: margin)
   anchors.bottom = Anchor(obj: obj, offsetFrom: `end`, offset: margin)
 
+proc centerIn*(anchors: var Anchors, obj: Uiobj, offset: Vec2 = vec2(), xCenterAt: AnchorOffsetFrom = center, yCenterAt: AnchorOffsetFrom = center) =
+  anchors.centerX = Anchor(obj: obj, offsetFrom: xCenterAt, offset: offset.x)
+  anchors.centerY = Anchor(obj: obj, offsetFrom: yCenterAt, offset: offset.y)
+
 proc fill*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
   anchors.fillHorizontal(obj, margin)
   anchors.fillVertical(obj, margin)
 
 
-proc addChild*(parent: Uiobj, child: Uiobj) =
+method addChild*(parent: Uiobj, child: Uiobj) {.base.} =
   assert child.parent == nil
   child.parent = parent
   parent.childs.add child
 
+
+macro super*[T: Uiobj](obj: T): auto =
+  var t = obj.getTypeImpl
+  case t
+  of RefTy[@sym is Sym()]:
+    t = sym.getImpl
+  case t
+  of TypeDef[_, _, ObjectTy[_, OfInherit[@sup], .._]]:
+    return buildAst(dotExpr):
+      obj
+      sup
+  else: error("unexpected type impl", obj)
 
 
 #----- DrawContext -----
@@ -269,6 +302,40 @@ proc newDrawContext*: DrawContext =
 
     return 1
 
+  proc distanceRoundRect(pos, size: Vec2, radius: float32, blurRadius: float32): float32 =
+    if pos.x < radius + blurRadius and pos.y < radius + blurRadius:
+      let d = length(pos - vec2(radius + blurRadius, radius + blurRadius))
+      result = ((radius + blurRadius - d) / blurRadius).max(0).min(1)
+    
+    elif pos.x > size.x - radius - blurRadius and pos.y < radius + blurRadius:
+      let d = length(pos - vec2(size.x - radius - blurRadius, radius + blurRadius))
+      result = ((radius + blurRadius - d) / blurRadius).max(0).min(1)
+    
+    elif pos.x < radius + blurRadius and pos.y > size.y - radius - blurRadius:
+      let d = length(pos - vec2(radius + blurRadius, size.y - radius - blurRadius))
+      result = ((radius + blurRadius - d) / blurRadius).max(0).min(1)
+    
+    elif pos.x > size.x - radius - blurRadius and pos.y > size.y - radius - blurRadius:
+      let d = length(pos - vec2(size.x - radius - blurRadius, size.y - radius - blurRadius))
+      result = ((radius + blurRadius - d) / blurRadius).max(0).min(1)
+    
+    elif pos.x < blurRadius:
+      result = (pos.x / blurRadius).max(0).min(1)
+
+    elif pos.y < blurRadius:
+      result = (pos.y / blurRadius).max(0).min(1)
+    
+    elif pos.x > size.x - blurRadius:
+      result = ((size.x - pos.x) / blurRadius).max(0).min(1)
+
+    elif pos.y > size.y - blurRadius:
+      result = ((size.y - pos.y) / blurRadius).max(0).min(1)
+    
+    else:
+      result = 1
+    
+    result *= result
+
 
   proc solidVert(
     gl_Position: var Vec4,
@@ -294,7 +361,6 @@ proc newDrawContext*: DrawContext =
   result.solid.size = result.solid.shader["size"]
   result.solid.px = result.solid.shader["px"]
   result.solid.radius = result.solid.shader["radius"]
-  
   result.solid.color = result.solid.shader["color"]
 
 
@@ -343,8 +409,36 @@ proc newDrawContext*: DrawContext =
   result.icon.size = result.icon.shader["size"]
   result.icon.px = result.icon.shader["px"]
   result.icon.radius = result.icon.shader["radius"]
-
   result.icon.color = result.icon.shader["color"]
+
+
+  proc rectShadowVert(
+    gl_Position: var Vec4,
+    pos: var Vec2,
+    ipos: Vec2,
+    transform: Uniform[Mat4],
+    size: Uniform[Vec2],
+    px: Uniform[Vec2],
+  ) =
+    transformation(gl_Position, pos, size, px, ipos, transform)
+
+  proc rectShadowFrag(
+    glCol: var Vec4,
+    pos: Vec2,
+    radius: Uniform[float],
+    blurRadius: Uniform[float],
+    size: Uniform[Vec2],
+    color: Uniform[Vec4],
+  ) =
+    glCol = vec4(color.rgb * color.a, color.a) * distanceRoundRect(pos, size, radius, blurRadius)
+
+  result.rectShadow.shader = newShader {GlVertexShader: rectShadowVert.toGLSL("330 core"), GlFragmentShader: rectShadowFrag.toGLSL("330 core")}
+  result.rectShadow.transform = result.rectShadow.shader["transform"]
+  result.rectShadow.size = result.rectShadow.shader["size"]
+  result.rectShadow.px = result.rectShadow.shader["px"]
+  result.rectShadow.radius = result.rectShadow.shader["radius"]
+  result.rectShadow.blurRadius = result.rectShadow.shader["blurRadius"]
+  result.rectShadow.color = result.rectShadow.shader["color"]
 
 
   result.rect = newShape(
@@ -371,7 +465,7 @@ proc drawRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius: float
   # draw rect
   if blend:
     glEnable(GlBlend)
-    glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlZero)
+    glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
   use ctx.solid.shader
   ctx.passTransform(ctx.solid, pos=pos, size=size)
   ctx.solid.radius.uniform = radius
@@ -383,7 +477,7 @@ proc drawImage*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, radius: fl
   # draw image
   if blend:
     glEnable(GlBlend)
-    glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlZero)
+    glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
   use ctx.image.shader
   ctx.passTransform(ctx.image, pos=pos, size=size)
   ctx.image.radius.uniform = radius
@@ -396,7 +490,7 @@ proc drawIcon*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, col: Vec4, 
   # draw image (with solid color)
   if blend:
     glEnable(GlBlend)
-    glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlZero)
+    glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
   use ctx.icon.shader
   ctx.passTransform(ctx.icon, pos=pos, size=size)
   ctx.icon.radius.uniform = radius
@@ -406,6 +500,19 @@ proc drawIcon*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, col: Vec4, 
   glBindTexture(GlTexture2d, 0)
   if blend: glDisable(GlBlend)
 
+proc drawShadowRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius: float32, blend: bool, blurRadius: float32) =
+  # draw rect
+  if blend:
+    glEnable(GlBlend)
+    glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
+  use ctx.rectShadow.shader
+  ctx.passTransform(ctx.rectShadow, pos=pos, size=size)
+  ctx.rectShadow.radius.uniform = radius
+  ctx.rectShadow.color.uniform = col
+  ctx.rectShadow.blurRadius.uniform = blurRadius
+  draw ctx.rect
+  if blend: glDisable(GlBlend)
+
 
 
 #----- Basic Components -----
@@ -413,7 +520,12 @@ proc drawIcon*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, col: Vec4, 
 
 
 method draw*(rect: UiRect, ctx: DrawContext) =
-  ctx.drawRect(rect.box.xy.posToGlobal(rect), rect.box.wh, rect.color, rect.radius, rect.color.a != 1)
+  ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color, rect.radius, rect.color.a != 1 or rect.radius != 0)
+  procCall draw(rect.Uiobj, ctx)
+
+
+method draw*(rect: UiRectShadow, ctx: DrawContext) =
+  ctx.drawShadowRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color, rect.radius, true, rect.blurRadius)
   procCall draw(rect.Uiobj, ctx)
 
 
@@ -434,7 +546,7 @@ method recieve*(this: UiWindow, signal: Signal) =
   if signal of WindowEvent and signal.WindowEvent.event of RenderEvent:
     draw(this, this.ctx)
 
-  procCall this.Uiobj.recieve(signal)
+  procCall this.super.recieve(signal)
 
 
 proc setupEventsHandling*(win: UiWindow) =
@@ -466,3 +578,57 @@ proc newUiWindow*(siwinWindow: Window): UiWindow =
   loadExtensions()
   result.setupEventsHandling
   result.ctx = newDrawContext()
+
+
+
+#----- Macro -----
+
+
+
+macro makeLayout*(obj: Uiobj, body: untyped) =
+  proc impl(parent: NimNode, obj: NimNode, body: NimNode): NimNode =
+    buildAst:
+      blockStmt:
+        genSym(nskLabel, "initializationBlock")
+        stmtList:
+          letSection:
+            identDefs(pragmaExpr(ident "parent", pragma ident "used"), empty(), parent)
+            identDefs(pragmaExpr(ident "this", pragma ident "used"), empty(), obj)
+          
+          proc checkCtor(ctor: NimNode): bool =
+            if ctor == ident "root": warning("adding root to itself causes recursion", ctor)
+            if ctor == ident "this": warning("adding this to itself causes recursion", ctor)
+            if ctor == ident "parent": warning("adding parent to itself causes recursion", ctor)
+
+          for x in body:
+            case x
+            of Prefix[Ident(strVal: "-"), @ctor]:
+              discard checkCtor ctor
+              call(bindSym"addChild", ident "this", ctor)
+            of Prefix[Ident(strVal: "-"), @ctor, @body is StmtList()]:
+              discard checkCtor ctor
+              let s = genSym(nskLet)
+              letSection:
+                identDefs(s, empty(), ctor)
+              call(bindSym"addChild", ident "this", s)
+              impl(ident "this", s, body)
+            of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s]:
+              discard checkCtor ctor
+              letSection:
+                identDefs(s, empty(), ctor)
+              call(bindSym"addChild", ident "this", s)
+            of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s, @body is StmtList()]:
+              discard checkCtor ctor
+              letSection:
+                identDefs(s, empty(), ctor)
+              call(bindSym"addChild", ident "this", s)
+              impl(ident "this", s, body)
+            else: x
+
+  buildAst:
+    blockStmt:
+      genSym(nskLabel, "makeLayoutBlock")
+      stmtList:
+        letSection:
+          identDefs(pragmaExpr(ident "root", pragma ident "used"), empty(), obj)
+        impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", body)
