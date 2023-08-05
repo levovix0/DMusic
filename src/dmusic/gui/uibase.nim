@@ -1,9 +1,13 @@
 import times, macros, algorithm
-import vmath, bumpy, siwin, shady, fusion/[matching, astdsl]
+import vmath, bumpy, siwin, shady, fusion/[matching, astdsl], pixie
 import gl
-export vmath, bumpy, gl
+import imageman except Rect, color, Color
+export vmath, bumpy, gl, pixie, matching
+export imageman except Rect
 
 type
+  Col* = pixie.Color
+
   AnchorOffsetFrom* = enum
     start
     center
@@ -21,7 +25,7 @@ type
   RepopsitionDirection* = enum
     parentToChild
     childToParent
-
+  
   Uiobj* = ref object of RootObj
     parent* {.cursor.}: Uiobj
       ## parent of this object, that must have this object as child
@@ -31,6 +35,7 @@ type
     globalTransform*: bool
     box*: Rect
     anchors*: Anchors
+    hovered*: bool
   
   
   Signal* = ref object of RootObj
@@ -74,11 +79,19 @@ type
     rect: Shape
 
     px, wh: Vec2
+    frameBufferHierarchy: seq[tuple[fbo: GlUint, size: IVec2]]
 
+  
+  #--- Signals ---
   
   WindowEvent* = ref object of Signal
     event*: ref AnyWindowEvent
     handled*: bool
+  
+  HoveredChanged* = ref object of Signal
+
+  SubtreeSignal* = ref object of Signal
+    ## signal sends to all childs recursively
   
   #--- Basic Components ---
 
@@ -86,17 +99,44 @@ type
   UiWindow* = ref object of Uiobj
     siwinWindow*: Window
     ctx*: DrawContext
-    clearColor*: Vec4
+    clearColor*: Col
 
 
   UiRect* = ref object of Uiobj
-    color*: Vec4 = vec4(0, 0, 0, 1)
+    color*: Col = color(0, 0, 0)
     radius*: float32
+    angle*: float32
   
 
-  UiRectShadow* = ref object of Uirect
-    blurRadius*: float32
+  UiImage* = ref object of Uiobj
+    radius*: float32
+    blend*: bool = true
+    tex: Textures
+    imageWh*: IVec2
+    angle*: float32
 
+  UiIcon* = ref object of UiImage
+    color*: Col = color(0, 0, 0)
+  
+
+  UiRectShadow* = ref object of UiRect
+    blurRadius*: float32
+  
+
+  UiClipRect* = ref object of Uiobj
+    enabled*: bool = true
+    radius*: float32
+    angle*: float32
+    fbo: FrameBuffers
+    tex: Textures
+    prevSize: IVec2
+
+
+proc vec4*(color: Col): Vec4 =
+  vec4(color.r, color.g, color.b, color.a)
+
+proc color*(v: Vec4): Col =
+  Col(r: v.x, g: v.y, b: v.z, a: v.w)
 
 
 #----- Uiobj -----
@@ -143,7 +183,7 @@ method recieve*(obj: Uiobj, signal: Signal) {.base.} =
     template handlePositionalEvent(ev) =
       let e {.cursor.} = (ref ev)signal.WindowEvent.event
       for x in obj.childs.reversed:
-        let pos = x.box.xy.posToGlobal(x)
+        let pos = x.box.xy.posToGlobal(x.parent)
         if e.window.mouse.pos.x.float32 in pos.x..(pos.x + x.box.w) and e.window.mouse.pos.y.float32 in pos.y..(pos.y + x.box.h):
           x.recieve(signal)
     
@@ -154,11 +194,27 @@ method recieve*(obj: Uiobj, signal: Signal) {.base.} =
       handlePositionalEvent ClickEvent
     
     elif signal of WindowEvent and signal.WindowEvent.event of MouseMoveEvent:
-      handlePositionalEvent MouseMoveEvent
+      let e {.cursor.} = (ref MouseMoveEvent)signal.WindowEvent.event
+      let pos = obj.box.xy.posToGlobal(obj.parent)
+      if e.pos.x.float32 in pos.x..(pos.x + obj.box.w) and e.pos.y.float32 in pos.y..(pos.y + obj.box.h):
+        if not obj.hovered:
+          obj.hovered = true
+          obj.recieve(HoveredChanged(sender: obj))
+      else:
+        if obj.hovered:
+          obj.hovered = false
+          obj.recieve(HoveredChanged(sender: obj))
+
+      for x in obj.childs:
+        x.recieve(signal)
 
     else:
       for x in obj.childs:
         x.recieve(signal)
+
+  if signal of SubtreeSignal:
+    for x in obj.childs:
+      x.recieve(signal)
 
 
 proc pos*(anchor: Anchor, isY: bool): Vec2 =
@@ -198,7 +254,7 @@ proc anchorReposition*(obj: Uiobj) =
       obj.box.x = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.box.w
   
   if obj.anchors.centerX.obj != nil:
-    obj.box.x = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.box.w / 2
+    obj.box.x = obj.anchors.centerX.pos(isY=false).posToLocal(obj.parent).x - obj.box.w / 2
 
   # y and h
   if obj.anchors.top.obj != nil:
@@ -211,11 +267,35 @@ proc anchorReposition*(obj: Uiobj) =
       obj.box.y = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.box.h
   
   if obj.anchors.centerY.obj != nil:
-    obj.box.y = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.box.h / 2
+    obj.box.y = obj.anchors.centerY.pos(isY=true).posToLocal(obj.parent).y - obj.box.h / 2
+
+
+proc left*(obj: Uiobj, margin: float32 = 0): Anchor =
+  Anchor(obj: obj, offsetFrom: start, offset: margin)
+proc right*(obj: Uiobj, margin: float32 = 0): Anchor =
+  Anchor(obj: obj, offsetFrom: `end`, offset: margin)
+proc top*(obj: Uiobj, margin: float32 = 0): Anchor =
+  Anchor(obj: obj, offsetFrom: start, offset: margin)
+proc bottom*(obj: Uiobj, margin: float32 = 0): Anchor =
+  Anchor(obj: obj, offsetFrom: `end`, offset: margin)
+proc center*(obj: Uiobj, margin: float32 = 0): Anchor =
+  Anchor(obj: obj, offsetFrom: center, offset: margin)
+
 
 method reposition*(obj: Uiobj, direction: RepopsitionDirection = parentToChild) {.base.} =
   anchorReposition obj
   broadcastReposition obj, direction
+
+var startRepositionLock {.threadvar.}: bool
+proc startReposition*(obj: Uiobj) =
+  obj.reposition(parentToChild)
+  let window = obj.parentWindow
+  if startRepositionLock: return  # avoid recursion
+  startRepositionLock = true
+  try:
+    obj.recieve(WindowEvent(event: (ref MouseMoveEvent)(window: window, pos: window.mouse.pos)))  # emulate mouse move to update hovers
+  finally:
+    startRepositionLock = false
 
 #--- Anchors ---
 
@@ -263,10 +343,11 @@ proc mat4(x: Mat2): Mat4 = discard
   ## note: this function exists in Glsl, but do not in vmath
 
 
-proc passTransform(ctx: DrawContext, shader: tuple, pos = vec2(), size = vec2(10, 10), angle: float32 = 0) =
+proc passTransform(ctx: DrawContext, shader: tuple, pos = vec2(), size = vec2(10, 10), angle: float32 = 0, flipY = false) =
   shader.transform.uniform =
-    translate(vec3(ctx.px*(vec2(pos.x, -pos.y) - ctx.wh), 0)) *
-    rotate(float32 angle.float * Pi / 180, vec3(0, 0, 1))
+    translate(vec3(ctx.px*(vec2(pos.x, -pos.y) - ctx.wh - (if flipY: vec2(0, size.y) else: vec2())), 0)) *
+    scale(if flipY: vec3(1, -1, 1) else: vec3(1, 1, 1)) *
+    rotate(angle, vec3(0, 0, 1))
   shader.size.uniform = size
   shader.px.uniform = ctx.px
 
@@ -461,38 +542,38 @@ proc updateSizeRender(ctx: DrawContext, size: IVec2) =
   ctx.wh = ivec2(size.x, -size.y).vec2 / 2
 
 
-proc drawRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius: float32, blend: bool) =
+proc drawRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius: float32, blend: bool, angle: float32) =
   # draw rect
   if blend:
     glEnable(GlBlend)
     glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
   use ctx.solid.shader
-  ctx.passTransform(ctx.solid, pos=pos, size=size)
+  ctx.passTransform(ctx.solid, pos=pos, size=size, angle=angle)
   ctx.solid.radius.uniform = radius
   ctx.solid.color.uniform = col
   draw ctx.rect
   if blend: glDisable(GlBlend)
 
-proc drawImage*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, radius: float32, blend: bool) =
+proc drawImage*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, radius: float32, blend: bool, angle: float32, flipY = false) =
   # draw image
   if blend:
     glEnable(GlBlend)
     glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
   use ctx.image.shader
-  ctx.passTransform(ctx.image, pos=pos, size=size)
+  ctx.passTransform(ctx.image, pos=pos, size=size, angle=angle, flipY=flipY)
   ctx.image.radius.uniform = radius
   glBindTexture(GlTexture2d, tex)
   draw ctx.rect
   glBindTexture(GlTexture2d, 0)
   if blend: glDisable(GlBlend)
 
-proc drawIcon*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, col: Vec4, radius: float32, blend: bool) =
+proc drawIcon*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, col: Vec4, radius: float32, blend: bool, angle: float32) =
   # draw image (with solid color)
   if blend:
     glEnable(GlBlend)
     glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
   use ctx.icon.shader
-  ctx.passTransform(ctx.icon, pos=pos, size=size)
+  ctx.passTransform(ctx.icon, pos=pos, size=size, angle=angle)
   ctx.icon.radius.uniform = radius
   ctx.icon.color.uniform = col
   glBindTexture(GlTexture2d, tex)
@@ -500,13 +581,13 @@ proc drawIcon*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, col: Vec4, 
   glBindTexture(GlTexture2d, 0)
   if blend: glDisable(GlBlend)
 
-proc drawShadowRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius: float32, blend: bool, blurRadius: float32) =
+proc drawShadowRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius: float32, blend: bool, blurRadius: float32, angle: float32) =
   # draw rect
   if blend:
     glEnable(GlBlend)
     glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
   use ctx.rectShadow.shader
-  ctx.passTransform(ctx.rectShadow, pos=pos, size=size)
+  ctx.passTransform(ctx.rectShadow, pos=pos, size=size, angle=angle)
   ctx.rectShadow.radius.uniform = radius
   ctx.rectShadow.color.uniform = col
   ctx.rectShadow.blurRadius.uniform = blurRadius
@@ -518,15 +599,85 @@ proc drawShadowRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius:
 #----- Basic Components -----
 
 
+proc `image=`*(obj: UiImage, img: pixie.Image) =
+  obj.tex = newTextures(1)
+  loadTexture(obj.tex[0], img)
+  obj.imageWh = ivec2(img.width.int32, img.height.int32)
+  obj.box.wh = obj.imageWh.vec2
+
+proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
+  obj.tex = newTextures(1)
+  loadTexture(obj.tex[0], img)
+  obj.imageWh = ivec2(img.width.int32, img.height.int32)
+  obj.box.wh = obj.imageWh.vec2
+
 
 method draw*(rect: UiRect, ctx: DrawContext) =
-  ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color, rect.radius, rect.color.a != 1 or rect.radius != 0)
+  ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, rect.color.a != 1 or rect.radius != 0, rect.angle)
   procCall draw(rect.Uiobj, ctx)
+
+
+method draw*(img: UiImage, ctx: DrawContext) =
+  ctx.drawImage(img.box.xy.posToGlobal(img.parent), img.box.wh, img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
+  procCall draw(img.Uiobj, ctx)
+
+
+method draw*(ico: UiIcon, ctx: DrawContext) =
+  ctx.drawIcon(ico.box.xy.posToGlobal(ico.parent), ico.box.wh, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
+  procCall draw(ico.Uiobj, ctx)
 
 
 method draw*(rect: UiRectShadow, ctx: DrawContext) =
-  ctx.drawShadowRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color, rect.radius, true, rect.blurRadius)
+  ctx.drawShadowRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, true, rect.blurRadius, rect.angle)
   procCall draw(rect.Uiobj, ctx)
+
+
+method draw*(rect: UiClipRect, ctx: DrawContext) =
+  if rect.enabled:
+    if rect.fbo == nil: rect.fbo = newFrameBuffers(1)
+
+    let size = ivec2(rect.box.w.round.int32, rect.box.h.round.int32)
+
+    ctx.frameBufferHierarchy.add (rect.fbo[0], size)
+    glBindFramebuffer(GlFramebuffer, rect.fbo[0])
+    
+    if rect.prevSize != size or rect.tex == nil:
+      rect.tex = newTextures(1)
+      glBindTexture(GlTexture2d, rect.tex[0])
+      glTexImage2D(GlTexture2d, 0, GlRgba.Glint, size.x, size.y, 0, GlRgba, GlUnsignedByte, nil)
+      glTexParameteri(GlTexture2d, GlTextureMinFilter, GlNearest)
+      glTexParameteri(GlTexture2d, GlTextureMagFilter, GlNearest)
+      glFramebufferTexture2D(GlFramebuffer, GlColorAttachment0, GlTexture2d, rect.tex[0], 0)
+    else:
+      glBindTexture(GlTexture2d, rect.tex[0])
+    
+    glClearColor(0, 0, 0, 0)
+    glClear(GlColorBufferBit)
+    
+    glViewport 0, 0, size.x.GLsizei, size.y.GLsizei
+    ctx.updateSizeRender(size)
+
+    let gt = rect.globalTransform
+    let pos = rect.box.xy.posToGlobal(rect.parent)
+    try:
+      rect.globalTransform = true
+      rect.box.xy = vec2()
+      procCall draw(rect.Uiobj, ctx)
+    
+    finally:
+      ctx.frameBufferHierarchy.del ctx.frameBufferHierarchy.high
+      rect.globalTransform = gt
+      rect.box.xy = pos
+
+      glBindFramebuffer(GlFramebuffer, if ctx.frameBufferHierarchy.len == 0: 0.GlUint else: ctx.frameBufferHierarchy[^1].fbo)
+      
+      let size = if ctx.frameBufferHierarchy.len == 0: rect.parentWindow.size else: ctx.frameBufferHierarchy[^1].size
+      glViewport 0, 0, size.x.GLsizei, size.y.GLsizei
+      ctx.updateSizeRender(size)
+      
+      ctx.drawImage(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.tex[0], rect.radius, true, rect.angle, flipY=true)
+  else:
+    procCall draw(rect.Uiobj, ctx)
 
 
 method draw*(win: UiWindow, ctx: DrawContext) =
@@ -541,7 +692,7 @@ method recieve*(this: UiWindow, signal: Signal) =
     this.box.wh = e.size.vec2
     glViewport 0, 0, e.size.x.GLsizei, e.size.y.GLsizei
     this.ctx.updateSizeRender(e.size)
-    reposition this
+    startReposition this
 
   if signal of WindowEvent and signal.WindowEvent.event of RenderEvent:
     draw(this, this.ctx)
@@ -555,22 +706,22 @@ proc setupEventsHandling*(win: UiWindow) =
     (ref T)(result)[] = e
 
   win.siwinWindow.eventsHandler = WindowEventsHandler(
-    onClose:       proc(e: CloseEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onRender:      proc(e: RenderEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onTick:        proc(e: TickEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onResize:      proc(e: ResizeEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onWindowMove:  proc(e: WindowMoveEvent) = win.recieve(WindowEvent(event: e.toRef)),
+    onClose:       proc(e: CloseEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onRender:      proc(e: RenderEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onTick:        proc(e: TickEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onResize:      proc(e: ResizeEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onWindowMove:  proc(e: WindowMoveEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
 
-    onFocusChanged:       proc(e: FocusChangedEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onFullscreenChanged:  proc(e: FullscreenChangedEvent) = win.recieve(WindowEvent(event: e.toRef)),
+    onFocusChanged:       proc(e: FocusChangedEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onFullscreenChanged:  proc(e: FullscreenChangedEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
 
-    onMouseMove:    proc(e: MouseMoveEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onMouseButton:  proc(e: MouseButtonEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onScroll:       proc(e: ScrollEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onClick:        proc(e: ClickEvent) = win.recieve(WindowEvent(event: e.toRef)),
+    onMouseMove:    proc(e: MouseMoveEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onMouseButton:  proc(e: MouseButtonEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onScroll:       proc(e: ScrollEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onClick:        proc(e: ClickEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
 
-    onKey:   proc(e: KeyEvent) = win.recieve(WindowEvent(event: e.toRef)),
-    onTextInput:  proc(e: TextInputEvent) = win.recieve(WindowEvent(event: e.toRef)),
+    onKey:   proc(e: KeyEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onTextInput:  proc(e: TextInputEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
   )
 
 proc newUiWindow*(siwinWindow: Window): UiWindow =

@@ -1,4 +1,4 @@
-import vmath, opengl, imageman
+import vmath, opengl, imageman, pixie
 export vmath, opengl
 export imageman except Rect, initRect, toRect
 
@@ -21,6 +21,11 @@ type
   Shader* = ref ShaderObj
   ShaderObj = object
     obj: GlUint
+
+  FrameBuffers* = ref FrameBuffersObj
+  FrameBuffersObj = object
+    n: int32
+    obj: UncheckedArray[GlUint]
   
   ShaderCompileDefect* = object of Defect
 
@@ -56,6 +61,7 @@ template makeOpenglObjectSeq(t, tobj, T, gen, del, newp) =
 makeOpenglObjectSeq Buffers, BuffersObj, GlUint, glGenBuffers, glDeleteBuffers, newBuffers
 makeOpenglObjectSeq VertexArrays, VertexArraysObj, GlUint, glGenVertexArrays, glDeleteVertexArrays, newVertexArrays
 makeOpenglObjectSeq Textures, TexturesObj, GlUint, glGenTextures, glDeleteTextures, newTextures
+makeOpenglObjectSeq FrameBuffers, FrameBuffersObj, GlUint, glGenFrameBuffers, glDeleteFrameBuffers, newFrameBuffers
 {.pop.}
 
 proc `[]`*(x: Textures, i: enum): GlUint =
@@ -77,7 +83,13 @@ template withVertexArray*(vao: GlUint, body) =
   block: body
   glBindVertexArray(0)
 
-proc loadTexture*(obj: GlUint, img: Image[ColorRGBAU]) =
+proc loadTexture*(obj: GlUint, img: imageman.Image[ColorRGBAU]) =
+  glBindTexture(GlTexture2d, obj)
+  glTexImage2D(GlTexture2d, 0, GlRgba.GLint, img.width.GLsizei, img.height.GLsizei, 0, GlRgba, GlUnsignedByte, img.data[0].unsafeaddr)
+  glGenerateMipmap(GlTexture2d)
+  glBindTexture(GlTexture2d, 0)
+
+proc loadTexture*(obj: GlUint, img: pixie.Image) =
   glBindTexture(GlTexture2d, obj)
   glTexImage2D(GlTexture2d, 0, GlRgba.GLint, img.width.GLsizei, img.height.GLsizei, 0, GlRgba, GlUnsignedByte, img.data[0].unsafeaddr)
   glGenerateMipmap(GlTexture2d)

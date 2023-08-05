@@ -1,11 +1,16 @@
-import siwin, fusion/matching
-import uibase
+import siwin
+import uibase, style
 
 type
   DmusicWindow* = ref object of Uiobj
     edge: int  # 8 edges (1..8), from top to top-left 
     borderWidth: float32
+    style: Style = Style()
+    windowFrame {.cursor.}: UiRect
 
+
+proc updateStyle*(this: DmusicWindow) =
+  this.windowFrame.color = this.style.backgroundColor
 
 method recieve*(this: DmusicWindow, signal: Signal) =
   case signal
@@ -63,7 +68,11 @@ method recieve*(this: DmusicWindow, signal: Signal) =
       else:
         e.window.cursor = Cursor(kind: builtin, builtin: arrow)
         this.edge = 0
-        procCall this.super.recieve(signal)
+      procCall this.super.recieve(signal)
+  of of StyleChanged(style: @style):
+    this.style = style
+    this.updateStyle()
+    procCall this.super.recieve(signal)
 
   else:
     procCall this.super.recieve(signal)
@@ -74,14 +83,18 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
   result.siwinWindow.minSize = ivec2(60, 60)
 
   result.makeLayout:
-    - UiRectShadow(radius: 7.5, blurRadius: 10, color: vec4(0, 0, 0, 0.3)):
+    - UiRectShadow(radius: 7.5, blurRadius: 10, color: color(0, 0, 0, 0.3)):
       this.anchors.fill(parent)
 
-    - DmusicWindow(borderWidth: 10):
+    - DmusicWindow(borderWidth: 10) as dmWin:
       this.anchors.fill(parent)
 
-      - UiRect(color: vec4(32/255, 32/255, 32/255, 1), radius: 7.5):
+      - UiClipRect(radius: 7.5):
         this.anchors.fill(parent, 10)
-        
-        - rootObj:
+
+        - UiRect():
           this.anchors.fill(parent)
+          dmWin.windowFrame = this
+          
+          - rootObj:
+            this.anchors.fill(parent)
