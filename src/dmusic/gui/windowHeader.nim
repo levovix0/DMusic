@@ -5,29 +5,54 @@ type
   Button = ref object of UiRect
     action: proc()
     icon: UiIcon
-    style: Style = Style()
+    style: Style
+    pressed: bool
+    accent: bool
 
   WindowHeader* = ref object of UiRect
-    style: Style = Style()
+    style: Style
 
 
 proc updateColor(this: Button) =
   this.color =
-    if this.hovered: this.style.hoverButtonBackgroundColor
-    else: this.style.buttonBackgroundColor
+    if this.pressed:
+      if this.accent: this.style.accentPressedButtonBackgroundColor
+      else: this.style.pressedButtonBackgroundColor
+    elif this.hovered:
+      if this.accent: this.style.accentHoverButtonBackgroundColor
+      else: this.style.hoverButtonBackgroundColor
+    else:
+      if this.accent: this.style.accentButtonBackgroundColor
+      else: this.style.buttonBackgroundColor
   this.icon.color = this.style.color
+  redraw this.parentWindow
 
 method recieve(this: Button, signal: Signal) =
   case signal
   of of HoveredChanged():
     this.updateColor()
-    redraw this.parentWindow
+    this.pressed = false
+  of of WindowEvent(event: @ea is of MouseButtonEvent(), handled: false):
+    let e = (ref MouseButtonEvent)ea
+    if not e.generated:
+      if e.pressed and e.button == MouseButton.left:
+        this.pressed = true
+        signal.WindowEvent.handled = true
+        this.updateColor()
+      elif not e.pressed and e.button == MouseButton.left and this.pressed:
+        this.action()
+        this.pressed = false
+        signal.WindowEvent.handled = true
+        this.updateColor()
+    else:
+      this.pressed = false
+      this.updateColor()
+
+
   of of StyleChanged(style: @style):
     this.style = style
     this.updateColor()
-    redraw this.parentWindow
-  of of WindowEvent(event: @ea of ClickEvent(), handled: false):
-    this.action()
+
   procCall this.super.recieve(signal)
 
 
@@ -47,9 +72,9 @@ proc updateColor(this: WindowHeader) =
 
 method recieve*(this: WindowHeader, signal: Signal) =
   case signal
-  of of WindowEvent(event: @ea is of MouseMoveEvent()):
+  of of WindowEvent(event: @ea is of MouseMoveEvent(), fake: false):
     let e = (ref MouseMoveEvent)ea
-    if MouseButton.left in e.window.mouse.pressed:
+    if this.hovered and MouseButton.left in e.window.mouse.pressed:
       signal.WindowEvent.handled = true
       e.window.startInteractiveMove()
     
@@ -77,18 +102,18 @@ proc newWindowHeader*(): WindowHeader =
   result = WindowHeader()
   result.makeLayout:
     - newButton(static(staticRead "../../../resources/title/close.svg")) as close:
-      this.updateColor()
       this.anchors.right = parent.right
+      this.accent = true
       this.action = proc =
         close this.parentWindow
+    
     - newButton(static(staticRead "../../../resources/title/maximize.svg")) as maximize:
-      this.updateColor()
       this.anchors.right = close.left
       this.action = proc =
         let win = this.parentWindow
         win.maximized = not win.maximized
+    
     - newButton(static(staticRead "../../../resources/title/minimize.svg")) as minimize:
-      this.updateColor()
       this.anchors.right = maximize.left
       this.action = proc =
         this.parentWindow.minimized = true

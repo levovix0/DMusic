@@ -6,6 +6,10 @@ type
     backgroundColor*: Col
     buttonBackgroundColor*: Col
     hoverButtonBackgroundColor*: Col
+    pressedButtonBackgroundColor*: Col
+    accentButtonBackgroundColor*: Col
+    accentHoverButtonBackgroundColor*: Col
+    accentPressedButtonBackgroundColor*: Col
   
   FullStyle* = object
     window*, header*: Style

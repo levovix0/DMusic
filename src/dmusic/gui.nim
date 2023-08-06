@@ -1,7 +1,9 @@
-import times, asyncdispatch, strutils, macros
+import times, asyncdispatch, strutils, macros, std/importutils, heapqueue, deques, selectors
 import siwin
 import ./[configuration, utils, yandexMusic]
 import ./gui/[uibase, window, windowHeader, style, globalShortcut]
+
+privateAccess PDispatcher  # to check if not empty (overthise it will spam error logs)
 
 
 proc gui*: string =
@@ -38,9 +40,14 @@ proc gui*: string =
     win.siwinWindow.icon = (icon.data.toBgrx.toOpenArray(0, icon.data.high), ivec2(icon.width.int32, icon.height.int32))
 
   proc makeStyle(darkTheme, darkHeader: bool): FullStyle =
+    let darkHeader = darkTheme or darkHeader
     macro c(g: static string): Col =
-      let c = g.parseHexInt.byte
-      newCall(bindSym"color", newCall(bindSym"rgbx", newLit c, newLit c, newLit c, newLit 255))
+      if g.len == 2: 
+        let c = g.parseHexInt.byte
+        newCall(bindSym"color", newCall(bindSym"rgbx", newLit c, newLit c, newLit c, newLit 255))
+      else:
+        let c = g.parseHtmlColor
+        newCall(bindSym"color", newLit c.r, newLit c.g, newLit c.b, newLit c.a)
     
     FullStyle(
       window: Style(
@@ -50,9 +57,6 @@ proc gui*: string =
         backgroundColor:
           if darkTheme: c"20"
           else: c"ff",
-        # buttonBackgroundColor:
-        #   if darkTheme: c"20"
-        #   else: c"ff",
         hoverButtonBackgroundColor:
           if darkTheme: c"30"
           else: c"f0",
@@ -70,6 +74,14 @@ proc gui*: string =
         hoverButtonBackgroundColor:
           if darkHeader: c"30"
           else: c"f0",
+        pressedButtonBackgroundColor:
+          if darkHeader: c"26"
+          else: c"d0",
+        accentButtonBackgroundColor:
+          if darkHeader: c"20"
+          else: c"ff",
+        accentHoverButtonBackgroundColor: c"#E03649",
+        accentPressedButtonBackgroundColor: c"#C11B2D",
       )
     )
 
@@ -96,12 +108,14 @@ proc gui*: string =
   win.siwinWindow.firstStep(makeVisible=true)
 
   while win.siwinWindow.opened:
-    try: poll()
-    except CatchableError:
-      logger.log(lvlError, "Error during async operation: ", getCurrentExceptionMsg())
-    except Defect:
-      logger.log(lvlError, "Defect during async operation: ", getCurrentExceptionMsg())
-      raise
+    let p = getGlobalDispatcher()
+    if not(p.selector.isEmpty() and p.timers.len == 0 and p.callbacks.len == 0):
+      try: poll()
+      except CatchableError:
+        logger.log(lvlError, "Error during async operation: ", getCurrentExceptionMsg())
+      except Defect:
+        logger.log(lvlError, "Defect during async operation: ", getCurrentExceptionMsg())
+        raise
     
     garbageCollect coverCache
 

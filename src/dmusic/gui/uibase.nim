@@ -26,6 +26,12 @@ type
     parentToChild
     childToParent
   
+  Visibility* = enum
+    visible
+    hidden
+    hiddenTree
+    collapsed
+  
   Uiobj* = ref object of RootObj
     parent* {.cursor.}: Uiobj
       ## parent of this object, that must have this object as child
@@ -36,6 +42,8 @@ type
     box*: Rect
     anchors*: Anchors
     hovered*: bool
+    visibility*: Visibility
+    cursor*: ref Cursor
   
   
   Signal* = ref object of RootObj
@@ -87,11 +95,15 @@ type
   WindowEvent* = ref object of Signal
     event*: ref AnyWindowEvent
     handled*: bool
+    fake*: bool
   
   HoveredChanged* = ref object of Signal
 
   SubtreeSignal* = ref object of Signal
     ## signal sends to all childs recursively
+  
+  GetActiveCursor* = ref object of SubtreeSignal
+    cursor*: ref Cursor
   
   #--- Basic Components ---
 
@@ -124,7 +136,6 @@ type
   
 
   UiClipRect* = ref object of Uiobj
-    enabled*: bool = true
     radius*: float32
     angle*: float32
     fbo: FrameBuffers
@@ -144,15 +155,21 @@ proc color*(v: Vec4): Col =
 
 
 method draw*(obj: Uiobj, ctx: DrawContext) {.base.} =
-  for x in obj.childs: draw(x, ctx)
+  if obj.visibility notin {hiddenTree, collapsed}:
+    for x in obj.childs: draw(x, ctx)
 
 
-proc parentWindow*(obj: Uiobj): Window =
+proc parentUiWindow*(obj: Uiobj): UiWindow =
   var obj {.cursor.} = obj
   while true:
     if obj == nil: return nil
-    if obj of UiWindow: return obj.UiWindow.siwinWindow
+    if obj of UiWindow: return obj.UiWindow
     obj = obj.parent
+
+proc parentWindow*(obj: Uiobj): Window =
+  let uiWin = obj.parentUiWindow
+  if uiWin != nil: uiWin.siwinWindow
+  else: nil
 
 
 proc posToLocal*(pos: Vec2, obj: Uiobj): Vec2 =
@@ -293,7 +310,7 @@ proc startReposition*(obj: Uiobj) =
   if startRepositionLock: return  # avoid recursion
   startRepositionLock = true
   try:
-    obj.recieve(WindowEvent(event: (ref MouseMoveEvent)(window: window, pos: window.mouse.pos)))  # emulate mouse move to update hovers
+    obj.parentUiWindow.recieve(WindowEvent(event: (ref MouseMoveEvent)(window: window, pos: window.mouse.pos), fake: true))  # emulate mouse move to update hovers
   finally:
     startRepositionLock = false
 
@@ -613,27 +630,31 @@ proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
 
 
 method draw*(rect: UiRect, ctx: DrawContext) =
-  ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, rect.color.a != 1 or rect.radius != 0, rect.angle)
+  if rect.visibility == visible:
+    ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, rect.color.a != 1 or rect.radius != 0, rect.angle)
   procCall draw(rect.Uiobj, ctx)
 
 
 method draw*(img: UiImage, ctx: DrawContext) =
-  ctx.drawImage(img.box.xy.posToGlobal(img.parent), img.box.wh, img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
+  if img.visibility == visible:
+    ctx.drawImage(img.box.xy.posToGlobal(img.parent), img.box.wh, img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
   procCall draw(img.Uiobj, ctx)
 
 
 method draw*(ico: UiIcon, ctx: DrawContext) =
-  ctx.drawIcon(ico.box.xy.posToGlobal(ico.parent), ico.box.wh, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
+  if ico.visibility == visible:
+    ctx.drawIcon(ico.box.xy.posToGlobal(ico.parent), ico.box.wh, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
   procCall draw(ico.Uiobj, ctx)
 
 
 method draw*(rect: UiRectShadow, ctx: DrawContext) =
-  ctx.drawShadowRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, true, rect.blurRadius, rect.angle)
+  if rect.visibility == visible:
+    ctx.drawShadowRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, true, rect.blurRadius, rect.angle)
   procCall draw(rect.Uiobj, ctx)
 
 
 method draw*(rect: UiClipRect, ctx: DrawContext) =
-  if rect.enabled:
+  if rect.visibility == visible:
     if rect.fbo == nil: rect.fbo = newFrameBuffers(1)
 
     let size = ivec2(rect.box.w.round.int32, rect.box.h.round.int32)
@@ -642,6 +663,7 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
     glBindFramebuffer(GlFramebuffer, rect.fbo[0])
     
     if rect.prevSize != size or rect.tex == nil:
+      rect.prevSize = size
       rect.tex = newTextures(1)
       glBindTexture(GlTexture2d, rect.tex[0])
       glTexImage2D(GlTexture2d, 0, GlRgba.Glint, size.x, size.y, 0, GlRgba, GlUnsignedByte, nil)
@@ -694,8 +716,11 @@ method recieve*(this: UiWindow, signal: Signal) =
     this.ctx.updateSizeRender(e.size)
     startReposition this
 
-  if signal of WindowEvent and signal.WindowEvent.event of RenderEvent:
+  elif signal of WindowEvent and signal.WindowEvent.event of RenderEvent:
     draw(this, this.ctx)
+
+  elif signal of WindowEvent and signal.WindowEvent.event of FocusChangedEvent:
+    redraw this.siwinWindow
 
   procCall this.super.recieve(signal)
 
@@ -714,6 +739,7 @@ proc setupEventsHandling*(win: UiWindow) =
 
     onFocusChanged:       proc(e: FocusChangedEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
     onFullscreenChanged:  proc(e: FullscreenChangedEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onMaximizedChanged:   proc(e: MaximizedChangedEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
 
     onMouseMove:    proc(e: MouseMoveEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
     onMouseButton:  proc(e: MouseButtonEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
