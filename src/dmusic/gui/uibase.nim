@@ -22,32 +22,49 @@ type
   Anchors* = object
     left*, right*, top*, bottom*, centerX*, centerY*: Anchor
   
-  RepopsitionDirection* = enum
-    parentToChild
-    childToParent
-  
   Visibility* = enum
     visible
     hidden
     hiddenTree
     collapsed
   
-  Uiobj* = ref object of RootObj
-    parent* {.cursor.}: Uiobj
-      ## parent of this object, that must have this object as child
-      ## note: object can have no parent
-    childs*: seq[owned(Uiobj)]
-      ## childs that should be deleted when this object is deleted
-    globalTransform*: bool
-    box*: Rect
-    anchors*: Anchors
-    hovered*: bool
-    visibility*: Visibility
-    cursor*: ref Cursor
-  
   
   Signal* = ref object of RootObj
     sender* {.cursor.}: Uiobj
+
+  EventBase = object
+    connected: seq[(Uiobj, proc(c: Uiobj, v: int))]
+
+  Event*[T] = object
+    ## simple signal event system
+    ## only components can be connected to signals
+    ## one signal can be connected to multiple components
+    ## one component can connect to multiple signals
+    ## one signal can be connected to one component only once
+    ## connection can be removed
+    connected*: seq[(Uiobj, proc(c: Uiobj, v: T))]
+  
+  Property*[T] = object
+    v: T
+    changed*: Event[T]
+  
+  
+  Uiobj* {.acyclic.} = ref object of RootObj
+    parent* {.cursor.}: Uiobj
+      ## parent of this object, that must have this object as child
+      ## note: object can have no parent
+    connected*: seq[ptr EventBase]
+    childs*: seq[owned(Uiobj)]
+      ## childs that should be deleted when this object is deleted
+    initialized*: bool
+    globalTransform*: Property[bool]
+    box*: Rect
+    anchors*: Anchors
+    hovered*: Property[bool]
+    visibility*: Property[Visibility]
+    cursor*: ref Cursor
+    clicked*: Event[ClickEvent]
+    mouseButton*: Event[MouseButtonEvent]
 
 
   DrawContext* = ref object
@@ -89,55 +106,62 @@ type
     px, wh: Vec2
     frameBufferHierarchy: seq[tuple[fbo: GlUint, size: IVec2]]
 
-  
+
+proc property*[T](v: T): Property[T] =
+  Property[T](v: v)
+
+
+type 
   #--- Signals ---
+
+  SubtreeSignal* = ref object of Signal
+    ## signal sends to all childs recursively (by default)
+  
+  AttachedToWindowSignal* = ref object of SubtreeSignal
+    window*: UiWindow
   
   WindowEvent* = ref object of Signal
     event*: ref AnyWindowEvent
     handled*: bool
     fake*: bool
   
-  HoveredChanged* = ref object of Signal
-
-  SubtreeSignal* = ref object of Signal
-    ## signal sends to all childs recursively
-  
   GetActiveCursor* = ref object of SubtreeSignal
     cursor*: ref Cursor
   
+  
   #--- Basic Components ---
-
 
   UiWindow* = ref object of Uiobj
     siwinWindow*: Window
     ctx*: DrawContext
     clearColor*: Col
+    onTick*: Event[TickEvent]
 
 
   UiRect* = ref object of Uiobj
-    color*: Col = color(0, 0, 0)
-    radius*: float32
-    angle*: float32
+    color*: Property[Col] = color(0, 0, 0).property
+    radius*: Property[float32]
+    angle*: Property[float32]
   
 
   UiImage* = ref object of Uiobj
-    radius*: float32
-    blend*: bool = true
+    radius*: Property[float32]
+    blend*: Property[bool] = true.property
     tex: Textures
-    imageWh*: IVec2
-    angle*: float32
+    imageWh*: Property[IVec2]
+    angle*: Property[float32]
 
   UiIcon* = ref object of UiImage
-    color*: Col = color(0, 0, 0)
-  
+    color*: Property[Col] = color(0, 0, 0).property
+
 
   UiRectShadow* = ref object of UiRect
-    blurRadius*: float32
+    blurRadius*: Property[float32]
   
 
   UiClipRect* = ref object of Uiobj
-    radius*: float32
-    angle*: float32
+    radius*: Property[float32]
+    angle*: Property[float32]
     fbo: FrameBuffers
     tex: Textures
     prevSize: IVec2
@@ -150,8 +174,87 @@ proc color*(v: Vec4): Col =
   Col(r: v.x, g: v.y, b: v.z, a: v.w)
 
 
-#----- Uiobj -----
+#* ------------- Event ------------- *#
 
+proc `=destroy`*[T](s: Event[T]) =
+  for (c, _) in s.connected:
+    for i, x in c.connected:
+      if x == cast[ptr EventBase](s.addr):
+        c.connected.del i
+        break
+
+
+proc disconnect*[T](s: var Event[T]) =
+  for (c, _) in s.connected:
+    for i, x in c.connected:
+      if x == cast[ptr EventBase](s.addr):
+        c.connected.del i
+        break
+  s.connected = @[]
+
+proc disconnect*(c: Event) =
+  for s in c.connected:
+    for i, x in s.connected:
+      if x[0] == c:
+        s.connected.del i
+        break
+  c.connected = @[]
+
+proc disconnect*[T](s: var Event[T], c: Uiobj) =
+  for i, x in c.connected:
+    if x == cast[ptr EventBase](s.addr):
+      c.connected.del i
+      break
+  for i, x in s.connected:
+    if x[0] == c:
+      s.connected.del i
+      break
+
+
+proc emit*[T](s: Event[T], v: T) =
+  let connected = s.connected
+  for (c, f) in connected:
+    f(c, v)
+
+
+proc connect*[T](s: var Event[T], c: Uiobj, f: proc(c: Uiobj, v: T)) =
+  if cast[ptr EventBase](s.addr) in c.connected: return
+  s.connected.add (c, f)
+  c.connected.add cast[ptr EventBase](s.addr)
+
+template connectTo*[T; O: Uiobj](s: var Event[T], obj: O, body: untyped) =
+  connect s, obj, proc(c: Uiobj, e {.inject.}: T) =
+    let this {.cursor, inject, used.} = cast[O](c)
+    body
+
+
+#* ------------- Property ------------- *#
+
+proc `val=`*[T](p: var Property[T], v: T) =
+  ## note: p.changed will be emitted even if new value is same as previous value
+  p.v = v
+  emit p.changed, p.v
+
+proc `[]=`*[T](p: var Property[T], v: T) = p.val = v
+
+proc val*[T](p: Property[T]): T = p.v
+proc `[]`*[T](p: Property[T]): T = p.v
+
+proc unsafeVal*[T](p: var Property[T]): var T = p.v
+proc `{}`*[T](p: Property[T]): T = p.v
+
+proc `unsafeVal=`*[T](p: var Property[T], v: T) =
+  ## same as val=, but does not emit p.changed
+  p.v = v
+
+proc `{}=`*[T](p: var Property[T], v: T) = p.unsafeVal = v
+
+converter toValue*[T](p: Property[T]): T = p[]
+
+proc `=copy`*[T](p: var Property[T], v: Property[T]) {.error.}
+
+
+#* ------------- Uiobj ------------- *#
 
 
 method draw*(obj: Uiobj, ctx: DrawContext) {.base.} =
@@ -196,38 +299,37 @@ proc posToObject*(fromObj, toObj: Uiobj, pos: Vec2): Vec2 =
 
 
 method recieve*(obj: Uiobj, signal: Signal) {.base.} =
-  if signal of WindowEvent:
-    template handlePositionalEvent(ev) =
+  if obj.visibility == collapsed:
+    if obj.hovered:
+      obj.hovered[] = false
+  
+  elif signal of WindowEvent:
+    template handlePositionalEvent(ev, ev2) =
       let e {.cursor.} = (ref ev)signal.WindowEvent.event
+      let pos = obj.box.xy.posToGlobal(obj.parent)
+      if e.window.mouse.pos.x.float32 in pos.x..(pos.x + obj.box.w) and e.window.mouse.pos.y.float32 in pos.y..(pos.y + obj.box.h):
+        obj.ev2.emit e[]
       for x in obj.childs.reversed:
-        let pos = x.box.xy.posToGlobal(x.parent)
-        if e.window.mouse.pos.x.float32 in pos.x..(pos.x + x.box.w) and e.window.mouse.pos.y.float32 in pos.y..(pos.y + x.box.h):
-          x.recieve(signal)
+        x.recieve(signal)
     
     if signal of WindowEvent and signal.WindowEvent.event of MouseButtonEvent:
-      handlePositionalEvent MouseButtonEvent
+      handlePositionalEvent MouseButtonEvent, mouseButton
     
     elif signal of WindowEvent and signal.WindowEvent.event of ClickEvent:
-      handlePositionalEvent ClickEvent
+      handlePositionalEvent ClickEvent, clicked
     
     elif signal of WindowEvent and signal.WindowEvent.event of MouseMoveEvent:
       let e {.cursor.} = (ref MouseMoveEvent)signal.WindowEvent.event
       let pos = obj.box.xy.posToGlobal(obj.parent)
       if e.pos.x.float32 in pos.x..(pos.x + obj.box.w) and e.pos.y.float32 in pos.y..(pos.y + obj.box.h):
         if not obj.hovered:
-          obj.hovered = true
-          obj.recieve(HoveredChanged(sender: obj))
+          obj.hovered[] = true
       else:
         if obj.hovered:
-          obj.hovered = false
-          obj.recieve(HoveredChanged(sender: obj))
+          obj.hovered[] = false
 
-      for x in obj.childs:
-        x.recieve(signal)
-
-    else:
-      for x in obj.childs:
-        x.recieve(signal)
+    for x in obj.childs:
+      x.recieve(signal)
 
   if signal of SubtreeSignal:
     for x in obj.childs:
@@ -238,26 +340,54 @@ proc pos*(anchor: Anchor, isY: bool): Vec2 =
   assert anchor.obj != nil
   let p = case anchor.offsetFrom
   of start:
-    anchor.offset
+    if isY:
+      if anchor.obj.visibility == collapsed and anchor.obj.anchors.top.obj == nil and anchor.obj.anchors.bottom.obj != nil:
+        anchor.obj.box.h + anchor.offset
+      else:
+        anchor.offset
+    else:
+      if anchor.obj.visibility == collapsed and anchor.obj.anchors.left.obj == nil and anchor.obj.anchors.right.obj != nil:
+        anchor.obj.box.w + anchor.offset
+      else:
+        anchor.offset
   of `end`:
     if isY:
-      anchor.obj.box.h - anchor.offset
+      if anchor.obj.visibility == collapsed and anchor.obj.anchors.top.obj != nil and anchor.obj.anchors.bottom.obj == nil:
+        anchor.offset
+      else:
+        anchor.obj.box.h - anchor.offset
     else:
-      anchor.obj.box.w - anchor.offset
+      if anchor.obj.visibility == collapsed and anchor.obj.anchors.left.obj != nil and anchor.obj.anchors.right.obj == nil:
+        anchor.offset
+      else:
+        anchor.obj.box.w - anchor.offset
   of center:
     if isY:
-      anchor.obj.box.h / 2 - anchor.offset
+      if anchor.obj.visibility == collapsed:
+        if anchor.obj.anchors.top.obj == nil and anchor.obj.anchors.bottom.obj != nil:
+          anchor.obj.box.h + anchor.offset
+        else:
+          anchor.offset
+      else:
+        anchor.obj.box.h / 2 + anchor.offset
     else:
-      anchor.obj.box.w / 2 - anchor.offset
+      if anchor.obj.visibility == collapsed:
+        if anchor.obj.anchors.left.obj == nil and anchor.obj.anchors.right.obj != nil:
+          anchor.obj.box.w + anchor.offset
+        else:
+          anchor.offset
+      else:
+        anchor.obj.box.w / 2 + anchor.offset
+
   if isY: vec2(0, p).posToGlobal(anchor.obj)
   else: vec2(p, 0).posToGlobal(anchor.obj)
 
 #--- Reposition ---
 
-method reposition*(obj: Uiobj, direction: RepopsitionDirection = parentToChild) {.base.}
+method reposition*(obj: Uiobj) {.base.}
 
-proc broadcastReposition*(obj: Uiobj, direction: RepopsitionDirection) =
-  for x in obj.childs: reposition(x, direction)
+proc broadcastReposition*(obj: Uiobj) =
+  for x in obj.childs: reposition(x)
 
 proc anchorReposition*(obj: Uiobj) =
   # x and w
@@ -299,20 +429,39 @@ proc center*(obj: Uiobj, margin: float32 = 0): Anchor =
   Anchor(obj: obj, offsetFrom: center, offset: margin)
 
 
-method reposition*(obj: Uiobj, direction: RepopsitionDirection = parentToChild) {.base.} =
+method reposition*(obj: Uiobj) {.base.} =
   anchorReposition obj
-  broadcastReposition obj, direction
+  broadcastReposition obj
 
 var startRepositionLock {.threadvar.}: bool
 proc startReposition*(obj: Uiobj) =
-  obj.reposition(parentToChild)
+  if obj == nil: return
+  let win = obj.parentWindow
+  if win != nil:
+    redraw obj.parentWindow
+  obj.reposition()
   let window = obj.parentWindow
   if startRepositionLock: return  # avoid recursion
   startRepositionLock = true
   try:
-    obj.parentUiWindow.recieve(WindowEvent(event: (ref MouseMoveEvent)(window: window, pos: window.mouse.pos), fake: true))  # emulate mouse move to update hovers
+    if win != nil:
+      obj.parentUiWindow.recieve(WindowEvent(event: (ref MouseMoveEvent)(window: window, pos: window.mouse.pos), fake: true))  # emulate mouse move to update hovers
   finally:
     startRepositionLock = false
+
+
+method init*(obj: Uiobj) {.base.} =
+  obj.visibility.changed.connectTo obj:
+    if e == collapsed:
+      if this.hovered:
+        this.hovered[] = false
+    obj.parentUiWindow.startReposition()
+
+  obj.initialized = true
+
+proc initIfNeeded*(obj: Uiobj) =
+  if obj.initialized: return
+  obj.init
 
 #--- Anchors ---
 
@@ -619,19 +768,19 @@ proc drawShadowRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius:
 proc `image=`*(obj: UiImage, img: pixie.Image) =
   obj.tex = newTextures(1)
   loadTexture(obj.tex[0], img)
-  obj.imageWh = ivec2(img.width.int32, img.height.int32)
+  obj.imageWh[] = ivec2(img.width.int32, img.height.int32)
   obj.box.wh = obj.imageWh.vec2
 
 proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
   obj.tex = newTextures(1)
   loadTexture(obj.tex[0], img)
-  obj.imageWh = ivec2(img.width.int32, img.height.int32)
+  obj.imageWh[] = ivec2(img.width.int32, img.height.int32)
   obj.box.wh = obj.imageWh.vec2
 
 
 method draw*(rect: UiRect, ctx: DrawContext) =
   if rect.visibility == visible:
-    ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, rect.color.a != 1 or rect.radius != 0, rect.angle)
+    ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, rect.color[].a != 1 or rect.radius != 0, rect.angle)
   procCall draw(rect.Uiobj, ctx)
 
 
@@ -679,16 +828,16 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
     glViewport 0, 0, size.x.GLsizei, size.y.GLsizei
     ctx.updateSizeRender(size)
 
-    let gt = rect.globalTransform
+    let gt = rect.globalTransform[]
     let pos = rect.box.xy.posToGlobal(rect.parent)
     try:
-      rect.globalTransform = true
+      rect.globalTransform{} = true
       rect.box.xy = vec2()
       procCall draw(rect.Uiobj, ctx)
     
     finally:
       ctx.frameBufferHierarchy.del ctx.frameBufferHierarchy.high
-      rect.globalTransform = gt
+      rect.globalTransform{} = gt
       rect.box.xy = pos
 
       glBindFramebuffer(GlFramebuffer, if ctx.frameBufferHierarchy.len == 0: 0.GlUint else: ctx.frameBufferHierarchy[^1].fbo)
@@ -733,7 +882,7 @@ proc setupEventsHandling*(win: UiWindow) =
   win.siwinWindow.eventsHandler = WindowEventsHandler(
     onClose:       proc(e: CloseEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
     onRender:      proc(e: RenderEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
-    onTick:        proc(e: TickEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
+    onTick:        proc(e: TickEvent) = win.onTick.emit(e),
     onResize:      proc(e: ResizeEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
     onWindowMove:  proc(e: WindowMoveEvent) = win.recieve(WindowEvent(sender: win, event: e.toRef)),
 
@@ -763,6 +912,30 @@ proc newUiWindow*(siwinWindow: Window): UiWindow =
 
 
 macro makeLayout*(obj: Uiobj, body: untyped) =
+  ## tip: use a.makeLauyout(-soMeFuN()) instead of (let b = soMeFuN(); a.addChild(b); init b)
+  runnableExamples:
+    let a = UiRect()
+    let b = UiRect()
+    let c = UiRect()
+    a.makeLayout:
+      - UiRectShadow(radius: 7.5, blurRadius: 10, color: color(0, 0, 0, 0.3)) as shadowEfect
+
+      - UiRect():
+        this.anchors.fill(parent)
+        echo shadowEffect.radius
+        doassert parent == this.parent
+
+        - UiClipRect(radius: 7.5):
+          this.anchors.fill(parent, 10)
+          doassert root == this.parent.parent
+
+          - b
+          - UiRect()
+
+      - c:
+        this.anchors.fill(parent)
+
+
   proc impl(parent: NimNode, obj: NimNode, body: NimNode): NimNode =
     buildAst:
       blockStmt:
@@ -771,6 +944,7 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
           letSection:
             identDefs(pragmaExpr(ident "parent", pragma ident "used"), empty(), parent)
             identDefs(pragmaExpr(ident "this", pragma ident "used"), empty(), obj)
+          call(bindSym"initIfNeeded", ident "this")
           
           proc checkCtor(ctor: NimNode): bool =
             if ctor == ident "root": warning("adding root to itself causes recursion", ctor)
@@ -781,7 +955,11 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
             case x
             of Prefix[Ident(strVal: "-"), @ctor]:
               discard checkCtor ctor
-              call(bindSym"addChild", ident "this", ctor)
+              let s = genSym(nskLet)
+              letSection:
+                identDefs(s, empty(), ctor)
+              call(bindSym"addChild", ident "this", s)
+              call(bindSym"initIfNeeded", s)
             of Prefix[Ident(strVal: "-"), @ctor, @body is StmtList()]:
               discard checkCtor ctor
               let s = genSym(nskLet)
@@ -794,6 +972,7 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
               letSection:
                 identDefs(s, empty(), ctor)
               call(bindSym"addChild", ident "this", s)
+              call(bindSym"initIfNeeded", s)
             of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s, @body is StmtList()]:
               discard checkCtor ctor
               letSection:
@@ -808,4 +987,5 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
       stmtList:
         letSection:
           identDefs(pragmaExpr(ident "root", pragma ident "used"), empty(), obj)
-        impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", body)
+        impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", if body.kind == nnkStmtList: body else: newStmtList(body))
+

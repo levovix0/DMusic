@@ -1,6 +1,7 @@
 import json, os, math, macros, options, logging
 import fusion/matching, fusion/astdsl, localize
 import ./utils
+import gui/uibase
 export localize
 export logging except error, warning, info
 
@@ -52,7 +53,7 @@ proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts: var 
     let notify = ident("notify" & ($name).capitalizeFirst & "Changed")
 
     stmts.add quote do:
-      var `notify`*: proc() = proc() = discard
+      var `notify`*: Event[`typ`]
     
     stmts.add: buildAst(procDef):
       postfix i"*", name
@@ -92,7 +93,7 @@ proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts: var 
             newLit $aname
           call i"%*", sethook
         call i"save", i"config"
-        call notify
+        call s"emit", notify, i"v"
 
   for x in body:
     case x
@@ -122,9 +123,6 @@ genconfig:
   string colorAccentLight "#FFA800"
 
   bool csd true
-
-  int width 1280
-  int height 720
   
   float volume 0.5 v.round(2).max(0).min(1)
   bool shuffle
@@ -147,6 +145,15 @@ genconfig:
     
     bool saveAllTracks false
     bool skipRadioDuplicates true
+  
+  window "Window":
+    int width 1280
+    int height 720
+    bool maximized false
+
+    bool closeButton true
+    bool maximizeButton true
+    bool minimizeButton true
 
 
 var logger* =

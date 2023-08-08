@@ -69,6 +69,9 @@ proc `[]`*(x: Textures, i: enum): GlUint =
     raise IndexDefect.newException("index " & $i & " out of range 0..<" & $x.len)
   x.obj[i.int]
 
+when defined(gcc):
+  {.passc: "-fcompare-debug-second".}  # seems like it hides warning about "passing flexieble array ABI changed in GCC 4.4"
+  # i don't care, gcc
 
 
 # -------- helpers --------

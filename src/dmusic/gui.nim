@@ -7,6 +7,8 @@ privateAccess PDispatcher  # to check if not empty (overthise it will spam error
 
 
 proc gui*: string =
+  globalLocale = (($config.language, ""), LocaleTable.default)
+  
   let root = Uiobj()
   let win = createWindow(root)
 
@@ -21,6 +23,14 @@ proc gui*: string =
       this.action = proc =
         config.darkHeader = not config.darkHeader
 
+    - globalShortcut({Key.a}):  # temporary
+      this.action = proc =
+        config.csd = not config.csd
+
+    - globalShortcut({Key.s}):  # temporary
+      this.action = proc =
+        config.window_maximizeButton = not config.window_maximizeButton
+
     - newWindowHeader():
       this.anchors.fillHorizontal(root)
       this.box.h = 40
@@ -30,14 +40,13 @@ proc gui*: string =
       this.image = app.decodeImage
 
 
-  notifyLanguageChanged &= proc() =
+  notifyLanguageChanged.connectTo win:
     globalLocale = (($config.language, ""), LocaleTable.default)
   
-  notifyCsdChanged &= proc() =
-    let icon =
-      when defined(windows): decodeImage(static(staticRead "../../resources/app.svg"))
-      else: decodeImage(static(staticRead "../../resources/app-papirus.svg"))
-    win.siwinWindow.icon = (icon.data.toBgrx.toOpenArray(0, icon.data.high), ivec2(icon.width.int32, icon.height.int32))
+  let icon =
+    when defined(windows): decodeImage(static(staticRead "../../resources/app.svg"))
+    else: decodeImage(static(staticRead "../../resources/app-papirus.svg"))
+  win.siwinWindow.icon = (icon.data.toBgrx.toOpenArray(0, icon.data.high), ivec2(icon.width.int32, icon.height.int32))
 
   proc makeStyle(darkTheme, darkHeader: bool): FullStyle =
     let darkHeader = darkTheme or darkHeader
@@ -48,7 +57,7 @@ proc gui*: string =
       else:
         let c = g.parseHtmlColor
         newCall(bindSym"color", newLit c.r, newLit c.g, newLit c.b, newLit c.a)
-    
+
     FullStyle(
       window: Style(
         color:
@@ -88,18 +97,17 @@ proc gui*: string =
 
   var style = makeStyle(config.darkTheme, config.darkHeader)
 
-  notifyDarkThemeChanged &= proc() =
+  notifyDarkThemeChanged.connectTo win:
     style = makeStyle(config.darkTheme, config.darkHeader)
     win.recieve(StyleChanged(sender: win, fullStyle: style, style: style.window))
     redraw win.siwinWindow
 
-  notifyDarkHeaderChanged &= proc() =
+  notifyDarkHeaderChanged.connectTo win:
     style = makeStyle(config.darkTheme, config.darkHeader)
     win.recieve(StyleChanged(sender: win, fullStyle: style, style: style.window))
     redraw win.siwinWindow
   
-  notifyLanguageChanged()
-  notifyCsdChanged()
+  notifyLanguageChanged.emit(config.language)
   win.recieve(StyleChanged(sender: win, fullStyle: style, style: style.window))
 
 

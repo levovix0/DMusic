@@ -1,4 +1,5 @@
 import siwin
+import ../configuration
 import uibase, style
 
 type
@@ -7,17 +8,33 @@ type
     borderWidth: float32
     style: Style = Style()
     windowFrame {.cursor.}: UiRect
-    shadowEfect {.cursor.}: UiRectShadow
+    shadowEffect {.cursor.}: UiRectShadow
     clipRect {.cursor.}: UiClipRect
     wasChangedCursor: bool
 
 
 proc updateStyle*(this: DmusicWindow) =
-  this.windowFrame.color = this.style.backgroundColor
+  this.windowFrame.color[] = this.style.backgroundColor
+
+proc updateChilds(this: DmusicWindow, initial = false) =
+  if this.parentWindow.maximized:
+    this.borderWidth = -1
+    this.clipRect.visibility[] = hidden
+    this.clipRect.anchors.fill(this, 0)
+    this.shadowEffect.visibility[] = hidden
+  else:
+    this.borderWidth = if config.csd: 10 else: -1
+    this.clipRect.visibility[] = if config.csd: Visibility.visible else: Visibility.hidden
+    this.clipRect.anchors.fill(this, if config.csd: 10 else: 0)
+    this.shadowEffect.visibility[] = if config.csd: Visibility.visible else: Visibility.hidden
+  if not initial:
+    this.parentUiWindow.startReposition()
+    redraw this.parentWindow
+
 
 method recieve*(this: DmusicWindow, signal: Signal) =
   case signal
-  of of WindowEvent(event: @ea is of MouseMoveEvent()):
+  of of WindowEvent(event: @ea is of MouseMoveEvent(), handled: false):
     let e = (ref MouseMoveEvent)ea
     if this.hovered and MouseButton.left in e.window.mouse.pressed:
       if this.edge != 0:
@@ -33,6 +50,7 @@ method recieve*(this: DmusicWindow, signal: Signal) =
           of 8: Edge.topLeft
           else: Edge.left
         )
+        signal.WindowEvent.handled = true
       else:
         procCall this.super.recieve(signal)
     else:
@@ -84,17 +102,13 @@ method recieve*(this: DmusicWindow, signal: Signal) =
 
   of of WindowEvent(event: @ea is of MaximizedChangedEvent()):
     let e = (ref MaximizedChangedEvent)ea
-    if e.maximized:
-      this.borderWidth = 0
-      this.clipRect.visibility = hidden
-      this.clipRect.anchors.fill(this, 0)
-      this.shadowEfect.visibility = hidden
-    else:
-      this.borderWidth = 10
-      this.clipRect.visibility = visible
-      this.clipRect.anchors.fill(this, 10)
-      this.shadowEfect.visibility = visible
-    reposition this.parent
+    updateChilds(this)
+    config.window_maximized = e.maximized
+  
+  of of WindowEvent(event: @ea is of ResizeEvent()):
+    let e = (ref ResizeEvent)ea
+    config.window_width = e.size.x
+    config.window_height = e.size.y
   
   of of StyleChanged(style: @style):
     this.style = style
@@ -106,20 +120,33 @@ method recieve*(this: DmusicWindow, signal: Signal) =
 
 
 proc createWindow*(rootObj: Uiobj): UiWindow =
-  result = newOpenglWindow(title="DMusic", transparent=true, frameless=true).newUiWindow
+  result = newOpenglWindow(
+    title = "DMusic",
+    size = ivec2(config.window_width.int32, config.window_height.int32),
+    transparent = true,
+    frameless = config.csd,
+  ).newUiWindow
   result.siwinWindow.minSize = ivec2(60, 60)
+  if config.window_maximized: result.siwinWindow.maximized = true
+
+  notifyCsdChanged.connectTo result:
+    this.siwinWindow.frameless = config.csd
+  
+  let dmWin = DmusicWindow()
 
   result.makeLayout:
-    - UiRectShadow(radius: 7.5, blurRadius: 10, color: color(0, 0, 0, 0.3)) as shadowEfect:
-      this.anchors.fill(parent)
+    - UiRectShadow() as shadowEfect:
+      this.radius{} = 7.5
+      this.blurRadius{} = 10
+      this.color{} = color(0, 0, 0, 0.3)
 
-    - DmusicWindow(borderWidth: 10) as dmWin:
+    - dmWin:
       this.anchors.fill(parent)
-      this.shadowEfect = shadowEfect
+      this.shadowEffect = shadowEfect
 
-      - UiClipRect(radius: 7.5):
-        this.anchors.fill(parent, 10)
+      - UiClipRect():
         dmWin.clipRect = this
+        this.radius{} = 7.5
 
         - UiRect():
           this.anchors.fill(parent)
@@ -127,3 +154,8 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
           
           - rootObj:
             this.anchors.fill(parent)
+  
+
+  notifyCsdChanged.connectTo dmWin:
+    updateChilds(dmWin)
+  updateChilds(dmWin, initial=true)
