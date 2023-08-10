@@ -84,12 +84,12 @@ proc `token=`*(client: Client, token: string) =
 
 proc newClient*(config = config): Client =
   if config.proxyServer != "":
-    result = newAsyncHttpClient("Yandex-Music-API", proxy=newProxy(config.proxyServer, config.proxyAuth))
+    result = newAsyncHttpClient("Yandex-Music-API", proxy=newProxy(config.proxyServer[], config.proxyAuth[]))
   else:
     result = newAsyncHttpClient("Yandex-Music-API")
   result.headers["X-Yandex-Music-Client"] = "YandexMusicAndroid/23020251"
-  result.token = config.ym_token
-  result.lang = case config.language
+  result.token = config.ym_token[]
+  result.lang = case config.language[]
     of ru: "ru"
     else: "en"
 

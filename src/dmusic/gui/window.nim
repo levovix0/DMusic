@@ -6,30 +6,24 @@ type
   DmusicWindow* = ref object of Uiobj
     edge: int  # 8 edges (1..8), from top to top-left 
     borderWidth: float32
-    style: Style = Style()
+    style: Property[Style]
     windowFrame {.cursor.}: UiRect
-    shadowEffect {.cursor.}: UiRectShadow
     clipRect {.cursor.}: UiClipRect
     wasChangedCursor: bool
 
-
-proc updateStyle*(this: DmusicWindow) =
-  this.windowFrame.color[] = this.style.backgroundColor
 
 proc updateChilds(this: DmusicWindow, initial = false) =
   if this.parentWindow.maximized:
     this.borderWidth = -1
     this.clipRect.visibility[] = hidden
     this.clipRect.anchors.fill(this, 0)
-    this.shadowEffect.visibility[] = hidden
   else:
     this.borderWidth = if config.csd: 10 else: -1
     this.clipRect.visibility[] = if config.csd: Visibility.visible else: Visibility.hidden
     this.clipRect.anchors.fill(this, if config.csd: 10 else: 0)
-    this.shadowEffect.visibility[] = if config.csd: Visibility.visible else: Visibility.hidden
   if not initial:
     this.parentUiWindow.startReposition()
-    redraw this.parentWindow
+    redraw this
 
 
 method recieve*(this: DmusicWindow, signal: Signal) =
@@ -103,16 +97,15 @@ method recieve*(this: DmusicWindow, signal: Signal) =
   of of WindowEvent(event: @ea is of MaximizedChangedEvent()):
     let e = (ref MaximizedChangedEvent)ea
     updateChilds(this)
-    config.window_maximized = e.maximized
+    config.window_maximized[] = e.maximized
   
   of of WindowEvent(event: @ea is of ResizeEvent()):
     let e = (ref ResizeEvent)ea
-    config.window_width = e.size.x
-    config.window_height = e.size.y
+    config.window_width[] = e.size.x
+    config.window_height[] = e.size.y
   
   of of StyleChanged(style: @style):
-    this.style = style
-    this.updateStyle()
+    this.style[] = style
     procCall this.super.recieve(signal)
 
   else:
@@ -122,40 +115,46 @@ method recieve*(this: DmusicWindow, signal: Signal) =
 proc createWindow*(rootObj: Uiobj): UiWindow =
   result = newOpenglWindow(
     title = "DMusic",
-    size = ivec2(config.window_width.int32, config.window_height.int32),
+    size = ivec2(config.window_width[].int32, config.window_height[].int32),
     transparent = true,
     frameless = config.csd,
   ).newUiWindow
   result.siwinWindow.minSize = ivec2(60, 60)
   if config.window_maximized: result.siwinWindow.maximized = true
 
-  notifyCsdChanged.connectTo result:
+  config.csd.changed.connectTo result:
     this.siwinWindow.frameless = config.csd
   
   let dmWin = DmusicWindow()
 
   result.makeLayout:
-    - UiRectShadow() as shadowEfect:
-      this.radius{} = 7.5
-      this.blurRadius{} = 10
-      this.color{} = color(0, 0, 0, 0.3)
+    - UiRectShadow():
+      this.anchors.fill(parent)
+      this.radius[] = 7.5
+      this.blurRadius[] = 10
+      this.color[] = color(0, 0, 0, 0.3)
+      this.binding visibility:
+        if config.window_maximized[]: Visibility.hidden
+        else:
+          if config.csd[]: Visibility.visible
+          else: Visibility.hidden
 
     - dmWin:
       this.anchors.fill(parent)
-      this.shadowEffect = shadowEfect
 
       - UiClipRect():
         dmWin.clipRect = this
-        this.radius{} = 7.5
+        this.radius[] = 7.5
 
         - UiRect():
           this.anchors.fill(parent)
           dmWin.windowFrame = this
+          this.binding color: (if dmWin.style[] != nil: dmWin.style[].backgroundColor else: color(0, 0, 0))
           
           - rootObj:
             this.anchors.fill(parent)
   
 
-  notifyCsdChanged.connectTo dmWin:
+  config.csd.changed.connectTo dmWin:
     updateChilds(dmWin)
   updateChilds(dmWin, initial=true)

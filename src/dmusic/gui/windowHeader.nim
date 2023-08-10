@@ -6,40 +6,23 @@ type
   Button = ref object of UiRect
     action: proc()
     icon: UiIcon
-    style: Style
-    pressed: bool
-    accent: bool
+    style: Property[Style]
+    pressed: Property[bool]
+    accent: Property[bool]
 
   WindowHeader* = ref object of UiRect
-    style: Style
-
-
-proc updateColor(this: Button) =
-  this.color[] =
-    if this.pressed:
-      if this.accent: this.style.accentPressedButtonBackgroundColor
-      else: this.style.pressedButtonBackgroundColor
-    elif this.hovered:
-      if this.accent: this.style.accentHoverButtonBackgroundColor
-      else: this.style.hoverButtonBackgroundColor
-    else:
-      if this.accent: this.style.accentButtonBackgroundColor
-      else: this.style.buttonBackgroundColor
-  this.icon.color[] = this.style.color
-  redraw this.parentWindow
+    style: Property[Style]
 
 
 method init(this: Button) =
   this.hovered.changed.connectTo this:
-    this.updateColor()
-    this.pressed = false
+    this.pressed[] = false
 
 
 method recieve(this: Button, signal: Signal) =
   case signal
   of of StyleChanged(style: @style):
-    this.style = style
-    this.updateColor()
+    this.style[] = style
   
   procCall this.super.recieve(signal)
   if this.visibility == collapsed: return
@@ -50,17 +33,14 @@ method recieve(this: Button, signal: Signal) =
     if this.hovered:
       if not e.generated:
         if e.pressed and e.button == MouseButton.left:
-          this.pressed = true
+          this.pressed[] = true
           signal.WindowEvent.handled = true
-          this.updateColor()
         elif not e.pressed and e.button == MouseButton.left and this.pressed:
           this.action()
-          this.pressed = false
+          this.pressed[] = false
           signal.WindowEvent.handled = true
-          this.updateColor()
       else:
-        this.pressed = false
-        this.updateColor()
+        this.pressed[] = false
 
 
 proc newButton*(icon: string): Button =
@@ -72,10 +52,32 @@ proc newButton*(icon: string): Button =
       this.anchors.centerIn parent
       root.icon = ico
 
+      this.binding color:
+        if parent.style[] != nil:
+          if parent.pressed[]:
+            if parent.accent[]: parent.style[].accentButton.pressedColor
+            else: parent.style[].button.pressedColor
+          elif parent.hovered[]:
+            if parent.accent[]: parent.style[].accentButton.hoverColor
+            else: parent.style[].button.hoverColor
+          else:
+            if parent.accent[]: parent.style[].accentButton.color
+            else: parent.style[].button.color
+        else: color(0, 0, 0)
+    
+    this.binding color:
+      if this.style[] != nil:
+        if this.pressed[]:
+          if this.accent[]: this.style[].accentButton.pressedBackgroundColor
+          else: this.style[].button.pressedBackgroundColor
+        elif this.hovered[]:
+          if this.accent[]: this.style[].accentButton.hoverBackgroundColor
+          else: this.style[].button.hoverBackgroundColor
+        else:
+          if this.accent[]: this.style[].accentButton.backgroundColor
+          else: this.style[].button.backgroundColor
+      else: color(0, 0, 0)
 
-
-proc updateColor(this: WindowHeader) =
-  this.color[] = this.style.backgroundColor
 
 method recieve*(this: WindowHeader, signal: Signal) =
   case signal
@@ -89,8 +91,7 @@ method recieve*(this: WindowHeader, signal: Signal) =
       procCall this.super.recieve(signal)
   
   of of StyleChanged(fullStyle: @style):
-    this.style = style.header
-    this.updateColor()
+    this.style[] = style.header
     signal.StyleChanged.withStyleForChilds header:
       procCall this.super.recieve(signal)
 
@@ -108,18 +109,16 @@ method recieve*(this: WindowHeader, signal: Signal) =
 proc newWindowHeader*(): WindowHeader =
   result = WindowHeader()
   result.makeLayout:
+    this.binding color: (if this.style[] != nil: this.style[].backgroundColor else: color(0, 0, 0))
+
     - newButton(static(staticRead "../../../resources/title/close.svg")) as close:
       this.anchors.right = parent.right
-      this.accent = true
+      this.accent[] = true
       this.action = proc =
         close this.parentWindow
       
-      proc update(this: typeof(this)) =
-        this.visibility[] = if config.csd and config.window_closeButton: Visibility.visible else: Visibility.collapsed
-        startReposition root
-      this.update
-      notifyWindow_closeButtonChanged.connectTo this: this.update
-      notifyCsdChanged.connectTo this: this.update
+      this.binding visibility: (if config.csd[] and config.window_closeButton[]: Visibility.visible else: Visibility.collapsed)
+      do: startReposition root
     
     - newButton(static(staticRead "../../../resources/title/maximize.svg")) as maximize:
       this.anchors.right = close.left
@@ -127,22 +126,14 @@ proc newWindowHeader*(): WindowHeader =
         let win = this.parentWindow
         win.maximized = not win.maximized
       
-      proc update(this: typeof(this)) =
-        this.visibility[] = if config.csd and config.window_maximizeButton: Visibility.visible else: Visibility.collapsed
-        startReposition root
-      this.update
-      notifyWindow_maximizeButtonChanged.connectTo this: this.update
-      notifyCsdChanged.connectTo this: this.update
+      this.binding visibility: (if config.csd[] and config.window_maximizeButton[]: Visibility.visible else: Visibility.collapsed)
+      do: startReposition root
     
     - newButton(static(staticRead "../../../resources/title/minimize.svg")) as minimize:
       this.anchors.right = maximize.left
       this.action = proc =
         this.parentWindow.minimized = true
       
-      proc update(this: typeof(this)) =
-        this.visibility[] = if config.csd and config.window_minimizeButton: Visibility.visible else: Visibility.collapsed
-        startReposition root
-      this.update
-      notifyWindow_minimizeButtonChanged.connectTo this: this.update
-      notifyCsdChanged.connectTo this: this.update
+      this.binding visibility: (if config.csd[] and config.window_minimizeButton[]: Visibility.visible else: Visibility.collapsed)
+      do: startReposition root
 

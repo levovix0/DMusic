@@ -1,7 +1,7 @@
 import times, asyncdispatch, strutils, macros, std/importutils, heapqueue, deques, selectors
 import siwin
 import ./[configuration, utils, yandexMusic]
-import ./gui/[uibase, window, windowHeader, style, globalShortcut]
+import ./gui/[uibase, style, window, windowHeader, globalShortcut, player]
 
 privateAccess PDispatcher  # to check if not empty (overthise it will spam error logs)
 
@@ -17,19 +17,19 @@ proc gui*: string =
   root.makeLayout:
     - globalShortcut({Key.t}):  # temporary
       this.action = proc =
-        config.darkTheme = not config.darkTheme
+        config.darkTheme[] = not config.darkTheme
 
     - globalShortcut({Key.h}):  # temporary
       this.action = proc =
-        config.darkHeader = not config.darkHeader
+        config.darkHeader[] = not config.darkHeader
 
     - globalShortcut({Key.a}):  # temporary
       this.action = proc =
-        config.csd = not config.csd
+        config.csd[] = not config.csd
 
     - globalShortcut({Key.s}):  # temporary
       this.action = proc =
-        config.window_maximizeButton = not config.window_maximizeButton
+        config.window_maximizeButton[] = not config.window_maximizeButton
 
     - newWindowHeader():
       this.anchors.fillHorizontal(root)
@@ -39,8 +39,13 @@ proc gui*: string =
       this.box.y = 100
       this.image = app.decodeImage
 
+    - newPlayer():
+      this.anchors.fillHorizontal(root)
+      this.box.h = 66
+      this.anchors.bottom = Anchor(obj: parent, offsetFrom: `end`, offset: 0)
 
-  notifyLanguageChanged.connectTo win:
+
+  config.language.changed.connectTo win:
     globalLocale = (($config.language, ""), LocaleTable.default)
   
   let icon =
@@ -66,9 +71,16 @@ proc gui*: string =
         backgroundColor:
           if darkTheme: c"20"
           else: c"ff",
-        hoverButtonBackgroundColor:
-          if darkTheme: c"30"
-          else: c"f0",
+        button: ButtonStyle(
+          color:
+            if darkTheme: c"ff"
+            else: c"40",
+          backgroundColor:
+            if darkTheme: c"30"
+            else: c"f0",
+        ),
+        borders: if darkHeader: false else: true,
+        borderColor: c"#D9D9D9",
       ),
       header: Style(
         color:
@@ -77,41 +89,59 @@ proc gui*: string =
         backgroundColor:
           if darkHeader: c"20"
           else: c"ff",
-        buttonBackgroundColor:
-          if darkHeader: c"20"
-          else: c"ff",
-        hoverButtonBackgroundColor:
-          if darkHeader: c"30"
-          else: c"f0",
-        pressedButtonBackgroundColor:
-          if darkHeader: c"26"
-          else: c"d0",
-        accentButtonBackgroundColor:
-          if darkHeader: c"20"
-          else: c"ff",
-        accentHoverButtonBackgroundColor: c"#E03649",
-        accentPressedButtonBackgroundColor: c"#C11B2D",
+        button: ButtonStyle(
+          color:
+            if darkHeader: c"ff"
+            else: c"40",
+          hoverColor:
+            if darkHeader: c"ff"
+            else: c"40",
+          pressedColor:
+            if darkHeader: c"ff"
+            else: c"40",
+          backgroundColor:
+            if darkHeader: c"20"
+            else: c"ff",
+          hoverBackgroundColor:
+            if darkHeader: c"30"
+            else: c"f0",
+          pressedBackgroundColor:
+            if darkHeader: c"26"
+            else: c"d0",
+        ),
+        accentButton: ButtonStyle(
+          color:
+            if darkHeader: c"ff"
+            else: c"40",
+          hoverColor: c"ff",
+          pressedColor: c"ff",
+          backgroundColor:
+            if darkHeader: c"20"
+            else: c"ff",
+          hoverBackgroundColor: c"#E03649",
+          pressedBackgroundColor: c"#C11B2D",
+        ),
       )
     )
 
 
   var style = makeStyle(config.darkTheme, config.darkHeader)
 
-  notifyDarkThemeChanged.connectTo win:
+  config.darkTheme.changed.connectTo win:
     style = makeStyle(config.darkTheme, config.darkHeader)
     win.recieve(StyleChanged(sender: win, fullStyle: style, style: style.window))
     redraw win.siwinWindow
 
-  notifyDarkHeaderChanged.connectTo win:
+  config.darkHeader.changed.connectTo win:
     style = makeStyle(config.darkTheme, config.darkHeader)
     win.recieve(StyleChanged(sender: win, fullStyle: style, style: style.window))
     redraw win.siwinWindow
   
-  notifyLanguageChanged.emit(config.language)
+  config.language.changed.emit(config.language)
   win.recieve(StyleChanged(sender: win, fullStyle: style, style: style.window))
 
 
-  var darkTime = config.darkTheme
+  var darkTime = config.darkTheme[]
 
   win.siwinWindow.firstStep(makeVisible=true)
 
@@ -129,10 +159,10 @@ proc gui*: string =
 
     if config.themeByTime:
       if now().hour in 7..18:
-        if darkTime: config.darkTheme = false
+        if darkTime: config.darkTheme[] = false
         darkTime = false
       else:
-        if not darkTime: config.darkTheme = true
+        if not darkTime: config.darkTheme[] = true
         darkTime = true
     
     win.siwinWindow.step

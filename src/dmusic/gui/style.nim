@@ -1,15 +1,20 @@
 import uibase
 
 type
+  ButtonStyle* = object
+    color*: Col
+    hoverColor*: Col
+    pressedColor*: Col
+    backgroundColor*: Col
+    hoverBackgroundColor*: Col
+    pressedBackgroundColor*: Col
+
   Style* = ref object
     color*: Col
     backgroundColor*: Col
-    buttonBackgroundColor*: Col
-    hoverButtonBackgroundColor*: Col
-    pressedButtonBackgroundColor*: Col
-    accentButtonBackgroundColor*: Col
-    accentHoverButtonBackgroundColor*: Col
-    accentPressedButtonBackgroundColor*: Col
+    button*, accentButton*: ButtonStyle
+    borders*: bool
+    borderColor*: Col
   
   FullStyle* = object
     window*, header*: Style

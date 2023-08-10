@@ -36,17 +36,24 @@ type
     connected: seq[(Uiobj, proc(c: Uiobj, v: int))]
 
   Event*[T] = object
-    ## simple signal event system
-    ## only components can be connected to signals
-    ## one signal can be connected to multiple components
-    ## one component can connect to multiple signals
-    ## one signal can be connected to one component only once
-    ## connection can be removed
+    ## only uiobj can be connected to event
+    ## one event can be connected to multiple components
+    ## one uiobj can connect to multiple events
+    ## one event can be connected to one uiobj multiple times
+    ## connection can be removed, but inf uiobj connected to event multiple times, they all will be removed
     connected*: seq[(Uiobj, proc(c: Uiobj, v: T))]
   
+
   Property*[T] = object
-    v: T
+    unsafeVal*: T
     changed*: Event[T]
+
+  CustomProperty*[T] = object
+    get*: proc(): T
+    set*: proc(v: T)
+    changed*: Event[T]
+
+  AnyProperty*[T] = Property[T] | CustomProperty[T]
   
   
   Uiobj* {.acyclic.} = ref object of RootObj
@@ -108,7 +115,7 @@ type
 
 
 proc property*[T](v: T): Property[T] =
-  Property[T](v: v)
+  Property[T](unsafeVal: v)
 
 
 type 
@@ -178,37 +185,48 @@ proc color*(v: Vec4): Col =
 
 proc `=destroy`*[T](s: Event[T]) =
   for (c, _) in s.connected:
-    for i, x in c.connected:
-      if x == cast[ptr EventBase](s.addr):
+    var i = 0
+    while i < c.connected.len:
+      if c.connected[i] == cast[ptr EventBase](s.addr):
         c.connected.del i
-        break
+      else:
+        inc i
 
 
 proc disconnect*[T](s: var Event[T]) =
   for (c, _) in s.connected:
-    for i, x in c.connected:
-      if x == cast[ptr EventBase](s.addr):
+    var i = 0
+    while i < c.connected.len:
+      if c.connected[i] == cast[ptr EventBase](s.addr):
         c.connected.del i
-        break
+      else:
+        inc i
   s.connected = @[]
 
-proc disconnect*(c: Event) =
-  for s in c.connected:
-    for i, x in s.connected:
-      if x[0] == c:
+proc disconnect*(c: Uiobj) =
+  for s in c.connected.mitems:
+    var i = 0
+    while i < s.connected.len:
+      if s.connected[i][0] == c:
         s.connected.del i
-        break
+      else:
+        inc i
   c.connected = @[]
 
 proc disconnect*[T](s: var Event[T], c: Uiobj) =
-  for i, x in c.connected:
-    if x == cast[ptr EventBase](s.addr):
+  var i = 0
+  while i < c.connected.len:
+    if c.connected[i] == cast[ptr EventBase](s.addr):
       c.connected.del i
-      break
-  for i, x in s.connected:
-    if x[0] == c:
+    else:
+      inc i
+  
+  i = 0
+  while i < s.connected.len:
+    if s.connected[i][0] == c:
       s.connected.del i
-      break
+    else:
+      inc i
 
 
 proc emit*[T](s: Event[T], v: T) =
@@ -218,7 +236,6 @@ proc emit*[T](s: Event[T], v: T) =
 
 
 proc connect*[T](s: var Event[T], c: Uiobj, f: proc(c: Uiobj, v: T)) =
-  if cast[ptr EventBase](s.addr) in c.connected: return
   s.connected.add (c, f)
   c.connected.add cast[ptr EventBase](s.addr)
 
@@ -232,26 +249,50 @@ template connectTo*[T; O: Uiobj](s: var Event[T], obj: O, body: untyped) =
 
 proc `val=`*[T](p: var Property[T], v: T) =
   ## note: p.changed will be emitted even if new value is same as previous value
-  p.v = v
-  emit p.changed, p.v
+  if v == p.unsafeVal: return
+  p.unsafeVal = v
+  emit p.changed, p.unsafeVal
 
 proc `[]=`*[T](p: var Property[T], v: T) = p.val = v
 
-proc val*[T](p: Property[T]): T = p.v
-proc `[]`*[T](p: Property[T]): T = p.v
+proc val*[T](p: Property[T]): T = p.unsafeVal
+proc `[]`*[T](p: Property[T]): T = p.unsafeVal
 
-proc unsafeVal*[T](p: var Property[T]): var T = p.v
-proc `{}`*[T](p: Property[T]): T = p.v
-
-proc `unsafeVal=`*[T](p: var Property[T], v: T) =
-  ## same as val=, but does not emit p.changed
-  p.v = v
-
+proc `{}`*[T](p: var Property[T]): var T = p.unsafeVal
 proc `{}=`*[T](p: var Property[T], v: T) = p.unsafeVal = v
+  ## same as []=, but does not emit p.changed
 
 converter toValue*[T](p: Property[T]): T = p[]
 
 proc `=copy`*[T](p: var Property[T], v: Property[T]) {.error.}
+
+
+#* ------------- CustomProperty ------------- *#
+
+proc `val=`*[T](p: var CustomProperty[T], v: T) =
+  ## note: p.changed will not be emitted if new value is same as previous value
+  if v == p.get(): return
+  p.set(v)
+  emit p.changed, p.get()
+
+proc `[]=`*[T](p: var CustomProperty[T], v: T) = p.val = v
+
+proc val*[T](p: CustomProperty[T]): T = p.get()
+proc `[]`*[T](p: CustomProperty[T]): T = p.get()
+
+proc unsafeVal*[T](p: var CustomProperty[T]): T = p.get()
+  ## note: can't get var T due to nature of CustomProperty
+proc `{}`*[T](p: var CustomProperty[T]): T = p.get()
+
+proc `unsafeVal=`*[T](p: var CustomProperty[T], v: T) =
+  ## same as val=, but always call setter and does not emit p.changed
+  p.set(v)
+
+proc `{}=`*[T](p: var CustomProperty[T], v: T) = p.unsafeVal = v
+
+converter toValue*[T](p: CustomProperty[T]): T = p[]
+
+proc `=copy`*[T](p: var CustomProperty[T], v: CustomProperty[T]) {.error.}
 
 
 #* ------------- Uiobj ------------- *#
@@ -273,6 +314,10 @@ proc parentWindow*(obj: Uiobj): Window =
   let uiWin = obj.parentUiWindow
   if uiWin != nil: uiWin.siwinWindow
   else: nil
+
+proc redraw*(obj: Uiobj) =
+  let win = obj.parentWindow
+  if win != nil: redraw win
 
 
 proc posToLocal*(pos: Vec2, obj: Uiobj): Vec2 =
@@ -779,25 +824,25 @@ proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
 
 
 method draw*(rect: UiRect, ctx: DrawContext) =
-  if rect.visibility == visible:
+  if rect.visibility[] == visible:
     ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, rect.color[].a != 1 or rect.radius != 0, rect.angle)
   procCall draw(rect.Uiobj, ctx)
 
 
 method draw*(img: UiImage, ctx: DrawContext) =
-  if img.visibility == visible:
+  if img.visibility[] == visible:
     ctx.drawImage(img.box.xy.posToGlobal(img.parent), img.box.wh, img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
   procCall draw(img.Uiobj, ctx)
 
 
 method draw*(ico: UiIcon, ctx: DrawContext) =
-  if ico.visibility == visible:
+  if ico.visibility[] == visible:
     ctx.drawIcon(ico.box.xy.posToGlobal(ico.parent), ico.box.wh, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
   procCall draw(ico.Uiobj, ctx)
 
 
 method draw*(rect: UiRectShadow, ctx: DrawContext) =
-  if rect.visibility == visible:
+  if rect.visibility[] == visible:
     ctx.drawShadowRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, true, rect.blurRadius, rect.angle)
   procCall draw(rect.Uiobj, ctx)
 
@@ -989,3 +1034,72 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
           identDefs(pragmaExpr(ident "root", pragma ident "used"), empty(), obj)
         impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", if body.kind == nnkStmtList: body else: newStmtList(body))
 
+
+macro binding*[T: Uiobj](obj: T, target: untyped, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true): untyped =
+  ## connects update proc to every x[] property changed, and invokes update proc instantly
+  runnableExamples:
+    type MyObj = ref object of Uiobj
+      c: Property[int]
+
+    obj.binding c:
+      if config.csd[]: parent[].b else: 10[]
+
+    # convers to (roughly):
+    block bindingBlock:
+      let o {.cursor.} = obj
+      proc updateC(this: MyObj) =
+        this.c[] = if config.csd[]: parent[].b else: 10[]
+
+      config.csd.changed.connectTo o: updateC(this)
+      parent.changed.connectTo o: updateC(this)
+      10.changed.connectTo o: updateC(this)  # yes, 10[] will considered property too
+      updateC(o)
+  
+  let updateProc = genSym(nskProc)
+  let objCursor = genSym(nskLet)
+  let thisInProc = genSym(nskParam)
+  var alreadyBinded: seq[NimNode]
+
+  proc impl(stmts: var seq[NimNode], obj, body: NimNode) =
+    case body
+    of in alreadyBinded: return
+    of Call[Sym(strVal: "[]"), @exp]:
+      stmts.add: buildAst(call):
+        ident "connectTo"
+        dotExpr(exp, ident "changed")
+        objCursor
+        call updateProc:
+          ident "this"
+      alreadyBinded.add body
+      impl(stmts, obj, exp)
+
+    else:
+      for x in body: impl(stmts, obj, x)
+  
+  result = buildAst(blockStmt):
+    ident "bindingBlock"
+    stmtList:
+      letSection:
+        identDefs(objCursor, empty(), obj)
+      
+      procDef updateProc:
+        empty(); empty()
+        formalParams:
+          empty()
+          identDefs(thisInProc, obj.getType, empty())
+        empty(); empty()
+        stmtList:
+          asgn:
+            bracketExpr dotExpr(thisInProc, target)
+            body
+          
+          case afterUpdate
+          of Call[Sym(strVal: "newStmtList"), HiddenStdConv[Empty(), Bracket()]]: discard
+          else: afterUpdate
+          
+          if redraw: call bindSym "redraw", thisInProc
+      
+      var stmts: seq[NimNode]
+      (impl(stmts, obj, body))
+      for x in stmts: x
+      call updateProc, objCursor

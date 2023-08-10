@@ -2,7 +2,7 @@ import json, os, math, macros, options, logging
 import fusion/matching, fusion/astdsl, localize
 import ./utils
 import gui/uibase
-export localize
+export localize, uibase
 export logging except error, warning, info
 
 {.experimental: "caseStmtMacros".}
@@ -50,50 +50,58 @@ proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts: var 
     let name = ident prefix & $aname
     copyLineInfo(name, aname)
 
-    let notify = ident("notify" & ($name).capitalizeFirst & "Changed")
+    let property = genSym(nskVar)
 
     stmts.add quote do:
-      var `notify`*: Event[`typ`]
+      var `property`: CustomProperty[`typ`]
+    
+    stmts.add: buildAst(asgn):
+      dotExpr(property, i"get")
+      lambda:
+        empty()
+        empty()
+        empty()
+        formalParams:
+          typ
+        empty()
+        empty()
+        call i"get":
+          curlyExpr:
+            call i"JsonNode", s"config"
+            for x in path: newLit x
+            newLit $aname
+          command i"type", typ
+          if def.isSome: def.get
+
+    stmts.add: buildAst(asgn):
+      dotExpr(property, i"set")
+      lambda:
+        empty()
+        empty()
+        empty()
+        formalParams:
+          empty()
+          newIdentDefs(i"v", typ)
+        empty()
+        empty()
+        stmtList:
+          asgn:
+            curlyExpr call(i"JsonNode", s"config"):
+              for x in path: newLit x
+              newLit $aname
+            call i"%*", sethook
+          call i"save", s"config"
     
     stmts.add: buildAst(procDef):
       postfix i"*", name
       empty()
       empty()
       formalParams:
-        typ
+        varTy bracketExpr(s"CustomProperty", typ)
         newIdentDefs(i"config", s"ConfigObj")
       empty()
       empty()
-      call i"get":
-        curlyExpr:
-          call i"JsonNode", i"config"
-          for x in path: newLit x
-          newLit $aname
-        command i"type", typ
-        if def.isSome: def.get
-    
-    stmts.add: buildAst(procDef):
-      postfix i"*", accQuoted(name, i"=")
-      empty()
-      empty()
-      formalParams:
-        empty()
-        newIdentDefs(i"config", s"ConfigObj")
-        newIdentDefs(i"v", typ)
-      empty()
-      empty()
-      stmtList:
-        ifStmt:
-          elifBranch:
-            call i"==", sethook, call(name, i"config")
-            stmtList: returnStmt empty()
-        asgn:
-          curlyExpr call(i"JsonNode", i"config"):
-            for x in path: newLit x
-            newLit $aname
-          call i"%*", sethook
-        call i"save", i"config"
-        call s"emit", notify, i"v"
+      property
 
   for x in body:
     case x
