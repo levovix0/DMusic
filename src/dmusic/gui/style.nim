@@ -5,6 +5,7 @@ type
     color*: Col
     hoverColor*: Col
     pressedColor*: Col
+    unavailableColor*: Col
     backgroundColor*: Col
     hoverBackgroundColor*: Col
     pressedBackgroundColor*: Col

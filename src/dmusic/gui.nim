@@ -11,8 +11,6 @@ proc gui*: string =
   
   let root = Uiobj()
   let win = createWindow(root)
-
-  const app = staticRead "../../resources/app-papirus.svg"  # temporary
   
   root.makeLayout:
     - globalShortcut({Key.t}):  # temporary
@@ -34,10 +32,6 @@ proc gui*: string =
     - newWindowHeader():
       this.anchors.fillHorizontal(root)
       this.box.h = 40
-    
-    - UiImage():  # temporary
-      this.box.y = 100
-      this.image = app.decodeImage
 
     - newPlayer():
       this.anchors.fillHorizontal(root)
@@ -115,6 +109,33 @@ proc gui*: string =
         borders: if darkHeader: false else: true,
         borderColor: c"#D9D9D9",
         
+        button: ButtonStyle(
+          color:
+            if darkHeader: c"c1"
+            else: c"40",
+          hoverColor:
+            if darkHeader: c"ff"
+            else: c"80",
+          pressedColor:
+            if darkHeader: c"a0"
+            else: c"60",
+          unavailableColor:
+            if darkHeader: c"80"
+            else: c"c1",
+        ),
+        
+        accentButton: ButtonStyle(
+          color:
+            if darkHeader: config.colorAccentDark[].parseHtmlColor
+            else: config.colorAccentLight[].parseHtmlColor,
+          hoverColor:
+            if darkHeader: config.colorAccentDark[].parseHtmlColor.lighten(0.25)
+            else: config.colorAccentLight[].parseHtmlColor.darken(0.25),
+          pressedColor: 
+            if darkHeader: config.colorAccentDark[].parseHtmlColor.darken(0.25)
+            else: config.colorAccentLight[].parseHtmlColor.lighten(0.25),
+        ),
+        
         typeface: typeface,
       ),
 
@@ -187,7 +208,10 @@ proc gui*: string =
 
   while win.siwinWindow.opened:
     let p = getGlobalDispatcher()
-    if not(p.selector.isEmpty() and p.timers.len == 0 and p.callbacks.len == 0):
+    let c =
+      when defined(windows): p.timers.len == 0 and p.callbacks.len == 0
+      else: p.selector.isEmpty() and p.timers.len == 0 and p.callbacks.len == 0
+    if not c:
       try: poll()
       except CatchableError:
         logger.log(lvlError, "Error during async operation: ", getCurrentExceptionMsg())

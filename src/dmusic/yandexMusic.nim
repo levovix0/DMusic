@@ -363,9 +363,9 @@ proc personalPlaylists*: Future[seq[tuple[kind: string, playlist: Playlist]]] {.
       result.add (entity{"data"}{"type"}.getStr, entity{"data"}{"data"}.parsePlaylist)
 
 
-proc tracks*(playlist: Playlist): Future[seq[Track]] {.async.} =
+proc tracks*(playlist: Playlist, cancel: ref bool = nil): Future[seq[Track]] {.async.} =
   let response = request(
-    &"{baseUrl}/users/{playlist.ownerId}/playlists/{playlist.id}"
+    &"{baseUrl}/users/{playlist.ownerId}/playlists/{playlist.id}", cancel=cancel
   ).await.parseJson
 
   for track in response{"result", "tracks"}:
@@ -407,7 +407,8 @@ proc sendFeedback(
   track: Option[TrackId],
   batchId: string,
   totalPlayedSeconds: Option[int],
-  time: DateTime = now()
+  time: DateTime = now(),
+  cancel: ref bool = nil,
 ) {.async.} =
   var data = %*{
     "type": kind,
@@ -424,13 +425,14 @@ proc sendFeedback(
   try:
     discard request(
       &"{baseUrl}/rotor/station/{x.id}/feedback", HttpPost, body = $data, params = @{
-        "batch-id": batchId,
-      }
+        "batch-id": batchId
+      }, cancel = cancel
     ).await
-  except:
+  except RequestCanceled: discard
+  except CatchableError, Defect:
     logger.log(lvlError, "feedback error: ", getCurrentExceptionMsg())
 
-proc toRadio*(x: RadioStation, time: DateTime = now()): Future[Radio] {.async.} =
+proc toRadio*(x: RadioStation, time: DateTime = now(), cancel: ref bool = nil): Future[Radio] {.async.} =
   new result
   result.station = x
   (result.tracks, result.batchId) = x.getTracks.await

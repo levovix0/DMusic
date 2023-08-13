@@ -116,6 +116,14 @@ type
     angle*: Property[float32]
     color*: Property[Col] = color(0, 0, 0).property
     tex: Textures
+  
+
+  UiMouseArea* = ref object of Uiobj
+    acceptedButtons*: Property[set[MouseButton]] = {MouseButton.left}.property
+    pressed*: Property[bool]
+    mouseMove*: Event[MouseMoveEvent]
+      ## mouse moved while in this area (or outside this area but pressed)
+    pressedButtons: set[MouseButton]
 
 
   DrawContext* = ref object
@@ -156,6 +164,11 @@ type
 
     px, wh: Vec2
     frameBufferHierarchy: seq[tuple[fbo: GlUint, size: IVec2]]
+  
+  BindingKind = enum
+    bindProperty
+    bindValue
+    bindProc
 
 
 proc vec4*(color: Col): Vec4 =
@@ -790,7 +803,7 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
     ctx.updateSizeRender(size)
 
     let gt = rect.globalTransform[]
-    let pos = rect.box.xy.posToGlobal(rect.parent)
+    let pos = rect.box.xy
     try:
       rect.globalTransform{} = true
       rect.box.xy = vec2()
@@ -872,7 +885,45 @@ method addChild*(this: UiWindow, child: Uiobj) =
   child.recieve(AttachedToWindow(window: this))
 
 
-#----- Macro -----
+method recieve*(this: UiMouseArea, signal: Signal) =
+  procCall this.super.recieve(signal)
+  case signal
+  of of WindowEvent(event: @ea is of MouseMoveEvent(), handled: false, fake: false):
+    let e = (ref MouseMoveEvent)ea
+    if this.pressed[] or this.hovered[]:
+      this.mouseMove.emit(e[])
+      signal.WindowEvent.handled = true
+
+  of of WindowEvent(event: @ea is of MouseButtonEvent(), handled: false):
+    let e = (ref MouseButtonEvent)ea
+    if e.button in this.acceptedButtons[]:
+      if e.pressed:
+        if this.hovered[]:
+          this.pressedButtons.incl e.button
+          if not this.pressed[]:
+            this.pressed[] = true
+            signal.WindowEvent.handled = true
+      else:
+        this.pressedButtons.excl e.button
+        if this.pressedButtons == {}:
+          if this.pressed[]:
+            this.pressed[] = false
+            signal.WindowEvent.handled = true
+        
+
+
+proc newUiobj*(): Uiobj = new result
+proc newUiWindow*(): UiWindow = new result
+proc newUiImage*(): UiImage = new result
+proc newUiIcon*(): UiIcon = new result
+proc newUiText*(): UiText = new result
+proc newUiRect*(): UiRect = new result
+proc newUiClipRect*(): UiClipRect = new result
+proc newUiRectShadow*(): UiRectShadow = new result
+proc newUiMouseArea*(): UiMouseArea = new result
+
+
+#----- Macros -----
 
 
 
@@ -955,7 +1006,7 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
         impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", if body.kind == nnkStmtList: body else: newStmtList(body))
 
 
-macro binding*[T: EventHandler](obj: T, target: untyped, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+proc bindingImpl*(obj: NimNode, target: NimNode, body: NimNode, afterUpdate: NimNode, redraw: bool, init: bool, kind: BindingKind): NimNode =
   ## connects update proc to every x[] property changed, and invokes update proc instantly
   runnableExamples:
     type MyObj = ref object of Uiobj
@@ -1009,9 +1060,20 @@ macro binding*[T: EventHandler](obj: T, target: untyped, body: typed, afterUpdat
           identDefs(thisInProc, obj.getType, empty())
         empty(); empty()
         stmtList:
-          asgn:
-            bracketExpr dotExpr(thisInProc, target)
-            body
+          case kind
+          of bindProperty:
+            asgn:
+              bracketExpr dotExpr(thisInProc, target)
+              body
+          of bindValue:
+            asgn:
+              target
+              body
+          of bindProc:
+            call:
+              target
+              thisInProc
+              body
           
           case afterUpdate
           of Call[Sym(strVal: "newStmtList"), HiddenStdConv[Empty(), Bracket()]]: discard
@@ -1024,3 +1086,12 @@ macro binding*[T: EventHandler](obj: T, target: untyped, body: typed, afterUpdat
       for x in stmts: x
       if init:
         call updateProc, objCursor
+
+macro binding*[T: EventHandler](obj: T, target: untyped, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+  bindingImpl(obj, target, body, afterUpdate, redraw, init, bindProperty)
+
+macro bindingValue*[T: EventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+  bindingImpl(obj, target, body, afterUpdate, redraw, init, bindValue)
+
+macro bindingProc*[T: EventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+  bindingImpl(obj, target, body, afterUpdate, redraw, init, bindProc)

@@ -103,7 +103,7 @@ method recieve*(this: WindowHeader, signal: Signal) =
   case signal
   of of WindowEvent(event: @ea of ClickEvent(), handled: false):
     let e = (ref ClickEvent)ea
-    if e.double:
+    if this.hovered[] and e.double:
       e.window.maximized = not e.window.maximized
       signal.WindowEvent.handled = true
 

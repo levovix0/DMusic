@@ -105,24 +105,26 @@ proc userTrack*(id: int): Track =
     return Track()
 
 
-proc fetch*(this: Track) {.async.} =
+proc fetch*(this: Track): Future[bool] {.async.} =
   if this.kind == TrackKind.yandexIdOnly:
     let id = this.yandexIdOnly.id
     this[] = TrackObj(kind: TrackKind.yandex, yandex: id.fetch.await[0])
+    return true
 
 
-proc forceFetch*(this: Track) {.async.} =
-  await fetch this
+proc forceFetch*(this: Track): Future[bool] {.async.} =
+  result = await fetch this
   if this.kind == TrackKind.yandexFromFile:
     try:
       let id = this.yandexFromFile.file.splitFile.name.parseInt
       this[] = TrackObj(kind: TrackKind.yandex, yandex: id.fetch.await[0])
+      return true
     except: discard
 
 
 proc save*(this: Track, file: string, progressReport: ProgressReportCallback = nil) {.async.} =
   if this.kind == TrackKind.yandexIdOnly:
-    await fetch this
+    discard await fetch this
   if this.kind == TrackKind.yandex:
     createDir file.splitPath.head
     let (title, comment, artists) = (this.yandex.title, this.yandex.comment, this.yandex.artists.mapit(it.name).join(", "))
@@ -254,7 +256,7 @@ proc `liked=`*(this: Track, v: bool) {.async.} =
     
     # like real track
     let t = deepcopy this
-    await forceFetch t
+    discard await forceFetch t
     if t.kind == TrackKind.yandex:
       if v: currentUser().await.like(t.yandex).await
       else: currentUser().await.unlike(t.yandex).await
@@ -291,7 +293,7 @@ proc `disliked=`*(this: Track, v: bool) {.async.} =
     
     # dislike real track
     let t = deepcopy this
-    await forceFetch t
+    discard await forceFetch t
     if t.kind == TrackKind.yandex:
       if v: currentUser().await.dislike(t.yandex).await
       else: currentUser().await.undislike(t.yandex).await
@@ -370,19 +372,19 @@ proc liked*(playlist: Playlist): Future[seq[bool]] {.async.} =
 
 
 # todo: refactor all above to do not specifing enum type, like as in proc below
-proc toRadio*(track: Track): Future[Radio] {.async.} =
+proc toRadio*(track: Track, cancel: ref bool = nil): Future[Radio] {.async.} =
   case track.kind
   of yandex:
-    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandex.getRadioStation).await)
+    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandex.getRadioStation, cancel=cancel).await)
   of yandexFromFile:
-    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandexFromFile.id.getRadioStation).await)
+    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandexFromFile.id.getRadioStation, cancel=cancel).await)
   of yandexIdOnly:
-    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandexIdOnly.getRadioStation).await)
+    return Radio(kind: yandex, yandex: yandexMusic.toRadio(track.yandexIdOnly.getRadioStation, cancel=cancel).await)
   else:
     raise ValueError.newException("can't convert this track to radio")
 
-proc toRadio*(station: RadioStation): Future[Radio] {.async.} =
-  return Radio(kind: yandex, yandex: yandexMusic.toRadio(station).await)
+proc toRadio*(station: RadioStation, cancel: ref bool = nil): Future[Radio] {.async.} =
+  return Radio(kind: yandex, yandex: yandexMusic.toRadio(station, cancel=cancel).await)
 
 proc next*(radio: Radio, totalPlayedSeconds: int) {.async.} =
   case radio.kind

@@ -119,7 +119,7 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
     transparent = true,
     frameless = config.csd,
   ).newUiWindow
-  result.siwinWindow.minSize = ivec2(60, 60)
+  result.siwinWindow.minSize = ivec2(540, 320)
   if config.window_maximized: result.siwinWindow.maximized = true
 
   config.csd.changed.connectTo result:
