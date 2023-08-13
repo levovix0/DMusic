@@ -14,7 +14,7 @@ proc capitalizeFirst*(s: string): string =
   $s.runeAt(0).toUpper & s[1..^1]
 
 const
-  emptyCover* = "qrc:resources/player/no-cover.svg"
+  emptyCover* = staticRead "../../resources/player/no-cover.svg"
 
 proc ms*(i: int): Duration = initDuration(milliseconds=i)
 

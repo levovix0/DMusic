@@ -1,5 +1,7 @@
-import asyncdispatch, strutils, sequtils, os, strformat, base64, times
-import ./[configuration, yandexMusic, taglib, utils]  # todo: refactor to not use anthing from gui
+import asyncdispatch, strutils, sequtils, os, strformat, times, pixie, pixie/fileformats/svg
+import ./[configuration, yandexMusic, taglib, utils]
+
+export RequestCanceled
 
 {.experimental: "overloadableEnums".}
 
@@ -184,41 +186,21 @@ proc audio*(this: Track): Future[string] {.async.} =
     "file:" & this.user.file
   else: ""
 
-proc cover*(this: Track): Future[string] {.async.} =
-  return case this.kind
-  of TrackKind.yandex:
-    yandexMusic.cover(this.yandex).await
-  of TrackKind.yandexFromFile:
-    if this.yandexFromFile.metadata.cover.encode == "": emptyCover
-    else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
-  of TrackKind.user:
-    if this.user.metadata.cover.encode == "": emptyCover
-    else: "data:image/png;base64," & this.user.metadata.cover.encode
-  else: ""
+const
+  lowQualityCover* = 50
+  highQualityCover* = 1000
 
-proc coverImage*(this: Track): Future[string] {.async.} =
+proc cover*(this: Track, quality = lowQualityCover, cancel: ref bool = nil): Future[pixie.Image] {.async.} =
   return case this.kind
   of TrackKind.yandex:
-    this.yandex.coverUrl.request.await
+    yandexMusic.cover(this.yandex, quality=quality, cancel=cancel).await.decodeImage.resize(quality, quality)
   of TrackKind.yandexFromFile:
-    if this.yandexFromFile.metadata.cover == "": emptyCover
-    else: this.yandexFromFile.metadata.cover
+    if this.yandexFromFile.metadata.cover == "": emptyCover.parseSvg(quality, quality).newImage
+    else: this.yandexFromFile.metadata.cover.decodeImage.resize(quality, quality)
   of TrackKind.user:
-    if this.user.metadata.cover == "": emptyCover
-    else: this.user.metadata.cover
-  else: ""
-
-proc hqCover*(this: Track): Future[string] {.async.} =
-  return case this.kind
-  of TrackKind.yandex:
-    yandexMusic.cover(this.yandex, quality=1000).await
-  of TrackKind.yandexFromFile:
-    if this.yandexFromFile.metadata.cover.encode == "": emptyCover
-    else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
-  of TrackKind.user:
-    if this.user.metadata.cover.encode == "": emptyCover
-    else: "data:image/png;base64," & this.user.metadata.cover.encode
-  else: ""
+    if this.user.metadata.cover == "": emptyCover.parseSvg(quality, quality).newImage
+    else: this.user.metadata.cover.decodeImage.resize(quality, quality)
+  else: emptyCover.parseSvg(50, 50).newImage
 
 proc title*(this: Track): string =
   return case this.kind

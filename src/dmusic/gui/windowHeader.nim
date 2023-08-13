@@ -15,6 +15,7 @@ type
 
 
 method init(this: Button) =
+  procCall this.super.init
   this.hovered.changed.connectTo this:
     this.pressed[] = false
 
@@ -47,6 +48,7 @@ proc newButton*(icon: string): Button =
   result = Button()
   result.makeLayout:
     this.box.wh = vec2(50, 40)
+
     - UiIcon() as ico:
       this.image = icon.decodeImage
       this.anchors.centerIn parent

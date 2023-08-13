@@ -16,19 +16,19 @@ proc gui*: string =
   
   root.makeLayout:
     - globalShortcut({Key.t}):  # temporary
-      this.action = proc =
+      this.activated.connectTo this:
         config.darkTheme[] = not config.darkTheme
 
     - globalShortcut({Key.h}):  # temporary
-      this.action = proc =
+      this.activated.connectTo this:
         config.darkHeader[] = not config.darkHeader
 
     - globalShortcut({Key.a}):  # temporary
-      this.action = proc =
+      this.activated.connectTo this:
         config.csd[] = not config.csd
 
     - globalShortcut({Key.s}):  # temporary
-      this.action = proc =
+      this.activated.connectTo this:
         config.window_maximizeButton[] = not config.window_maximizeButton
 
     - newWindowHeader():
@@ -45,6 +45,7 @@ proc gui*: string =
       this.anchors.bottom = Anchor(obj: parent, offsetFrom: `end`, offset: 0)
 
 
+
   config.language.changed.connectTo win:
     globalLocale = (($config.language, ""), LocaleTable.default)
   
@@ -52,6 +53,10 @@ proc gui*: string =
     when defined(windows): decodeImage(static(staticRead "../../resources/app.svg"))
     else: decodeImage(static(staticRead "../../resources/app-papirus.svg"))
   win.siwinWindow.icon = (icon.data.toBgrx.toOpenArray(0, icon.data.high), ivec2(icon.width.int32, icon.height.int32))
+
+
+  const robotoFont = staticRead "../../resources/fonts/Roboto-Regular.ttf"
+  let typeface = parseTtf(robotoFont)
 
   proc makeStyle(darkTheme, darkHeader: bool): FullStyle =
     let darkHeader = darkTheme or darkHeader
@@ -71,6 +76,7 @@ proc gui*: string =
         backgroundColor:
           if darkTheme: c"20"
           else: c"ff",
+        
         button: ButtonStyle(
           color:
             if darkTheme: c"ff"
@@ -79,9 +85,39 @@ proc gui*: string =
             if darkTheme: c"30"
             else: c"f0",
         ),
+        
+        typeface: typeface,
+      ),
+
+      panel: Style(
+        color:
+          if darkHeader: c"ff"
+          else: c"40",
+        color2:
+          if darkHeader: c"cc"
+          else: c"51",
+        color3: c"99",
+        backgroundColor:
+          if darkHeader: c"26"
+          else: c"ff",
+        
+        accent:
+          if darkHeader: config.colorAccentDark[].parseHtmlColor
+          else: config.colorAccentLight[].parseHtmlColor,
+        itemBackground:
+          if darkHeader: c"40"
+          else: c"e2",
+        itemColor:
+          if darkHeader: c"aa"
+          else: c"80",
+        itemDropShadow: not darkHeader,
+        
         borders: if darkHeader: false else: true,
         borderColor: c"#D9D9D9",
+        
+        typeface: typeface,
       ),
+
       header: Style(
         color:
           if darkHeader: c"ff"
@@ -89,6 +125,7 @@ proc gui*: string =
         backgroundColor:
           if darkHeader: c"20"
           else: c"ff",
+        
         button: ButtonStyle(
           color:
             if darkHeader: c"ff"
@@ -109,6 +146,7 @@ proc gui*: string =
             if darkHeader: c"26"
             else: c"d0",
         ),
+        
         accentButton: ButtonStyle(
           color:
             if darkHeader: c"ff"
@@ -121,6 +159,8 @@ proc gui*: string =
           hoverBackgroundColor: c"#E03649",
           pressedBackgroundColor: c"#C11B2D",
         ),
+        
+        typeface: typeface,
       )
     )
 

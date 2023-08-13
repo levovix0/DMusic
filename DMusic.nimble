@@ -4,8 +4,8 @@ description   = "Music player from streaming services like Yandex Music"
 license       = "MIT"
 srcDir        = "src"
 bin           = @["dmusic"]
-# backend       = "cpp"
-backend       = "c"
+backend       = "cpp"  # taglib requires c++
+# backend       = "c"
 
 requires "nim >= 2.0"
 requires "fusion"  # to write macros using pattern matching
@@ -19,6 +19,7 @@ requires "imageman"  # to decode png
 requires "bumpy"  # for rects
 requires "opengl"  # for graphics
 requires "shady"  # for writing shaders in Nim istead of GLSL
+requires "https://github.com/beef331/miniaudio"  # for audio output # todo: replace with siaud
 
 
 # note: build is broken

@@ -1,8 +1,8 @@
-import times, macros, algorithm
+import times, macros, algorithm, tables, unicode
 import vmath, bumpy, siwin, shady, fusion/[matching, astdsl], pixie
-import gl
+import gl, events
 import imageman except Rect, color, Color
-export vmath, bumpy, gl, pixie, matching
+export vmath, bumpy, gl, pixie, matching, events
 export imageman except Rect
 
 type
@@ -31,36 +31,11 @@ type
   
   Signal* = ref object of RootObj
     sender* {.cursor.}: Uiobj
-
-  EventBase = object
-    connected: seq[(Uiobj, proc(c: Uiobj, v: int))]
-
-  Event*[T] = object
-    ## only uiobj can be connected to event
-    ## one event can be connected to multiple components
-    ## one uiobj can connect to multiple events
-    ## one event can be connected to one uiobj multiple times
-    ## connection can be removed, but inf uiobj connected to event multiple times, they all will be removed
-    connected*: seq[(Uiobj, proc(c: Uiobj, v: T))]
   
-
-  Property*[T] = object
-    unsafeVal*: T
-    changed*: Event[T]
-
-  CustomProperty*[T] = object
-    get*: proc(): T
-    set*: proc(v: T)
-    changed*: Event[T]
-
-  AnyProperty*[T] = Property[T] | CustomProperty[T]
-  
-  
-  Uiobj* {.acyclic.} = ref object of RootObj
+  Uiobj* {.acyclic.} = ref object of EventHandler
     parent* {.cursor.}: Uiobj
       ## parent of this object, that must have this object as child
       ## note: object can have no parent
-    connected*: seq[ptr EventBase]
     childs*: seq[owned(Uiobj)]
       ## childs that should be deleted when this object is deleted
     initialized*: bool
@@ -72,59 +47,16 @@ type
     cursor*: ref Cursor
     clicked*: Event[ClickEvent]
     mouseButton*: Event[MouseButtonEvent]
-
-
-  DrawContext* = ref object
-    solid: tuple[
-      shader: Shader,
-      transform: GlInt,
-      size: GlInt,
-      px: GlInt,
-      radius: GlInt,
-      color: GlInt,
-    ]
-    image: tuple[
-      shader: Shader,
-      transform: GlInt,
-      size: GlInt,
-      px: GlInt,
-      radius: GlInt,
-    ]
-    icon: tuple[
-      shader: Shader,
-      transform: GlInt,
-      size: GlInt,
-      px: GlInt,
-      radius: GlInt,
-      color: GlInt,
-    ]
-    rectShadow: tuple[
-      shader: Shader,
-      transform: GlInt,
-      size: GlInt,
-      px: GlInt,
-      radius: GlInt,
-      blurRadius: GlInt,
-      color: GlInt,
-    ]
-
-    rect: Shape
-
-    px, wh: Vec2
-    frameBufferHierarchy: seq[tuple[fbo: GlUint, size: IVec2]]
-
-
-proc property*[T](v: T): Property[T] =
-  Property[T](unsafeVal: v)
-
-
-type 
+    onReposition*: Event[void]
+    attachedToWindow: bool
+  
+  
   #--- Signals ---
 
   SubtreeSignal* = ref object of Signal
     ## signal sends to all childs recursively (by default)
   
-  AttachedToWindowSignal* = ref object of SubtreeSignal
+  AttachedToWindow* = ref object of SubtreeSignal
     window*: UiWindow
   
   WindowEvent* = ref object of Signal
@@ -172,6 +104,58 @@ type
     fbo: FrameBuffers
     tex: Textures
     prevSize: IVec2
+  
+
+  UiText* = ref object of Uiobj
+    text*: Property[string]
+    font*: Property[Font]
+    bounds*: Property[Vec2]
+    hAlign*: Property[HorizontalAlignment]
+    vAlign*: Property[VerticalAlignment]
+    wrap*: Property[bool] = true.property
+    angle*: Property[float32]
+    color*: Property[Col] = color(0, 0, 0).property
+    tex: Textures
+
+
+  DrawContext* = ref object
+    solid: tuple[
+      shader: Shader,
+      transform: GlInt,
+      size: GlInt,
+      px: GlInt,
+      radius: GlInt,
+      color: GlInt,
+    ]
+    image: tuple[
+      shader: Shader,
+      transform: GlInt,
+      size: GlInt,
+      px: GlInt,
+      radius: GlInt,
+    ]
+    icon: tuple[
+      shader: Shader,
+      transform: GlInt,
+      size: GlInt,
+      px: GlInt,
+      radius: GlInt,
+      color: GlInt,
+    ]
+    rectShadow: tuple[
+      shader: Shader,
+      transform: GlInt,
+      size: GlInt,
+      px: GlInt,
+      radius: GlInt,
+      blurRadius: GlInt,
+      color: GlInt,
+    ]
+
+    rect: Shape
+
+    px, wh: Vec2
+    frameBufferHierarchy: seq[tuple[fbo: GlUint, size: IVec2]]
 
 
 proc vec4*(color: Col): Vec4 =
@@ -179,120 +163,6 @@ proc vec4*(color: Col): Vec4 =
 
 proc color*(v: Vec4): Col =
   Col(r: v.x, g: v.y, b: v.z, a: v.w)
-
-
-#* ------------- Event ------------- *#
-
-proc `=destroy`*[T](s: Event[T]) =
-  for (c, _) in s.connected:
-    var i = 0
-    while i < c.connected.len:
-      if c.connected[i] == cast[ptr EventBase](s.addr):
-        c.connected.del i
-      else:
-        inc i
-
-
-proc disconnect*[T](s: var Event[T]) =
-  for (c, _) in s.connected:
-    var i = 0
-    while i < c.connected.len:
-      if c.connected[i] == cast[ptr EventBase](s.addr):
-        c.connected.del i
-      else:
-        inc i
-  s.connected = @[]
-
-proc disconnect*(c: Uiobj) =
-  for s in c.connected.mitems:
-    var i = 0
-    while i < s.connected.len:
-      if s.connected[i][0] == c:
-        s.connected.del i
-      else:
-        inc i
-  c.connected = @[]
-
-proc disconnect*[T](s: var Event[T], c: Uiobj) =
-  var i = 0
-  while i < c.connected.len:
-    if c.connected[i] == cast[ptr EventBase](s.addr):
-      c.connected.del i
-    else:
-      inc i
-  
-  i = 0
-  while i < s.connected.len:
-    if s.connected[i][0] == c:
-      s.connected.del i
-    else:
-      inc i
-
-
-proc emit*[T](s: Event[T], v: T) =
-  let connected = s.connected
-  for (c, f) in connected:
-    f(c, v)
-
-
-proc connect*[T](s: var Event[T], c: Uiobj, f: proc(c: Uiobj, v: T)) =
-  s.connected.add (c, f)
-  c.connected.add cast[ptr EventBase](s.addr)
-
-template connectTo*[T; O: Uiobj](s: var Event[T], obj: O, body: untyped) =
-  connect s, obj, proc(c: Uiobj, e {.inject.}: T) =
-    let this {.cursor, inject, used.} = cast[O](c)
-    body
-
-
-#* ------------- Property ------------- *#
-
-proc `val=`*[T](p: var Property[T], v: T) =
-  ## note: p.changed will be emitted even if new value is same as previous value
-  if v == p.unsafeVal: return
-  p.unsafeVal = v
-  emit p.changed, p.unsafeVal
-
-proc `[]=`*[T](p: var Property[T], v: T) = p.val = v
-
-proc val*[T](p: Property[T]): T = p.unsafeVal
-proc `[]`*[T](p: Property[T]): T = p.unsafeVal
-
-proc `{}`*[T](p: var Property[T]): var T = p.unsafeVal
-proc `{}=`*[T](p: var Property[T], v: T) = p.unsafeVal = v
-  ## same as []=, but does not emit p.changed
-
-converter toValue*[T](p: Property[T]): T = p[]
-
-proc `=copy`*[T](p: var Property[T], v: Property[T]) {.error.}
-
-
-#* ------------- CustomProperty ------------- *#
-
-proc `val=`*[T](p: var CustomProperty[T], v: T) =
-  ## note: p.changed will not be emitted if new value is same as previous value
-  if v == p.get(): return
-  p.set(v)
-  emit p.changed, p.get()
-
-proc `[]=`*[T](p: var CustomProperty[T], v: T) = p.val = v
-
-proc val*[T](p: CustomProperty[T]): T = p.get()
-proc `[]`*[T](p: CustomProperty[T]): T = p.get()
-
-proc unsafeVal*[T](p: var CustomProperty[T]): T = p.get()
-  ## note: can't get var T due to nature of CustomProperty
-proc `{}`*[T](p: var CustomProperty[T]): T = p.get()
-
-proc `unsafeVal=`*[T](p: var CustomProperty[T], v: T) =
-  ## same as val=, but always call setter and does not emit p.changed
-  p.set(v)
-
-proc `{}=`*[T](p: var CustomProperty[T], v: T) = p.unsafeVal = v
-
-converter toValue*[T](p: CustomProperty[T]): T = p[]
-
-proc `=copy`*[T](p: var CustomProperty[T], v: CustomProperty[T]) {.error.}
 
 
 #* ------------- Uiobj ------------- *#
@@ -380,6 +250,9 @@ method recieve*(obj: Uiobj, signal: Signal) {.base.} =
     for x in obj.childs:
       x.recieve(signal)
 
+  if signal of AttachedToWindow:
+    obj.attachedToWindow = true
+
 
 proc pos*(anchor: Anchor, isY: bool): Vec2 =
   assert anchor.obj != nil
@@ -400,12 +273,12 @@ proc pos*(anchor: Anchor, isY: bool): Vec2 =
       if anchor.obj.visibility == collapsed and anchor.obj.anchors.top.obj != nil and anchor.obj.anchors.bottom.obj == nil:
         anchor.offset
       else:
-        anchor.obj.box.h - anchor.offset
+        anchor.obj.box.h + anchor.offset
     else:
       if anchor.obj.visibility == collapsed and anchor.obj.anchors.left.obj != nil and anchor.obj.anchors.right.obj == nil:
         anchor.offset
       else:
-        anchor.obj.box.w - anchor.offset
+        anchor.obj.box.w + anchor.offset
   of center:
     if isY:
       if anchor.obj.visibility == collapsed:
@@ -475,6 +348,7 @@ proc center*(obj: Uiobj, margin: float32 = 0): Anchor =
 
 
 method reposition*(obj: Uiobj) {.base.} =
+  obj.onReposition.emit()
   anchorReposition obj
   broadcastReposition obj
 
@@ -501,6 +375,11 @@ method init*(obj: Uiobj) {.base.} =
       if this.hovered:
         this.hovered[] = false
     obj.parentUiWindow.startReposition()
+  
+  if not obj.attachedToWindow:
+    let win = obj.parentUiWindow
+    if win != nil:
+      obj.recieve(AttachedToWindow(window: win))
 
   obj.initialized = true
 
@@ -512,11 +391,11 @@ proc initIfNeeded*(obj: Uiobj) =
 
 proc fillHorizontal*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
   anchors.left = Anchor(obj: obj, offset: margin)
-  anchors.right = Anchor(obj: obj, offsetFrom: `end`, offset: margin)
+  anchors.right = Anchor(obj: obj, offsetFrom: `end`, offset: -margin)
 
 proc fillVertical*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
   anchors.top = Anchor(obj: obj, offset: margin)
-  anchors.bottom = Anchor(obj: obj, offsetFrom: `end`, offset: margin)
+  anchors.bottom = Anchor(obj: obj, offsetFrom: `end`, offset: -margin)
 
 proc centerIn*(anchors: var Anchors, obj: Uiobj, offset: Vec2 = vec2(), xCenterAt: AnchorOffsetFrom = center, yCenterAt: AnchorOffsetFrom = center) =
   anchors.centerX = Anchor(obj: obj, offsetFrom: xCenterAt, offset: offset.x)
@@ -531,6 +410,10 @@ method addChild*(parent: Uiobj, child: Uiobj) {.base.} =
   assert child.parent == nil
   child.parent = parent
   parent.childs.add child
+  if not child.attachedToWindow and parent.attachedToWindow:
+    let win = parent.parentUiWindow
+    if win != nil:
+      child.recieve(AttachedToWindow(window: win))
 
 
 macro super*[T: Uiobj](obj: T): auto =
@@ -811,16 +694,20 @@ proc drawShadowRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius:
 
 
 proc `image=`*(obj: UiImage, img: pixie.Image) =
-  obj.tex = newTextures(1)
-  loadTexture(obj.tex[0], img)
-  obj.imageWh[] = ivec2(img.width.int32, img.height.int32)
-  obj.box.wh = obj.imageWh.vec2
+  obj.tex = nil
+  if img != nil:
+    obj.tex = newTextures(1)
+    loadTexture(obj.tex[0], img)
+    if obj.box.wh == vec2():
+      obj.box.wh = vec2(img.width.float32, img.height.float32)
+    obj.imageWh[] = ivec2(img.width.int32, img.height.int32)
 
 proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
   obj.tex = newTextures(1)
   loadTexture(obj.tex[0], img)
+  if obj.box.wh == vec2():
+    obj.box.wh = vec2(img.width.float32, img.height.float32)
   obj.imageWh[] = ivec2(img.width.int32, img.height.int32)
-  obj.box.wh = obj.imageWh.vec2
 
 
 method draw*(rect: UiRect, ctx: DrawContext) =
@@ -830,15 +717,44 @@ method draw*(rect: UiRect, ctx: DrawContext) =
 
 
 method draw*(img: UiImage, ctx: DrawContext) =
-  if img.visibility[] == visible:
+  if img.visibility[] == visible and img.tex != nil:
     ctx.drawImage(img.box.xy.posToGlobal(img.parent), img.box.wh, img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
   procCall draw(img.Uiobj, ctx)
 
 
 method draw*(ico: UiIcon, ctx: DrawContext) =
-  if ico.visibility[] == visible:
+  if ico.visibility[] == visible and ico.tex != nil:
     ctx.drawIcon(ico.box.xy.posToGlobal(ico.parent), ico.box.wh, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
   procCall draw(ico.Uiobj, ctx)
+
+
+method init*(this: UiText) =
+  procCall this.super.init
+  proc updateTex(this: UiText) =
+    this.tex = nil
+    if this.text[] != "" and this.font != nil:
+      let typeset = typeset(this.font[], this.text[], this.bounds[], this.hAlign[], this.vAlign[], this.wrap[])
+      let bounds = typeset.layoutBounds
+      this.box.wh = bounds
+      if bounds.x == 0 or bounds.y == 0: return
+      let image = newImage(bounds.x.ceil.int32, bounds.y.ceil.int32)
+      image.fillText(typeset)
+      this.tex = newTextures(1)
+      loadTexture(this.tex[0], image)
+      # todo: reposition
+
+  this.text.changed.connectTo this: this.updateTex
+  this.font.changed.connectTo this: this.updateTex
+  this.bounds.changed.connectTo this: this.updateTex
+  this.hAlign.changed.connectTo this: this.updateTex
+  this.vAlign.changed.connectTo this: this.updateTex
+  this.wrap.changed.connectTo this: this.updateTex
+
+
+method draw*(text: UiText, ctx: DrawContext) =
+  if text.visibility[] == visible and text.tex != nil:
+    ctx.drawIcon(text.box.xy.posToGlobal(text.parent), text.box.wh, text.tex[0], text.color.vec4, 0, true, text.angle)
+  procCall draw(text.Uiobj, ctx)
 
 
 method draw*(rect: UiRectShadow, ctx: DrawContext) =
@@ -951,6 +867,10 @@ proc newUiWindow*(siwinWindow: Window): UiWindow =
   result.ctx = newDrawContext()
 
 
+method addChild*(this: UiWindow, child: Uiobj) =
+  procCall this.super.addChild(child)
+  child.recieve(AttachedToWindow(window: this))
+
 
 #----- Macro -----
 
@@ -1035,7 +955,7 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
         impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", if body.kind == nnkStmtList: body else: newStmtList(body))
 
 
-macro binding*[T: Uiobj](obj: T, target: untyped, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true): untyped =
+macro binding*[T: EventHandler](obj: T, target: untyped, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
   ## connects update proc to every x[] property changed, and invokes update proc instantly
   runnableExamples:
     type MyObj = ref object of Uiobj
@@ -1102,4 +1022,5 @@ macro binding*[T: Uiobj](obj: T, target: untyped, body: typed, afterUpdate: type
       var stmts: seq[NimNode]
       (impl(stmts, obj, body))
       for x in stmts: x
-      call updateProc, objCursor
+      if init:
+        call updateProc, objCursor

@@ -11,13 +11,22 @@ type
 
   Style* = ref object
     color*: Col
+    color2*: Col
+    color3*: Col
     backgroundColor*: Col
     button*, accentButton*: ButtonStyle
     borders*: bool
     borderColor*: Col
+    
+    accent*: Col
+    itemBackground*: Col
+    itemColor*: Col
+    itemDropShadow*: bool
+
+    typeface*: Typeface
   
   FullStyle* = object
-    window*, header*: Style
+    window*, header*, panel*: Style
   
   StyleChanged* = ref object of SubtreeSignal
     fullStyle*: FullStyle

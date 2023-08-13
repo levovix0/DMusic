@@ -4,7 +4,7 @@ import uibase
 type
   GlobalShortcut* = ref object of Uiobj
     sequence*: set[Key]
-    action*: proc()
+    activated*: Event[void]
 
 
 proc globalShortcut*(sequence: set[Key]): GlobalShortcut =
@@ -15,6 +15,6 @@ method recieve*(this: GlobalShortcut, signal: Signal) =
   of of WindowEvent(event: @ea of KeyEvent(), handled: false):
     let e = (ref KeyEvent)ea
     if e.pressed and e.window.keyboard.pressed == this.sequence:
-      this.action()
+      this.activated.emit()
   
   procCall this.super.recieve(signal)

@@ -45,7 +45,23 @@ when isMainModule:
 
   clcfg.version = "0.4"
   if paramCount() == 0:
-    dispatch gui.gui
+    try:
+      dispatch gui.gui
+
+    except CatchableError as e:
+      if not(logger of ConsoleLogger):
+        echo getCurrentExceptionMsg()
+        echo e.getStackTrace()
+      logger.log(lvlError, getCurrentExceptionMsg())
+      logger.log(lvlError, e.getStackTrace())
+
+    except Defect as e:
+      if not(logger of ConsoleLogger):
+        echo getCurrentExceptionMsg()
+        echo e.getStackTrace()
+      logger.log(lvlError, getCurrentExceptionMsg())
+      logger.log(lvlError, e.getStackTrace())
+
   else:
     dispatchMulti(
       [gui.gui],
