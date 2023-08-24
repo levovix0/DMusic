@@ -1,160 +1,134 @@
 
 type
   EventBase = object
-    connected: seq[(EventHandler, proc(c: EventHandler, v: int))]
+    connected: seq[(EventHandlerCursor, proc(v: int) {.closure.})]
   
-  EventHandler* = ref object of RootObj
-    connected*: seq[ptr EventBase]
+  EventHandler* = ref object
+    connected: seq[ptr EventBase]
+
+
+  EventHandlerCursor = object
+    eh {.cursor.}: EventHandler
 
   Event*[T] = object
     ## only EventHandler can be connected to event
     ## one event can be connected to multiple components
     ## one EventHandler can connect to multiple events
     ## one event can be connected to one EventHandler multiple times
-    ## connection can be removed, but inf EventHandler connected to event multiple times, they all will be removed
-    connected*: seq[(EventHandler, proc(c: EventHandler, v: T))]
-  
-
-  Property*[T] = object
-    unsafeVal*: T
-    changed*: Event[T]
-
-  CustomProperty*[T] = object
-    get*: proc(): T
-    set*: proc(v: T)
-    changed*: Event[T]
-
-  AnyProperty*[T] = Property[T] | CustomProperty[T]
-
-
-proc property*[T](v: T): Property[T] =
-  Property[T](unsafeVal: v)
+    ## connection can be removed, but if EventHandler connected to event multiple times, they all will be removed
+    connected: ref seq[(EventHandlerCursor, proc(v: T) {.closure.})]
 
 
 
 #* ------------- Event ------------- *#
 
-proc `=destroy`*[T](s: Event[T]) =
-  for (c, _) in s.connected:
+proc destroyEvent(s: ptr EventBase)
+proc destroyEventHandler(c: EventHandler)
+
+
+proc `=destroy`[T](s: Event[T]) =
+  if s.connected != nil:
+    destroyEvent(cast[ptr EventBase](s.connected[].addr))
+
+proc initIfNeeded[T](s: var Event[T]) =
+  if s.connected == nil:
+    new s.connected
+
+
+proc initIfNeeded(c: var EventHandler) =
+  if c == nil:
+    {.push, warning[Deprecated]: off.}
+    new c, destroyEventHandler
+    {.pop.}
+
+
+proc destroyEvent(s: ptr EventBase) =
+  for (c, _) in s[].connected:
     var i = 0
-    while i < c.connected.len:
-      if c.connected[i] == cast[ptr EventBase](s.addr):
-        c.connected.del i
+    while i < c.eh.connected.len:
+      if c.eh.connected[i] == s:
+        c.eh.connected.del i
+      else:
+        inc i
+
+proc destroyEventHandler(c: EventHandler) =
+  for s in c.connected:
+    var i = 0
+    while i < s[].connected.len:
+      if s[].connected[i][0].eh == c:
+        s[].connected.del i
       else:
         inc i
 
 
 proc disconnect*[T](s: var Event[T]) =
-  for (c, _) in s.connected:
+  if s == nil: return
+  for (c, _) in s.connected[]:
     var i = 0
-    while i < c.connected.len:
-      if c.connected[i] == cast[ptr EventBase](s.addr):
-        c.connected.del i
+    while i < c.eh.connected.len:
+      if c.eh.connected[i] == cast[ptr EventBase](s.connected[].addr):
+        c.eh.connected.del i
       else:
         inc i
-  s.connected = @[]
+  s.connected[] = @[]
 
-proc disconnect*(c: EventHandler) =
-  for s in c.connected.mitems:
+proc disconnect*(c: var EventHandler) =
+  if c == nil: return
+  for s in c.connected:
     var i = 0
-    while i < s.connected.len:
-      if s.connected[i][0] == c:
-        s.connected.del i
+    while i < s[].connected.len:
+      if s[].connected[i][0].eh == c:
+        s[].connected.del i
       else:
         inc i
   c.connected = @[]
 
-proc disconnect*[T](s: var Event[T], c: EventHandler) =
+proc disconnect*[T](s: var Event[T], c: var EventHandler) =
+  if s.connected == nil or c == nil: return
   var i = 0
   while i < c.connected.len:
-    if c.connected[i] == cast[ptr EventBase](s.addr):
+    if c.connected[i] == cast[ptr EventBase](s.connected[].addr):
       c.connected.del i
     else:
       inc i
   
   i = 0
-  while i < s.connected.len:
-    if s.connected[i][0] == c:
-      s.connected.del i
+  while i < s.connected[].len:
+    if s.connected[][i][0].eh == c:
+      s.connected[].del i
     else:
       inc i
 
 
 proc emit*[T](s: Event[T], v: T) =
-  let connected = s.connected
-  for (c, f) in connected:
-    f(c, v)
+  if s.connected == nil: return
+  let connected = s.connected[]
+  for (_, f) in connected:
+    f(v)
 
 proc emit*(s: Event[void]) =
-  let connected = s.connected
-  for (c, f) in connected:
-    f(c)
+  if s.connected == nil: return
+  let connected = s.connected[]
+  for (_, f) in connected:
+    f()
 
 
-proc connect*[T](s: var Event[T], c: EventHandler, f: proc(c: EventHandler, v: T)) =
-  s.connected.add (c, f)
-  c.connected.add cast[ptr EventBase](s.addr)
+proc connect*[T](s: var Event[T], c: var EventHandler, f: proc(v: T)) =
+  initIfNeeded s
+  initIfNeeded c
+  s.connected[].add (EventHandlerCursor(eh: c), f)
+  c.connected.add cast[ptr EventBase](s.connected[].addr)
 
-proc connect*(s: var Event[void], c: EventHandler, f: proc(c: EventHandler)) =
-  s.connected.add (c, f)
-  c.connected.add cast[ptr EventBase](s.addr)
+proc connect*(s: var Event[void], c: var EventHandler, f: proc()) =
+  initIfNeeded s
+  initIfNeeded c
+  s.connected[].add (EventHandlerCursor(eh: c), f)
+  c.connected.add cast[ptr EventBase](s.connected[].addr)
 
-template connectTo*[T; O: EventHandler](s: var Event[T], obj: O, body: untyped) =
-  connect s, obj, proc(c: EventHandler, e {.inject.}: T) =
-    let this {.cursor, inject, used.} = cast[O](c)
+template connectTo*[T](s: var Event[T], obj: var EventHandler, body: untyped) =
+  connect s, obj, proc(e {.inject.}: T) =
     body
 
-template connectTo*[O: EventHandler](s: var Event[void], obj: O, body: untyped) =
-  connect s, obj, proc(c: EventHandler) =
-    let this {.cursor, inject, used.} = cast[O](c)
+template connectTo*(s: var Event[void], obj: var EventHandler, body: untyped) =
+  connect s, obj, proc() =
     body
-
-
-#* ------------- Property ------------- *#
-
-proc `val=`*[T](p: var Property[T], v: T) =
-  ## note: p.changed will be emitted even if new value is same as previous value
-  if v == p.unsafeVal: return
-  p.unsafeVal = v
-  emit p.changed, p.unsafeVal
-
-proc `[]=`*[T](p: var Property[T], v: T) = p.val = v
-
-proc val*[T](p: Property[T]): T = p.unsafeVal
-proc `[]`*[T](p: Property[T]): T = p.unsafeVal
-
-proc `{}`*[T](p: var Property[T]): var T = p.unsafeVal
-proc `{}=`*[T](p: var Property[T], v: T) = p.unsafeVal = v
-  ## same as []=, but does not emit p.changed
-
-converter toValue*[T](p: Property[T]): T = p[]
-
-proc `=copy`*[T](p: var Property[T], v: Property[T]) {.error.}
-
-
-#* ------------- CustomProperty ------------- *#
-
-proc `val=`*[T](p: var CustomProperty[T], v: T) =
-  ## note: p.changed will not be emitted if new value is same as previous value
-  if v == p.get(): return
-  p.set(v)
-  emit p.changed, p.get()
-
-proc `[]=`*[T](p: var CustomProperty[T], v: T) = p.val = v
-
-proc val*[T](p: CustomProperty[T]): T = p.get()
-proc `[]`*[T](p: CustomProperty[T]): T = p.get()
-
-proc unsafeVal*[T](p: var CustomProperty[T]): T = p.get()
-  ## note: can't get var T due to nature of CustomProperty
-proc `{}`*[T](p: var CustomProperty[T]): T = p.get()
-
-proc `unsafeVal=`*[T](p: var CustomProperty[T], v: T) =
-  ## same as val=, but always call setter and does not emit p.changed
-  p.set(v)
-
-proc `{}=`*[T](p: var CustomProperty[T], v: T) = p.unsafeVal = v
-
-converter toValue*[T](p: CustomProperty[T]): T = p[]
-
-proc `=copy`*[T](p: var CustomProperty[T], v: CustomProperty[T]) {.error.}

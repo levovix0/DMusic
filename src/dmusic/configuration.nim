@@ -162,6 +162,9 @@ genconfig:
     bool closeButton true
     bool maximizeButton true
     bool minimizeButton true
+  
+  yt "Youtube":
+    string token
 
 
 var logger* =

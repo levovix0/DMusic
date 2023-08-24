@@ -5,7 +5,6 @@
 import locks, times, os, sequtils, strutils, options, random, algorithm, asyncdispatch
 import miniaudio, miniaudio/futharkminiaudio
 import ./[api, configuration]
-import ./yandexMusic except Track, Radio, toRadio
 import gui/[events]
 
 type
@@ -13,7 +12,8 @@ type
     paused
     playing
 
-  OutAudioStream* = ref object of EventHandler
+  OutAudioStream* = ref object
+    eventHandler*: EventHandler
     volume*: CustomProperty[float]
     state*: Property[AudioStreamState]
     atEnd*: Event[void]
@@ -25,11 +25,12 @@ type
     engine: AudioEngine
     decoder: ma_decoder
     device: ma_device
-    creationLock, getInfoLock: Lock
+    creationLock, positionChangeLock, getInfoLock: Lock
     eventsToEmit: tuple[stateChanged, atEnd, positionChanged: bool]
     hasPlayingTrack: bool
 
-  TrackSequence* = ref object of EventHandler
+  TrackSequence* = ref object
+    eventHandler*: EventHandler
     current*: int
     yandexId*: (int, int)
     case isRadio*: bool
@@ -51,29 +52,30 @@ template wrapError(body: typed) =
 proc data_callback(device: ptr ma_device, output: pointer, input: pointer, frameCount: ma_uint32) {.cdecl.} =
   let stream = cast[OutAudioStream](device.pUserdata)
   withLock stream.creationLock:
-    if stream.getInfoLock.tryAcquire:
-      defer: stream.getInfoLock.release
-      case stream.state[]
-      of playing:
-        let state = ma_decoder_read_pcm_frames(stream.decoder.addr, output, frameCount, nil)
-        case state
-        of MaSuccess:
-          stream.m_position = stream.m_position + frameCount.int / stream.decoder.outputSampleRate.int / (stream.duration[].inMicroseconds / 1_000_000)
-          stream.eventsToEmit.positionChanged = true
-        of MaAtEnd:
-          stream.m_position = 0
-          stream.eventsToEmit.positionChanged = true
-          stream.eventsToEmit.stateChanged = true
-          stream.eventsToEmit.atEnd = true
-          stream.state{} = paused
-        else: wrapError state
-        
-        let output = cast[ptr UncheckedArray[float32]](output)
-        let volume = stream.m_volume * stream.m_volume
-        
-        for i in 0..<(frameCount * 2):  #? wtf why multipliying by 2? float32 is 4 bytes, but 1 nor 4 don't work
-          output[i] = output[i] * volume
-      else: discard
+    withLock stream.getInfoLock:
+      if stream.positionChangeLock.tryAcquire:
+        defer: stream.positionChangeLock.release
+        case stream.state[]
+        of playing:
+          let state = ma_decoder_read_pcm_frames(stream.decoder.addr, output, frameCount, nil)
+          case state
+          of MaSuccess:
+            stream.m_position = stream.m_position + frameCount.int / stream.decoder.outputSampleRate.int / (stream.duration[].inMicroseconds / 1_000_000)
+            stream.eventsToEmit.positionChanged = true
+          of MaAtEnd:
+            stream.m_position = 0
+            stream.eventsToEmit.positionChanged = true
+            stream.eventsToEmit.stateChanged = true
+            stream.eventsToEmit.atEnd = true
+            stream.state{} = paused
+          else: wrapError state
+          
+          let output = cast[ptr UncheckedArray[float32]](output)
+          let volume = stream.m_volume * stream.m_volume
+          
+          for i in 0..<(frameCount * 2):  #? wtf why multipliying by 2? float32 is 4 bytes, but 1 nor 4 don't work
+            output[i] = output[i] * volume
+        else: discard
 
 
 proc newOutAudioStream*(): OutAudioStream =
@@ -87,13 +89,14 @@ proc newOutAudioStream*(): OutAudioStream =
   result.position = CustomProperty[float](
     get: proc(): float = this.m_position,
     set: (proc(v: float) =
-      withLock this.getInfoLock:
+      withLock this.positionChangeLock:
         this.m_position = v.max(0).min(1)
         ma_decoder_seek_to_pcm_frame(this.decoder.addr, (this.m_position * (this.duration[].inMicroseconds / 1_000_000) * this.decoder.outputSampleRate.float).ma_uint64).wrapError
     ),
   )
   initLock result.creationLock
   initLock result.getInfoLock
+  initLock result.positionChangeLock
 
 
 proc playTrackFromMemory*(stream: OutAudioStream, audio: string) =
@@ -242,16 +245,16 @@ proc unshuffle(x: TrackSequence, current = 0) =
 
 
 proc initTrackSequence*(sequence: TrackSequence) =
-  config.shuffle.changed.connectTo sequence:
+  config.shuffle.changed.connectTo sequence.eventHandler:
     if e:
-      shuffle(this, this.current)
+      shuffle(sequence, sequence.current)
     else:
-      try: unshuffle(this, this.history[this.current])
+      try: unshuffle(sequence, sequence.history[sequence.current])
       except: discard
 
-  config.loop.changed.connectTo sequence:
-    if not this.isRadio:
-      this.loop = config.loop == LoopMode.playlist
+  config.loop.changed.connectTo sequence.eventHandler:
+    if not sequence.isRadio:
+      sequence.loop = config.loop == LoopMode.playlist
 
   if not sequence.isRadio: 
     if config.shuffle: shuffle sequence

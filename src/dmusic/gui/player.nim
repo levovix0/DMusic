@@ -1,6 +1,7 @@
 import asyncdispatch, times, sequtils, strutils, os, strformat
 import pixie/fileformats/svg, siwin
-import ../[configuration, api, utils, audio, yandexMusic, taglib]
+import ../[configuration, api, utils, audio, taglib]
+import ../musicProviders/[yandexMusic, youtube, requests]
 import ./[uibase, style, globalShortcut]
 
 type
@@ -203,7 +204,7 @@ proc addUserTrack*(player: Player, file, cover, title, comment, artists: string)
     elif cover.startsWith("file:"): readFile cover.unfile
     else: readFile cover
     # TODO: http: handling
-  writeTrackMetadata(filename, (title, comment, artists, coverdata, false, false, Duration.default))
+  writeTrackMetadata(filename, TrackMetadata(title: title, comment: comment, artists: artists, cover: coverdata, liked: false, disliked: false, duration: Duration.default))
 
 proc playRadioFromYmTrack*(player: Player, id: int) =
   if player.playlistRequestCanceled != nil: player.playlistRequestCanceled[] = true
@@ -233,10 +234,7 @@ proc newPlayer*(): Player =
     do: discard
     do: false
 
-    root.outAudioStream.atEnd.connectTo root:
-      this.next()
-
-    root.currentTrack.changed.connectTo root.outAudioStream:
+    proc playTrack(this: OutAudioStream, e: api.Track) =
       this.state[] = paused
       if root.audioRequestCanceled != nil: root.audioRequestCanceled[] = true
       if e == nil:
@@ -244,7 +242,7 @@ proc newPlayer*(): Player =
         return
 
       case e.kind
-      of yandexIdOnly:  # fetch track from id
+      of yandexIdOnly, youtubeIdOnly:  # fetch track from id
         root.audioRequestCanceled = new bool
         asyncCheck: (proc(this: OutAudioStream, track: api.Track, root: Player) {.async.} =
           try:
@@ -263,14 +261,24 @@ proc newPlayer*(): Player =
           try:
             let audioUrl = track.audio.await
             if audioUrl.startsWith("file:"):
-              this.playTrackFromMemory(readFile audioUrl[5..^1])
+              let file = audioUrl[5..^1]
+              let audio = file.readFile[file.getTrackAudioStartByte..^1]
+              this.playTrackFromMemory(audio)
             else:
-              let audio = request(audioUrl, cancel = root.audioRequestCanceled).await
+              let audio = ymRequest(audioUrl, cancel = root.audioRequestCanceled).await
               this.playTrackFromMemory(audio)
             this.state[] = playing
           except RequestCanceled:
             discard
         )(this, e, root)
+
+    root.outAudioStream.atEnd.connectTo root:
+      if config.loop[] == track:
+        playTrack(this.outAudioStream, this.currentTrack[])
+      else:
+        this.next()
+
+    root.currentTrack.changed.connectTo root.outAudioStream: root.outAudioStream.playTrack(e)
 
 
     - newUiRect():
@@ -375,7 +383,7 @@ proc newPlayer*(): Player =
           this.binding available: root.currentTrack[] != nil
 
           this.activated.connectTo root:
-            this.outAudioStream.state[] = case this.outAudioStream.state[]
+            root.outAudioStream.state[] = case root.outAudioStream.state[]
             of playing: paused
             of paused: playing
 
@@ -522,7 +530,7 @@ proc newPlayer*(): Player =
       
     - globalShortcut({Key.space}):
       this.activated.connectTo root:
-        this.outAudioStream.state[] = case this.outAudioStream.state[]
+        root.outAudioStream.state[] = case root.outAudioStream.state[]
         of playing: paused
         of paused: playing
     
@@ -542,6 +550,10 @@ proc newPlayer*(): Player =
       this.activated.connectTo root:
         root.next()
     
+    - globalShortcut({Key.lshift, Key.p}): # temporary
+      this.activated.connectTo root:
+        root.play(searchYoutube("yonkagor").waitFor.tracks.mapit(it.id.youtubeTrack))
+    
     - globalShortcut({Key.p}): # temporary
       this.activated.connectTo root:
-        this.playDmPlaylist(2)
+        root.playDmPlaylist(2)

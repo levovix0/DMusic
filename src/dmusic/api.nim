@@ -1,5 +1,6 @@
 import asyncdispatch, strutils, sequtils, os, strformat, times, pixie, pixie/fileformats/svg
-import ./[configuration, yandexMusic, taglib, utils]
+import ./[configuration, taglib, utils]
+import ./musicProviders/[yandexMusic, youtube, requests]
 
 export RequestCanceled
 
@@ -8,9 +9,15 @@ export RequestCanceled
 type
   TrackKind* = enum
     none
+
     yandex
     yandexFromFile
     yandexIdOnly
+    
+    youtubeTrack
+    youtubeIdOnly
+    youtubeFromFile
+    
     user
   
   Track* = ref TrackObj
@@ -21,7 +28,15 @@ type
     of TrackKind.yandexFromFile:
       yandexFromFile*: YandexFromFileTrack
     of TrackKind.yandexIdOnly:
-      yandexIdOnly*: TrackId
+      yandexIdOnly*: yandexMusic.TrackId
+    
+    of TrackKind.youtubeTrack:
+      youtubeTrack*: youtube.Track
+    of TrackKind.youtubeIdOnly:
+      youtubeIdOnly*: youtube.TrackId
+    of TrackKind.youtubeFromFile:
+      youtubeFromFile*: YoutubeFromFileTrack
+
     of TrackKind.user:
       user*: UserTrack
     else: discard
@@ -32,6 +47,11 @@ type
 
   YandexFromFileTrack* = tuple
     id: yandexMusic.TrackId
+    file: string
+    metadata: TrackMetadata
+  
+  YoutubeFromFileTrack* = tuple
+    id: youtube.TrackId
     file: string
     metadata: TrackMetadata
   
@@ -74,7 +94,7 @@ type
       yandex*: yandexMusic.Radio
 
 
-proc yandexTrack*(id: TrackId): Track =
+proc yandexTrack*(id: yandexMusic.TrackId): Track =
   let filename = dataDir / "yandex" / &"{id}.mp3"
   if fileExists filename:
     return Track(
@@ -104,11 +124,30 @@ proc userTrack*(id: int): Track =
   else:
     return Track()
 
+proc youtubeTrack*(id: youtube.TrackId): Track =
+  let filename = dataDir / "youtube" / &"{id}.mp3"
+  if fileExists filename:
+    return Track(
+      kind: TrackKind.youtubeFromFile,
+      # youtubeFromFile: (id: id, file: filename, metadata: readTrackMetadata(filename))
+      youtubeFromFile: (id: id, file: filename, metadata: TrackMetadata())
+    )
+  else:
+    return Track(kind: TrackKind.youtubeIdOnly, youtubeIdOnly: id)
 
-proc fetch*(this: Track): Future[bool] {.async.} =
+
+proc fetch*(this: Track, cancel: ref bool = nil): Future[bool] {.async.} =
   if this.kind == TrackKind.yandexIdOnly:
-    let id = this.yandexIdOnly.id
-    this[] = TrackObj(kind: TrackKind.yandex, yandex: id.fetch.await[0])
+    this[] = TrackObj(
+      kind: TrackKind.yandex,
+      yandex: this.yandexIdOnly.id.fetch(cancel=cancel).await[0]
+    )
+    return true
+  elif this.kind == TrackKind.youtubeIdOnly:
+    this[] = TrackObj(
+      kind: TrackKind.youtubeTrack,
+      youtubeTrack: this.youtubeIdOnly.fetch(cancel=cancel).await
+    )
     return true
 
 
@@ -120,33 +159,78 @@ proc forceFetch*(this: Track): Future[bool] {.async.} =
       this[] = TrackObj(kind: TrackKind.yandex, yandex: id.fetch.await[0])
       return true
     except: discard
+  elif this.kind == TrackKind.youtubeFromFile:
+    this[] = TrackObj(kind: TrackKind.youtubeTrack, youtubeTrack: this.youtubeFromFile.id.fetch.await)
+    return true
 
 
-proc save*(this: Track, file: string, progressReport: ProgressReportCallback = nil) {.async.} =
-  if this.kind == TrackKind.yandexIdOnly:
+proc save*(this: Track, file: string, progressReport: ProgressReportCallback = nil, cancel: ref bool = nil) {.async.} =
+  if this.kind in {TrackKind.yandexIdOnly, TrackKind.youtubeIdOnly}:
     discard await fetch this
+
   if this.kind == TrackKind.yandex:
     createDir file.splitPath.head
     let (title, comment, artists) = (this.yandex.title, this.yandex.comment, this.yandex.artists.mapit(it.name).join(", "))
     let (audio, cover, liked, disliked) = (
-      this.yandex.audioUrl.await.request(progressReport=progressReport),
-      this.yandex.coverUrl(1000).request,
-      this.yandex.liked,
-      this.yandex.disliked
+      this.yandex.audioUrl.await.ymRequest(progressReport=progressReport, cancel=cancel),
+      this.yandex.coverUrl(1000).ymRequest(cancel=cancel),
+      this.yandex.liked(cancel=cancel),
+      this.yandex.disliked(cancel=cancel),
     )
     writeFile file, audio.await
-    writeTrackMetadata(file, (title, comment, artists, cover.await, liked.await, disliked.await, Duration.default), writeCover=true)
+    writeTrackMetadata(file, TrackMetadata(
+      title: title,
+      comment: comment,
+      artists: artists,
+      cover: cover.await,
+      liked: liked.await,
+      disliked: disliked.await,
+      duration: Duration.default,
+    ), writeCover=true)
+
     this[] = TrackObj(kind: TrackKind.yandexFromFile, yandexFromFile: (
       id: this.yandex.asId,
       file: file,
       metadata: readTrackMetadata(file)
     ))
+  
+  elif this.kind == TrackKind.youtubeTrack:
+    createDir file.splitPath.head
+    let (title, comment, artists) = (this.youtubeTrack.title, "", this.youtubeTrack.channel)
+    let (cover, liked, disliked) = (
+      this.youtubeTrack.thumbnailUrl.ytRequest,
+      false,
+      false,
+    )
+    
+    this.youtubeTrack.id.downloadAudio(file, cancel=cancel).await
+    
+    writeTrackMetadata(file, TrackMetadata(
+      title: title,
+      comment: comment,
+      artists: artists,
+      cover: cover.await,
+      liked: liked,
+      disliked: disliked,
+      duration: Duration.default,
+    ), writeCover=true)
 
-proc save*(this: Track, progressReport: ProgressReportCallback = nil) {.async.} =
+    this[] = TrackObj(kind: TrackKind.youtubeFromFile, youtubeFromFile: (
+      id: this.youtubeTrack.id,
+      file: file,
+      metadata: readTrackMetadata(file)
+    ))
+
+proc save*(this: Track, progressReport: ProgressReportCallback = nil, cancel: ref bool = nil) {.async.} =
   if this.kind == TrackKind.yandex:
-    await this.save(dataDir / "yandex" / &"{this.yandex.id}.mp3", progressReport=progressReport)
+    await this.save(dataDir / "yandex" / &"{this.yandex.id}.mp3", progressReport=progressReport, cancel=cancel)
   elif this.kind == TrackKind.yandexIdOnly:
-    await this.save(dataDir / "yandex" / &"{this.yandexIdOnly.id}.mp3", progressReport=progressReport)
+    await this.save(dataDir / "yandex" / &"{this.yandexIdOnly.id}.mp3", progressReport=progressReport, cancel=cancel)
+  elif this.kind == TrackKind.youtubeTrack:
+    await this.save(dataDir / "youtube" / &"{this.youtubeTrack.id}.mp3", progressReport=progressReport, cancel=cancel)
+  elif this.kind == TrackKind.youtubeIdOnly:
+    await this.save(dataDir / "youtube" / &"{this.youtubeIdOnly}.mp3", progressReport=progressReport, cancel=cancel)
+  
 
 proc remove*(this: Track) =
   if this.kind == TrackKind.yandexFromFile:
@@ -186,6 +270,11 @@ proc audio*(this: Track): Future[string] {.async.} =
     "file:" & this.yandexFromFile.file
   of TrackKind.user:
     "file:" & this.user.file
+  of TrackKind.youtubeTrack:
+    this.youtubeTrack.id.downloadAudio(dataDir / "youtube-tmp" / "audio.mp3").await
+    "file:" & dataDir / "youtube-tmp" / "audio.mp3"
+  of TrackKind.youtubeFromFile:
+    "file:" & this.youtubeFromFile.file
   else: ""
 
 const
@@ -196,12 +285,22 @@ proc cover*(this: Track, quality = lowQualityCover, cancel: ref bool = nil): Fut
   return case this.kind
   of TrackKind.yandex:
     yandexMusic.cover(this.yandex, quality=quality, cancel=cancel).await.decodeImage.resize(quality, quality)
+
   of TrackKind.yandexFromFile:
     if this.yandexFromFile.metadata.cover == "": emptyCover.parseSvg(quality, quality).newImage
     else: this.yandexFromFile.metadata.cover.decodeImage.resize(quality, quality)
+
   of TrackKind.user:
     if this.user.metadata.cover == "": emptyCover.parseSvg(quality, quality).newImage
     else: this.user.metadata.cover.decodeImage.resize(quality, quality)
+
+  of TrackKind.youtubeTrack:
+    this.youtubeTrack.thumbnailUrl.ytRequest(cancel=cancel).await.decodeImage.resize(quality, quality)
+
+  of TrackKind.youtubeFromFile:
+    if this.youtubeFromFile.metadata.cover == "": emptyCover.parseSvg(quality, quality).newImage
+    else: this.youtubeFromFile.metadata.cover.decodeImage.resize(quality, quality)
+
   else: emptyCover.parseSvg(50, 50).newImage
 
 proc title*(this: Track): string =
@@ -212,6 +311,10 @@ proc title*(this: Track): string =
     this.yandexFromFile.metadata.title
   of TrackKind.user:
     this.user.metadata.title
+  of TrackKind.youtubeTrack:
+    this.youtubeTrack.title
+  of TrackKind.youtubeFromFile:
+    this.youtubeFromFile.metadata.title
   else: ""
 
 proc comment*(this: Track): string =
@@ -222,6 +325,8 @@ proc comment*(this: Track): string =
     this.yandexFromFile.metadata.comment
   of TrackKind.user:
     this.user.metadata.comment
+  of TrackKind.youtubeTrack, TrackKind.youtubeFromFile:
+    ""
   else: ""
 
 proc artists*(this: Track): string =
@@ -232,6 +337,10 @@ proc artists*(this: Track): string =
     this.yandexFromFile.metadata.artists
   of TrackKind.user:
     this.user.metadata.artists
+  of TrackKind.youtubeTrack:
+    this.youtubeTrack.channel
+  of TrackKind.youtubeFromFile:
+    this.youtubeFromFile.metadata.artists
   else: ""
 
 proc liked*(this: Track): Future[bool] {.async.} =
@@ -242,6 +351,8 @@ proc liked*(this: Track): Future[bool] {.async.} =
     this.yandexFromFile.metadata.liked
   of TrackKind.user:
     this.user.metadata.liked
+  of TrackKind.youtubeTrack, TrackKind.youtubeFromFile:
+    false
   else: false
 
 proc `liked=`*(this: Track, v: bool) {.async.} =

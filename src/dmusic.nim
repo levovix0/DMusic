@@ -1,6 +1,6 @@
 import os, strformat, strutils, sequtils
 import dmusic/configuration
-import asyncdispatch, dmusic/yandexMusic
+import asyncdispatch, dmusic/musicProviders/[yandexMusic]
 
 
 proc download(tracks: seq[string], file: string = "") =
@@ -25,13 +25,13 @@ proc download(tracks: seq[string], file: string = "") =
       let file =
         if file == "": track.artists.mapit(it.name).join(", ") & " - " & track.title & ".mp3"
         else: file
-      writeFile file, request(track.audioUrl.waitFor).waitFor
+      writeFile file, ymRequest(track.audioUrl.waitFor).waitFor
     else:
       let track = yandexMusic.search(track).waitFor.tracks[0]
       let file =
         if file == "": track.artists.mapit(it.name).join(", ") & " - " & track.title & ".mp3"
         else: file
-      writeFile file, request(track.audioUrl.waitFor).waitFor
+      writeFile file, ymRequest(track.audioUrl.waitFor).waitFor
 
 
 proc getRadioTracks*(station: string) =

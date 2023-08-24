@@ -122,6 +122,7 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
   result.siwinWindow.minSize = ivec2(540, 320)
   if config.window_maximized: result.siwinWindow.maximized = true
 
+  let this = result
   config.csd.changed.connectTo result:
     this.siwinWindow.frameless = config.csd
   

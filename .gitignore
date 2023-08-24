@@ -9,3 +9,6 @@
 /dmusic
 /dmusic.exe
 /config.nims
+
+local_*
+local-*

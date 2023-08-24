@@ -60,7 +60,10 @@ type
     bandLogo
     publisherLogo
   
-  TrackMetadata* = tuple[title, comment, artists, cover: string; liked, disliked: bool; duration: Duration]
+  TrackMetadata* = object
+    title*, comment*, artists*, cover*: string
+    liked*, disliked*: bool
+    duration*: Duration
 
 
 
@@ -141,6 +144,10 @@ impl PId3v2Tag:
 
   proc frames: seq[PFrame] =
     proc impl(this: PId3v2Tag): TaglibList[PFrame] {.importcpp: "#->frameList()", header: "id3v2tag.h".}
+    impl(this)
+  
+  proc completeTagSize: uint32 =
+    proc impl(this: PId3v2Tag): uint32 {.importcpp: "#->header()->completeTagSize()", header: "id3v2tag.h".}
     impl(this)
 
   proc add(frame: PFrame) =
@@ -243,6 +250,17 @@ proc readTrackMetadata*(filename: string): TrackMetadata =
       result.disliked = data{"disliked"}.get(bool)
       findData = true
   
+  destroy file
+
+
+proc getTrackAudioStartByte*(filename: string): int =
+  if not fileExists filename: return
+  let file = MpegFile.read(filename)
+  let tag = file.id3v2Tag(true)
+  if tag == nil: destroy file; return
+  
+  result = tag.completeTagSize.int
+
   destroy file
 
 

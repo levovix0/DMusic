@@ -1,8 +1,8 @@
 import times, macros, algorithm, tables, unicode
 import vmath, bumpy, siwin, shady, fusion/[matching, astdsl], pixie
-import gl, events
+import gl, events, properties
 import imageman except Rect, color, Color
-export vmath, bumpy, gl, pixie, matching, events
+export vmath, bumpy, gl, pixie, matching, events, properties
 export imageman except Rect
 
 type
@@ -32,7 +32,8 @@ type
   Signal* = ref object of RootObj
     sender* {.cursor.}: Uiobj
   
-  Uiobj* {.acyclic.} = ref object of EventHandler
+  Uiobj* {.acyclic.} = ref object of RootObj
+    eventHandler*: EventHandler
     parent* {.cursor.}: Uiobj
       ## parent of this object, that must have this object as child
       ## note: object can have no parent
@@ -115,6 +116,7 @@ type
     wrap*: Property[bool] = true.property
     angle*: Property[float32]
     color*: Property[Col] = color(0, 0, 0).property
+    roundPositionOnDraw*: Property[bool] = true.property
     tex: Textures
   
 
@@ -169,6 +171,9 @@ type
     bindProperty
     bindValue
     bindProc
+  
+  HasEventHandler* = concept x
+    x.eventHandler is EventHandler
 
 
 proc vec4*(color: Col): Vec4 =
@@ -176,6 +181,9 @@ proc vec4*(color: Col): Vec4 =
 
 proc color*(v: Vec4): Col =
   Col(r: v.x, g: v.y, b: v.z, a: v.w)
+
+proc round*(v: Vec2): Vec2 =
+  vec2(round(v.x), round(v.y))
 
 
 #* ------------- Uiobj ------------- *#
@@ -313,6 +321,18 @@ proc pos*(anchor: Anchor, isY: bool): Vec2 =
   if isY: vec2(0, p).posToGlobal(anchor.obj)
   else: vec2(p, 0).posToGlobal(anchor.obj)
 
+
+#--- Events connection ---
+
+template connectTo*[T](s: var Event[T], obj: HasEventHandler, body: untyped) =
+  connect s, obj.eventHandler, proc(e {.inject.}: T) =
+    body
+
+template connectTo*(s: var Event[void], obj: HasEventHandler, body: untyped) =
+  connect s, obj.eventHandler, proc() =
+    body
+
+
 #--- Reposition ---
 
 method reposition*(obj: Uiobj) {.base.}
@@ -385,8 +405,8 @@ proc startReposition*(obj: Uiobj) =
 method init*(obj: Uiobj) {.base.} =
   obj.visibility.changed.connectTo obj:
     if e == collapsed:
-      if this.hovered:
-        this.hovered[] = false
+      if obj.hovered:
+        obj.hovered[] = false
     obj.parentUiWindow.startReposition()
   
   if not obj.attachedToWindow:
@@ -755,6 +775,8 @@ method init*(this: UiText) =
       this.tex = newTextures(1)
       loadTexture(this.tex[0], image)
       # todo: reposition
+    else:
+      this.box.wh = vec2()
 
   this.text.changed.connectTo this: this.updateTex
   this.font.changed.connectTo this: this.updateTex
@@ -765,8 +787,14 @@ method init*(this: UiText) =
 
 
 method draw*(text: UiText, ctx: DrawContext) =
+  let pos =
+    if text.roundPositionOnDraw[]:
+      text.box.xy.posToGlobal(text.parent).round
+    else:
+      text.box.xy.posToGlobal(text.parent)
+
   if text.visibility[] == visible and text.tex != nil:
-    ctx.drawIcon(text.box.xy.posToGlobal(text.parent), text.box.wh, text.tex[0], text.color.vec4, 0, true, text.angle)
+    ctx.drawIcon(pos, text.box.wh, text.tex[0], text.color.vec4, 0, true, text.angle)
   procCall draw(text.Uiobj, ctx)
 
 
@@ -1040,7 +1068,7 @@ proc bindingImpl*(obj: NimNode, target: NimNode, body: NimNode, afterUpdate: Nim
         dotExpr(exp, ident "changed")
         objCursor
         call updateProc:
-          ident "this"
+          objCursor
       alreadyBinded.add body
       impl(stmts, obj, exp)
 
@@ -1087,11 +1115,38 @@ proc bindingImpl*(obj: NimNode, target: NimNode, body: NimNode, afterUpdate: Nim
       if init:
         call updateProc, objCursor
 
-macro binding*[T: EventHandler](obj: T, target: untyped, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+
+macro binding*(obj: EventHandler, target: untyped, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
   bindingImpl(obj, target, body, afterUpdate, redraw, init, bindProperty)
 
-macro bindingValue*[T: EventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+macro bindingValue*(obj: EventHandler, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
   bindingImpl(obj, target, body, afterUpdate, redraw, init, bindValue)
 
-macro bindingProc*[T: EventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+macro bindingProc*(obj: EventHandler, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
   bindingImpl(obj, target, body, afterUpdate, redraw, init, bindProc)
+
+
+macro binding*[T: HasEventHandler](obj: T, target: untyped, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+  bindingImpl(obj, target, body, afterUpdate, redraw, init, bindProperty)
+
+macro bindingValue*[T: HasEventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+  bindingImpl(obj, target, body, afterUpdate, redraw, init, bindValue)
+
+macro bindingProc*[T: HasEventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+  bindingImpl(obj, target, body, afterUpdate, redraw, init, bindProc)
+
+
+template buildIt*[T](obj: T, body: untyped): T =
+  ## for situations like:
+  ##   this.font[] = newFont(typeface).buildIt:
+  ##     it.size = 14
+  ## 
+  ## use buildIt instead of:
+  ##   this.font[] = block:
+  ##     let font = newFont(typeface)
+  ##     font.size = 14
+  ##     font
+  block:
+    var it {.inject.} = obj
+    body
+    it

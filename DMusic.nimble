@@ -20,6 +20,7 @@ requires "bumpy"  # for rects
 requires "opengl"  # for graphics
 requires "shady"  # for writing shaders in Nim istead of GLSL
 requires "https://github.com/beef331/miniaudio"  # for audio output # todo: replace with siaud
+requires "tinyfiledialogs"  # for file dialogs
 
 
 # note: build is broken
