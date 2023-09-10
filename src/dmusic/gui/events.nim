@@ -17,6 +17,9 @@ type
     ## one event can be connected to one EventHandler multiple times
     ## connection can be removed, but if EventHandler connected to event multiple times, they all will be removed
     connected: ref seq[(EventHandlerCursor, proc(v: T) {.closure.})]
+    emitCurrIdx: int
+      ## change if you adding/deleting events at the time it is emitting
+      ## yes, it is not exported, use std/importutils.privateAccess to access it
 
 
 
@@ -100,17 +103,19 @@ proc disconnect*[T](s: var Event[T], c: var EventHandler) =
       inc i
 
 
-proc emit*[T](s: Event[T], v: T) =
+proc emit*[T](s: var Event[T], v: T, startIndex = 0) =
   if s.connected == nil: return
-  let connected = s.connected[]
-  for (_, f) in connected:
-    f(v)
+  s.emitCurrIdx = startIndex
+  while s.emitCurrIdx < s.connected[].len:
+    s.connected[][s.emitCurrIdx][1](v)
+    inc s.emitCurrIdx
 
-proc emit*(s: Event[void]) =
+proc emit*(s: var Event[void], startIndex = 0) =
   if s.connected == nil: return
-  let connected = s.connected[]
-  for (_, f) in connected:
-    f()
+  s.emitCurrIdx = startIndex
+  while s.emitCurrIdx < s.connected[].len:
+    s.connected[][s.emitCurrIdx][1]()
+    inc s.emitCurrIdx
 
 
 proc connect*[T](s: var Event[T], c: var EventHandler, f: proc(v: T)) =
@@ -125,6 +130,20 @@ proc connect*(s: var Event[void], c: var EventHandler, f: proc()) =
   s.connected[].add (EventHandlerCursor(eh: c), f)
   c.connected.add cast[ptr EventBase](s.connected[].addr)
 
+
+proc insertConnection*[T](s: var Event[T], c: var EventHandler, f: proc(v: T), i = 0) =
+  initIfNeeded s
+  initIfNeeded c
+  s.connected[].insert (EventHandlerCursor(eh: c), f), i
+  c.connected.add cast[ptr EventBase](s.connected[].addr)
+
+proc insertConnection*(s: var Event[void], c: var EventHandler, f: proc(), i = 0) =
+  initIfNeeded s
+  initIfNeeded c
+  s.connected[].insert (EventHandlerCursor(eh: c), f), i
+  c.connected.add cast[ptr EventBase](s.connected[].addr)
+
+
 template connectTo*[T](s: var Event[T], obj: var EventHandler, body: untyped) =
   connect s, obj, proc(e {.inject.}: T) =
     body
@@ -132,3 +151,16 @@ template connectTo*[T](s: var Event[T], obj: var EventHandler, body: untyped) =
 template connectTo*(s: var Event[void], obj: var EventHandler, body: untyped) =
   connect s, obj, proc() =
     body
+
+template connectTo*[T](s: var Event[T], obj: var EventHandler, argname: untyped, body: untyped) =
+  connect s, obj, proc(argname {.inject.}: T) =
+    body
+
+template connectTo*(s: var Event[void], obj: var EventHandler, argname: untyped, body: untyped) =
+  connect s, obj, proc() =
+    body
+
+
+proc hasHandlers*(e: Event): bool =
+  if e.connected == nil: return false
+  e.connected[].len > 0

@@ -2,7 +2,7 @@ import asyncdispatch, times, sequtils, strutils, os, strformat
 import pixie/fileformats/svg, siwin
 import ../[configuration, api, utils, audio, taglib]
 import ../musicProviders/[yandexMusic, youtube, requests]
-import ./[uibase, style, globalShortcut]
+import ./[uibase, style, globalShortcut, mouseArea]
 
 type
   PlayerButton* = ref object of UiIcon
@@ -42,7 +42,7 @@ proc newPlayerButton(): PlayerButton =
         elif mouse.pressed[] and mouse.hovered[]:
           if this.accent[]: this.style[].accentButton.pressedColor
           else: this.style[].button.pressedColor
-        elif this.hovered[]:
+        elif mouse.hovered[]:
           if this.accent[]: this.style[].accentButton.hoverColor
           else: this.style[].button.hoverColor
         else:
@@ -445,85 +445,88 @@ proc newPlayer*(): Player =
             of playlist: LoopMode.track
             of track: LoopMode.none
 
-      - newUiClipRect():
-        this.binding visibility: (if this.hovered[]: Visibility.hidden else: Visibility.visible)
+      - newUiMouseArea() as mouse:
         this.anchors.fillVertical parent
         this.anchors.left = parent.left
         this.anchors.right = currentTimeText.left(-5)
 
-        - newUiRect():
-          this.anchors.fillVertical parent
-          this.binding visibility: (if parent.hovered[]: Visibility.visible else: Visibility.hidden)
-          this.binding color: (if root.style[] != nil: root.style[].backgroundColor else: color(0, 0, 0))
+        - newUiClipRect():
+          this.anchors.fill parent
+          this.binding visibility: (if mouse.hovered[]: Visibility.hidden else: Visibility.visible)
 
-          - newUiImage() as cover:
-            this.anchors.centerY = parent.center
-            this.box.w = 50
-            this.box.h = 50
-            this.anchors.left = parent.left(8)
-            this.radius[] = 7.5
-            
-            this.image = emptyCover.parseSvg(50, 50).newImage
-            root.currentTrack.changed.connectTo this:
-              if root.coverRequestCanceled != nil: root.coverRequestCanceled[] = true
-              root.coverRequestCanceled = new bool
-              asyncCheck: (proc(this: UiImage, track: api.Track) {.async.} =
-                if track == nil:
-                  this.image = emptyCover.parseSvg(50, 50).newImage
-                else:
-                  try:
-                    this.image = e.cover(lowQualityCover, root.coverRequestCanceled).await
-                  except RequestCanceled:
-                    discard
-                redraw this
-              )(this, e)
-        
-          - newUiText() as title:
-            this.anchors.bottom = parent.center(-2)
-            this.anchors.left = cover.right(11)
-            this.binding color: (if root.style[] != nil: root.style[].color else: color(0, 0, 0))
-            this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].title else: "")
-            do: startReposition root
-            this.binding font:
-              if root.style[] != nil and root.style[].typeface != nil:
-                let f = newFont(root.style[].typeface)
-                f.size = 14
-                f
-              else: nil
-        
-          - newUiText() as comment:
-            this.anchors.bottom = parent.center(-2)
-            this.anchors.left = title.right(5)
-            this.binding color: (if root.style[] != nil: root.style[].color3 else: color(0, 0, 0))
-            this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].comment else: "")
-            do: startReposition root
-            this.binding font:
-              if root.style[] != nil and root.style[].typeface != nil:
-                let f = newFont(root.style[].typeface)
-                f.size = 14
-                f
-              else: nil
-        
-          - newUiText() as authors:
-            this.anchors.top = parent.center(3)
-            this.anchors.left = cover.right(11)
-            this.binding color: (if root.style[] != nil: root.style[].color2 else: color(0, 0, 0))
-            this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].artists else: "")
-            do: startReposition root
-            this.binding font:
-              if root.style[] != nil and root.style[].typeface != nil:
-                let f = newFont(root.style[].typeface)
-                f.size = 12
-                f
-              else: nil
+          - newUiRect():
+            this.anchors.fillVertical parent
+            this.binding visibility: (if mouse.hovered[]: Visibility.visible else: Visibility.hidden)
+            this.binding color: (if root.style[] != nil: root.style[].backgroundColor else: color(0, 0, 0))
 
-          this.onReposition.connectTo this:
-            this.box.w = max(authors.box.x + authors.box.w, comment.box.x + comment.box.w) + 5
+            - newUiImage() as cover:
+              this.anchors.centerY = parent.center
+              this.box.w = 50
+              this.box.h = 50
+              this.anchors.left = parent.left(8)
+              this.radius[] = 7.5
+              
+              this.image = emptyCover.parseSvg(50, 50).newImage
+              root.currentTrack.changed.connectTo this:
+                if root.coverRequestCanceled != nil: root.coverRequestCanceled[] = true
+                root.coverRequestCanceled = new bool
+                asyncCheck: (proc(this: UiImage, track: api.Track) {.async.} =
+                  if track == nil:
+                    this.image = emptyCover.parseSvg(50, 50).newImage
+                  else:
+                    try:
+                      this.image = e.cover(lowQualityCover, root.coverRequestCanceled).await
+                    except RequestCanceled:
+                      discard
+                  redraw this
+                )(this, e)
+          
+            - newUiText() as title:
+              this.anchors.bottom = parent.center(-2)
+              this.anchors.left = cover.right(11)
+              this.binding color: (if root.style[] != nil: root.style[].color else: color(0, 0, 0))
+              this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].title else: "")
+              do: startReposition root
+              this.binding font:
+                if root.style[] != nil and root.style[].typeface != nil:
+                  let f = newFont(root.style[].typeface)
+                  f.size = 14
+                  f
+                else: nil
+          
+            - newUiText() as comment:
+              this.anchors.bottom = parent.center(-2)
+              this.anchors.left = title.right(5)
+              this.binding color: (if root.style[] != nil: root.style[].color3 else: color(0, 0, 0))
+              this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].comment else: "")
+              do: startReposition root
+              this.binding font:
+                if root.style[] != nil and root.style[].typeface != nil:
+                  let f = newFont(root.style[].typeface)
+                  f.size = 14
+                  f
+                else: nil
+          
+            - newUiText() as authors:
+              this.anchors.top = parent.center(3)
+              this.anchors.left = cover.right(11)
+              this.binding color: (if root.style[] != nil: root.style[].color2 else: color(0, 0, 0))
+              this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].artists else: "")
+              do: startReposition root
+              this.binding font:
+                if root.style[] != nil and root.style[].typeface != nil:
+                  let f = newFont(root.style[].typeface)
+                  f.size = 12
+                  f
+                else: nil
+
+            this.onReposition.connectTo this:
+              this.box.w = max(authors.box.x + authors.box.w, comment.box.x + comment.box.w) + 5
     
 
     - newUiRect():
       this.anchors.fillHorizontal(parent)
-      this.anchors.top = Anchor(obj: result, offsetFrom: start, offset: -1)
+      this.anchors.top = Anchor(obj: root, offsetFrom: start, offset: -1)
       this.box.h = 2
       this.binding color: (if parent.style[] != nil: parent.style[].borderColor else: color(0, 0, 0))
       this.binding visibility: (if parent.style[] != nil and parent.style[].borders: Visibility.visible else: Visibility.hidden)

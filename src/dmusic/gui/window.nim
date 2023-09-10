@@ -1,6 +1,6 @@
 import siwin
 import ../configuration
-import uibase, style
+import ./[uibase, style, mouseArea]
 
 type
   DmusicWindow* = ref object of Uiobj
@@ -10,6 +10,7 @@ type
     windowFrame {.cursor.}: UiRect
     clipRect {.cursor.}: UiClipRect
     wasChangedCursor: bool
+    mouse: UiMouseArea
 
 
 proc updateChilds(this: DmusicWindow, initial = false) =
@@ -30,7 +31,7 @@ method recieve*(this: DmusicWindow, signal: Signal) =
   case signal
   of of WindowEvent(event: @ea is of MouseMoveEvent(), handled: false):
     let e = (ref MouseMoveEvent)ea
-    if this.hovered and MouseButton.left in e.window.mouse.pressed:
+    if this.mouse.hovered and MouseButton.left in e.window.mouse.pressed:
       if this.edge != 0:
         e.window.startInteractiveResize(
           case this.edge
@@ -143,17 +144,21 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
     - dmWin:
       this.anchors.fill(parent)
 
-      - UiClipRect():
-        dmWin.clipRect = this
-        this.radius[] = 7.5
+      - newUiMouseArea():
+        this.anchors.fill(parent)
+        dmWin.mouse = this
 
-        - UiRect():
-          this.anchors.fill(parent)
-          dmWin.windowFrame = this
-          this.binding color: (if dmWin.style[] != nil: dmWin.style[].backgroundColor else: color(0, 0, 0))
-          
-          - rootObj:
+        - UiClipRect():
+          dmWin.clipRect = this
+          this.radius[] = 7.5
+
+          - UiRect():
             this.anchors.fill(parent)
+            dmWin.windowFrame = this
+            this.binding color: (if dmWin.style[] != nil: dmWin.style[].backgroundColor else: color(0, 0, 0))
+            
+            - rootObj:
+              this.anchors.fill(parent)
   
 
   config.csd.changed.connectTo dmWin:

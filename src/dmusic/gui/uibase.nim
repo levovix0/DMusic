@@ -43,15 +43,12 @@ type
     globalTransform*: Property[bool]
     box*: Rect
     anchors*: Anchors
-    hovered*: Property[bool]
     visibility*: Property[Visibility]
-    cursor*: ref Cursor
-    clicked*: Event[ClickEvent]
-    mouseButton*: Event[MouseButtonEvent]
+    onSignal*: Event[Signal]
     onReposition*: Event[void]
-    attachedToWindow: bool
-  
-  
+    attachedToWindow*: bool
+
+
   #--- Signals ---
 
   SubtreeSignal* = ref object of Signal
@@ -59,14 +56,20 @@ type
   
   AttachedToWindow* = ref object of SubtreeSignal
     window*: UiWindow
+
+  ParentChanged* = ref object of SubtreeSignal
+    newParentInTree*: Uiobj
   
-  WindowEvent* = ref object of Signal
+  WindowEvent* = ref object of SubtreeSignal
     event*: ref AnyWindowEvent
     handled*: bool
     fake*: bool
   
   GetActiveCursor* = ref object of SubtreeSignal
     cursor*: ref Cursor
+  
+  VisibilityChanged* = ref object of SubtreeSignal
+    visibility*: Visibility
   
   
   #--- Basic Components ---
@@ -116,16 +119,10 @@ type
     wrap*: Property[bool] = true.property
     angle*: Property[float32]
     color*: Property[Col] = color(0, 0, 0).property
+
+    arrangement*: Property[Arrangement]
     roundPositionOnDraw*: Property[bool] = true.property
     tex: Textures
-  
-
-  UiMouseArea* = ref object of Uiobj
-    acceptedButtons*: Property[set[MouseButton]] = {MouseButton.left}.property
-    pressed*: Property[bool]
-    mouseMove*: Event[MouseMoveEvent]
-      ## mouse moved while in this area (or outside this area but pressed)
-    pressedButtons: set[MouseButton]
 
 
   DrawContext* = ref object
@@ -235,44 +232,14 @@ proc posToObject*(fromObj, toObj: Uiobj, pos: Vec2): Vec2 =
 
 
 method recieve*(obj: Uiobj, signal: Signal) {.base.} =
-  if obj.visibility == collapsed:
-    if obj.hovered:
-      obj.hovered[] = false
-  
-  elif signal of WindowEvent:
-    template handlePositionalEvent(ev, ev2) =
-      let e {.cursor.} = (ref ev)signal.WindowEvent.event
-      let pos = obj.box.xy.posToGlobal(obj.parent)
-      if e.window.mouse.pos.x.float32 in pos.x..(pos.x + obj.box.w) and e.window.mouse.pos.y.float32 in pos.y..(pos.y + obj.box.h):
-        obj.ev2.emit e[]
-      for x in obj.childs.reversed:
-        x.recieve(signal)
-    
-    if signal of WindowEvent and signal.WindowEvent.event of MouseButtonEvent:
-      handlePositionalEvent MouseButtonEvent, mouseButton
-    
-    elif signal of WindowEvent and signal.WindowEvent.event of ClickEvent:
-      handlePositionalEvent ClickEvent, clicked
-    
-    elif signal of WindowEvent and signal.WindowEvent.event of MouseMoveEvent:
-      let e {.cursor.} = (ref MouseMoveEvent)signal.WindowEvent.event
-      let pos = obj.box.xy.posToGlobal(obj.parent)
-      if e.pos.x.float32 in pos.x..(pos.x + obj.box.w) and e.pos.y.float32 in pos.y..(pos.y + obj.box.h):
-        if not obj.hovered:
-          obj.hovered[] = true
-      else:
-        if obj.hovered:
-          obj.hovered[] = false
+  if signal of AttachedToWindow:
+    obj.attachedToWindow = true
 
-    for x in obj.childs:
-      x.recieve(signal)
+  obj.onSignal.emit signal
 
   if signal of SubtreeSignal:
     for x in obj.childs:
       x.recieve(signal)
-
-  if signal of AttachedToWindow:
-    obj.attachedToWindow = true
 
 
 proc pos*(anchor: Anchor, isY: bool): Vec2 =
@@ -329,6 +296,14 @@ template connectTo*[T](s: var Event[T], obj: HasEventHandler, body: untyped) =
     body
 
 template connectTo*(s: var Event[void], obj: HasEventHandler, body: untyped) =
+  connect s, obj.eventHandler, proc() =
+    body
+
+template connectTo*[T](s: var Event[T], obj: HasEventHandler, argname: untyped, body: untyped) =
+  connect s, obj.eventHandler, proc(argname {.inject.}: T) =
+    body
+
+template connectTo*(s: var Event[void], obj: HasEventHandler, argname: untyped, body: untyped) =
   connect s, obj.eventHandler, proc() =
     body
 
@@ -404,9 +379,7 @@ proc startReposition*(obj: Uiobj) =
 
 method init*(obj: Uiobj) {.base.} =
   obj.visibility.changed.connectTo obj:
-    if e == collapsed:
-      if obj.hovered:
-        obj.hovered[] = false
+    obj.recieve(VisibilityChanged(sender: obj, visibility: obj.visibility))
     obj.parentUiWindow.startReposition()
   
   if not obj.attachedToWindow:
@@ -438,6 +411,10 @@ proc fill*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
   anchors.fillHorizontal(obj, margin)
   anchors.fillVertical(obj, margin)
 
+proc fill*(anchors: var Anchors, obj: Uiobj, marginX: float32, marginY: float32) =
+  anchors.fillHorizontal(obj, marginX)
+  anchors.fillVertical(obj, marginY)
+
 
 method addChild*(parent: Uiobj, child: Uiobj) {.base.} =
   assert child.parent == nil
@@ -447,6 +424,38 @@ method addChild*(parent: Uiobj, child: Uiobj) {.base.} =
     let win = parent.parentUiWindow
     if win != nil:
       child.recieve(AttachedToWindow(window: win))
+  child.recieve(ParentChanged(newParentInTree: parent))
+
+
+method addChangableChildUntyped*(parent: Uiobj, child: Uiobj): CustomProperty[Uiobj] {.base.} =
+  assert child != nil
+  
+  # add to parent.childs seq even if addChild is overrided
+  assert child.parent == nil
+  child.parent = parent
+  parent.childs.add child
+  if not child.attachedToWindow and parent.attachedToWindow:
+    let win = parent.parentUiWindow
+    if win != nil:
+      child.recieve(AttachedToWindow(window: win))
+  child.recieve(ParentChanged(newParentInTree: parent))
+
+  let i = parent.childs.high
+  result = CustomProperty[Uiobj](
+    get: proc(): Uiobj = parent.childs[i],
+    set: (proc(v: Uiobj) =
+      parent.childs[i].parent = nil
+      parent.childs[i] = v
+      v.parent = parent
+      v.recieve(ParentChanged(newParentInTree: parent))
+    ),
+  )
+
+
+proc addChangableChild*[T: UiObj](parent: Uiobj, child: T): CustomProperty[T] =
+  var prop = parent.addChangableChildUntyped(child)
+  cast[ptr CustomProperty[UiObj]](result.addr)[] = move prop
+
 
 
 macro super*[T: Uiobj](obj: T): auto =
@@ -655,8 +664,7 @@ proc newDrawContext*: DrawContext =
       vec2(0, 0),   # bottom left
       vec2(1, 0),   # bottom right
       vec2(1, 1),   # top right
-    ],
-    [
+    ], [
       0'u32, 1, 2,
       2, 3, 0,
     ]
@@ -763,27 +771,32 @@ method draw*(ico: UiIcon, ctx: DrawContext) =
 
 method init*(this: UiText) =
   procCall this.super.init
-  proc updateTex(this: UiText) =
+  
+  this.arrangement.changed.connectTo this:
     this.tex = nil
-    if this.text[] != "" and this.font != nil:
-      let typeset = typeset(this.font[], this.text[], this.bounds[], this.hAlign[], this.vAlign[], this.wrap[])
-      let bounds = typeset.layoutBounds
+    if e != nil:
+      let bounds = this.arrangement[].layoutBounds
       this.box.wh = bounds
       if bounds.x == 0 or bounds.y == 0: return
       let image = newImage(bounds.x.ceil.int32, bounds.y.ceil.int32)
-      image.fillText(typeset)
+      image.fillText(this.arrangement[])
       this.tex = newTextures(1)
       loadTexture(this.tex[0], image)
       # todo: reposition
     else:
       this.box.wh = vec2()
 
-  this.text.changed.connectTo this: this.updateTex
-  this.font.changed.connectTo this: this.updateTex
-  this.bounds.changed.connectTo this: this.updateTex
-  this.hAlign.changed.connectTo this: this.updateTex
-  this.vAlign.changed.connectTo this: this.updateTex
-  this.wrap.changed.connectTo this: this.updateTex
+  template newArrangement: Arrangement =
+    if this.text[] != "" and this.font != nil:
+      typeset(this.font[], this.text[], this.bounds[], this.hAlign[], this.vAlign[], this.wrap[])
+    else: nil
+
+  this.text.changed.connectTo this: this.arrangement[] = newArrangement
+  this.font.changed.connectTo this: this.arrangement[] = newArrangement
+  this.bounds.changed.connectTo this: this.arrangement[] = newArrangement
+  this.hAlign.changed.connectTo this: this.arrangement[] = newArrangement
+  this.vAlign.changed.connectTo this: this.arrangement[] = newArrangement
+  this.wrap.changed.connectTo this: this.arrangement[] = newArrangement
 
 
 method draw*(text: UiText, ctx: DrawContext) =
@@ -806,6 +819,7 @@ method draw*(rect: UiRectShadow, ctx: DrawContext) =
 
 method draw*(rect: UiClipRect, ctx: DrawContext) =
   if rect.visibility == visible:
+    if rect.box.w <= 0 or rect.box.h <= 0: return
     if rect.fbo == nil: rect.fbo = newFrameBuffers(1)
 
     let size = ivec2(rect.box.w.round.int32, rect.box.h.round.int32)
@@ -911,32 +925,6 @@ proc newUiWindow*(siwinWindow: Window): UiWindow =
 method addChild*(this: UiWindow, child: Uiobj) =
   procCall this.super.addChild(child)
   child.recieve(AttachedToWindow(window: this))
-
-
-method recieve*(this: UiMouseArea, signal: Signal) =
-  procCall this.super.recieve(signal)
-  case signal
-  of of WindowEvent(event: @ea is of MouseMoveEvent(), handled: false, fake: false):
-    let e = (ref MouseMoveEvent)ea
-    if this.pressed[] or this.hovered[]:
-      this.mouseMove.emit(e[])
-      signal.WindowEvent.handled = true
-
-  of of WindowEvent(event: @ea is of MouseButtonEvent(), handled: false):
-    let e = (ref MouseButtonEvent)ea
-    if e.button in this.acceptedButtons[]:
-      if e.pressed:
-        if this.hovered[]:
-          this.pressedButtons.incl e.button
-          if not this.pressed[]:
-            this.pressed[] = true
-            signal.WindowEvent.handled = true
-      else:
-        this.pressedButtons.excl e.button
-        if this.pressedButtons == {}:
-          if this.pressed[]:
-            this.pressed[] = false
-            signal.WindowEvent.handled = true
         
 
 
@@ -948,7 +936,6 @@ proc newUiText*(): UiText = new result
 proc newUiRect*(): UiRect = new result
 proc newUiClipRect*(): UiClipRect = new result
 proc newUiRectShadow*(): UiRectShadow = new result
-proc newUiMouseArea*(): UiMouseArea = new result
 
 
 #----- Macros -----
@@ -964,7 +951,7 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
     a.makeLayout:
       - UiRectShadow(radius: 7.5, blurRadius: 10, color: color(0, 0, 0, 0.3)) as shadowEfect
 
-      - UiRect():
+      - newUiRect():
         this.anchors.fill(parent)
         echo shadowEffect.radius
         doassert parent == this.parent
@@ -972,6 +959,19 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
         - UiClipRect(radius: 7.5):
           this.anchors.fill(parent, 10)
           doassert root == this.parent.parent
+
+          ooo --- UiRect():  # add changable child
+            this.anchors.fill(parent)
+          #[ equivalent to (roughly):
+          ooo = block:
+            let x = this.addChangableChild(UiRect())
+            proc update(parent: typeof(this), this: typeof(x[])) =
+              initIfNeeded(this)
+              this.anchors.fill(parent)
+            update(this, x[])
+            x.changed.connectTo this: update(this, x[])
+            x
+          ]#
 
           - b
           - UiRect()
@@ -981,57 +981,126 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
 
 
   proc impl(parent: NimNode, obj: NimNode, body: NimNode): NimNode =
-    buildAst:
-      blockStmt:
-        genSym(nskLabel, "initializationBlock")
-        stmtList:
-          letSection:
-            identDefs(pragmaExpr(ident "parent", pragma ident "used"), empty(), parent)
-            identDefs(pragmaExpr(ident "this", pragma ident "used"), empty(), obj)
-          call(bindSym"initIfNeeded", ident "this")
+    buildAst blockStmt:
+      genSym(nskLabel, "initializationBlock")
+      call:
+        lambda:
+          empty(); empty(); empty()
+          formalParams:
+            empty()
+            identDefs(ident "parent", call(bindSym"typeof", parent), empty())
+            identDefs(ident "this", call(bindSym"typeof", obj), empty())
+          empty(); empty()
           
-          proc checkCtor(ctor: NimNode): bool =
-            if ctor == ident "root": warning("adding root to itself causes recursion", ctor)
-            if ctor == ident "this": warning("adding this to itself causes recursion", ctor)
-            if ctor == ident "parent": warning("adding parent to itself causes recursion", ctor)
+          stmtList:
+            call(ident"initIfNeeded", ident "this")
+            
+            proc checkCtor(ctor: NimNode): bool =
+              if ctor == ident "root": warning("adding root to itself causes recursion", ctor)
+              if ctor == ident "this": warning("adding this to itself causes recursion", ctor)
+              if ctor == ident "parent": warning("adding parent to itself causes recursion", ctor)
 
-          for x in body:
-            case x
-            of Prefix[Ident(strVal: "-"), @ctor]:
-              discard checkCtor ctor
-              let s = genSym(nskLet)
-              letSection:
-                identDefs(s, empty(), ctor)
-              call(bindSym"addChild", ident "this", s)
-              call(bindSym"initIfNeeded", s)
-            of Prefix[Ident(strVal: "-"), @ctor, @body is StmtList()]:
-              discard checkCtor ctor
-              let s = genSym(nskLet)
-              letSection:
-                identDefs(s, empty(), ctor)
-              call(bindSym"addChild", ident "this", s)
-              impl(ident "this", s, body)
-            of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s]:
-              discard checkCtor ctor
-              letSection:
-                identDefs(s, empty(), ctor)
-              call(bindSym"addChild", ident "this", s)
-              call(bindSym"initIfNeeded", s)
-            of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s, @body is StmtList()]:
-              discard checkCtor ctor
-              letSection:
-                identDefs(s, empty(), ctor)
-              call(bindSym"addChild", ident "this", s)
-              impl(ident "this", s, body)
-            else: x
+            proc changableImpl(ctor, body: NimNode): NimNode =
+              buildAst:
+                blockStmt:
+                  genSym(nskLabel, "changableChildInitializationBlock")
+                  stmtList:
+                    discard checkCtor ctor
+                    let
+                      prop = genSym(nskVar)
+                      updateProc = genSym(nskProc)
+                    
+                    varSection:
+                      identDefs(prop, empty(), call(bindSym"addChangableChild", ident "this", ctor))
+                    
+                    procDef:
+                      updateProc
+                      empty(); empty()
+                      formalParams:
+                        empty()
+                        identDefs(ident"parent", call(bindSym"typeof", ident"this"), empty())
+                        identDefs(ident"this", call(bindSym"typeof", bracketExpr(prop)), empty())
+                      empty(); empty()
+                      stmtList:
+                        if body == nil:
+                          call ident"initIfNeeded":
+                            ident "this"
+                        if body != nil: impl(ident"parent", ident"this", body)
 
-  buildAst:
-    blockStmt:
-      genSym(nskLabel, "makeLayoutBlock")
-      stmtList:
-        letSection:
-          identDefs(pragmaExpr(ident "root", pragma ident "used"), empty(), obj)
-        impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", if body.kind == nnkStmtList: body else: newStmtList(body))
+                    call updateProc:
+                      ident "this"
+                      bracketExpr(prop)
+                    
+                    call bindSym"connectTo":
+                      dotExpr(prop, ident"changed")
+                      ident "this"
+                      stmtList:
+                        call updateProc:
+                          ident "this"
+                          bracketExpr(prop)
+                    
+                    call bindSym"move":
+                      prop
+
+
+            for x in body:
+              case x
+              of Prefix[Ident(strVal: "-"), @ctor]:
+                discard checkCtor ctor
+                let s = genSym(nskLet)
+                letSection:
+                  identDefs(s, empty(), ctor)
+                call(ident"addChild", ident "this", s)
+                call(ident"initIfNeeded", s)
+
+              of Prefix[Ident(strVal: "-"), @ctor, @body is StmtList()]:
+                discard checkCtor ctor
+                let s = genSym(nskLet)
+                letSection:
+                  identDefs(s, empty(), ctor)
+                call(ident"addChild", ident "this", s)
+                impl(ident "this", s, body)
+
+              of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s]:
+                discard checkCtor ctor
+                letSection:
+                  identDefs(s, empty(), ctor)
+                call(ident"addChild", ident "this", s)
+                call(ident"initIfNeeded", s)
+
+              of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s, @body is StmtList()]:
+                discard checkCtor ctor
+                letSection:
+                  identDefs(s, empty(), ctor)
+                call(ident"addChild", ident "this", s)
+                impl(ident "this", s, body)
+
+              of Infix[Ident(strVal: "---"), @to, @ctor]:
+                asgn:
+                  to
+                  changableImpl(ctor, nil)
+
+              of Infix[Ident(strVal: "---"), @to, @ctor, @body is StmtList()]:
+                asgn:
+                  to
+                  changableImpl(ctor, body)
+              
+              of ForStmt[@v, @cond, @body]:
+                forStmt:
+                  v
+                  cond
+                  impl(ident "parent", ident "this", body)
+
+              else: x
+        parent
+        obj
+
+  buildAst blockStmt:
+    genSym(nskLabel, "makeLayoutBlock")
+    stmtList:
+      letSection:
+        identDefs(pragmaExpr(ident "root", pragma ident "used"), empty(), obj)
+      impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", if body.kind == nnkStmtList: body else: newStmtList(body))
 
 
 proc bindingImpl*(obj: NimNode, target: NimNode, body: NimNode, afterUpdate: NimNode, redraw: bool, init: bool, kind: BindingKind): NimNode =
@@ -1150,3 +1219,13 @@ template buildIt*[T](obj: T, body: untyped): T =
     var it {.inject.} = obj
     body
     it
+
+
+template withWindow*(obj: UiObj, winVar: untyped, body: untyped) =
+  proc bodyProc(winVar {.inject.}: UiWindow) =
+    body
+  if obj.attachedToWindow:
+    bodyProc(obj.parentUiWindow)
+  obj.onSignal.connect obj.eventHandler, proc(e: Signal) =
+    if e of AttachedToWindow:
+      bodyProc(obj.parentUiWindow)

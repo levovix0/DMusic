@@ -2,7 +2,7 @@ import times, asyncdispatch, strutils, macros, std/importutils, heapqueue, deque
 import siwin
 import ./[configuration, utils]
 import ./musicProviders/[yandexMusic]
-import ./gui/[uibase, style, window, windowHeader, globalShortcut, player]
+import ./gui/[uibase, style, window, windowHeader, globalShortcut, player, textArea]
 
 privateAccess PDispatcher  # to check if not empty (overthise it will spam error logs)
 
@@ -38,6 +38,27 @@ proc gui*: string =
       this.anchors.fillHorizontal(root)
       this.box.h = 66
       this.anchors.bottom = Anchor(obj: parent, offsetFrom: `end`, offset: 0)
+    
+    - newUiRect():  # todo: UiRectBorder
+      this.anchors.fillHorizontal(parent, 400)
+      this.anchors.centerY = parent.center
+      this.box.h = 40
+      this.color[] = color(0.5, 0.5, 0.5)
+      this.radius[] = 6
+
+      - newUiRect():
+        this.anchors.fill(parent, 1)
+        this.color[] = color(1, 1, 1)
+        this.radius[] = 5
+      
+        - newUiTextArea():
+          this.anchors.fill(parent, 4, 2)
+          this.text[] = "hello"
+          this.onSignal.connectTo this:
+            case e
+            of of StyleChanged(style: @style):
+              this.textObj[].font[] = newFont(style.typeface).buildIt:
+                it.size = 32
 
 
 
