@@ -80,22 +80,21 @@ proc newUiTextArea*(): UiTextArea =
         this.blinking.time[] = (this.blinking.time + e.deltaTime) mod (this.blinking.period[] * 2)
 
     - newUiMouseArea():
-      this.anchors.fill parent
+      this.fill parent
 
       this.pressed.changed.connectTo root:  # temporary
         if this.pressed[]:
           root.active[] = true
 
       - newUiClipRect():
-        this.anchors.fill parent
+        this.fill parent
 
         root.textObj --- newUiText():
           this.binding text: root.text[]
-          do: startReposition root
 
         root.cursorObj --- newUiRect().UiObj:
-          this.anchors.fillVertical parent
-          this.box.w = 2
+          this.fillVertical parent
+          this.w[] = 2
           this.binding visibility:
             if root.active[]:
               if root.blinking.enabled[]:
@@ -113,7 +112,7 @@ proc newUiTextArea*(): UiTextArea =
             this.activated.connectTo root:
               root.cursorPos[] = root.cursorPos[] + 1
 
-          this.bindingValue this.box.x:
+          this.binding x:
             let arrangement = root.textObj{}.arrangement[]
             if arrangement != nil:
               let pos = root.cursorPos[]

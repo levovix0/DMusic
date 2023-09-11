@@ -25,17 +25,17 @@ method recieve(this: Button, signal: Signal) =
 proc newButton*(icon: string): Button =
   result = Button()
   result.makeLayout:
-    this.box.wh = vec2(50, 40)
+    this.wh[] = vec2(50, 40)
 
     - newUiMouseArea() as mouse:
-      this.anchors.fill parent
+      this.fill parent
 
       this.mouseDownAndUpInside.connectTo root:
         root.action()
 
     - UiIcon() as ico:
       this.image = icon.decodeImage
-      this.anchors.centerIn parent
+      this.centerIn parent
       root.icon = ico
 
       this.binding color:
@@ -83,7 +83,7 @@ proc newWindowHeader*(): WindowHeader =
     this.binding color: (if this.style[] != nil: this.style[].backgroundColor else: color(0, 0, 0))
 
     - newUiMouseArea():
-      this.anchors.fill parent
+      this.fill parent
 
       this.dragged.connectTo root:
         root.parentWindow.startInteractiveMove(some e)
@@ -99,7 +99,6 @@ proc newWindowHeader*(): WindowHeader =
           close this.parentWindow
         
         this.binding visibility: (if config.csd[] and config.window_closeButton[]: Visibility.visible else: Visibility.collapsed)
-        do: startReposition root
       
       - newButton(static(staticRead "../../../resources/title/maximize.svg")) as maximize:
         this.anchors.right = close.left
@@ -108,7 +107,6 @@ proc newWindowHeader*(): WindowHeader =
           win.maximized = not win.maximized
         
         this.binding visibility: (if config.csd[] and config.window_maximizeButton[]: Visibility.visible else: Visibility.collapsed)
-        do: startReposition root
       
       - newButton(static(staticRead "../../../resources/title/minimize.svg")) as minimize:
         this.anchors.right = maximize.left
@@ -116,5 +114,4 @@ proc newWindowHeader*(): WindowHeader =
           this.parentWindow.minimized = true
         
         this.binding visibility: (if config.csd[] and config.window_minimizeButton[]: Visibility.visible else: Visibility.collapsed)
-        do: startReposition root
 

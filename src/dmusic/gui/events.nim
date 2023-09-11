@@ -17,9 +17,10 @@ type
     ## one event can be connected to one EventHandler multiple times
     ## connection can be removed, but if EventHandler connected to event multiple times, they all will be removed
     connected: ref seq[(EventHandlerCursor, proc(v: T) {.closure.})]
-    emitCurrIdx: int
+    emitCurrIdx: ref int
       ## change if you adding/deleting events at the time it is emitting
       ## yes, it is not exported, use std/importutils.privateAccess to access it
+      ## ref int because we should be able to emit event from non-var location
 
 
 
@@ -36,6 +37,7 @@ proc `=destroy`[T](s: Event[T]) =
 proc initIfNeeded[T](s: var Event[T]) =
   if s.connected == nil:
     new s.connected
+    new s.emitCurrIdx
 
 
 proc initIfNeeded(c: var EventHandler) =
@@ -103,19 +105,19 @@ proc disconnect*[T](s: var Event[T], c: var EventHandler) =
       inc i
 
 
-proc emit*[T](s: var Event[T], v: T, startIndex = 0) =
+proc emit*[T](s: Event[T], v: T, startIndex = 0) =
   if s.connected == nil: return
-  s.emitCurrIdx = startIndex
-  while s.emitCurrIdx < s.connected[].len:
-    s.connected[][s.emitCurrIdx][1](v)
-    inc s.emitCurrIdx
+  s.emitCurrIdx[] = startIndex
+  while s.emitCurrIdx[] < s.connected[].len:
+    s.connected[][s.emitCurrIdx[]][1](v)
+    inc s.emitCurrIdx[]
 
-proc emit*(s: var Event[void], startIndex = 0) =
+proc emit*(s: Event[void], startIndex = 0) =
   if s.connected == nil: return
-  s.emitCurrIdx = startIndex
-  while s.emitCurrIdx < s.connected[].len:
-    s.connected[][s.emitCurrIdx][1]()
-    inc s.emitCurrIdx
+  s.emitCurrIdx[] = startIndex
+  while s.emitCurrIdx[] < s.connected[].len:
+    s.connected[][s.emitCurrIdx[]][1]()
+    inc s.emitCurrIdx[]
 
 
 proc connect*[T](s: var Event[T], c: var EventHandler, f: proc(v: T)) =

@@ -453,6 +453,10 @@ proc id*(track: Track): int =
   else: 0
 
 
+converter toApi*(playlist: yandexMusic.Playlist): Playlist =
+  Playlist(kind: PlaylistKind.yandex, yandex: (info: playlist, tracks: @[]))
+
+
 proc fetch*(playlist: Playlist) {.async.} =
   case playlist.kind
   of PlaylistKind.yandex:
@@ -480,6 +484,23 @@ proc liked*(playlist: Playlist): Future[seq[bool]] {.async.} =
   of temporary:
     for x in playlist.temporary.tracks:
       result.add x.liked.await
+
+
+proc title*(playlist: Playlist): string =
+  case playlist.kind
+  of PlaylistKind.yandex:
+    playlist.yandex.info.title
+  of PlaylistKind.user:
+    playlist.user.name
+  of PlaylistKind.temporary:
+    ""
+
+proc cover*(playlist: Playlist, quality = 400, cancel: ref bool = nil): Future[pixie.Image] {.async.} =
+  return case playlist.kind
+  of PlaylistKind.yandex:
+    playlist.yandex.info.cover(quality, cancel).await.decodeImage
+  of PlaylistKind.user: nil
+  of PlaylistKind.temporary: nil
 
 
 # todo: refactor all above to do not specifing enum type, like as in proc below

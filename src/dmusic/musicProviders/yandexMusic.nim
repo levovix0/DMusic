@@ -414,6 +414,12 @@ proc cover*(track: Track, quality = 50, cancel: ref bool = nil): Future[string] 
       coverCache[(track.coverUri, quality)] = ymRequest(track.coverUrl(quality), cancel = cancel).await
     return coverCache[(track.coverUri, quality)]
 
+proc cover*(playlist: Playlist, quality = 400, cancel: ref bool = nil): Future[string] {.async.} =
+  {.cast(gcsafe).}:
+    if (playlist.coverUri, quality) notin coverCache:
+      coverCache[(playlist.coverUri, quality)] = ymRequest(playlist.coverUrl(quality), cancel = cancel).await
+    return coverCache[(playlist.coverUri, quality)]
+
 proc liked*(track: Track, cancel: ref bool = nil): Future[bool] {.async.} =
   return currentUser(cancel = cancel).await.liked(track, cancel = cancel).await
 

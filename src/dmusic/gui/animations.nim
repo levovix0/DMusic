@@ -127,7 +127,7 @@ template animation*[T](val: T): Animation[T] =
 
 
 proc transitionImpl*[T](a: Animation[T], prop: var AnyProperty[T], dur: Duration) =
-  prop.changed.emitCurrIdx = prop.changed.connected[].len
+  prop.changed.emitCurrIdx[] = prop.changed.connected[].len
 
 
 proc `'s`*(lit: cstring): Duration =
@@ -162,23 +162,21 @@ when isMainModule:
   let animator = newOpenglWindow(size = ivec2(300, 40)).newUiWindow
   animator.makeLayout:
     - newUiRect() as rect:
-      this.box.w = 40
-      this.box.h = 40
+      this.w[] = 40
+      this.h[] = 40
+      this.x[] = 10
       this.color[] = color(1, 1, 1)
 
-      var boxX = 10'f32.property
-      this.bindingValue this.box.x: boxX[]
-
-      - boxX.transition(0.4's):
+      - this.x.transition(0.4's):
         this.interpolation[] = inQubicInterpolation
 
       - globalShortcut({Key.a}, exact=false):
         this.activated.connectTo root:
-          boxX[] = 10
+          rect.x[] = 10
 
       - globalShortcut({Key.d}, exact=false):
         this.activated.connectTo root:
-          boxX[] = root.box.w - 10 - rect.box.w
+          rect.x[] = root.w[] - 10 - rect.w[]
     
       # - animation(this.box.x):
       #   this.duration[] = initDuration(seconds = 1)

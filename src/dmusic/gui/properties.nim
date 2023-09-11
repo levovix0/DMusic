@@ -41,26 +41,26 @@ proc `=copy`*[T](p: var Property[T], v: Property[T]) {.error.}
 
 #* ------------- CustomProperty ------------- *#
 
-proc `val=`*[T](p: var CustomProperty[T], v: T) =
+proc `val=`*[T](p: CustomProperty[T], v: T) =
   ## note: p.changed will not be emitted if new value is same as previous value
   if v == p.get(): return
   p.set(v)
   emit p.changed, p.get()
 
-proc `[]=`*[T](p: var CustomProperty[T], v: T) = p.val = v
+proc `[]=`*[T](p: CustomProperty[T], v: T) = p.val = v
 
 proc val*[T](p: CustomProperty[T]): T = p.get()
 proc `[]`*[T](p: CustomProperty[T]): T = p.get()
 
-proc unsafeVal*[T](p: var CustomProperty[T]): T = p.get()
+proc unsafeVal*[T](p: CustomProperty[T]): T = p.get()
   ## note: can't get var T due to nature of CustomProperty
-proc `{}`*[T](p: var CustomProperty[T]): T = p.get()
+proc `{}`*[T](p: CustomProperty[T]): T = p.get()
 
-proc `unsafeVal=`*[T](p: var CustomProperty[T], v: T) =
+proc `unsafeVal=`*[T](p: CustomProperty[T], v: T) =
   ## same as val=, but always call setter and does not emit p.changed
   p.set(v)
 
-proc `{}=`*[T](p: var CustomProperty[T], v: T) = p.unsafeVal = v
+proc `{}=`*[T](p: CustomProperty[T], v: T) = p.unsafeVal = v
 
 converter toValue*[T](p: CustomProperty[T]): T = p[]
 

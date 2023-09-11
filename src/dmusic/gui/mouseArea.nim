@@ -29,8 +29,8 @@ method recieve*(this: UiMouseArea, signal: Signal) =
   if this.visibility != collapsed:
     template handlePositionalEvent(ev, ev2) =
       let e {.cursor.} = (ref ev)signal.WindowEvent.event
-      let pos = this.box.xy.posToGlobal(this.parent)
-      if e.window.mouse.pos.x.float32 in pos.x..(pos.x + this.box.w) and e.window.mouse.pos.y.float32 in pos.y..(pos.y + this.box.h):
+      let pos = this.xy[].posToGlobal(this.parent)
+      if e.window.mouse.pos.x.float32 in pos.x..(pos.x + this.w[]) and e.window.mouse.pos.y.float32 in pos.y..(pos.y + this.h[]):
         this.ev2.emit e[]
     
     if signal of WindowEvent and signal.WindowEvent.event of MouseButtonEvent:
@@ -41,8 +41,8 @@ method recieve*(this: UiMouseArea, signal: Signal) =
     
     elif signal of WindowEvent and signal.WindowEvent.event of MouseMoveEvent:
       let e {.cursor.} = (ref MouseMoveEvent)signal.WindowEvent.event
-      let pos = this.box.xy.posToGlobal(this.parent)
-      if e.pos.x.float32 in pos.x..(pos.x + this.box.w) and e.pos.y.float32 in pos.y..(pos.y + this.box.h):
+      let pos = this.xy[].posToGlobal(this.parent)
+      if e.pos.x.float32 in pos.x..(pos.x + this.w[]) and e.pos.y.float32 in pos.y..(pos.y + this.h[]):
         this.hovered[] = true
       else:
         this.hovered[] = false

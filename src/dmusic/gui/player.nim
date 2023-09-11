@@ -29,7 +29,7 @@ proc newPlayerButton(): PlayerButton =
   result = PlayerButton()
   result.makeLayout:
     - newUiMouseArea() as mouse:
-      this.anchors.fill parent
+      this.fill parent
 
       this.pressed.changed.connectTo this:
         if root.available[] and not e and this.hovered[]: root.activated.emit()
@@ -282,25 +282,24 @@ proc newPlayer*(): Player =
 
 
     - newUiRect():
-      this.anchors.fill(parent)
+      this.fill(parent)
       this.binding color: (if parent.style[] != nil: parent.style[].backgroundColor else: color(0, 0, 0))
 
       - newUiMouseArea() as playerLineMouseArea:
-        this.box.h = 16
-        this.onReposition.connectTo this:
-          this.box.w = this.parent.box.w / 2.7
-        this.box.y = 42
-        this.anchors.centerX = parent.center
+        this.h[] = 16
+        this.binding w: parent.w[] / 2.7
+        this.y[] = 42
+        this.centerX = parent.center
 
         - UiRect() as playerLineBackground:
-          this.box.h = 4
-          this.anchors.fillHorizontal parent
-          this.anchors.centerY = parent.center
+          this.h[] = 4
+          this.fillHorizontal parent
+          this.centerY = parent.center
           this.radius[] = 2
           this.binding color: (if root.style[] != nil: root.style[].itemBackground else: color(0, 0, 0))
 
           - UiRect() as playerLine:
-            this.box.h = parent.box.h
+            this.h[] = parent.h[]
             this.radius[] = 2
             this.binding color:
               if root.style[] != nil:
@@ -309,7 +308,7 @@ proc newPlayer*(): Player =
               else: color(0, 0, 0)
             
             proc updatePosition(this: UiRect, root: Player, pos: Vec2) =
-              root.outAudioStream.position[] = pos.posToLocal(this.parent).x / this.parent.box.w
+              root.outAudioStream.position[] = pos.posToLocal(parent).x / parent.w[]
             
             playerLineMouseArea.pressed.changed.connectTo this:
               if e: updatePosition(this, root, this.parentWindow.mouse.pos.vec2)
@@ -318,14 +317,11 @@ proc newPlayer*(): Player =
               if playerLineMouseArea.pressed[]:
                 updatePosition(this, root, e.pos.vec2)
 
-            root.outAudioStream.position.changed.connectTo this:
-              this.box.w = this.parent.box.w * e
-              startReposition root
+            this.binding w: parent.w[] * root.outAudioStream.position[]
           
           - UiRectShadow() as pointShadow:
             this.binding visibility: (if root.style[] != nil and root.style[].itemDropShadow and playerLineMouseArea.hovered[]: Visibility.visible else: Visibility.hidden)
-            this.box.w = 18
-            this.box.h = 18
+            this.wh[] = vec2(18, 18)
             this.blurRadius[] = 3
             this.radius[] = 6
             this.color[] = color(0, 0, 0, 0.2)
@@ -334,9 +330,8 @@ proc newPlayer*(): Player =
 
           - UiRect():
             this.binding visibility: (if playerLineMouseArea.hovered[]: Visibility.visible else: Visibility.hidden)
-            this.anchors.centerIn pointShadow
-            this.box.w = 12
-            this.box.h = 12
+            this.centerIn pointShadow
+            this.wh[] = vec2(12, 12)
             this.radius[] = 6
             this.color[] = color(1, 1, 1)
       
@@ -345,7 +340,6 @@ proc newPlayer*(): Player =
         this.anchors.centerY = playerLineMouseArea.center
         this.binding color: (if root.style[] != nil: root.style[].color2 else: color(0, 0, 0))
         this.binding text: (root.outAudioStream.duration[].inSeconds.float * root.outAudioStream.position[]).int.formatSeconds
-        do: startReposition root
         this.binding font:
           if root.style[] != nil and root.style[].typeface != nil:
             let f = newFont(root.style[].typeface)
@@ -358,7 +352,6 @@ proc newPlayer*(): Player =
         this.anchors.centerY = playerLineMouseArea.center
         this.binding color: (if root.style[] != nil: root.style[].color2 else: color(0, 0, 0))
         this.binding text: root.outAudioStream.duration[].inSeconds.formatSeconds
-        do: startReposition root
         this.binding font:
           if root.style[] != nil and root.style[].typeface != nil:
             let f = newFont(root.style[].typeface)
@@ -368,10 +361,10 @@ proc newPlayer*(): Player =
 
       - newUiobj() as playerControls:
         this.anchors.centerX = parent.center
-        this.box.y = 21
+        this.y[] = 21
 
         - newPlayerButton() as play_pause:
-          this.anchors.centerIn parent
+          this.centerIn parent
           
           const playIcon = staticRead "../../../resources/player/play.svg"
           const pauseIcon = staticRead "../../../resources/player/pause.svg"
@@ -424,8 +417,8 @@ proc newPlayer*(): Player =
             config.shuffle[] = not config.shuffle[]
         
         - newPlayerButton() as loop:
-          this.anchors.centerY = parent.center
-          this.anchors.centerX = parent.center(100)
+          this.centerY = parent.center
+          this.centerX = parent.center(100)
           
           const loopIcon = staticRead "../../../resources/player/loop-playlist.svg"
           const loopTrackIcon = staticRead "../../../resources/player/loop-track.svg"
@@ -446,23 +439,23 @@ proc newPlayer*(): Player =
             of track: LoopMode.none
 
       - newUiMouseArea() as mouse:
-        this.anchors.fillVertical parent
-        this.anchors.left = parent.left
-        this.anchors.right = currentTimeText.left(-5)
+        this.fillVertical parent
+        this.left = parent.left
+        this.right = currentTimeText.left(-5)
 
         - newUiClipRect():
-          this.anchors.fill parent
+          this.fill parent
           this.binding visibility: (if mouse.hovered[]: Visibility.hidden else: Visibility.visible)
 
           - newUiRect():
-            this.anchors.fillVertical parent
+            this.fillVertical parent
             this.binding visibility: (if mouse.hovered[]: Visibility.visible else: Visibility.hidden)
             this.binding color: (if root.style[] != nil: root.style[].backgroundColor else: color(0, 0, 0))
 
             - newUiImage() as cover:
               this.anchors.centerY = parent.center
-              this.box.w = 50
-              this.box.h = 50
+              this.w[] = 50
+              this.h[] = 50
               this.anchors.left = parent.left(8)
               this.radius[] = 7.5
               
@@ -486,7 +479,6 @@ proc newPlayer*(): Player =
               this.anchors.left = cover.right(11)
               this.binding color: (if root.style[] != nil: root.style[].color else: color(0, 0, 0))
               this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].title else: "")
-              do: startReposition root
               this.binding font:
                 if root.style[] != nil and root.style[].typeface != nil:
                   let f = newFont(root.style[].typeface)
@@ -499,7 +491,6 @@ proc newPlayer*(): Player =
               this.anchors.left = title.right(5)
               this.binding color: (if root.style[] != nil: root.style[].color3 else: color(0, 0, 0))
               this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].comment else: "")
-              do: startReposition root
               this.binding font:
                 if root.style[] != nil and root.style[].typeface != nil:
                   let f = newFont(root.style[].typeface)
@@ -512,7 +503,6 @@ proc newPlayer*(): Player =
               this.anchors.left = cover.right(11)
               this.binding color: (if root.style[] != nil: root.style[].color2 else: color(0, 0, 0))
               this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].artists else: "")
-              do: startReposition root
               this.binding font:
                 if root.style[] != nil and root.style[].typeface != nil:
                   let f = newFont(root.style[].typeface)
@@ -520,14 +510,13 @@ proc newPlayer*(): Player =
                   f
                 else: nil
 
-            this.onReposition.connectTo this:
-              this.box.w = max(authors.box.x + authors.box.w, comment.box.x + comment.box.w) + 5
+            this.binding w: max(authors.x[] + authors.w[], comment.x[] + comment.w[]) + 5
     
 
     - newUiRect():
-      this.anchors.fillHorizontal(parent)
+      this.fillHorizontal(parent)
       this.anchors.top = Anchor(obj: root, offsetFrom: start, offset: -1)
-      this.box.h = 2
+      this.h[] = 2
       this.binding color: (if parent.style[] != nil: parent.style[].borderColor else: color(0, 0, 0))
       this.binding visibility: (if parent.style[] != nil and parent.style[].borders: Visibility.visible else: Visibility.hidden)
       

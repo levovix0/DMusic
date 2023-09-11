@@ -8,19 +8,20 @@ export imageman except Rect
 type
   Col* = pixie.Color
 
-  AnchorOffsetFrom* = enum
+  AnchorOffsetFrom = enum
     start
     center
     `end`
 
   Anchor* = object
-    obj*: UiObj
+    obj: UiObj
       ## if nil, anchor is disabled
-    offsetFrom*: AnchorOffsetFrom
-    offset*: float32
+    offsetFrom: AnchorOffsetFrom
+    offset: float32
+    eventHandler: EventHandler
   
-  Anchors* = object
-    left*, right*, top*, bottom*, centerX*, centerY*: Anchor
+  Anchors = object
+    left, right, top, bottom, centerX, centerY: Anchor
   
   Visibility* = enum
     visible
@@ -34,19 +35,23 @@ type
   
   Uiobj* {.acyclic.} = ref object of RootObj
     eventHandler*: EventHandler
+    
     parent* {.cursor.}: Uiobj
       ## parent of this object, that must have this object as child
       ## note: object can have no parent
     childs*: seq[owned(Uiobj)]
       ## childs that should be deleted when this object is deleted
-    initialized*: bool
+    
     globalTransform*: Property[bool]
-    box*: Rect
-    anchors*: Anchors
+    x*, y*, w*, h*: Property[float32]
     visibility*: Property[Visibility]
+    
     onSignal*: Event[Signal]
-    onReposition*: Event[void]
+    
+    initialized*: bool
     attachedToWindow*: bool
+    
+    anchors: Anchors
 
 
   #--- Signals ---
@@ -186,6 +191,19 @@ proc round*(v: Vec2): Vec2 =
 #* ------------- Uiobj ------------- *#
 
 
+proc xy*(obj: Uiobj): CustomProperty[Vec2] =
+  CustomProperty[Vec2](
+    get: proc(): Vec2 = vec2(obj.x[], obj.y[]),
+    set: proc(v: Vec2) = obj.x[] = v.x; obj.y[] = v.y,
+  )
+
+proc wh*(obj: Uiobj): CustomProperty[Vec2] =
+  CustomProperty[Vec2](
+    get: proc(): Vec2 = vec2(obj.w[], obj.h[]),
+    set: proc(v: Vec2) = obj.w[] = v.x; obj.h[] = v.y,
+  )
+
+
 method draw*(obj: Uiobj, ctx: DrawContext) {.base.} =
   if obj.visibility notin {hiddenTree, collapsed}:
     for x in obj.childs: draw(x, ctx)
@@ -213,7 +231,7 @@ proc posToLocal*(pos: Vec2, obj: Uiobj): Vec2 =
   var obj {.cursor.} = obj
   while true:
     if obj == nil: return
-    result -= obj.box.xy
+    result -= obj.xy[]
     if obj.globalTransform: return
     obj = obj.parent
 
@@ -222,7 +240,7 @@ proc posToGlobal*(pos: Vec2, obj: Uiobj): Vec2 =
   var obj {.cursor.} = obj
   while true:
     if obj == nil: return
-    result += obj.box.xy
+    result += obj.xy[]
     if obj.globalTransform: return
     obj = obj.parent
 
@@ -248,12 +266,12 @@ proc pos*(anchor: Anchor, isY: bool): Vec2 =
   of start:
     if isY:
       if anchor.obj.visibility == collapsed and anchor.obj.anchors.top.obj == nil and anchor.obj.anchors.bottom.obj != nil:
-        anchor.obj.box.h + anchor.offset
+        anchor.obj.h[] + anchor.offset
       else:
         anchor.offset
     else:
       if anchor.obj.visibility == collapsed and anchor.obj.anchors.left.obj == nil and anchor.obj.anchors.right.obj != nil:
-        anchor.obj.box.w + anchor.offset
+        anchor.obj.w[] + anchor.offset
       else:
         anchor.offset
   of `end`:
@@ -261,29 +279,29 @@ proc pos*(anchor: Anchor, isY: bool): Vec2 =
       if anchor.obj.visibility == collapsed and anchor.obj.anchors.top.obj != nil and anchor.obj.anchors.bottom.obj == nil:
         anchor.offset
       else:
-        anchor.obj.box.h + anchor.offset
+        anchor.obj.h[] + anchor.offset
     else:
       if anchor.obj.visibility == collapsed and anchor.obj.anchors.left.obj != nil and anchor.obj.anchors.right.obj == nil:
         anchor.offset
       else:
-        anchor.obj.box.w + anchor.offset
+        anchor.obj.w[] + anchor.offset
   of center:
     if isY:
       if anchor.obj.visibility == collapsed:
         if anchor.obj.anchors.top.obj == nil and anchor.obj.anchors.bottom.obj != nil:
-          anchor.obj.box.h + anchor.offset
+          anchor.obj.h[] + anchor.offset
         else:
           anchor.offset
       else:
-        anchor.obj.box.h / 2 + anchor.offset
+        anchor.obj.h[] / 2 + anchor.offset
     else:
       if anchor.obj.visibility == collapsed:
         if anchor.obj.anchors.left.obj == nil and anchor.obj.anchors.right.obj != nil:
-          anchor.obj.box.w + anchor.offset
+          anchor.obj.w[] + anchor.offset
         else:
           anchor.offset
       else:
-        anchor.obj.box.w / 2 + anchor.offset
+        anchor.obj.w[] / 2 + anchor.offset
 
   if isY: vec2(0, p).posToGlobal(anchor.obj)
   else: vec2(p, 0).posToGlobal(anchor.obj)
@@ -310,37 +328,32 @@ template connectTo*(s: var Event[void], obj: HasEventHandler, argname: untyped, 
 
 #--- Reposition ---
 
-method reposition*(obj: Uiobj) {.base.}
-
-proc broadcastReposition*(obj: Uiobj) =
-  for x in obj.childs: reposition(x)
-
-proc anchorReposition*(obj: Uiobj) =
+proc applyAnchors*(obj: Uiobj) =
   # x and w
   if obj.anchors.left.obj != nil:
-    obj.box.x = obj.anchors.left.pos(isY=false).posToLocal(obj.parent).x
+    obj.x[] = obj.anchors.left.pos(isY=false).posToLocal(obj.parent).x
   
   if obj.anchors.right.obj != nil:
     if obj.anchors.left.obj != nil:
-      obj.box.w = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.box.x
+      obj.w[] = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.x[]
     else:
-      obj.box.x = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.box.w
+      obj.x[] = obj.anchors.right.pos(isY=false).posToLocal(obj.parent).x - obj.w[]
   
   if obj.anchors.centerX.obj != nil:
-    obj.box.x = obj.anchors.centerX.pos(isY=false).posToLocal(obj.parent).x - obj.box.w / 2
+    obj.x[] = obj.anchors.centerX.pos(isY=false).posToLocal(obj.parent).x - obj.w[] / 2
 
   # y and h
   if obj.anchors.top.obj != nil:
-    obj.box.y = obj.anchors.top.pos(isY=true).posToLocal(obj.parent).y
+    obj.y[] = obj.anchors.top.pos(isY=true).posToLocal(obj.parent).y
   
   if obj.anchors.bottom.obj != nil:
     if obj.anchors.top.obj != nil:
-      obj.box.h = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.box.y
+      obj.h[] = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.y[]
     else:
-      obj.box.y = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.box.h
+      obj.y[] = obj.anchors.bottom.pos(isY=true).posToLocal(obj.parent).y - obj.h[]
   
   if obj.anchors.centerY.obj != nil:
-    obj.box.y = obj.anchors.centerY.pos(isY=true).posToLocal(obj.parent).y - obj.box.h / 2
+    obj.y[] = obj.anchors.centerY.pos(isY=true).posToLocal(obj.parent).y - obj.h[] / 2
 
 
 proc left*(obj: Uiobj, margin: float32 = 0): Anchor =
@@ -354,33 +367,51 @@ proc bottom*(obj: Uiobj, margin: float32 = 0): Anchor =
 proc center*(obj: Uiobj, margin: float32 = 0): Anchor =
   Anchor(obj: obj, offsetFrom: center, offset: margin)
 
+proc `+`*(a: Anchor, offset: float32): Anchor =
+  Anchor(obj: a.obj, offsetFrom: a.offsetFrom, offset: a.offset + offset)
 
-method reposition*(obj: Uiobj) {.base.} =
-  obj.onReposition.emit()
-  anchorReposition obj
-  broadcastReposition obj
+proc `-`*(a: Anchor, offset: float32): Anchor =
+  Anchor(obj: a.obj, offsetFrom: a.offsetFrom, offset: a.offset - offset)
 
-var startRepositionLock {.threadvar.}: bool
-proc startReposition*(obj: Uiobj) =
-  if obj == nil: return
-  let win = obj.parentWindow
-  if win != nil:
-    redraw obj.parentWindow
-  obj.reposition()
-  let window = obj.parentWindow
-  if startRepositionLock: return  # avoid recursion
-  startRepositionLock = true
-  try:
-    if win != nil:
-      obj.parentUiWindow.recieve(WindowEvent(event: (ref MouseMoveEvent)(window: window, pos: window.mouse.pos), fake: true))  # emulate mouse move to update hovers
-  finally:
-    startRepositionLock = false
+proc handleChangedEvent(this: Uiobj, anchor: var Anchor, isY: bool) =
+  if isY:
+    case anchor.offsetFrom:
+    of start:
+      anchor.obj.x.changed.connectTo anchor: this.applyAnchors()
+    of `end`:
+      anchor.obj.x.changed.connectTo anchor: this.applyAnchors()
+      anchor.obj.w.changed.connectTo anchor: this.applyAnchors()
+    of center:
+      anchor.obj.x.changed.connectTo anchor: this.applyAnchors()
+      anchor.obj.w.changed.connectTo anchor: this.applyAnchors()
+  else:
+    case anchor.offsetFrom:
+    of start:
+      anchor.obj.y.changed.connectTo anchor: this.applyAnchors()
+    of `end`:
+      anchor.obj.y.changed.connectTo anchor: this.applyAnchors()
+      anchor.obj.h.changed.connectTo anchor: this.applyAnchors()
+    of center:
+      anchor.obj.y.changed.connectTo anchor: this.applyAnchors()
+      anchor.obj.h.changed.connectTo anchor: this.applyAnchors()
+  anchor.obj.visibility.changed.connectTo anchor: this.applyAnchors()
+
+template anchorAssign(anchor: untyped, isY: bool): untyped {.dirty.} =
+  proc `anchor=`*(obj: Uiobj, v: Anchor) =
+    obj.anchors.anchor = v
+    handleChangedEvent(obj, obj.anchors.anchor, isY)
+
+anchorAssign left, false
+anchorAssign right, false
+anchorAssign top, true
+anchorAssign bottom, true
+anchorAssign centerX, false
+anchorAssign centerY, true
 
 
 method init*(obj: Uiobj) {.base.} =
   obj.visibility.changed.connectTo obj:
     obj.recieve(VisibilityChanged(sender: obj, visibility: obj.visibility))
-    obj.parentUiWindow.startReposition()
   
   if not obj.attachedToWindow:
     let win = obj.parentUiWindow
@@ -395,25 +426,25 @@ proc initIfNeeded*(obj: Uiobj) =
 
 #--- Anchors ---
 
-proc fillHorizontal*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
-  anchors.left = Anchor(obj: obj, offset: margin)
-  anchors.right = Anchor(obj: obj, offsetFrom: `end`, offset: -margin)
+proc fillHorizontal*(this: Uiobj, obj: Uiobj, margin: float32 = 0) =
+  this.left = obj.left + margin
+  this.right = obj.right - margin
 
-proc fillVertical*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
-  anchors.top = Anchor(obj: obj, offset: margin)
-  anchors.bottom = Anchor(obj: obj, offsetFrom: `end`, offset: -margin)
+proc fillVertical*(this: Uiobj, obj: Uiobj, margin: float32 = 0) =
+  this.top = obj.top + margin
+  this.bottom = obj.bottom - margin
 
-proc centerIn*(anchors: var Anchors, obj: Uiobj, offset: Vec2 = vec2(), xCenterAt: AnchorOffsetFrom = center, yCenterAt: AnchorOffsetFrom = center) =
-  anchors.centerX = Anchor(obj: obj, offsetFrom: xCenterAt, offset: offset.x)
-  anchors.centerY = Anchor(obj: obj, offsetFrom: yCenterAt, offset: offset.y)
+proc centerIn*(this: Uiobj, obj: Uiobj, offset: Vec2 = vec2(), xCenterAt: AnchorOffsetFrom = center, yCenterAt: AnchorOffsetFrom = center) =
+  this.centerX = Anchor(obj: obj, offsetFrom: xCenterAt, offset: offset.x)
+  this.centerY = Anchor(obj: obj, offsetFrom: yCenterAt, offset: offset.y)
 
-proc fill*(anchors: var Anchors, obj: Uiobj, margin: float32 = 0) =
-  anchors.fillHorizontal(obj, margin)
-  anchors.fillVertical(obj, margin)
+proc fill*(this: Uiobj, obj: Uiobj, margin: float32 = 0) =
+  this.fillHorizontal(obj, margin)
+  this.fillVertical(obj, margin)
 
-proc fill*(anchors: var Anchors, obj: Uiobj, marginX: float32, marginY: float32) =
-  anchors.fillHorizontal(obj, marginX)
-  anchors.fillVertical(obj, marginY)
+proc fill*(this: Uiobj, obj: Uiobj, marginX: float32, marginY: float32) =
+  this.fillHorizontal(obj, marginX)
+  this.fillVertical(obj, marginY)
 
 
 method addChild*(parent: Uiobj, child: Uiobj) {.base.} =
@@ -739,33 +770,33 @@ proc `image=`*(obj: UiImage, img: pixie.Image) =
   if img != nil:
     obj.tex = newTextures(1)
     loadTexture(obj.tex[0], img)
-    if obj.box.wh == vec2():
-      obj.box.wh = vec2(img.width.float32, img.height.float32)
+    if obj.wh[] == vec2():
+      obj.wh[] = vec2(img.width.float32, img.height.float32)
     obj.imageWh[] = ivec2(img.width.int32, img.height.int32)
 
 proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
   obj.tex = newTextures(1)
   loadTexture(obj.tex[0], img)
-  if obj.box.wh == vec2():
-    obj.box.wh = vec2(img.width.float32, img.height.float32)
+  if obj.wh[] == vec2():
+    obj.wh[] = vec2(img.width.float32, img.height.float32)
   obj.imageWh[] = ivec2(img.width.int32, img.height.int32)
 
 
 method draw*(rect: UiRect, ctx: DrawContext) =
   if rect.visibility[] == visible:
-    ctx.drawRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, rect.color[].a != 1 or rect.radius != 0, rect.angle)
+    ctx.drawRect(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.color.vec4, rect.radius, rect.color[].a != 1 or rect.radius != 0, rect.angle)
   procCall draw(rect.Uiobj, ctx)
 
 
 method draw*(img: UiImage, ctx: DrawContext) =
   if img.visibility[] == visible and img.tex != nil:
-    ctx.drawImage(img.box.xy.posToGlobal(img.parent), img.box.wh, img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
+    ctx.drawImage(img.xy[].posToGlobal(img.parent), img.wh[], img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
   procCall draw(img.Uiobj, ctx)
 
 
 method draw*(ico: UiIcon, ctx: DrawContext) =
   if ico.visibility[] == visible and ico.tex != nil:
-    ctx.drawIcon(ico.box.xy.posToGlobal(ico.parent), ico.box.wh, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
+    ctx.drawIcon(ico.xy[].posToGlobal(ico.parent), ico.wh[], ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
   procCall draw(ico.Uiobj, ctx)
 
 
@@ -776,7 +807,7 @@ method init*(this: UiText) =
     this.tex = nil
     if e != nil:
       let bounds = this.arrangement[].layoutBounds
-      this.box.wh = bounds
+      this.wh[] = bounds
       if bounds.x == 0 or bounds.y == 0: return
       let image = newImage(bounds.x.ceil.int32, bounds.y.ceil.int32)
       image.fillText(this.arrangement[])
@@ -784,7 +815,7 @@ method init*(this: UiText) =
       loadTexture(this.tex[0], image)
       # todo: reposition
     else:
-      this.box.wh = vec2()
+      this.wh[] = vec2()
 
   template newArrangement: Arrangement =
     if this.text[] != "" and this.font != nil:
@@ -802,27 +833,27 @@ method init*(this: UiText) =
 method draw*(text: UiText, ctx: DrawContext) =
   let pos =
     if text.roundPositionOnDraw[]:
-      text.box.xy.posToGlobal(text.parent).round
+      text.xy[].posToGlobal(text.parent).round
     else:
-      text.box.xy.posToGlobal(text.parent)
+      text.xy[].posToGlobal(text.parent)
 
   if text.visibility[] == visible and text.tex != nil:
-    ctx.drawIcon(pos, text.box.wh, text.tex[0], text.color.vec4, 0, true, text.angle)
+    ctx.drawIcon(pos, text.wh[], text.tex[0], text.color.vec4, 0, true, text.angle)
   procCall draw(text.Uiobj, ctx)
 
 
 method draw*(rect: UiRectShadow, ctx: DrawContext) =
   if rect.visibility[] == visible:
-    ctx.drawShadowRect(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.color.vec4, rect.radius, true, rect.blurRadius, rect.angle)
+    ctx.drawShadowRect(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.color.vec4, rect.radius, true, rect.blurRadius, rect.angle)
   procCall draw(rect.Uiobj, ctx)
 
 
 method draw*(rect: UiClipRect, ctx: DrawContext) =
   if rect.visibility == visible:
-    if rect.box.w <= 0 or rect.box.h <= 0: return
+    if rect.w[] <= 0 or rect.h[] <= 0: return
     if rect.fbo == nil: rect.fbo = newFrameBuffers(1)
 
-    let size = ivec2(rect.box.w.round.int32, rect.box.h.round.int32)
+    let size = ivec2(rect.w[].round.int32, rect.h[].round.int32)
 
     ctx.frameBufferHierarchy.add (rect.fbo[0], size)
     glBindFramebuffer(GlFramebuffer, rect.fbo[0])
@@ -845,16 +876,16 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
     ctx.updateSizeRender(size)
 
     let gt = rect.globalTransform[]
-    let pos = rect.box.xy
+    let pos = rect.xy[]
     try:
       rect.globalTransform{} = true
-      rect.box.xy = vec2()
+      rect.xy[] = vec2()
       procCall draw(rect.Uiobj, ctx)
     
     finally:
       ctx.frameBufferHierarchy.del ctx.frameBufferHierarchy.high
       rect.globalTransform{} = gt
-      rect.box.xy = pos
+      rect.xy[] = pos
 
       glBindFramebuffer(GlFramebuffer, if ctx.frameBufferHierarchy.len == 0: 0.GlUint else: ctx.frameBufferHierarchy[^1].fbo)
       
@@ -862,7 +893,7 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
       glViewport 0, 0, size.x.GLsizei, size.y.GLsizei
       ctx.updateSizeRender(size)
       
-      ctx.drawImage(rect.box.xy.posToGlobal(rect.parent), rect.box.wh, rect.tex[0], rect.radius, true, rect.angle, flipY=true)
+      ctx.drawImage(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.tex[0], rect.radius, true, rect.angle, flipY=true)
   else:
     procCall draw(rect.Uiobj, ctx)
 
@@ -876,10 +907,9 @@ method draw*(win: UiWindow, ctx: DrawContext) =
 method recieve*(this: UiWindow, signal: Signal) =
   if signal of WindowEvent and signal.WindowEvent.event of ResizeEvent:
     let e = (ref ResizeEvent)signal.WindowEvent.event
-    this.box.wh = e.size.vec2
+    this.wh[] = e.size.vec2
     glViewport 0, 0, e.size.x.GLsizei, e.size.y.GLsizei
     this.ctx.updateSizeRender(e.size)
-    startReposition this
 
   elif signal of WindowEvent and signal.WindowEvent.event of RenderEvent:
     draw(this, this.ctx)
@@ -980,6 +1010,26 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
         this.anchors.fill(parent)
 
 
+  proc implFwd(body: NimNode, res: var seq[NimNode]) =
+    for x in body:
+      case x
+      of Prefix[Ident(strVal: "-"), @ctor]:
+        discard
+
+      of Prefix[Ident(strVal: "-"), @ctor, @body is StmtList()]:
+        implFwd(body, res)
+
+      of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s]:
+        res.add: buildAst:
+          identDefs(s, empty(), ctor)
+
+      of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s, @body is StmtList()]:
+        res.add: buildAst:
+          identDefs(s, empty(), ctor)
+        implFwd(body, res)
+
+      else: discard
+
   proc impl(parent: NimNode, obj: NimNode, body: NimNode): NimNode =
     buildAst blockStmt:
       genSym(nskLabel, "initializationBlock")
@@ -1063,15 +1113,11 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
 
               of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s]:
                 discard checkCtor ctor
-                letSection:
-                  identDefs(s, empty(), ctor)
                 call(ident"addChild", ident "this", s)
                 call(ident"initIfNeeded", s)
 
               of Infix[Ident(strVal: "as"), Prefix[Ident(strVal: "-"), @ctor], @s, @body is StmtList()]:
                 discard checkCtor ctor
-                letSection:
-                  identDefs(s, empty(), ctor)
                 call(ident"addChild", ident "this", s)
                 impl(ident "this", s, body)
 
@@ -1089,7 +1135,12 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
                 forStmt:
                   v
                   cond
-                  impl(ident "parent", ident "this", body)
+                  stmtList:
+                    letSection:
+                      var fwd: seq[NimNode]
+                      (implFwd(body, fwd))
+                      for x in fwd: x
+                    impl(ident "parent", ident "this", body)
 
               else: x
         parent
@@ -1100,6 +1151,10 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
     stmtList:
       letSection:
         identDefs(pragmaExpr(ident "root", pragma ident "used"), empty(), obj)
+        var fwd: seq[NimNode]
+        (implFwd(body, fwd))
+        for x in fwd: x
+      
       impl(nnkDotExpr.newTree(ident "root", ident "parent"), ident "root", if body.kind == nnkStmtList: body else: newStmtList(body))
 
 
@@ -1229,3 +1284,23 @@ template withWindow*(obj: UiObj, winVar: untyped, body: untyped) =
   obj.onSignal.connect obj.eventHandler, proc(e: Signal) =
     if e of AttachedToWindow:
       bodyProc(obj.parentUiWindow)
+
+
+proc preview*(size = ivec2(), clearColor = color(0, 0, 0, 0), margin = 10'f32, transparent = false, withWindow: proc(): Uiobj) =
+  let win = newOpenglWindow(
+    size =
+      if size != ivec2(): size
+      else: ivec2(100, 100),
+    transparent = transparent
+  ).newUiWindow
+  let obj = withWindow()
+
+  if size == ivec2() and obj.wh[] != vec2():
+    win.siwinWindow.size = (obj.wh[] + margin * 2).ivec2
+
+  win.clearColor = clearColor
+  win.makeLayout:
+    - obj:
+      this.fill(parent, margin)
+  
+  run win.siwinWindow

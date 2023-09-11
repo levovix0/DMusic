@@ -17,13 +17,12 @@ proc updateChilds(this: DmusicWindow, initial = false) =
   if this.parentWindow.maximized:
     this.borderWidth = -1
     this.clipRect.visibility[] = hidden
-    this.clipRect.anchors.fill(this, 0)
+    this.clipRect.fill(this, 0)
   else:
     this.borderWidth = if config.csd: 10 else: -1
     this.clipRect.visibility[] = if config.csd: Visibility.visible else: Visibility.hidden
-    this.clipRect.anchors.fill(this, if config.csd: 10 else: 0)
+    this.clipRect.fill(this, if config.csd: 10 else: 0)
   if not initial:
-    this.parentUiWindow.startReposition()
     redraw this
 
 
@@ -50,7 +49,7 @@ method recieve*(this: DmusicWindow, signal: Signal) =
         procCall this.super.recieve(signal)
     else:
       let pos = e.pos.vec2.posToLocal(this)
-      let box = this.box
+      let box = rect(this.xy[], this.wh[])
 
       let left = pos.x in 0'f32..(box.x + this.borderWidth)
       let top = pos.y in 0'f32..(box.y + this.borderWidth)
@@ -131,7 +130,7 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
 
   result.makeLayout:
     - UiRectShadow():
-      this.anchors.fill(parent)
+      this.fill(parent)
       this.radius[] = 7.5
       this.blurRadius[] = 10
       this.color[] = color(0, 0, 0, 0.3)
@@ -142,10 +141,10 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
           else: Visibility.hidden
 
     - dmWin:
-      this.anchors.fill(parent)
+      this.fill(parent)
 
       - newUiMouseArea():
-        this.anchors.fill(parent)
+        this.fill(parent)
         dmWin.mouse = this
 
         - UiClipRect():
@@ -153,12 +152,12 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
           this.radius[] = 7.5
 
           - UiRect():
-            this.anchors.fill(parent)
+            this.fill(parent)
             dmWin.windowFrame = this
             this.binding color: (if dmWin.style[] != nil: dmWin.style[].backgroundColor else: color(0, 0, 0))
             
             - rootObj:
-              this.anchors.fill(parent)
+              this.fill(parent)
   
 
   config.csd.changed.connectTo dmWin:
