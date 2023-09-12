@@ -325,8 +325,8 @@ proc newPlayer*(): Player =
             this.blurRadius[] = 3
             this.radius[] = 6
             this.color[] = color(0, 0, 0, 0.2)
-            this.anchors.centerY = playerLine.center
-            this.anchors.centerX = playerLine.right
+            this.centerY = playerLine.center
+            this.centerX = playerLine.right
 
           - UiRect():
             this.binding visibility: (if playerLineMouseArea.hovered[]: Visibility.visible else: Visibility.hidden)
@@ -336,8 +336,8 @@ proc newPlayer*(): Player =
             this.color[] = color(1, 1, 1)
       
       - newUiText() as currentTimeText:
-        this.anchors.right = playerLineMouseArea.left(-14)
-        this.anchors.centerY = playerLineMouseArea.center
+        this.right = playerLineMouseArea.left(-14)
+        this.centerY = playerLineMouseArea.center
         this.binding color: (if root.style[] != nil: root.style[].color2 else: color(0, 0, 0))
         this.binding text: (root.outAudioStream.duration[].inSeconds.float * root.outAudioStream.position[]).int.formatSeconds
         this.binding font:
@@ -348,8 +348,8 @@ proc newPlayer*(): Player =
           else: nil
       
       - newUiText() as durationText:
-        this.anchors.left = playerLineMouseArea.right(14)
-        this.anchors.centerY = playerLineMouseArea.center
+        this.left = playerLineMouseArea.right(14)
+        this.centerY = playerLineMouseArea.center
         this.binding color: (if root.style[] != nil: root.style[].color2 else: color(0, 0, 0))
         this.binding text: root.outAudioStream.duration[].inSeconds.formatSeconds
         this.binding font:
@@ -360,7 +360,7 @@ proc newPlayer*(): Player =
           else: nil
 
       - newUiobj() as playerControls:
-        this.anchors.centerX = parent.center
+        this.centerX = parent.center
         this.y[] = 21
 
         - newPlayerButton() as play_pause:
@@ -381,8 +381,8 @@ proc newPlayer*(): Player =
             of paused: playing
 
         - newPlayerButton() as next:
-          this.anchors.centerY = parent.center
-          this.anchors.centerX = parent.center(50)
+          this.centerY = parent.center
+          this.centerX = parent.center(50)
           
           this.binding available: root.currentTrack[] != nil
           
@@ -393,8 +393,8 @@ proc newPlayer*(): Player =
             root.next()
 
         - newPlayerButton() as prev:
-          this.anchors.centerY = parent.center
-          this.anchors.centerX = parent.center(-50)
+          this.centerY = parent.center
+          this.centerX = parent.center(-50)
           
           this.binding available: root.currentTrack[] != nil
           
@@ -405,8 +405,8 @@ proc newPlayer*(): Player =
             root.prev()
 
         - newPlayerButton() as shuffle:
-          this.anchors.centerY = parent.center
-          this.anchors.centerX = parent.center(-100)
+          this.centerY = parent.center
+          this.centerX = parent.center(-100)
           
           const iconFile = staticRead "../../../resources/player/shuffle.svg"
           this.image = iconFile.parseSvg().newImage
@@ -453,10 +453,10 @@ proc newPlayer*(): Player =
             this.binding color: (if root.style[] != nil: root.style[].backgroundColor else: color(0, 0, 0))
 
             - newUiImage() as cover:
-              this.anchors.centerY = parent.center
+              this.centerY = parent.center
               this.w[] = 50
               this.h[] = 50
-              this.anchors.left = parent.left(8)
+              this.left = parent.left(8)
               this.radius[] = 7.5
               
               this.image = emptyCover.parseSvg(50, 50).newImage
@@ -475,8 +475,8 @@ proc newPlayer*(): Player =
                 )(this, e)
           
             - newUiText() as title:
-              this.anchors.bottom = parent.center(-2)
-              this.anchors.left = cover.right(11)
+              this.bottom = parent.center(-2)
+              this.left = cover.right(11)
               this.binding color: (if root.style[] != nil: root.style[].color else: color(0, 0, 0))
               this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].title else: "")
               this.binding font:
@@ -487,8 +487,8 @@ proc newPlayer*(): Player =
                 else: nil
           
             - newUiText() as comment:
-              this.anchors.bottom = parent.center(-2)
-              this.anchors.left = title.right(5)
+              this.bottom = parent.center(-2)
+              this.left = title.right(5)
               this.binding color: (if root.style[] != nil: root.style[].color3 else: color(0, 0, 0))
               this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].comment else: "")
               this.binding font:
@@ -499,8 +499,8 @@ proc newPlayer*(): Player =
                 else: nil
           
             - newUiText() as authors:
-              this.anchors.top = parent.center(3)
-              this.anchors.left = cover.right(11)
+              this.top = parent.center(3)
+              this.left = cover.right(11)
               this.binding color: (if root.style[] != nil: root.style[].color2 else: color(0, 0, 0))
               this.binding text: (if root.currentTrack[] != nil: root.currentTrack[].artists else: "")
               this.binding font:
@@ -515,7 +515,7 @@ proc newPlayer*(): Player =
 
     - newUiRect():
       this.fillHorizontal(parent)
-      this.anchors.top = Anchor(obj: root, offsetFrom: start, offset: -1)
+      this.top = Anchor(obj: root, offsetFrom: start, offset: -1)
       this.h[] = 2
       this.binding color: (if parent.style[] != nil: parent.style[].borderColor else: color(0, 0, 0))
       this.binding visibility: (if parent.style[] != nil and parent.style[].borders: Visibility.visible else: Visibility.hidden)

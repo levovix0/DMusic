@@ -93,7 +93,7 @@ proc newWindowHeader*(): WindowHeader =
           e.window.maximized = not e.window.maximized
 
       - newButton(static(staticRead "../../../resources/title/close.svg")) as close:
-        this.anchors.right = parent.right
+        this.right = parent.right
         this.accent[] = true
         this.action = proc =
           close this.parentWindow
@@ -101,7 +101,7 @@ proc newWindowHeader*(): WindowHeader =
         this.binding visibility: (if config.csd[] and config.window_closeButton[]: Visibility.visible else: Visibility.collapsed)
       
       - newButton(static(staticRead "../../../resources/title/maximize.svg")) as maximize:
-        this.anchors.right = close.left
+        this.right = close.left
         this.action = proc =
           let win = this.parentWindow
           win.maximized = not win.maximized
@@ -109,7 +109,7 @@ proc newWindowHeader*(): WindowHeader =
         this.binding visibility: (if config.csd[] and config.window_maximizeButton[]: Visibility.visible else: Visibility.collapsed)
       
       - newButton(static(staticRead "../../../resources/title/minimize.svg")) as minimize:
-        this.anchors.right = maximize.left
+        this.right = maximize.left
         this.action = proc =
           this.parentWindow.minimized = true
         

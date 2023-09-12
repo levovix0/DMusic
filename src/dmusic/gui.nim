@@ -37,7 +37,7 @@ proc gui*: string =
     - newPlayer():
       this.fillHorizontal(root)
       this.h[] = 66
-      this.anchors.bottom = Anchor(obj: parent, offsetFrom: `end`, offset: 0)
+      this.bottom = Anchor(obj: parent, offsetFrom: `end`, offset: 0)
     
     - newUiRect():  # todo: UiRectBorder
       this.fillHorizontal(parent, 400)

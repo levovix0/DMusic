@@ -374,7 +374,8 @@ proc `-`*(a: Anchor, offset: float32): Anchor =
   Anchor(obj: a.obj, offsetFrom: a.offsetFrom, offset: a.offset - offset)
 
 proc handleChangedEvent(this: Uiobj, anchor: var Anchor, isY: bool) =
-  if isY:
+  if anchor.obj == nil: return
+  if not isY:
     case anchor.offsetFrom:
     of start:
       anchor.obj.x.changed.connectTo anchor: this.applyAnchors()
@@ -400,6 +401,7 @@ template anchorAssign(anchor: untyped, isY: bool): untyped {.dirty.} =
   proc `anchor=`*(obj: Uiobj, v: Anchor) =
     obj.anchors.anchor = v
     handleChangedEvent(obj, obj.anchors.anchor, isY)
+    obj.applyAnchors()
 
 anchorAssign left, false
 anchorAssign right, false
@@ -982,22 +984,22 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
       - UiRectShadow(radius: 7.5, blurRadius: 10, color: color(0, 0, 0, 0.3)) as shadowEfect
 
       - newUiRect():
-        this.anchors.fill(parent)
+        this.fill(parent)
         echo shadowEffect.radius
         doassert parent == this.parent
 
         - UiClipRect(radius: 7.5):
-          this.anchors.fill(parent, 10)
+          this.fill(parent, 10)
           doassert root == this.parent.parent
 
           ooo --- UiRect():  # add changable child
-            this.anchors.fill(parent)
+            this.fill(parent)
           #[ equivalent to (roughly):
           ooo = block:
             let x = this.addChangableChild(UiRect())
             proc update(parent: typeof(this), this: typeof(x[])) =
               initIfNeeded(this)
-              this.anchors.fill(parent)
+              this.fill(parent)
             update(this, x[])
             x.changed.connectTo this: update(this, x[])
             x
@@ -1007,7 +1009,7 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
           - UiRect()
 
       - c:
-        this.anchors.fill(parent)
+        this.fill(parent)
 
 
   proc implFwd(body: NimNode, res: var seq[NimNode]) =

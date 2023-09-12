@@ -51,16 +51,17 @@ proc newPlaylistEntry*: PlaylistEntry =
             this.image = emptyCover.parseSvg(115, 115).newImage
           else:
             root.coverRequestCanceled = new bool
-            waitFor: (proc(root: PlaylistEntry, this: UiImage, playlist: api.Playlist) {.async.} =
+            let p = (proc(root: PlaylistEntry, this: UiImage, playlist: api.Playlist) {.async.} =
               try:
                 let cover = playlist.cover(cancel = root.coverRequestCanceled).await.resize(115, 115)
                 this.image =
                   if cover == nil: emptyCover.parseSvg(115, 115).newImage
                   else: cover
               except RequestCanceled:
-                echo "cancel"
                 discard
             )(root, this, e)
+            when isMainModule: waitFor p
+            else: asyncCheck p
 
     - newUiText() as name:
       this.centerX = parent.center
@@ -72,12 +73,11 @@ proc newPlaylistEntry*: PlaylistEntry =
 
 
 when isMainModule:
-
   preview(clearColor = color(1, 1, 1, 1), margin = 20,
     withWindow = proc: Uiobj =  
       var x = newPlaylistEntry()
       # x.playing[] = false
-      x.playlist[] = personalPlaylists().waitFor[0].playlist
+      x.playlist[] = try: api.Playlist personalPlaylists().waitFor[0].playlist except: nil
       
       let styl = makeStyle(false, false)
       x.recieve(StyleChanged(fullStyle: styl, style: styl.window))
