@@ -96,6 +96,7 @@ proc loadTexture*(obj: GlUint, img: pixie.Image) =
   glBindTexture(GlTexture2d, obj)
   glTexImage2D(GlTexture2d, 0, GlRgba.GLint, img.width.GLsizei, img.height.GLsizei, 0, GlRgba, GlUnsignedByte, img.data[0].unsafeaddr)
   glGenerateMipmap(GlTexture2d)
+  glTexParameteri(GlTexture2d, GlTextureMinFilter, GlNearest)
   glBindTexture(GlTexture2d, 0)
 
 

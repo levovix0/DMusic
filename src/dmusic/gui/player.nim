@@ -16,7 +16,7 @@ type
     currentTrack*: Property[api.Track]
     trackSequence*: TrackSequence
     coverRequestCanceled, audioRequestCanceled, playlistRequestCanceled: ref bool
-    outAudioStream: OutAudioStream
+    outAudioStream*: OutAudioStream
 
 
 proc formatSeconds(secs: int): string =

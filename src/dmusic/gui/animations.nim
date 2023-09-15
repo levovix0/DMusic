@@ -1,15 +1,16 @@
 import times, std/importutils, strutils
 import imageman, siwin
 import ./uibase
-
-privateAccess Event
+export times
 
 let
   linearInterpolation* = proc(x: float): float = x
-  outSquareInterpolation* = proc(x: float): float = x * x
-  outQubicInterpolation* = proc(x: float): float = x * x * x
-  inSquareInterpolation* = proc(x: float): float = 1 - (x - 1) * (x - 1)
-  inQubicInterpolation* = proc(x: float): float = 1 + (x - 1) * (x - 1) * (x - 1)
+  inSquareInterpolation* = proc(x: float): float = x * x
+  inQubicInterpolation* = proc(x: float): float = x * x * x
+  outSquareInterpolation* = proc(x: float): float = 1 - (x - 1) * (x - 1)
+  outQubicInterpolation* = proc(x: float): float = 1 + (x - 1) * (x - 1) * (x - 1)
+  outBounceInterpolation* = proc(x: float): float = (1.25 - (x * 1.447215 - 1).pow(2) * 1.25).round(4)
+  inBounceInterpolation* = proc(x: float): float = (-0.25 + (x * 1.45 - 0.45).pow(2) * 1.24).round(4)
 
 type
   Animation*[T] = ref object
@@ -46,9 +47,9 @@ func interpolate*[T: array](a, b: T, x: float): T =
 
 func interpolate*[T: object | tuple](a, b: T, x: float): T =
   for i, y in result.fieldPairs:
-    for j, a, b in fieldPairs(a, b):
+    for j, af, bf in fieldPairs(a, b):
       when i == j:
-        y = interpolate(a, b, x)
+        y = interpolate(af, bf, x)
 
 
 # --- be compatible with makeLayout API ---
@@ -127,6 +128,7 @@ template animation*[T](val: T): Animation[T] =
 
 
 proc transitionImpl*[T](a: Animation[T], prop: var AnyProperty[T], dur: Duration) =
+  privateAccess Event
   prop.changed.emitCurrIdx[] = prop.changed.connected[].len
 
 
@@ -159,6 +161,8 @@ template transition*[T](prop: var AnyProperty[T], dur: Duration): Animation[T] =
 when isMainModule:
   import ./globalShortcut
 
+  echo interpolate(color(1, 1, 1), color(1, 0, 0), 0.3)
+
   let animator = newOpenglWindow(size = ivec2(300, 40)).newUiWindow
   animator.makeLayout:
     - newUiRect() as rect:
@@ -168,15 +172,20 @@ when isMainModule:
       this.color[] = color(1, 1, 1)
 
       - this.x.transition(0.4's):
-        this.interpolation[] = inQubicInterpolation
+        this.interpolation[] = outQubicInterpolation
+
+      - this.color.transition(0.4's):
+        this.interpolation[] = outQubicInterpolation
 
       - globalShortcut({Key.a}, exact=false):
         this.activated.connectTo root:
           rect.x[] = 10
+          rect.color[] = color(1, 1, 1)
 
       - globalShortcut({Key.d}, exact=false):
         this.activated.connectTo root:
           rect.x[] = root.w[] - 10 - rect.w[]
+          rect.color[] = color(1, 0, 0)
     
       # - animation(this.box.x):
       #   this.duration[] = initDuration(seconds = 1)

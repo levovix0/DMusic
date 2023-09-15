@@ -1,5 +1,5 @@
 import times, macros, algorithm, tables, unicode
-import vmath, bumpy, siwin, shady, fusion/[matching, astdsl], pixie
+import vmath, bumpy, siwin, shady, fusion/[matching, astdsl], pixie, pixie/fileformats/svg
 import gl, events, properties
 import imageman except Rect, color, Color
 export vmath, bumpy, gl, pixie, matching, events, properties
@@ -48,6 +48,8 @@ type
     
     onSignal*: Event[Signal]
     
+    newChildsObject*: Uiobj
+
     initialized*: bool
     attachedToWindow*: bool
     
@@ -101,6 +103,17 @@ type
 
   UiIcon* = ref object of UiImage
     color*: Property[Col] = color(0, 0, 0).property
+
+  UiSvgImage* = ref object of Uiobj
+    ## pixel-perfect svg image
+    ## expensive resize
+    radius*: Property[float32]
+    blend*: Property[bool] = true.property
+    image*: Property[string]
+    imageWh*: Property[IVec2]
+    angle*: Property[float32]
+    color*: Property[Col] = color(0, 0, 0).property
+    tex: Textures
 
 
   UiRectShadow* = ref object of UiRect
@@ -171,6 +184,7 @@ type
   
   BindingKind = enum
     bindProperty
+    bindOtherProperty
     bindValue
     bindProc
   
@@ -186,6 +200,12 @@ proc color*(v: Vec4): Col =
 
 proc round*(v: Vec2): Vec2 =
   vec2(round(v.x), round(v.y))
+
+proc ceil*(v: Vec2): Vec2 =
+  vec2(ceil(v.x), ceil(v.y))
+
+proc floor*(v: Vec2): Vec2 =
+  vec2(floor(v.x), floor(v.y))
 
 
 #* ------------- Uiobj ------------- *#
@@ -415,6 +435,9 @@ method init*(obj: Uiobj) {.base.} =
   obj.visibility.changed.connectTo obj:
     obj.recieve(VisibilityChanged(sender: obj, visibility: obj.visibility))
   
+  obj.w.changed.connectTo obj: obj.applyAnchors()
+  obj.h.changed.connectTo obj: obj.applyAnchors()
+  
   if not obj.attachedToWindow:
     let win = obj.parentUiWindow
     if win != nil:
@@ -451,38 +474,44 @@ proc fill*(this: Uiobj, obj: Uiobj, marginX: float32, marginY: float32) =
 
 method addChild*(parent: Uiobj, child: Uiobj) {.base.} =
   assert child.parent == nil
-  child.parent = parent
-  parent.childs.add child
-  if not child.attachedToWindow and parent.attachedToWindow:
-    let win = parent.parentUiWindow
-    if win != nil:
-      child.recieve(AttachedToWindow(window: win))
-  child.recieve(ParentChanged(newParentInTree: parent))
+  if parent.newChildsObject != nil:
+    parent.newChildsObject.addChild(child)
+  else:
+    child.parent = parent
+    parent.childs.add child
+    if not child.attachedToWindow and parent.attachedToWindow:
+      let win = parent.parentUiWindow
+      if win != nil:
+        child.recieve(AttachedToWindow(window: win))
+    child.recieve(ParentChanged(newParentInTree: parent))
 
 
 method addChangableChildUntyped*(parent: Uiobj, child: Uiobj): CustomProperty[Uiobj] {.base.} =
   assert child != nil
   
-  # add to parent.childs seq even if addChild is overrided
-  assert child.parent == nil
-  child.parent = parent
-  parent.childs.add child
-  if not child.attachedToWindow and parent.attachedToWindow:
-    let win = parent.parentUiWindow
-    if win != nil:
-      child.recieve(AttachedToWindow(window: win))
-  child.recieve(ParentChanged(newParentInTree: parent))
+  if parent.newChildsObject != nil:
+    parent.newChildsObject.addChild(child)
+  else:
+    # add to parent.childs seq even if addChild is overrided
+    assert child.parent == nil
+    child.parent = parent
+    parent.childs.add child
+    if not child.attachedToWindow and parent.attachedToWindow:
+      let win = parent.parentUiWindow
+      if win != nil:
+        child.recieve(AttachedToWindow(window: win))
+    child.recieve(ParentChanged(newParentInTree: parent))
 
-  let i = parent.childs.high
-  result = CustomProperty[Uiobj](
-    get: proc(): Uiobj = parent.childs[i],
-    set: (proc(v: Uiobj) =
-      parent.childs[i].parent = nil
-      parent.childs[i] = v
-      v.parent = parent
-      v.recieve(ParentChanged(newParentInTree: parent))
-    ),
-  )
+    let i = parent.childs.high
+    result = CustomProperty[Uiobj](
+      get: proc(): Uiobj = parent.childs[i],
+      set: (proc(v: Uiobj) =
+        parent.childs[i].parent = nil
+        parent.childs[i] = v
+        v.parent = parent
+        v.recieve(ParentChanged(newParentInTree: parent))
+      ),
+    )
 
 
 proc addChangableChild*[T: UiObj](parent: Uiobj, child: T): CustomProperty[T] =
@@ -802,6 +831,44 @@ method draw*(ico: UiIcon, ctx: DrawContext) =
   procCall draw(ico.Uiobj, ctx)
 
 
+method init*(this: UiSvgImage) =
+  procCall this.super.init
+
+  proc updateTexture(sizePercize: Vec2, size = ivec2()) =
+    this.tex = nil
+    if this.image[] != "":
+      let sz =
+        if size.x > 0 and size.y > 0: size
+        elif this.w[].int32 > 0 and this.h[].int32 > 0: this.wh[].ivec2
+        else: ivec2(0, 0)
+      
+      var img = this.image[].parseSvg(sz.x, sz.y).newImage
+      
+      if sizePercize != size.vec2:
+        let img2 = newImage(img.width, img.height)
+        img2.draw(img, translate((size.vec2 - sizePercize) / 2) * scale(sizePercize / size.vec2))
+        img = img2
+      
+      this.tex = newTextures(1)
+      loadTexture(this.tex[0], img)
+      if this.wh[] == vec2():
+        this.wh[] = vec2(img.width.float32, img.height.float32)
+      if size == ivec2():
+        this.imageWh[] = ivec2(img.width.int32, img.height.int32)
+    else:
+      this.imageWh[] = ivec2()
+
+  this.image.changed.connectTo this: updateTexture(this.wh[])
+  this.w.changed.connectTo this: updateTexture(this.wh[], this.wh[].ceil.ivec2)
+  this.h.changed.connectTo this: updateTexture(this.wh[], this.wh[].ceil.ivec2)
+
+
+method draw*(ico: UiSvgImage, ctx: DrawContext) =
+  if ico.visibility[] == visible and ico.tex != nil:
+    ctx.drawIcon(ico.xy[].round.posToGlobal(ico.parent), ico.wh[].ceil, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
+  procCall draw(ico.Uiobj, ctx)
+
+
 method init*(this: UiText) =
   procCall this.super.init
   
@@ -964,6 +1031,7 @@ proc newUiobj*(): Uiobj = new result
 proc newUiWindow*(): UiWindow = new result
 proc newUiImage*(): UiImage = new result
 proc newUiIcon*(): UiIcon = new result
+proc newUiSvgImage*(): UiSvgImage = new result
 proc newUiText*(): UiText = new result
 proc newUiRect*(): UiRect = new result
 proc newUiClipRect*(): UiClipRect = new result
@@ -1219,6 +1287,10 @@ proc bindingImpl*(obj: NimNode, target: NimNode, body: NimNode, afterUpdate: Nim
             asgn:
               bracketExpr dotExpr(thisInProc, target)
               body
+          of bindOtherProperty:
+            asgn:
+              bracketExpr target
+              body
           of bindValue:
             asgn:
               target
@@ -1248,6 +1320,9 @@ macro binding*(obj: EventHandler, target: untyped, body: typed, afterUpdate: typ
 macro bindingValue*(obj: EventHandler, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
   bindingImpl(obj, target, body, afterUpdate, redraw, init, bindValue)
 
+macro bindingProperty*(obj: EventHandler, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+  bindingImpl(obj, target, body, afterUpdate, redraw, init, bindOtherProperty)
+
 macro bindingProc*(obj: EventHandler, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
   bindingImpl(obj, target, body, afterUpdate, redraw, init, bindProc)
 
@@ -1257,6 +1332,9 @@ macro binding*[T: HasEventHandler](obj: T, target: untyped, body: typed, afterUp
 
 macro bindingValue*[T: HasEventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
   bindingImpl(obj, target, body, afterUpdate, redraw, init, bindValue)
+
+macro bindingProperty*[T: HasEventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
+  bindingImpl(obj, target, body, afterUpdate, redraw, init, bindOtherProperty)
 
 macro bindingProc*[T: HasEventHandler](obj: T, target: typed, body: typed, afterUpdate: typed = newStmtList(), redraw: static bool = true, init: static bool = true): untyped =
   bindingImpl(obj, target, body, afterUpdate, redraw, init, bindProc)

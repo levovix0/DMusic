@@ -14,7 +14,7 @@ requires "https://github.com/levovix0/impl"  # used in taglib wrapper # todo: re
 requires "filetype"  # to detect file type?
 requires "localize >= 0.3.2"  # to translate app into many languages
 requires "checksums"  # ???
-requires "siwin >= 0.8.4.4"  # to make window
+requires "siwin >= 0.8.4.5"  # to make window
 requires "imageman"  # to decode png
 requires "bumpy"  # for rects
 requires "opengl"  # for graphics

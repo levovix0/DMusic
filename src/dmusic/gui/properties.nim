@@ -10,7 +10,12 @@ type
     set*: proc(v: T)
     changed*: Event[T]
 
-  AnyProperty*[T] = Property[T] | CustomProperty[T]
+  AnyProperty*[T] = concept a, var v
+    a[] is T
+    a[] = T
+    a.changed is Event[T]
+    a{} is T
+    a{} = T
 
 
 #* ------------- Property ------------- *#

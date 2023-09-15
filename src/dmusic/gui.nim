@@ -2,7 +2,7 @@ import times, asyncdispatch, std/importutils, heapqueue, deques, selectors
 import siwin
 import ./[configuration, utils]
 import ./musicProviders/[yandexMusic]
-import ./gui/[uibase, style, window, windowHeader, globalShortcut, player, textArea]
+import ./gui/[uibase, style, window, windowHeader, globalShortcut, player, textArea, dmusicGlobals]
 
 privateAccess PDispatcher  # to check if not empty (overthise it will spam error logs)
 
@@ -38,6 +38,7 @@ proc gui*: string =
       this.fillHorizontal(root)
       this.h[] = 66
       this.bottom = Anchor(obj: parent, offsetFrom: `end`, offset: 0)
+      g_player[] = this
     
     - newUiRect():  # todo: UiRectBorder
       this.fillHorizontal(parent, 400)
