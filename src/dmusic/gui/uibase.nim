@@ -33,6 +33,25 @@ type
   Signal* = ref object of RootObj
     sender* {.cursor.}: Uiobj
   
+
+  DrawLayering = object
+    before: seq[UiobjCursor]
+    after: seq[UiobjCursor]
+  
+  LayerOrder = enum
+    before
+    after
+
+  Layer = object
+    obj {.cursor.}: Uiobj
+    order: LayerOrder
+
+  DrawLayer = object
+    obj {.cursor.}: Uiobj
+    order: LayerOrder
+    this {.cursor.}: Uiobj
+  
+
   Uiobj* {.acyclic.} = ref object of RootObj
     eventHandler*: EventHandler
     
@@ -54,6 +73,13 @@ type
     attachedToWindow*: bool
     
     anchors: Anchors
+
+    drawLayering: DrawLayering
+    m_drawLayer: DrawLayer
+
+
+  UiobjCursor = object
+    obj {.cursor.}: Uiobj
 
 
   #--- Signals ---
@@ -224,9 +250,29 @@ proc wh*(obj: Uiobj): CustomProperty[Vec2] =
   )
 
 
-method draw*(obj: Uiobj, ctx: DrawContext) {.base.} =
+method draw*(obj: Uiobj, ctx: DrawContext) {.base.}
+
+proc drawBefore*(obj: Uiobj, ctx: DrawContext) =
+  for x in obj.drawLayering.before:
+    draw(x.obj, ctx)
+
+proc drawChilds*(obj: Uiobj, ctx: DrawContext) =
   if obj.visibility notin {hiddenTree, collapsed}:
-    for x in obj.childs: draw(x, ctx)
+    for x in obj.childs:
+      if x.m_drawLayer.obj == nil:
+        draw(x, ctx)
+
+proc drawAfterLayer*(obj: Uiobj, ctx: DrawContext) =
+  for x in obj.drawLayering.after:
+    draw(x.obj, ctx)
+
+proc drawAfter*(obj: Uiobj, ctx: DrawContext) =
+  obj.drawChilds(ctx)
+  obj.drawAfterLayer(ctx)
+
+method draw*(obj: Uiobj, ctx: DrawContext) {.base.} =
+  obj.drawBefore(ctx)
+  obj.drawAfter(ctx)
 
 
 proc parentUiWindow*(obj: Uiobj): UiWindow =
@@ -533,6 +579,46 @@ macro super*[T: Uiobj](obj: T): auto =
   else: error("unexpected type impl", obj)
 
 
+
+#----- Layers -----
+
+
+
+proc `=destroy`(l: DrawLayer) =
+  if l.obj != nil:
+    case l.order
+    of before: l.obj.drawLayering.before.delete l.obj.drawLayering.before.find(UiobjCursor(obj: l.this))
+    of after: l.obj.drawLayering.after.delete l.obj.drawLayering.after.find(UiobjCursor(obj: l.this))
+
+proc `=destroy`(l: DrawLayering) =
+  for x in l.before:
+    x.obj.m_drawLayer.obj = nil
+    x.obj.m_drawLayer = DrawLayer()
+  for x in l.after:
+    x.obj.m_drawLayer.obj = nil
+    x.obj.m_drawLayer = DrawLayer()
+
+
+proc before*(this: Uiobj): Layer =
+  Layer(obj: this, order: LayerOrder.before)
+
+proc after*(this: Uiobj): Layer =
+  Layer(obj: this, order: LayerOrder.after)
+
+
+proc `drawLayer=`*(this: Uiobj, layer: typeof nil) =
+  this.m_drawLayer = DrawLayer()
+
+proc `drawLayer=`*(this: Uiobj, layer: Layer) =
+  if this.m_drawLayer.obj != nil: this.drawLayer = nil
+  if layer.obj == nil: return
+  this.m_drawLayer = DrawLayer(obj: layer.obj, order: layer.order, this: this)
+  case layer.order
+  of before: layer.obj.drawLayering.before.add UiobjCursor(obj: this)
+  of after: layer.obj.drawLayering.after.add UiobjCursor(obj: this)
+
+
+
 #----- DrawContext -----
 
 
@@ -814,21 +900,24 @@ proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
 
 
 method draw*(rect: UiRect, ctx: DrawContext) =
+  rect.drawBefore(ctx)
   if rect.visibility[] == visible:
     ctx.drawRect(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.color.vec4, rect.radius, rect.color[].a != 1 or rect.radius != 0, rect.angle)
-  procCall draw(rect.Uiobj, ctx)
+  rect.drawAfter(ctx)
 
 
 method draw*(img: UiImage, ctx: DrawContext) =
+  img.drawBefore(ctx)
   if img.visibility[] == visible and img.tex != nil:
     ctx.drawImage(img.xy[].posToGlobal(img.parent), img.wh[], img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
-  procCall draw(img.Uiobj, ctx)
+  img.drawAfter(ctx)
 
 
 method draw*(ico: UiIcon, ctx: DrawContext) =
+  ico.drawBefore(ctx)
   if ico.visibility[] == visible and ico.tex != nil:
     ctx.drawIcon(ico.xy[].posToGlobal(ico.parent), ico.wh[], ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
-  procCall draw(ico.Uiobj, ctx)
+  ico.drawAfter(ctx)
 
 
 method init*(this: UiSvgImage) =
@@ -864,9 +953,10 @@ method init*(this: UiSvgImage) =
 
 
 method draw*(ico: UiSvgImage, ctx: DrawContext) =
+  ico.drawBefore(ctx)
   if ico.visibility[] == visible and ico.tex != nil:
     ctx.drawIcon(ico.xy[].round.posToGlobal(ico.parent), ico.wh[].ceil, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
-  procCall draw(ico.Uiobj, ctx)
+  ico.drawAfter(ctx)
 
 
 method init*(this: UiText) =
@@ -900,6 +990,7 @@ method init*(this: UiText) =
 
 
 method draw*(text: UiText, ctx: DrawContext) =
+  text.drawBefore(ctx)
   let pos =
     if text.roundPositionOnDraw[]:
       text.xy[].posToGlobal(text.parent).round
@@ -908,16 +999,18 @@ method draw*(text: UiText, ctx: DrawContext) =
 
   if text.visibility[] == visible and text.tex != nil:
     ctx.drawIcon(pos, text.wh[], text.tex[0], text.color.vec4, 0, true, text.angle)
-  procCall draw(text.Uiobj, ctx)
+  text.drawAfter(ctx)
 
 
 method draw*(rect: UiRectShadow, ctx: DrawContext) =
+  rect.drawBefore(ctx)
   if rect.visibility[] == visible:
     ctx.drawShadowRect(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.color.vec4, rect.radius, true, rect.blurRadius, rect.angle)
-  procCall draw(rect.Uiobj, ctx)
+  rect.drawAfter(ctx)
 
 
 method draw*(rect: UiClipRect, ctx: DrawContext) =
+  rect.drawBefore(ctx)
   if rect.visibility == visible:
     if rect.w[] <= 0 or rect.h[] <= 0: return
     if rect.fbo == nil: rect.fbo = newFrameBuffers(1)
@@ -949,7 +1042,7 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
     try:
       rect.globalTransform{} = true
       rect.xy[] = vec2()
-      procCall draw(rect.Uiobj, ctx)
+      rect.drawChilds(ctx)
     
     finally:
       ctx.frameBufferHierarchy.del ctx.frameBufferHierarchy.high
@@ -964,13 +1057,15 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
       
       ctx.drawImage(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.tex[0], rect.radius, true, rect.angle, flipY=true)
   else:
-    procCall draw(rect.Uiobj, ctx)
+    rect.drawChilds(ctx)
+  rect.drawAfter(ctx)
 
 
 method draw*(win: UiWindow, ctx: DrawContext) =
   glClearColor(win.clearColor.r, win.clearColor.g, win.clearColor.b, win.clearColor.a)
   glClear(GlColorBufferBit or GlDepthBufferBit)
-  procCall draw(win.Uiobj, ctx)
+  win.drawBefore(ctx)
+  win.drawAfter(ctx)
 
 
 method recieve*(this: UiWindow, signal: Signal) =

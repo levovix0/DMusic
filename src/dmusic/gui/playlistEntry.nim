@@ -31,16 +31,17 @@ proc newPlaylistEntry*: PlaylistEntry =
     g_player.whenNotNilDo root:
       this.binding playing: g_player{}.outAudioStream.state[] == playing
 
-    - newUiRectShadow():
-      this.fill(cover, -8)
-      this.binding radius: cover.radius[]
-      this.blurRadius[] = 8
-      this.color[] = color(0, 0, 0, 0.2)
-
     - newUiClipRect() as cover:
       this.fillHorizontal(parent)
       this.binding h: this.w[]
       this.radius[] = 5
+
+      - newUiRectShadow():
+        this.fill(cover, -8)
+        this.binding radius: cover.radius[]
+        this.blurRadius[] = 8
+        this.color[] = color(0, 0, 0, 0.2)
+        this.drawLayer = before cover
 
       - newUiMouseArea() as mouse:
         this.fill(parent)
