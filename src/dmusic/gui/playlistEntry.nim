@@ -1,5 +1,5 @@
 import asyncdispatch
-import pixie, pixie/fileformats/svg
+import pixie, pixie/fileformats/svg, fusion/matching
 import ./[uibase, mouseArea, style, animations, dmusicGlobals]
 import ../[api, utils, configuration, audio]
 import ../musicProviders/[yandexMusic]
@@ -31,22 +31,22 @@ proc newPlaylistEntry*: PlaylistEntry =
     g_player.whenNotNilDo root:
       this.binding playing: g_player{}.outAudioStream.state[] == playing
 
-    - newUiClipRect() as cover:
+    - UiClipRect() as cover:
       this.fillHorizontal(parent)
       this.binding h: this.w[]
       this.radius[] = 5
 
-      - newUiRectShadow():
+      - UiRectShadow():
         this.fill(cover, -8)
         this.binding radius: cover.radius[]
         this.blurRadius[] = 8
         this.color[] = color(0, 0, 0, 0.2)
         this.drawLayer = before cover
 
-      - newUiMouseArea() as mouse:
+      - UiMouseArea() as mouse:
         this.fill(parent)
 
-        - newUiImage():
+        - UiImage():
           this.fill(parent)
 
           this.image = emptyCover.parseSvg(115, 115).newImage
@@ -71,7 +71,7 @@ proc newPlaylistEntry*: PlaylistEntry =
               when isMainModule: waitFor p
               else: asyncCheck p
 
-        - newUiRect():
+        - UiRect():
           this.fill(parent)
           this.binding color:
             if playMouse.hovered[] or playMouse.pressed[]: color(0, 0, 0, 0.5)
@@ -81,7 +81,7 @@ proc newPlaylistEntry*: PlaylistEntry =
           - this.color.transition(0.4's):
             this.interpolation[] = outQubicInterpolation
         
-        - newUiSvgImage():
+        - UiSvgImage():
           this.centerIn parent
           this.binding image:
             if root.selected[] and root.playing[]: static(staticRead "../../../resources/player/pause.svg")
@@ -122,7 +122,7 @@ proc newPlaylistEntry*: PlaylistEntry =
               ))
 
 
-    - newUiText() as name:
+    - UiText() as name:
       this.centerX = parent.center
       this.top = cover.bottom + 5
       this.bounds[] = vec2(115, 100)

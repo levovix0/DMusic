@@ -1,5 +1,5 @@
 import asyncdispatch, times, sequtils, strutils, os, strformat
-import pixie/fileformats/svg, siwin
+import pixie/fileformats/svg, siwin, fusion/matching
 import ../[configuration, api, utils, audio, taglib]
 import ../musicProviders/[yandexMusic, youtube, requests]
 import ./[uibase, style, globalShortcut, mouseArea]

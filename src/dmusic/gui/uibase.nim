@@ -2,7 +2,7 @@ import times, macros, algorithm, tables, unicode
 import vmath, bumpy, siwin, shady, fusion/[matching, astdsl], pixie, pixie/fileformats/svg
 import gl, events, properties
 import imageman except Rect, color, Color
-export vmath, bumpy, gl, pixie, matching, events, properties
+export vmath, bumpy, gl, pixie, events, properties
 export imageman except Rect
 
 type
@@ -36,10 +36,12 @@ type
 
   DrawLayering = object
     before: seq[UiobjCursor]
+    beforeChilds: seq[UiobjCursor]
     after: seq[UiobjCursor]
   
   LayerOrder = enum
     before
+    beforeChilds
     after
 
   Layer = object
@@ -262,11 +264,16 @@ proc drawChilds*(obj: Uiobj, ctx: DrawContext) =
       if x.m_drawLayer.obj == nil:
         draw(x, ctx)
 
+proc drawBeforeChilds*(obj: Uiobj, ctx: DrawContext) =
+  for x in obj.drawLayering.beforeChilds:
+    draw(x.obj, ctx)
+
 proc drawAfterLayer*(obj: Uiobj, ctx: DrawContext) =
   for x in obj.drawLayering.after:
     draw(x.obj, ctx)
 
 proc drawAfter*(obj: Uiobj, ctx: DrawContext) =
+  obj.drawBeforeChilds(ctx)
   obj.drawChilds(ctx)
   obj.drawAfterLayer(ctx)
 
@@ -536,7 +543,7 @@ method addChangableChildUntyped*(parent: Uiobj, child: Uiobj): CustomProperty[Ui
   assert child != nil
   
   if parent.newChildsObject != nil:
-    parent.newChildsObject.addChild(child)
+    return parent.newChildsObject.addChangableChildUntyped(child)
   else:
     # add to parent.childs seq even if addChild is overrided
     assert child.parent == nil
@@ -588,6 +595,7 @@ proc `=destroy`(l: DrawLayer) =
   if l.obj != nil:
     case l.order
     of before: l.obj.drawLayering.before.delete l.obj.drawLayering.before.find(UiobjCursor(obj: l.this))
+    of beforeChilds: l.obj.drawLayering.beforeChilds.delete l.obj.drawLayering.beforeChilds.find(UiobjCursor(obj: l.this))
     of after: l.obj.drawLayering.after.delete l.obj.drawLayering.after.find(UiobjCursor(obj: l.this))
 
 proc `=destroy`(l: DrawLayering) =
@@ -602,6 +610,9 @@ proc `=destroy`(l: DrawLayering) =
 proc before*(this: Uiobj): Layer =
   Layer(obj: this, order: LayerOrder.before)
 
+proc beforeChilds*(this: Uiobj): Layer =
+  Layer(obj: this, order: LayerOrder.beforeChilds)
+
 proc after*(this: Uiobj): Layer =
   Layer(obj: this, order: LayerOrder.after)
 
@@ -613,8 +624,10 @@ proc `drawLayer=`*(this: Uiobj, layer: Layer) =
   if this.m_drawLayer.obj != nil: this.drawLayer = nil
   if layer.obj == nil: return
   this.m_drawLayer = DrawLayer(obj: layer.obj, order: layer.order, this: this)
+
   case layer.order
   of before: layer.obj.drawLayering.before.add UiobjCursor(obj: this)
+  of beforeChilds: layer.obj.drawLayering.beforeChilds.add UiobjCursor(obj: this)
   of after: layer.obj.drawLayering.after.add UiobjCursor(obj: this)
 
 
@@ -923,20 +936,28 @@ method draw*(ico: UiIcon, ctx: DrawContext) =
 method init*(this: UiSvgImage) =
   procCall this.super.init
 
-  proc updateTexture(sizePercize: Vec2, size = ivec2()) =
+  var prevSize = ivec2(0, 0)
+  proc updateTexture(sizePrecise: Vec2, size = ivec2()) =
+    let sz =
+      if size.x > 0 and size.y > 0: size
+      elif this.w[].int32 > 0 and this.h[].int32 > 0: this.wh[].ivec2
+      else: ivec2(0, 0)
+    
+    when not defined(sigui_morePreciseSvgResizing):
+      if prevSize == size.ivec2(): return
+    
+    prevSize = size
+    
     this.tex = nil
     if this.image[] != "":
-      let sz =
-        if size.x > 0 and size.y > 0: size
-        elif this.w[].int32 > 0 and this.h[].int32 > 0: this.wh[].ivec2
-        else: ivec2(0, 0)
       
       var img = this.image[].parseSvg(sz.x, sz.y).newImage
       
-      if sizePercize != size.vec2:
-        let img2 = newImage(img.width, img.height)
-        img2.draw(img, translate((size.vec2 - sizePercize) / 2) * scale(sizePercize / size.vec2))
-        img = img2
+      when defined(sigui_morePreciseSvgResizing):
+        if sizePrecise != size.vec2:
+          let img2 = newImage(img.width, img.height)
+          img2.draw(img, translate((size.vec2 - sizePrecise) / 2) * scale(sizePrecise / size.vec2))
+          img = img2
       
       this.tex = newTextures(1)
       loadTexture(this.tex[0], img)
@@ -1042,6 +1063,7 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
     try:
       rect.globalTransform{} = true
       rect.xy[] = vec2()
+      rect.drawBeforeChilds(ctx)
       rect.drawChilds(ctx)
     
     finally:
@@ -1057,6 +1079,7 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
       
       ctx.drawImage(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.tex[0], rect.radius, true, rect.angle, flipY=true)
   else:
+    rect.drawBeforeChilds(ctx)
     rect.drawChilds(ctx)
   rect.drawAfter(ctx)
 

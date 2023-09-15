@@ -161,8 +161,6 @@ template transition*[T](prop: var AnyProperty[T], dur: Duration): Animation[T] =
 when isMainModule:
   import ./globalShortcut
 
-  echo interpolate(color(1, 1, 1), color(1, 0, 0), 0.3)
-
   let animator = newOpenglWindow(size = ivec2(300, 40)).newUiWindow
   animator.makeLayout:
     - newUiRect() as rect:

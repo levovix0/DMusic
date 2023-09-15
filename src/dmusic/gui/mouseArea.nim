@@ -1,4 +1,4 @@
-import siwin
+import siwin, fusion/matching
 import uibase
 export MouseButton, MouseMoveEvent
 
