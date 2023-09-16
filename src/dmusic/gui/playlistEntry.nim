@@ -1,6 +1,6 @@
 import asyncdispatch
 import pixie, pixie/fileformats/svg, fusion/matching
-import ./[uibase, mouseArea, style, animations, dmusicGlobals]
+import ./[uibase, mouseArea, style, animations, dmusicGlobals, gl]
 import ../[api, utils, configuration, audio]
 import ../musicProviders/[yandexMusic]
 
@@ -14,36 +14,35 @@ type
     coverRequestCanceled: ref bool
 
 
-method recieve*(this: PlaylistEntry, signal: Signal) =
-  case signal
-  of of StyleChanged(style: @style):
-    this.style[] = style
-  procCall this.super.recieve(signal)
+method init*(this: PlaylistEntry) =
+  if this.initialized: return
+  procCall this.super.init
 
-
-proc newPlaylistEntry*: PlaylistEntry =
-  result = PlaylistEntry()
-  
-  result.makeLayout:
+  this.makeLayout:
     this.w[] = 115
     this.binding h: this.w[] + name.h[] + 10
+
+    this.onSignal.connectTo this, signal:
+      case signal
+      of of StyleChanged(style: @style):
+        this.style[] = style
 
     g_player.whenNotNilDo root:
       this.binding playing: g_player{}.outAudioStream.state[] == playing
 
-    - UiClipRect() as cover:
+    - ClipRect() as cover:
       this.fillHorizontal(parent)
       this.binding h: this.w[]
       this.radius[] = 5
 
-      - UiRectShadow():
+      - RectShadow():
         this.fill(cover, -8)
         this.binding radius: cover.radius[]
         this.blurRadius[] = 8
         this.color[] = color(0, 0, 0, 0.2)
         this.drawLayer = before cover
 
-      - UiMouseArea() as mouse:
+      - MouseArea() as mouse:
         this.fill(parent)
 
         - UiImage():
@@ -100,6 +99,20 @@ proc newPlaylistEntry*: PlaylistEntry =
           
           this.binding w: 25'f32 * scale[]
           this.binding h: 30'f32 * scale[]
+
+          # --- high demand test ---
+          # let img = static(staticRead "../../../resources/player/pause.svg").parseSvg(1000, 1000).newImage
+          # var time = 0'f32
+
+          # - time.animation():
+          #   this.duration[] = initDuration(seconds = 1)
+          #   this.a[] = 100
+          #   this.b[] = 1000
+          #   this.loop[] = true
+          #   this.action = proc(x: float32) =
+          #     let tex = newTextures(1)
+          #     loadTexture(tex[0], img)
+          #   start this
           
           - this.color.transition(0.4's):
             this.interpolation[] = outQubicInterpolation
@@ -110,7 +123,7 @@ proc newPlaylistEntry*: PlaylistEntry =
           - this.h.transition(0.4's):
             this.interpolation[] = outBounceInterpolation
           
-          - newUiMouseArea() as playMouse:
+          - newMouseArea() as playMouse:
             this.fill(parent, -2)
 
             this.mouseDownAndUpInside.connectTo root:
@@ -132,19 +145,35 @@ proc newPlaylistEntry*: PlaylistEntry =
 
 
 when isMainModule:
+  import ./layouts
+
   preview(clearColor = color(1, 1, 1, 1), margin = 20,
     withWindow = proc: Uiobj =  
-      var x = newPlaylistEntry()
-      # x.playing[] = false
-      x.playlist[] = try: api.Playlist personalPlaylists().waitFor[0].playlist except: nil
+      let l = Layout()
+      l.makeLayout:
+        this.spacing[] = 10
+        this.wrapSpacing[] = 10
+        this.wrapHugContent[] = true
+        this.consistentSpacing[] = true
+        this.w[] = 1280
+        this.wrap[] = true
+        this.binding lengthBeforeWrap: this.w[]
+        this.fillWithSpaces[] = true
+
+        - PlaylistEntry():
+          this.playlist[] = try: api.Playlist personalPlaylists().waitFor[0].playlist except: nil
+          this.onSignal.connectTo this:
+            case e
+            of of PlaylistEntrySignal(playlist: @p, action: @act):
+              this.selected[] = true
+              this.playing[] = act == play
+        
+        for i in 0..15:
+          - PlaylistEntry():
+            this.playlist[] = nil
       
       let styl = makeStyle(false, false)
-      x.recieve(StyleChanged(fullStyle: styl, style: styl.window))
+      l.recieve(StyleChanged(fullStyle: styl, style: styl.window))
       
-      x.onSignal.connectTo x:
-        case e
-        of of PlaylistEntrySignal(playlist: @p, action: @act):
-          x.selected[] = true
-          x.playing[] = act == play
-      x
+      l
   )

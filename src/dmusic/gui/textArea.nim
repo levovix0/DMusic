@@ -79,14 +79,14 @@ proc newUiTextArea*(): UiTextArea =
       win.onTick.connectTo this:
         this.blinking.time[] = (this.blinking.time + e.deltaTime) mod (this.blinking.period[] * 2)
 
-    - newUiMouseArea():
+    - newMouseArea():
       this.fill parent
 
       this.pressed.changed.connectTo root:  # temporary
         if this.pressed[]:
           root.active[] = true
 
-      - newUiClipRect():
+      - newClipRect():
         this.fill parent
 
         root.textObj --- newUiText():

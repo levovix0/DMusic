@@ -14,6 +14,7 @@ type
     obj: UncheckedArray[GlUint]
   
   Textures* = ref TexturesObj
+    ## note: texures can't be actualy deleted for now. glDeleteTextures is not enough. If you want to resize texture, use loadTexture multiple times instead.
   TexturesObj = object
     n: int32
     obj: UncheckedArray[GlUint]
@@ -37,9 +38,10 @@ type
 
 
 # -------- Buffers, VertexArrays, Textures --------
-template makeOpenglObjectSeq(t, tobj, T, gen, del, newp) =
-  proc `=destroy`(x: tobj) =
-    del(x.n, cast[ptr T](x.obj.addr))
+template makeOpenglObjectSeq(t, tobj, T, gen, del, newp, delextra) =
+  proc `=destroy`(xobj {.inject.}: tobj) =
+    delextra
+    del(xobj.n, cast[ptr T](xobj.obj.addr))
 
   proc newp*(n: int): t =
     if n == 0: return
@@ -57,11 +59,20 @@ template makeOpenglObjectSeq(t, tobj, T, gen, del, newp) =
       raise IndexDefect.newException("index " & $i & " out of range 0..<" & $x.len)
     x.obj[i]
 
+
+proc unloadTextures(x: TexturesObj) =
+  for i in 0..<x.n:
+    ## sems like it don't work
+    # glBindTexture(GlTexture2d, x.obj[i])
+    # glTexImage2D(GlTexture2d, 0, GlRgba.Glint, 0, 0, 0, GlRgba, GlUnsignedByte, nil)
+
+
 {.push, warning[Effect]: off.}
-makeOpenglObjectSeq Buffers, BuffersObj, GlUint, glGenBuffers, glDeleteBuffers, newBuffers
-makeOpenglObjectSeq VertexArrays, VertexArraysObj, GlUint, glGenVertexArrays, glDeleteVertexArrays, newVertexArrays
-makeOpenglObjectSeq Textures, TexturesObj, GlUint, glGenTextures, glDeleteTextures, newTextures
-makeOpenglObjectSeq FrameBuffers, FrameBuffersObj, GlUint, glGenFrameBuffers, glDeleteFrameBuffers, newFrameBuffers
+makeOpenglObjectSeq Buffers, BuffersObj, GlUint, glGenBuffers, glDeleteBuffers, newBuffers: discard
+makeOpenglObjectSeq VertexArrays, VertexArraysObj, GlUint, glGenVertexArrays, glDeleteVertexArrays, newVertexArrays: discard
+makeOpenglObjectSeq Textures, TexturesObj, GlUint, glGenTextures, glDeleteTextures, newTextures:
+  unloadTextures(xobj)
+makeOpenglObjectSeq FrameBuffers, FrameBuffersObj, GlUint, glGenFrameBuffers, glDeleteFrameBuffers, newFrameBuffers: discard
 {.pop.}
 
 proc `[]`*(x: Textures, i: enum): GlUint =
@@ -96,7 +107,6 @@ proc loadTexture*(obj: GlUint, img: pixie.Image) =
   glBindTexture(GlTexture2d, obj)
   glTexImage2D(GlTexture2d, 0, GlRgba.GLint, img.width.GLsizei, img.height.GLsizei, 0, GlRgba, GlUnsignedByte, img.data[0].unsafeaddr)
   glGenerateMipmap(GlTexture2d)
-  glTexParameteri(GlTexture2d, GlTextureMinFilter, GlNearest)
   glBindTexture(GlTexture2d, 0)
 
 

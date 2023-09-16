@@ -28,7 +28,7 @@ proc formatSeconds(secs: int): string =
 proc newPlayerButton(): PlayerButton =
   result = PlayerButton()
   result.makeLayout:
-    - newUiMouseArea() as mouse:
+    - newMouseArea() as mouse:
       this.fill parent
 
       this.pressed.changed.connectTo this:
@@ -285,7 +285,7 @@ proc newPlayer*(): Player =
       this.fill(parent)
       this.binding color: (if parent.style[] != nil: parent.style[].backgroundColor else: color(0, 0, 0))
 
-      - newUiMouseArea() as playerLineMouseArea:
+      - newMouseArea() as playerLineMouseArea:
         this.h[] = 16
         this.binding w: parent.w[] / 2.7
         this.y[] = 42
@@ -319,7 +319,7 @@ proc newPlayer*(): Player =
 
             this.binding w: parent.w[] * root.outAudioStream.position[]
           
-          - UiRectShadow() as pointShadow:
+          - RectShadow() as pointShadow:
             this.binding visibility: (if root.style[] != nil and root.style[].itemDropShadow and playerLineMouseArea.hovered[]: Visibility.visible else: Visibility.hidden)
             this.wh[] = vec2(18, 18)
             this.blurRadius[] = 3
@@ -438,12 +438,12 @@ proc newPlayer*(): Player =
             of playlist: LoopMode.track
             of track: LoopMode.none
 
-      - newUiMouseArea() as mouse:
+      - newMouseArea() as mouse:
         this.fillVertical parent
         this.left = parent.left
         this.right = currentTimeText.left(-5)
 
-        - newUiClipRect():
+        - newClipRect():
           this.fill parent
           this.binding visibility: (if mouse.hovered[]: Visibility.hidden else: Visibility.visible)
 

@@ -1,5 +1,5 @@
 import times, asyncdispatch, std/importutils, heapqueue, deques, selectors
-import siwin
+import siwin, fusion/matching
 import ./[configuration, utils]
 import ./musicProviders/[yandexMusic]
 import ./gui/[uibase, style, window, windowHeader, globalShortcut, player, textArea, dmusicGlobals]
@@ -40,26 +40,21 @@ proc gui*: string =
       this.bottom = Anchor(obj: parent, offsetFrom: `end`, offset: 0)
       g_player[] = this
     
-    - newUiRect():  # todo: UiRectBorder
+    - UiRectStroke():
       this.fillHorizontal(parent, 400)
       this.centerY = parent.center
       this.h[] = 40
       this.color[] = color(0.5, 0.5, 0.5)
-      this.radius[] = 6
+      this.radius[] = 5
 
-      - newUiRect():
-        this.fill(parent, 1)
-        this.color[] = color(1, 1, 1)
-        this.radius[] = 5
-      
-        - newUiTextArea():
-          this.fill(parent, 4, 2)
-          this.text[] = "hello"
-          this.onSignal.connectTo this:
-            case e
-            of of StyleChanged(style: @style):
-              this.textObj[].font[] = newFont(style.typeface).buildIt:
-                it.size = 32
+      - newUiTextArea():
+        this.fill(parent, 4, 2)
+        this.text[] = "hello"
+        this.onSignal.connectTo this:
+          case e
+          of of StyleChanged(style: @style):
+            this.textObj[].font[] = newFont(style.typeface).buildIt:
+              it.size = 32
 
 
 

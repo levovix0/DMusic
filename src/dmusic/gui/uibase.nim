@@ -143,12 +143,18 @@ type
     color*: Property[Col] = color(0, 0, 0).property
     tex: Textures
 
+  UiRectStroke* = ref object of UiRect
+    borderWidth*: Property[float32] = 1'f32.property
+    tiled*: Property[bool]
+    tileSize*: Property[Vec2] = vec2(4, 4).property
+    tileSecondSize*: Property[Vec2] = vec2(2, 2).property
+    secondColor*: Property[Col]
 
-  UiRectShadow* = ref object of UiRect
+  RectShadow* = ref object of UiRect
     blurRadius*: Property[float32]
   
 
-  UiClipRect* = ref object of Uiobj
+  ClipRect* = ref object of Uiobj
     radius*: Property[float32]
     angle*: Property[float32]
     fbo: FrameBuffers
@@ -179,6 +185,18 @@ type
       px: GlInt,
       radius: GlInt,
       color: GlInt,
+    ]
+    stroke: tuple[
+      shader: Shader,
+      transform: GlInt,
+      size: GlInt,
+      px: GlInt,
+      radius: GlInt,
+      color: GlInt,
+      borderWidth: GlInt,
+      tileSize: GlInt,
+      tileSecondSize: GlInt,
+      secondColor: GlInt,
     ]
     image: tuple[
       shader: Shader,
@@ -680,6 +698,60 @@ proc newDrawContext*: DrawContext =
 
     return 1
 
+  proc roundRectStroke(pos, size: Vec2, radius: float32, borderWidth: float32): float32 =
+    if radius == 0: return 1
+    
+    if pos.x < radius + borderWidth and pos.y < radius + borderWidth:
+      let d = length(pos - vec2(radius, radius) - vec2(borderWidth, borderWidth))
+      return (radius + borderWidth - d + 0.5).max(0).min(1) * (1 - (radius - d + 0.5).max(0).min(1))
+    
+    elif pos.x > size.x - radius - borderWidth and pos.y < radius + borderWidth:
+      let d = length(pos - vec2(size.x - radius, radius) - vec2(-borderWidth, borderWidth))
+      return (radius + borderWidth - d + 0.5).max(0).min(1) * (1 - (radius - d + 0.5).max(0).min(1))
+    
+    elif pos.x < radius + borderWidth and pos.y > size.y - radius - borderWidth:
+      let d = length(pos - vec2(radius, size.y - radius) - vec2(borderWidth, -borderWidth))
+      return (radius + borderWidth - d + 0.5).max(0).min(1) * (1 - (radius - d + 0.5).max(0).min(1))
+    
+    elif pos.x > size.x - radius - borderWidth and pos.y > size.y - radius - borderWidth:
+      let d = length(pos - vec2(size.x - radius, size.y - radius) - vec2(-borderWidth, -borderWidth))
+      return (radius + borderWidth - d + 0.5).max(0).min(1) * (1 - (radius - d + 0.5).max(0).min(1))
+
+    elif pos.x < borderWidth: return 1
+    elif pos.y < borderWidth: return 1
+    elif pos.x > size.x - borderWidth: return 1
+    elif pos.y > size.y - borderWidth: return 1
+    return 0
+
+  proc strokeTiling(pos, size, tileSize, tileSecondSize: Vec2, radius, borderWidth: float32): float32 =
+    if tileSize == size: return 0
+
+    if (
+      (pos.x < radius + borderWidth and pos.y < radius + borderWidth) or
+      (pos.x > size.x - radius - borderWidth and pos.y < radius + borderWidth) or
+      (pos.x < radius + borderWidth and pos.y > size.y - radius - borderWidth) or
+      (pos.x > size.x - radius - borderWidth and pos.y > size.y - radius - borderWidth)
+    ):
+      return 0
+    else:
+      if pos.x <= borderWidth or pos.x >= size.x - borderWidth:
+        var y = pos.y
+        while y > 0:
+          if y < tileSize.y: return 0
+          y -= tileSize.y
+          if y < tileSecondSize.y: return 1
+          y -= tileSecondSize.y
+      else:
+        var x = pos.x
+        while x > 0:
+          if x < tileSize.x: return 0
+          x -= tileSize.x
+          if x < tileSecondSize.x: return 1
+          x -= tileSecondSize.x
+      return 1
+
+    return 0
+
   proc distanceRoundRect(pos, size: Vec2, radius: float32, blurRadius: float32): float32 =
     if pos.x < radius + blurRadius and pos.y < radius + blurRadius:
       let d = length(pos - vec2(radius + blurRadius, radius + blurRadius))
@@ -740,6 +812,48 @@ proc newDrawContext*: DrawContext =
   result.solid.px = result.solid.shader["px"]
   result.solid.radius = result.solid.shader["radius"]
   result.solid.color = result.solid.shader["color"]
+
+
+  proc strokeVert(
+    gl_Position: var Vec4,
+    pos: var Vec2,
+    ipos: Vec2,
+    transform: Uniform[Mat4],
+    size: Uniform[Vec2],
+    px: Uniform[Vec2],
+  ) =
+    transformation(gl_Position, pos, size, px, ipos, transform)
+
+  proc strokeFrag(
+    glCol: var Vec4,
+    pos: Vec2,
+    radius: Uniform[float],
+    size: Uniform[Vec2],
+    color: Uniform[Vec4],
+    borderWidth: Uniform[float],
+    tileSize: Uniform[Vec2],
+    tileSecondSize: Uniform[Vec2],
+    secondColor: Uniform[Vec4],
+  ) =
+    if strokeTiling(pos, size, tileSize, tileSecondSize, radius, borderWidth) > 0:
+      glCol =
+        vec4(secondColor.rgb * secondColor.a, secondColor.a) *
+        roundRectStroke(pos, size, radius, borderWidth)
+    else:
+      glCol =
+        vec4(color.rgb * color.a, color.a) *
+        roundRectStroke(pos, size, radius, borderWidth)
+
+  result.stroke.shader = newShader {GlVertexShader: strokeVert.toGLSL("330 core"), GlFragmentShader: strokeFrag.toGLSL("330 core")}
+  result.stroke.transform = result.stroke.shader["transform"]
+  result.stroke.size = result.stroke.shader["size"]
+  result.stroke.px = result.stroke.shader["px"]
+  result.stroke.radius = result.stroke.shader["radius"]
+  result.stroke.color = result.stroke.shader["color"]
+  result.stroke.borderWidth = result.stroke.shader["borderWidth"]
+  result.stroke.tileSize = result.stroke.shader["tileSize"]
+  result.stroke.tileSecondSize = result.stroke.shader["tileSecondSize"]
+  result.stroke.secondColor = result.stroke.shader["secondColor"]
 
 
   proc imageVert(
@@ -850,6 +964,26 @@ proc drawRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius: float
   draw ctx.rect
   if blend: glDisable(GlBlend)
 
+proc drawRectStroke*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius: float32, blend: bool, angle: float32, borderWidth: float32, tiled: bool, tileSize: Vec2, tileSecondSize: Vec2, secondColor: Vec4) =
+  # draw rect
+  if blend:
+    glEnable(GlBlend)
+    glBlendFuncSeparate(GlOne, GlOneMinusSrcAlpha, GlOne, GlOne)
+  use ctx.stroke.shader
+  ctx.passTransform(ctx.stroke, pos=pos, size=size, angle=angle)
+  ctx.stroke.radius.uniform = radius
+  ctx.stroke.color.uniform = col
+  ctx.stroke.borderWidth.uniform = borderWidth
+  if tiled:
+    ctx.stroke.tileSize.uniform = tileSize
+    ctx.stroke.tileSecondSize.uniform = tileSecondSize
+  else:
+    ctx.stroke.tileSize.uniform = size
+    ctx.stroke.tileSecondSize.uniform = vec2(0, 0)
+  ctx.stroke.secondColor.uniform = secondColor
+  draw ctx.rect
+  if blend: glDisable(GlBlend)
+
 proc drawImage*(ctx: DrawContext, pos: Vec2, size: Vec2, tex: GlUint, radius: float32, blend: bool, angle: float32, flipY = false) =
   # draw image
   if blend:
@@ -896,16 +1030,15 @@ proc drawShadowRect*(ctx: DrawContext, pos: Vec2, size: Vec2, col: Vec4, radius:
 
 
 proc `image=`*(obj: UiImage, img: pixie.Image) =
-  obj.tex = nil
   if img != nil:
-    obj.tex = newTextures(1)
+    if obj.tex == nil: obj.tex = newTextures(1)
     loadTexture(obj.tex[0], img)
     if obj.wh[] == vec2():
       obj.wh[] = vec2(img.width.float32, img.height.float32)
     obj.imageWh[] = ivec2(img.width.int32, img.height.int32)
 
 proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
-  obj.tex = newTextures(1)
+  if obj.tex == nil: obj.tex = newTextures(1)
   loadTexture(obj.tex[0], img)
   if obj.wh[] == vec2():
     obj.wh[] = vec2(img.width.float32, img.height.float32)
@@ -915,21 +1048,21 @@ proc `image=`*(obj: UiImage, img: imageman.Image[ColorRGBAU]) =
 method draw*(rect: UiRect, ctx: DrawContext) =
   rect.drawBefore(ctx)
   if rect.visibility[] == visible:
-    ctx.drawRect(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.color.vec4, rect.radius, rect.color[].a != 1 or rect.radius != 0, rect.angle)
+    ctx.drawRect(rect.xy[].posToGlobal(rect.parent).round, rect.wh[], rect.color.vec4, rect.radius, rect.color[].a != 1 or rect.radius != 0, rect.angle)
   rect.drawAfter(ctx)
 
 
 method draw*(img: UiImage, ctx: DrawContext) =
   img.drawBefore(ctx)
   if img.visibility[] == visible and img.tex != nil:
-    ctx.drawImage(img.xy[].posToGlobal(img.parent), img.wh[], img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
+    ctx.drawImage(img.xy[].posToGlobal(img.parent).round, img.wh[], img.tex[0], img.radius, img.blend or img.radius != 0, img.angle)
   img.drawAfter(ctx)
 
 
 method draw*(ico: UiIcon, ctx: DrawContext) =
   ico.drawBefore(ctx)
   if ico.visibility[] == visible and ico.tex != nil:
-    ctx.drawIcon(ico.xy[].posToGlobal(ico.parent), ico.wh[], ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
+    ctx.drawIcon(ico.xy[].posToGlobal(ico.parent).round, ico.wh[], ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
   ico.drawAfter(ctx)
 
 
@@ -948,7 +1081,6 @@ method init*(this: UiSvgImage) =
     
     prevSize = size
     
-    this.tex = nil
     if this.image[] != "":
       
       var img = this.image[].parseSvg(sz.x, sz.y).newImage
@@ -959,7 +1091,7 @@ method init*(this: UiSvgImage) =
           img2.draw(img, translate((size.vec2 - sizePrecise) / 2) * scale(sizePrecise / size.vec2))
           img = img2
       
-      this.tex = newTextures(1)
+      if this.tex == nil: this.tex = newTextures(1)
       loadTexture(this.tex[0], img)
       if this.wh[] == vec2():
         this.wh[] = vec2(img.width.float32, img.height.float32)
@@ -976,7 +1108,7 @@ method init*(this: UiSvgImage) =
 method draw*(ico: UiSvgImage, ctx: DrawContext) =
   ico.drawBefore(ctx)
   if ico.visibility[] == visible and ico.tex != nil:
-    ctx.drawIcon(ico.xy[].round.posToGlobal(ico.parent), ico.wh[].ceil, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
+    ctx.drawIcon(ico.xy[].posToGlobal(ico.parent).round, ico.wh[].ceil, ico.tex[0], ico.color.vec4, ico.radius, ico.blend or ico.radius != 0, ico.angle)
   ico.drawAfter(ctx)
 
 
@@ -984,14 +1116,13 @@ method init*(this: UiText) =
   procCall this.super.init
   
   this.arrangement.changed.connectTo this:
-    this.tex = nil
+    if this.tex == nil: this.tex = newTextures(1)
     if e != nil:
       let bounds = this.arrangement[].layoutBounds
       this.wh[] = bounds
       if bounds.x == 0 or bounds.y == 0: return
       let image = newImage(bounds.x.ceil.int32, bounds.y.ceil.int32)
       image.fillText(this.arrangement[])
-      this.tex = newTextures(1)
       loadTexture(this.tex[0], image)
       # todo: reposition
     else:
@@ -1023,14 +1154,21 @@ method draw*(text: UiText, ctx: DrawContext) =
   text.drawAfter(ctx)
 
 
-method draw*(rect: UiRectShadow, ctx: DrawContext) =
+method draw*(rect: UiRectStroke, ctx: DrawContext) =
+  rect.drawBefore(ctx)
+  if rect.visibility[] == visible:
+    ctx.drawRectStroke(rect.xy[].posToGlobal(rect.parent).round, rect.wh[], rect.color.vec4, rect.radius, true, rect.angle, rect.borderWidth[], rect.tiled[], rect.tileSize[], rect.tileSecondSize[], rect.secondColor[].vec4)
+  rect.drawAfter(ctx)
+
+
+method draw*(rect: RectShadow, ctx: DrawContext) =
   rect.drawBefore(ctx)
   if rect.visibility[] == visible:
     ctx.drawShadowRect(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.color.vec4, rect.radius, true, rect.blurRadius, rect.angle)
   rect.drawAfter(ctx)
 
 
-method draw*(rect: UiClipRect, ctx: DrawContext) =
+method draw*(rect: ClipRect, ctx: DrawContext) =
   rect.drawBefore(ctx)
   if rect.visibility == visible:
     if rect.w[] <= 0 or rect.h[] <= 0: return
@@ -1077,11 +1215,11 @@ method draw*(rect: UiClipRect, ctx: DrawContext) =
       glViewport 0, 0, size.x.GLsizei, size.y.GLsizei
       ctx.updateSizeRender(size)
       
-      ctx.drawImage(rect.xy[].posToGlobal(rect.parent), rect.wh[], rect.tex[0], rect.radius, true, rect.angle, flipY=true)
+      ctx.drawImage(rect.xy[].posToGlobal(rect.parent).round, rect.wh[], rect.tex[0], rect.radius, true, rect.angle, flipY=true)
   else:
     rect.drawBeforeChilds(ctx)
     rect.drawChilds(ctx)
-  rect.drawAfter(ctx)
+  rect.drawAfterLayer(ctx)
 
 
 method draw*(win: UiWindow, ctx: DrawContext) =
@@ -1152,8 +1290,9 @@ proc newUiIcon*(): UiIcon = new result
 proc newUiSvgImage*(): UiSvgImage = new result
 proc newUiText*(): UiText = new result
 proc newUiRect*(): UiRect = new result
-proc newUiClipRect*(): UiClipRect = new result
-proc newUiRectShadow*(): UiRectShadow = new result
+proc newUiRectStroke*(): UiRectStroke = new result
+proc newClipRect*(): ClipRect = new result
+proc newRectShadow*(): RectShadow = new result
 
 
 #----- Macros -----
@@ -1167,14 +1306,14 @@ macro makeLayout*(obj: Uiobj, body: untyped) =
     let b = UiRect()
     let c = UiRect()
     a.makeLayout:
-      - UiRectShadow(radius: 7.5, blurRadius: 10, color: color(0, 0, 0, 0.3)) as shadowEfect
+      - RectShadow(radius: 7.5, blurRadius: 10, color: color(0, 0, 0, 0.3)) as shadowEfect
 
       - newUiRect():
         this.fill(parent)
         echo shadowEffect.radius
         doassert parent == this.parent
 
-        - UiClipRect(radius: 7.5):
+        - ClipRect(radius: 7.5):
           this.fill(parent, 10)
           doassert root == this.parent.parent
 

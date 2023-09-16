@@ -20,7 +20,7 @@ type
     duration*: Property[Duration]
     action*: proc(x: T)
     interpolation*: Property[proc(x: float): float]
-    a, b*: Property[T]
+    a*, b*: Property[T]
     loop*: Property[bool]
     ended*: Event[void]
 
@@ -150,6 +150,7 @@ template transition*[T](prop: var AnyProperty[T], dur: Duration): Animation[T] =
     duration: dur.property
   )
   a.a{} = prop.unsafeVal
+  a.b{} = prop.unsafeVal
   prop.changed.insertConnection a.eventHandler, proc(v: T) =
     a.a{} = a.currentValue
     a.b{} = v

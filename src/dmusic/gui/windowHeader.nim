@@ -1,5 +1,5 @@
 import options
-import siwin
+import siwin, fusion/matching
 import ../configuration
 import ./[uibase, style, mouseArea]
 
@@ -27,7 +27,7 @@ proc newButton*(icon: string): Button =
   result.makeLayout:
     this.wh[] = vec2(50, 40)
 
-    - newUiMouseArea() as mouse:
+    - newMouseArea() as mouse:
       this.fill parent
 
       this.mouseDownAndUpInside.connectTo root:
@@ -82,7 +82,7 @@ proc newWindowHeader*(): WindowHeader =
   result.makeLayout:
     this.binding color: (if this.style[] != nil: this.style[].backgroundColor else: color(0, 0, 0))
 
-    - newUiMouseArea():
+    - newMouseArea():
       this.fill parent
 
       this.dragged.connectTo root:

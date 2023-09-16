@@ -3,7 +3,7 @@ import uibase
 export MouseButton, MouseMoveEvent
 
 type
-  UiMouseArea* = ref object of Uiobj
+  MouseArea* = ref object of Uiobj
     acceptedButtons*: Property[set[MouseButton]] = {MouseButton.left}.property
     ignoreHandling*: Property[bool]
       ## don't stop propogating signals even they are handled
@@ -23,7 +23,7 @@ type
     dragStarted: bool
 
 
-method recieve*(this: UiMouseArea, signal: Signal) =
+method recieve*(this: MouseArea, signal: Signal) =
   procCall this.super.recieve(signal)
 
   if this.visibility != collapsed:
@@ -87,4 +87,4 @@ method recieve*(this: UiMouseArea, signal: Signal) =
       this.hovered[] = false
 
 
-proc newUiMouseArea*(): UiMouseArea = new result
+proc newMouseArea*(): MouseArea = new result

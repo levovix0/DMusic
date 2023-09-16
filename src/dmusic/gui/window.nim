@@ -1,4 +1,4 @@
-import siwin
+import siwin, fusion/matching
 import ../configuration
 import ./[uibase, style, mouseArea]
 
@@ -8,9 +8,9 @@ type
     borderWidth: float32
     style: Property[Style]
     windowFrame {.cursor.}: UiRect
-    clipRect {.cursor.}: UiClipRect
+    clipRect {.cursor.}: ClipRect
     wasChangedCursor: bool
-    mouse: UiMouseArea
+    mouse: MouseArea
 
 
 proc updateChilds(this: DmusicWindow, initial = false) =
@@ -129,7 +129,7 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
   let dmWin = DmusicWindow()
 
   result.makeLayout:
-    - UiRectShadow():
+    - RectShadow():
       this.fill(parent)
       this.radius[] = 7.5
       this.blurRadius[] = 10
@@ -143,11 +143,11 @@ proc createWindow*(rootObj: Uiobj): UiWindow =
     - dmWin:
       this.fill(parent)
 
-      - newUiMouseArea():
+      - newMouseArea():
         this.fill(parent)
         dmWin.mouse = this
 
-        - UiClipRect():
+        - ClipRect():
           dmWin.clipRect = this
           this.radius[] = 7.5
 
