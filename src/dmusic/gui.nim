@@ -2,7 +2,8 @@ import times, asyncdispatch, std/importutils, heapqueue, deques, selectors
 import siwin, fusion/matching
 import ./[configuration, utils]
 import ./musicProviders/[yandexMusic]
-import ./gui/[uibase, style, window, windowHeader, globalShortcut, player, textArea, dmusicGlobals]
+import sigui/[uibase, globalShortcut]
+import ./gui/[style, window, windowHeader, player, textArea, dmusicGlobals]
 
 privateAccess PDispatcher  # to check if not empty (overthise it will spam error logs)
 

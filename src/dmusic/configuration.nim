@@ -1,7 +1,7 @@
 import json, os, math, macros, options, logging
 import fusion/matching, fusion/astdsl, localize
 import ./utils
-import gui/uibase
+import sigui/uibase
 export localize, uibase
 export logging except error, warning, info
 

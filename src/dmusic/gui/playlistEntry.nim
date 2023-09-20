@@ -1,6 +1,6 @@
 import asyncdispatch
-import pixie, pixie/fileformats/svg, fusion/matching
-import ./[uibase, mouseArea, style, animations, dmusicGlobals, gl]
+import pixie, pixie/fileformats/svg, fusion/matching, sigui
+import ./[style, dmusicGlobals]
 import ../[api, utils, configuration, audio]
 import ../musicProviders/[yandexMusic]
 
@@ -78,7 +78,7 @@ method init*(this: PlaylistEntry) =
             else: color(0, 0, 0, 0)
           
           - this.color.transition(0.4's):
-            this.interpolation[] = outQubicInterpolation
+            this.interpolation[] = outCubicInterpolation
         
         - UiSvgImage():
           this.centerIn parent
@@ -115,7 +115,7 @@ method init*(this: PlaylistEntry) =
           #   start this
           
           - this.color.transition(0.4's):
-            this.interpolation[] = outQubicInterpolation
+            this.interpolation[] = outCubicInterpolation
           
           - this.w.transition(0.4's):
             this.interpolation[] = outBounceInterpolation
@@ -145,7 +145,7 @@ method init*(this: PlaylistEntry) =
 
 
 when isMainModule:
-  import ./layouts
+  import sigui/layouts
 
   preview(clearColor = color(1, 1, 1, 1), margin = 20,
     withWindow = proc: Uiobj =  

@@ -2,7 +2,8 @@ import asyncdispatch, times, sequtils, strutils, os, strformat
 import pixie/fileformats/svg, siwin, fusion/matching
 import ../[configuration, api, utils, audio, taglib]
 import ../musicProviders/[yandexMusic, youtube, requests]
-import ./[uibase, style, globalShortcut, mouseArea]
+import sigui/[uibase, globalShortcut, mouseArea]
+import ./[style]
 
 type
   PlayerButton* = ref object of UiIcon

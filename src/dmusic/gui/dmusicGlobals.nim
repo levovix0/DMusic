@@ -1,4 +1,4 @@
-import uibase, player
+import sigui/uibase, player
 import ../api
 
 type

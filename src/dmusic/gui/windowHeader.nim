@@ -1,7 +1,8 @@
 import options
 import siwin, fusion/matching
 import ../configuration
-import ./[uibase, style, mouseArea]
+import sigui/[uibase, mouseArea]
+import ./[style]
 
 type
   Button = ref object of UiRect

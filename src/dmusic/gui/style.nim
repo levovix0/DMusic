@@ -1,5 +1,5 @@
 import strutils, macros
-import uibase
+import sigui/uibase
 import ../[configuration]
 
 type

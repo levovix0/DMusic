@@ -5,7 +5,6 @@
 import locks, times, os, sequtils, strutils, options, random, algorithm, asyncdispatch
 import miniaudio, miniaudio/futharkminiaudio
 import ./[api, configuration]
-import gui/[events]
 
 type
   AudioStreamState* = enum

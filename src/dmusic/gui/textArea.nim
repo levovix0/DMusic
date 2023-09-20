@@ -1,6 +1,6 @@
 import times
 import siwin
-import ./[uibase, mouseArea, globalShortcut]
+import sigui/[uibase, mouseArea, globalShortcut]
 
 type
   Blinking* = object
