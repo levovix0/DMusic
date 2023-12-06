@@ -19,23 +19,10 @@
 ## Installation
 * See [releases](https://github.com/levovix0/DMusic/releases)
 
-* Flatpak (from source code)
-  ```sh
-  git clone https://github.com/levovix0/DMusic
-  cd DMusic
-  flatpak install org.kde.Sdk/x86_64/5.15-21.08
-  flatpak install org.kde.Platform/x86_64/5.15-21.08
-  flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml
-  ```
-
-* AUR (from source code), see [package](https://aur.archlinux.org/packages/dmusic)
-  ```sh
-  yay -S dmusic
-  ```
-
 * Compile for Linux (from source code)
   ```sh
-  sudo pacman -S nim  # or use other way to install nim in your linux distribution
+  yay -S choosenim-bin  # or use other way to install choosenim in your linux distribution
+  choosenim 1.6.14
   git clone https://github.com/levovix0/DMusic
   cd DMusic
   nimble install  # result will be ~/.nimble/bin/dmusic
@@ -49,8 +36,25 @@
   fish_add_path ~/.nimble/bin/dmusic
   ```
 
-* Compile for Windows (from source code)  
+* (**DEPRECATED**) Flatpak (from source code) <details>
+  ```sh
+  git clone https://github.com/levovix0/DMusic
+  cd DMusic
+  flatpak install org.kde.Sdk/x86_64/5.15-21.08
+  flatpak install org.kde.Platform/x86_64/5.15-21.08
+  flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml
+  ```
+  </details>
+
+* (**DEPRECATED**) AUR (from source code), see [package](https://aur.archlinux.org/packages/dmusic) <details>
+  ```sh
+  yay -S dmusic
+  ```
+  </details>
+
+* (**DEPRECATED**) Compile for Windows (from source code)  <details>
   see [wiki](https://github.com/levovix0/DMusic/wiki/Building-on-Windows)
+  </details>
 
 <details><summary>Compile flags</summary><p>
   <code>-d:debugRequests</code> - print all requested urls to stdout
@@ -61,8 +65,8 @@
 </p></details>
 
 ## Dependencies (excluding nim libraries)
-* Nim 1.6.10
-* Qt 5.15.2 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2, svg)
+* Nim == 1.6.14
+* Qt == 5.15.2 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2, svg)
 * TagLib
 
 ## Contributions
