@@ -22,7 +22,7 @@
 * Compile for Linux (from source code)
   ```sh
   yay -S choosenim-bin  # or use other way to install choosenim in your linux distribution
-  choosenim 1.6.14
+  choosenim 1.6.16
   git clone https://github.com/levovix0/DMusic
   cd DMusic
   nimble install  # result will be ~/.nimble/bin/dmusic
@@ -65,7 +65,7 @@
 </p></details>
 
 ## Dependencies (excluding nim libraries)
-* Nim == 1.6.14
+* Nim == 1.6.16
 * Qt == 5.15.2 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2, svg)
 * TagLib
 
