@@ -36,6 +36,11 @@
   fish_add_path ~/.nimble/bin/dmusic
   ```
 
+* AUR (from source code), see [package](https://aur.archlinux.org/packages/dmusic)
+  ```sh
+  yay -S dmusic
+  ```
+
 * (**DEPRECATED**) Flatpak (from source code) <details>
   ```sh
   git clone https://github.com/levovix0/DMusic
@@ -43,12 +48,6 @@
   flatpak install org.kde.Sdk/x86_64/5.15-21.08
   flatpak install org.kde.Platform/x86_64/5.15-21.08
   flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml
-  ```
-  </details>
-
-* (**DEPRECATED**) AUR (from source code), see [package](https://aur.archlinux.org/packages/dmusic) <details>
-  ```sh
-  yay -S dmusic
   ```
   </details>
 
@@ -65,7 +64,7 @@
 </p></details>
 
 ## Dependencies (excluding nim libraries)
-* Nim == 1.6.16
+* Nim >= 2.0.0
 * Qt == 5.15.2 (declarative, imageformats, graphicaleffects, multimedia, quickcontrols, quickcontrols2, svg)
 * TagLib
 

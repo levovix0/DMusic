@@ -73,15 +73,11 @@ var
   cmdCount* {.importc.}: cint
   cmdLine* {.importc.}: cstringArray
 
-proc init(app: ptr QApplication, argc = cmdCount, argv = cmdLine)
-  {.importcpp: "new (#) QApplication(@)", header: "QApplication".}
+proc newQApplication(argc = cmdCount, argv = cmdLine): ptr QApplication
+  {.importcpp: "new QApplication(@)", header: "QApplication".}
 
-proc destroy(app: QApplication)
-  {.importcpp: "#.~QApplication()", header: "QApplication".}
-
-var app: ref QApplication
-new app, (proc(_: ref QApplication) = destroy app[])
-init cast[ptr QApplication](app)
+let app {.used.} = newQApplication()
+# `app` will be freed at the end of main
 
 
 proc exec*(this: type QApplication): int32 {.importcpp: "QApplication::exec()", header: "QApplication".}
@@ -262,7 +258,7 @@ proc implslot(t, ct: NimNode, name: string, rettype: NimNode, args: seq[NimNode]
 
 proc qoClass(name: string, body: string, parent: string): array[3, string] =
   [
-    &"""/*TYPESECTION*/ class {name} : public {parent} {{
+    &"""class {name} : public {parent} {{
   Q_OBJECT
   public: {name}(QObject* parent = nullptr);
   """,
@@ -476,6 +472,7 @@ macro qobject*(t, body) =
 
   buildAst(stmtList):
     pragma: exprColonExpr i"emit": newLit &"/*INCLUDESECTION*/ #include <{parent}>"
+    pragma: exprColonExpr i"emit": newLit &"/*TYPESECTION*/ class {t};"
     pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
     pragma: exprColonExpr i"emit": bracket(newLit moc)
     templateDef:
@@ -579,8 +576,8 @@ macro qmodel*(t, body) =
   if rowsImpl == nil: error("rows must be declarated")
 
   impl.add:
-    let i = nskParam.gensym "index"
-    let role = nskParam.gensym "role"
+    let index = nskProc.gensym "index"
+    let role = nskProc.gensym "role"
 
     buildAst(procDef):
       gensym nskProc
@@ -588,8 +585,8 @@ macro qmodel*(t, body) =
       empty()
       formalParams:
         s"QVariant"
-        newIdentDefs(i, s"QModelIndex")
-        newIdentDefs(role, s"cint")
+        newIdentDefs(ident"index", s"QModelIndex")
+        newIdentDefs(ident"role", s"cint")
       pragma:
         i"exportc"
         exprColonExpr:
@@ -598,16 +595,42 @@ macro qmodel*(t, body) =
       empty()
       stmtList:
         varSection: identDefs(pragmaExpr(i"this", pragma(i"used")), ptrTy ct, empty())
+        
+        procDef:
+          index
+          empty(); empty()
+          formalParams:
+            i"QModelIndex"
+          pragma:
+            exprColonExpr:
+              i"importcpp"
+              newLit "(index)"
+          empty(); empty()
+        
+        procDef:
+          role
+          empty(); empty()
+          formalParams:
+            i"cint"
+          pragma:
+            exprColonExpr:
+              i"importcpp"
+              newLit "(role)"
+          empty(); empty()
+        
         pragma: exprColonExpr(i"emit", bracket(i"this", l" = this;"))
         quote do:
           template self(): var `t` {.used.} = this[].self
+        
         varSection:
-          identDefs(pragmaExpr(i"i", pragma(i"used")), empty(), call(s"int", dotExpr(i, s"row")))
-          identDefs(pragmaExpr(i"j", pragma(i"used")), empty(), call(s"int", dotExpr(i, s"column")))
+          identDefs(pragmaExpr(i"i", pragma(i"used")), empty(), call(s"int", dotExpr(call(index), s"row")))
+          identDefs(pragmaExpr(i"j", pragma(i"used")), empty(), call(s"int", dotExpr(call(index), s"column")))
+
         ifStmt: elifBranch:
           infix(s"notin", i"i"): infix(s"..<", newLit 0, rowsImpl)
           stmtList: returnStmt(empty())
-        caseStmt role:
+
+        caseStmt call(role):
           var ri = 0x0100
           for _, v in dataImpl:
             inc ri
@@ -644,6 +667,7 @@ macro qmodel*(t, body) =
 
   buildAst(stmtList):
     pragma: exprColonExpr i"emit": newLit &"/*INCLUDESECTION*/ #include <{parent}>"
+    pragma: exprColonExpr i"emit": newLit &"/*TYPESECTION*/ class {t};"
     pragma: exprColonExpr i"emit": bracket(newLit toEmit[0], t, " self;\n".l, newLit toEmit[1], newLit toEmit[2])
     pragma: exprColonExpr i"emit": bracket(newLit moc)
     templateDef:
