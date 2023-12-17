@@ -19,29 +19,50 @@
 ## Installation
 * See [releases](https://github.com/levovix0/DMusic/releases)
 
-* Compile for Linux (from source code)
+* ### Compile for Linux (from source code)
+
+  Install [Nim](https://nim-lang.org)
   ```sh
-  yay -S choosenim-bin  # or use other way to install choosenim in your linux distribution
-  choosenim 1.6.16
+  yay -S choosenim-bin
+  choosenim stable
+  ```
+  
+  Download and compile DMusic
+  ```sh
   git clone https://github.com/levovix0/DMusic
   cd DMusic
   nimble install  # result will be ~/.nimble/bin/dmusic
   ```
-  add nimble dir to path (bash):
+
+  If you have Qt in non-standard location, specify `-d:qtInclude:path/to/qt/include`, `-d:qtLib:path/to/qt/lib` and `-d:qtBin:path/to/qt/bin` in `nimble install` BEFORE word "install"
+  
+  Add nimble dir to path (bash):
   ```bash
   echo "export PATH='\$PATH:~/.nimble/bin/dmusic'" >> ~/.bashrc
   ```
-  add nimble dir to path (fish):
+  
+  Add nimble dir to path (fish):
   ```fish
   fish_add_path ~/.nimble/bin/dmusic
   ```
 
-* AUR (from source code), see [package](https://aur.archlinux.org/packages/dmusic)
+* ### AUR (from source code), see [package](https://aur.archlinux.org/packages/dmusic)
   ```sh
   yay -S dmusic
   ```
 
-* (**DEPRECATED**) Flatpak (from source code) <details>
+* ### Cross-compile to Windows (requires Linux)
+  
+  Install all from "Compile from source code" and download DMusic sources, then
+  ```sh
+  nimble buildWindows
+  ```
+  all should promably maybe work automatically...
+  
+  result will be in `build-windows/DMusic` and `build-windows/DMusic.zip`
+
+* ### (**DEPRECATED**) Flatpak (from source code)
+  <details>
   ```sh
   git clone https://github.com/levovix0/DMusic
   cd DMusic
@@ -51,7 +72,8 @@
   ```
   </details>
 
-* (**DEPRECATED**) Compile for Windows (from source code)  <details>
+* ### (**DEPRECATED**) Compile for source code on Windows
+  <details>
   see [wiki](https://github.com/levovix0/DMusic/wiki/Building-on-Windows)
   </details>
 

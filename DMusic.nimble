@@ -18,17 +18,6 @@ requires "checksums"
 
 mkdir "build"
 
-when defined(nimdistros):
-  import distros
-  if detectOs(Manjaro) or detectOS(ArchLinux):
-    foreignDep "qt5-base"
-    foreignDep "qt5-declarative"
-    foreignDep "qt5-graphicaleffects"
-    foreignDep "qt5-multimedia"
-    foreignDep "qt5-quickcontrols"
-    foreignDep "qt5-quickcontrols2"
-    foreignDep "taglib"
-
 
 task translate, "generate translations":
   exec "lrelease translations/russian.ts -qm translations/russian.qm"
@@ -59,12 +48,12 @@ task buildWindows, "cross-compile from Linux to Windows":
       cmake "":
         discard
     
-    if not dirExists("zlib-1.2.13"):
-      exec "wget https://zlib.net/zlib-1.2.13.tar.gz"
-      exec "tar -xf zlib-1.2.13.tar.gz"
-      rmFile "zlib-1.2.13.tar.gz"
+    if not dirExists("zlib-1.3"):
+      exec "wget https://zlib.net/zlib-1.3.tar.gz"
+      exec "tar -xf zlib-1.3.tar.gz"
+      rmFile "zlib-1.3.tar.gz"
 
-    withDir "zlib-1.2.13":
+    withDir "zlib-1.3":
       cmake "":
         cpFile "libzlibstatic.a", "libz.a"
     
@@ -87,17 +76,17 @@ task buildWindows, "cross-compile from Linux to Windows":
       exec "unzip DMusic-windows-updated.zip -d dmusic-0.4"
       rmFile "DMusic-windows-updated.zip"
     
-    if not dirExists("nim-1.6.12"):
-      exec "wget https://nim-lang.org/download/nim-1.6.12_x64.zip"
-      exec "unzip nim-1.6.12_x64.zip"
-      rmFile "nim-1.6.12_x64.zip"
+    if not dirExists("nim-2.0.0"):
+      exec "wget https://nim-lang.org/download/nim-2.0.0_x64.zip"
+      exec "unzip nim-2.0.0_x64.zip"
+      rmFile "nim-2.0.0_x64.zip"
     
     if not dirExists("mingw64"):
       exec "wget https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/seh/x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z"
       exec "7z x x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z"
       rmFile "x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z"
 
-  exec "nimble cpp --warnings:off -d:mingw -d:compiletimeOs:linux --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++ -d:taglibLib:build-windows/taglib-1.12/build/taglib -d:qtLib:build-windows/dmusic-0.4/DMusic --passl:-Lbuild-windows/zlib-1.2.13/build -o:build-windows/dmusic.exe -d:danger --app:gui src/dmusic.nim"
+  exec "nimble cpp --warnings:off -d:mingw -d:compiletimeOs:linux --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++ -d:taglibLib:build-windows/taglib-1.12/build/taglib -d:qtLib:build-windows/dmusic-0.4/DMusic --passl:-Lbuild-windows/zlib-1.3/build -o:build-windows/dmusic.exe -d:danger --app:gui src/dmusic.nim"
   # exec "nimble cpp -d:mingw --d:compiletimeOs:linux --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++ -o:build-windows/dmusic.exe src/dmusic.nim"
 
   withDir "build-windows":
@@ -139,9 +128,9 @@ task buildWindows, "cross-compile from Linux to Windows":
     cpFile "mingw64/bin/libgcc_s_seh-1.dll", "DMusic/libgcc_s_seh-1.dll"
     cpFile "mingw64/bin/libstdc++-6.dll", "DMusic/libstdc++-6.dll"
     cpFile "mingw64/bin/libwinpthread-1.dll", "DMusic/libwinpthread-1.dll"
-    cpFile "nim-1.6.12/bin/libcrypto-1_1-x64.dll", "DMusic/libcrypto-1_1-x64.dll"
-    cpFile "nim-1.6.12/bin/libssl-1_1-x64.dll", "DMusic/libssl-1_1-x64.dll"
-    cpFile "nim-1.6.12/bin/pcre64.dll", "DMusic/pcre64.dll"
-    cpFile "nim-1.6.12/bin/cacert.pem", "DMusic/cacert.pem"
+    cpFile "nim-2.0.0/bin/libcrypto-1_1-x64.dll", "DMusic/libcrypto-1_1-x64.dll"
+    cpFile "nim-2.0.0/bin/libssl-1_1-x64.dll", "DMusic/libssl-1_1-x64.dll"
+    cpFile "nim-2.0.0/bin/pcre64.dll", "DMusic/pcre64.dll"
+    cpFile "nim-2.0.0/bin/cacert.pem", "DMusic/cacert.pem"
 
     exec "zip -r DMusic.zip DMusic"
