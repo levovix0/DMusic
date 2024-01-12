@@ -59,7 +59,7 @@ proc genconfigImpl(body: NimNode, path: seq[string], prefix: string, stmts, qobj
       else: i"int"
 
     stmts.add quote do:
-      var `notify`*: proc() = proc() = discard
+      var `notify`*: Notification
     
     stmts.add: buildAst(procDef):
       postfix i"*", name
@@ -181,8 +181,6 @@ genconfig:
   bool darkTheme true
   bool darkHeader true
   bool themeByTime true
-
-  bool discordPresence
 
   string proxyServer
   string proxyAuth

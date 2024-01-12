@@ -3,7 +3,10 @@ import unicode, times, sequtils, tables, json
 type
   CacheTable*[K, V] = object
     table: Table[K, (V, Time)]
+  
+  Notification* = seq[proc()]
 
+{.experimental: "callOperator".}
 
 
 proc quoted*(s: string): string =
@@ -24,12 +27,8 @@ proc format*(d: Duration, format: static string): string =
 proc formatTime*(format: static string, ns=0, mis=0, ms=0, s=0, m=0, h=0, d=0): string =
   times.format(dateTime(1, mJan, 1, 0, 0, 0) + initDuration(ns, mis, ms, s, m, h, d), format)
 
-proc `&`*(x: proc(), f: proc()): proc() =
-  ## concatenate procs
-  (proc = x(); f())
-
-proc add*(x: var proc(), f: proc()) =
-  x = x & f
+proc `()`*(n: Notification) =
+  for x in n: x()
 
 proc move*[T](x: var seq[T], i, to: int) =
   let a = x[i]

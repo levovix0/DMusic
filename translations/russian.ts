@@ -125,13 +125,6 @@
     </message>
 </context>
 <context>
-    <name>DiscordPresence</name>
-    <message>
-        <source>Failed to initialize discord pressence</source>
-        <translation type="vanished">Не удалось инициализировать discord pressence</translation>
-    </message>
-</context>
-<context>
     <name>DropPlace</name>
     <message>
         <location filename="../qml/components/DropPlace.qml" line="13"/>
@@ -155,11 +148,6 @@
         <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="30"/>
         <source>Skip duplicates in radio</source>
         <translation>Пропускать повторяющиеся треки в радио</translation>
-    </message>
-    <message>
-        <location filename="../qml/pages/settings/GeneralSettingsBlock.qml" line="16"/>
-        <source>Discord presence</source>
-        <translation>Статус в дискорде</translation>
     </message>
     <message>
         <source>Download all track&apos;s audios</source>

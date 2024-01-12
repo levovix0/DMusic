@@ -57,20 +57,18 @@
   ```sh
   nimble buildWindows
   ```
-  all should promably maybe work automatically...
+  all sholud prombably myabe work automatically...
   
   result will be in `build-windows/DMusic` and `build-windows/DMusic.zip`
 
-* ### (**DEPRECATED**) Flatpak (from source code)
-  <details>
+* ### (**NOT WORK NOW**) Flatpak (from source code)
   ```sh
   git clone https://github.com/levovix0/DMusic
   cd DMusic
-  flatpak install org.kde.Sdk/x86_64/5.15-21.08
-  flatpak install org.kde.Platform/x86_64/5.15-21.08
+  flatpak install org.kde.Sdk/x86_64/5.15-23.08
+  flatpak install org.kde.Platform/x86_64/5.15-23.08
   flatpak-builder --user --install --force-clean build-flatpak org.DTeam.DMusic.yml
   ```
-  </details>
 
 * ### (**DEPRECATED**) Compile for source code on Windows
   <details>

@@ -24,12 +24,13 @@ type
 var currentTrack* = Track()
 var currentSequence = new TrackSequence
 
-var notify_track_changed*: proc() = proc = discard
-var notify_position_changed*: proc() = proc = discard
-var notify_state_changed: proc() = proc = discard
-var notify_track_ended: proc() = proc = discard
-var notify_track_failed_to_load: proc() = proc = discard
-var notify_lost_internet_connection: proc() = proc = discard
+var notify_track_changed*: Notification
+var notify_position_changed*: Notification
+var notify_player_state_changed*: Notification
+var notify_state_changed: Notification
+var notify_track_ended: Notification
+var notify_track_failed_to_load: Notification
+var notify_lost_internet_connection: Notification
 
 proc curr(x: TrackSequence): Track =
   try:
@@ -197,6 +198,9 @@ proc notify_track_failed_to_load_c {.exportc.} =
 proc notify_lost_internet_connection_c {.exportc.} =
   notify_lost_internet_connection()
 
+proc notify_player_state_changed_c {.exportc.} =
+  notify_player_state_changed()
+
 proc onMain =
   {.emit: """
   QObject::connect(`player`, &QMediaPlayer::positionChanged, []() { `notifyPositionChangedC`(); });
@@ -208,6 +212,7 @@ proc onMain =
     if (error == QMediaPlayer::NetworkError) `notify_lost_internet_connection_c`();
     else `notify_track_failed_to_load_c`();
   });
+  QObject::connect(`player`, &QMediaPlayer::stateChanged, [](QMediaPlayer::State state) { `notify_player_state_changed_c`(); });
   """.}
 onMain()
 

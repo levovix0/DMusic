@@ -1,6 +1,6 @@
 app-id: org.DTeam.DMusic
 runtime: org.kde.Platform
-runtime-version: '5.15-21.08'  # note: deprecated runtime
+runtime-version: '5.15-23.08'
 sdk: org.kde.Sdk
 command: dmusic
 finish-args:
@@ -20,10 +20,10 @@ modules:
       - cp bin/nimble /app/nim/bin/nimble
     sources:
       - type: archive
-        url: https://nim-lang.org/download/nim-1.6.10-linux_x64.tar.xz
+        url: https://nim-lang.org/download/nim-2.0.0-linux_x64.tar.xz
         # this checksum is from:
-        # https://nim-lang.org/download/nim-1.6.10-linux_x64.tar.xz.sha256
-        sha256: 2cdf8f4666f731a0197805fa16e147c739e47fbbced35c1d3d1fa33d8659efc3
+        # https://nim-lang.org/download/nim-2.0.0-linux_x64.tar.xz.sha256
+        sha256: ca1ffec35439a02b3102faf1c1caf5a033f929832b7fa2c76b3a6a7216f14f01
 
   - name: taglib
     config-opts:

@@ -33,14 +33,11 @@ DPage {
         width: root.width
         spacing: 40
 
-        Grid {
+        Flow {
           Layout.preferredWidth: root.width - 50
           id: _yandexHomePlaylists
 
-          columns: (width + 25) / (115 + 25)
           spacing: 25
-          rowSpacing: 0
-          horizontalItemAlignment: Qt.AlignHCenter
 
           Repeater {
             id: _yandexHomePlaylistsRepeater

@@ -20,6 +20,7 @@ qtBuildModule "Qml"
 qtBuildModule "Multimedia"
 qtBuildModule "QuickControls2"
 qtBuildModule "Svg"
+qtBuildModule "DBus"
 
 
 
@@ -392,7 +393,7 @@ proc qobjectCasesImpl(t, parent, body, ct: NimNode, x: NimNode, decl: var seq[st
         notify = ident &"{name}Changed"
         copyLineInfo notify, x
         newSignal notify, newEmptyNode(), @[], decl, impl, signalNames
-      
+
       else: error("Unexpected syntax", x)
     
     if getter == nil and notify != nil:
@@ -420,6 +421,9 @@ proc qobjectCasesImpl(t, parent, body, ct: NimNode, x: NimNode, decl: var seq[st
           identDefs(v, empty(), call(s"fromQtVal", i"value"))
         setter
   
+  of Command[Ident(strVal: "classinfo"), StrLit(strVal: @name), StrLit(strVal: @value)]:
+    decl.add("Q_CLASSINFO(" & name.quoted & ", " & value.quoted & ")")
+
   else: error("Unexpected syntax", x)
 
 
@@ -459,7 +463,7 @@ macro qobject*(t, body) =
     stmtList:
       quote do:
         template self(): var `t` {.used.} = this[].self
-      call s"wasMoved", i"self"
+      asgn i"self", call(s"default", call(s"typeof", i"self"))
 
   for x in body:
     qobjectCasesImpl t, parent, body, ct, x, decl, impl, constructor, signalNames

@@ -1,6 +1,6 @@
 import times, std/exitprocs
 import gui/[qt, messages, configuration]
-import gui/[yandexMusicQmlModule, audio, qmlUtils, playlist]
+import gui/[yandexMusicQmlModule, audio, qmlUtils, playlist, remotePlayer]
 import gui/components/[page, searchPage]
 import async, utils
 

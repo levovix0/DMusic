@@ -11,6 +11,7 @@ type
   QHash*[K, V] {.importcpp, header: "QHash".} = object
   QByteArray* {.importcpp, header: "QByteArray".} = object
   QByteArrayData* {.importcpp: "QByteArrayData", header: "QArrayData".} = object
+  QStringList* {.importcpp, header: "QStringList".} = object
 
   QObject* {.importcpp, header: "QObject", inheritable.} = object
 
@@ -47,16 +48,16 @@ converter `$`*(this: QUrl): string =
 
 
 #----------- QList -----------#
-converter toQList*[T](this: seq[T]): QList[T] =
-  proc ctor(len: int): QList {.importcpp: "QList(@)", header: "QList", constructor.}
-  proc `[]`(this: QList, i: int): var T {.importcpp: "#[#]", header: "QList".}
-  result = ctor(this.len)
-  for i, v in this:
-    result[i] = v
+converter toQList*[T](x: seq[T]): QList[T] =
+  proc ctor(len: int): QList[T] {.importcpp: "QList(@)", header: "QList", constructor.}
+  proc `[]`(this: QList[T], i: int): var T {.importcpp: "#[#]", header: "QList".}
+  result = ctor(x.len)
+  for i, v in x:
+    (result[i]) = v
 
 converter toSeq*[T](this: QList[T]): seq[T] =
-  proc len(this: QList): int {.importcpp: "#.size()", header: "QList".}
-  proc `[]`(this: QList, i: int): var T {.importcpp: "#[#]", header: "QList".}
+  proc len(this: QList[T]): int {.importcpp: "#.size()", header: "QList".}
+  proc `[]`(this: QList[T], i: int): var T {.importcpp: "#[#]", header: "QList".}
   result.setLen this.len
   for i, v in result.mpairs:
     v = this[i]
@@ -86,6 +87,16 @@ converter toQHash*(v: openarray[(int, string)]): QHash[cint, QByteArray] =
   result = ctor()
   for (k, v) in v:
     result[k.cint] = v.toQByteArray
+
+
+
+#----------- QStringList -----------#
+converter toQStringList*(x: seq[string]): QStringList =
+  proc ctor(): QStringList {.importcpp: "QStringList(@)", header: "QStringList", constructor.}
+  proc append(this: QStringList, v: QString) {.importcpp: "#.append(#)", header: "QStringList".}
+  result = ctor()
+  for v in x:
+    result.append v
 
 
 

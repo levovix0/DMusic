@@ -186,6 +186,18 @@ proc audio*(this: Track): Future[string] {.async.} =
     "file:" & this.user.file
   else: ""
 
+proc coverOrUrl*(this: Track): string =
+  return case this.kind
+  of TrackKind.yandex:
+    this.yandex.coverUrl
+  of TrackKind.yandexFromFile:
+    if this.yandexFromFile.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.yandexFromFile.metadata.cover.encode
+  of TrackKind.user:
+    if this.user.metadata.cover.encode == "": emptyCover
+    else: "data:image/png;base64," & this.user.metadata.cover.encode
+  else: ""
+
 proc cover*(this: Track): Future[string] {.async.} =
   return case this.kind
   of TrackKind.yandex:
@@ -323,6 +335,7 @@ proc `disliked=`*(this: Track, v: bool) {.async.} =
   else: discard
 
 proc duration*(this: Track): int =
+  ## in milliseconds
   case this.kind
   of TrackKind.yandex:
     this.yandex.duration
