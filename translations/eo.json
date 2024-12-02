@@ -1,51 +1,51 @@
 {
-  "src/dmusic.nim": {
-    "No tracks specified": {
-      "": "Neniu spuro specifita"
-    },
-    "Can't download multiple tracks to same file": {
-      "": "Ne eblas elŝuti plurajn trakojn al la sama dosiero"
-    }
-  },
   "src/gui/audio.nim": {
-    "Unimplemented": {
-      "": "Ne efektivigita"
-    },
     "toglleLiked() unknown track kind: {kind}": {
       "": "toglleLiked() nekonata trako speco: {kind}"
-    }
-  },
-  "src/gui/yandexMusicQmlModule.nim": {
-    "My wave": {
-      "": "Mia ondo"
     },
-    "Downloads": {
-      "": "Elŝutoj"
-    },
-    "qrc:/resources/covers/downloads.svg": {
-      "": "qrc:/resources/covers/downloads-eo.svg"
-    },
-    "Favorites": {
-      "": "Favoratoj"
-    },
-    "qrc:/resources/covers/my wave.svg": {
-      "": "qrc:/resources/covers/my wave-eo.svg"
-    },
-    "qrc:/resources/covers/favorite.svg": {
-      "": "qrc:/resources/covers/favorite-eo.svg"
-    }
-  },
-  "src/gui.nim": {
-    "Defect during async operation": {
-      "": "Defect during async operation"
-    },
-    "Error during async operation": {
-      "": "Error during async operation"
+    "Unimplemented": {
+      "": "Ne efektivigita"
     }
   },
   "src/gui/qmlUtils.nim": {
     "Open file": {
       "": "Malfermi dosieron"
+    }
+  },
+  "src/dmusic.nim": {
+    "Can't download multiple tracks to same file": {
+      "": "Ne eblas elŝuti plurajn trakojn al la sama dosiero"
+    },
+    "No tracks specified": {
+      "": "Neniu spuro specifita"
+    }
+  },
+  "src/gui/yandexMusicQmlModule.nim": {
+    "Downloads": {
+      "": "Elŝutoj"
+    },
+    "Favorites": {
+      "": "Favoratoj"
+    },
+    "qrc:/resources/covers/downloads.svg": {
+      "": "qrc:/resources/covers/downloads-eo.svg"
+    },
+    "My wave": {
+      "": "Mia ondo"
+    },
+    "qrc:/resources/covers/favorite.svg": {
+      "": "qrc:/resources/covers/favorite-eo.svg"
+    },
+    "qrc:/resources/covers/my wave.svg": {
+      "": "qrc:/resources/covers/my wave-eo.svg"
+    }
+  },
+  "src/gui.nim": {
+    "Error during async operation": {
+      "": "Error during async operation"
+    },
+    "Defect during async operation": {
+      "": "Defect during async operation"
     }
   }
 }

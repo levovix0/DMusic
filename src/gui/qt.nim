@@ -20,7 +20,9 @@ qtBuildModule "Qml"
 qtBuildModule "Multimedia"
 qtBuildModule "QuickControls2"
 qtBuildModule "Svg"
-qtBuildModule "DBus"
+
+when defined(linux):
+  qtBuildModule "DBus"
 
 
 
@@ -316,7 +318,7 @@ proc qobjectCasesImpl(t, parent, body, ct: NimNode, x: NimNode, decl: var seq[st
             for arg in args.argNames.mapit(@[it, l", "]).concat[0..^2]: arg
           l");"
 
-  case x  
+  case x
   of ProcDef[Ident(strVal: @name), Empty(), Empty(), FormalParams[@rettype, all @args], Empty(), Empty(), StmtList[all @body]]:
     decl.add declslot(name, rettype, args)
     

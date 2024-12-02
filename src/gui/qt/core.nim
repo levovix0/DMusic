@@ -58,8 +58,10 @@ converter toQList*[T](x: seq[T]): QList[T] =
 converter toSeq*[T](this: QList[T]): seq[T] =
   proc len(this: QList[T]): int {.importcpp: "#.size()", header: "QList".}
   proc `[]`(this: QList[T], i: int): var T {.importcpp: "#[#]", header: "QList".}
-  result.setLen this.len
+  result = newSeqUninit[T](this.len)
   for i, v in result.mpairs:
+    when T is QUrl:
+      v = T()
     v = this[i]
 
 

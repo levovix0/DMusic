@@ -1,14 +1,12 @@
 import times, os, filetype, strformat, json
 import impl, utils, compileutils
 
-const taglibPath = findExistant("C:/taglib", "D:/taglib", "C:/Libraries/taglib", "D:/Libraries/taglib")
+const taglibPath {.used.} = findExistant("C:/taglib", "D:/taglib", "C:/Libraries/taglib", "D:/Libraries/taglib")
 
 const taglibInclude {.strdefine.} =
   when defined(flatpak): "/app/include/taglib"
-  else:
-    case compiletimeOs
-    of "windows": taglibPath / "include" / "taglib"
-    else: "/usr/include/taglib"
+  elif defined(windows): taglibPath / "include" / "taglib"
+  else:                  "/usr/include/taglib"
 
 const taglibLib {.strdefine.} =
   when defined(flatpak): "/app/lib"

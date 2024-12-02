@@ -38,12 +38,12 @@ task buildWindows, "cross-compile from Linux to Windows":
     mkdir "build-windows"
   
   withDir "build-windows":
-    if not dirExists("taglib-1.12"):
-      exec "wget https://taglib.org/releases/taglib-1.12.tar.gz"
-      exec "tar -xf taglib-1.12.tar.gz"
-      rmFile "taglib-1.12.tar.gz"
+    if not dirExists("taglib-2.0.2"):
+      exec "wget https://taglib.org/releases/taglib-2.0.2.tar.gz"
+      exec "tar -xf taglib-2.0.2.tar.gz"
+      rmFile "taglib-2.0.2.tar.gz"
     
-    withDir "taglib-1.12":
+    withDir "taglib-2.0.2":
       cmake "":
         discard
     
@@ -85,7 +85,15 @@ task buildWindows, "cross-compile from Linux to Windows":
       exec "7z x x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z"
       rmFile "x86_64-8.1.0-release-win32-seh-rt_v6-rev0.7z"
 
-  exec "nimble cpp --warnings:off -d:mingw -d:compiletimeOs:linux --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++ -d:taglibLib:build-windows/taglib-1.12/build/taglib -d:qtLib:build-windows/dmusic-0.4/DMusic --passl:-Lbuild-windows/zlib-1.3/build -o:build-windows/dmusic.exe -d:danger --app:gui src/dmusic.nim"
+  exec "nimble " & [
+    "cpp --warnings:off -d:mingw -d:compiletimeOs:linux --os:windows --cc:gcc",
+    "--gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc",
+    "--gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++",
+    "-d:taglibLib:build-windows/taglib-2.0.2/build/taglib",
+    "-d:taglibInclude:/usr/include/taglib",
+    "-d:qtLib:build-windows/dmusic-0.4/DMusic --passl:-Lbuild-windows/zlib-1.3/build",
+    "-o:build-windows/dmusic.exe -d:danger --app:gui src/dmusic.nim",
+  ].join(" ")
   # exec "nimble cpp -d:mingw --d:compiletimeOs:linux --os:windows --cc:gcc --gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++ -o:build-windows/dmusic.exe src/dmusic.nim"
 
   withDir "build-windows":
