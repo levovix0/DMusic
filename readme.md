@@ -7,13 +7,11 @@
 ![Screenshot](https://i.imgur.com/zjiXeOh.png)  
 <p align="center">
   <img alt="Version" src="https://img.shields.io/badge/Version-0.4.1-x.svg?style=flat-square&logoColor=white&color=blue">
-  <img alt="Stable" src="https://img.shields.io/badge/Stable-0.4-x.svg?style=flat-square&logoColor=white&color=blue">
   &nbsp;&nbsp;
   <img alt="Nim" src="https://img.shields.io/badge/Nim-Nim.svg?style=flat-square&logo=nim&logoColor=white&color=cb9e50">
   <img alt="QML" src="https://img.shields.io/badge/QML-QML.svg?style=flat-square&logo=qt&logoColor=white&color=3db069">
   &nbsp;&nbsp;
   <img alt="Code size" src="https://img.shields.io/github/languages/code-size/levovix0/DMusic?style=flat-square">
-  <img alt="Total lines" src="https://img.shields.io/tokei/lines/github/levovix0/DMusic?color=purple&style=flat-square">
 </p>
 
 ## Installation
