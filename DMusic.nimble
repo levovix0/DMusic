@@ -90,7 +90,12 @@ task buildWindows, "cross-compile from Linux to Windows":
     "--gcc.exe:/usr/bin/x86_64-w64-mingw32-gcc --gcc.linkerexe:/usr/bin/x86_64-w64-mingw32-gcc",
     "--gcc.cpp.exe:/usr/bin/x86_64-w64-mingw32-g++ --gcc.cpp.linkerexe:/usr/bin/x86_64-w64-mingw32-g++",
     "-d:taglibLib:build-windows/taglib-2.0.2/build/taglib",
-    "-d:taglibInclude:/usr/include/taglib",
+    # "-d:taglibInclude:/usr/include/taglib",
+    "-d:taglibInclude:build-windows/taglib-2.0.2/taglib",
+    "--passC:-Ibuild-windows/taglib-2.0.2/taglib/mpeg",
+    "--passC:-Ibuild-windows/taglib-2.0.2/taglib/mpeg/id3v2",
+    "--passC:-Ibuild-windows/taglib-2.0.2/taglib/mpeg/id3v2/frames",
+    "--passC:-Ibuild-windows/taglib-2.0.2/taglib/toolkit",
     "-d:qtLib:build-windows/dmusic-0.4/DMusic --passl:-Lbuild-windows/zlib-1.3/build",
     "-o:build-windows/dmusic.exe -d:danger --app:gui src/dmusic.nim",
   ].join(" ")
