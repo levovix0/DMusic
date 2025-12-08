@@ -202,7 +202,7 @@ template s(s: string{lit}): NimNode = bindSym s
 
 proc toQtVal[T](v: T): auto =
   when T is string: toQString v
-  elif T is int: v.cint
+  elif T is int: cast[cint](v)
   elif T is float: v.cfloat
   else: v
 

@@ -53,62 +53,62 @@ when defined(linux):
     (*`result`)["mpris:artUrl"] = `cover`;
     """.}
   
-  proc signalUpdate(map: QVariantMap, iface: QString) =
+  proc signalUpdate(mapt: QVariantMap, iface: QString) =
     {.emit: """
-    if (`map`.isEmpty()) return;
+    if (`mapt`.isEmpty()) return;
 
     QDBusMessage signal = QDBusMessage::createSignal("/org/mpris/MediaPlayer2", "org.freedesktop.DBus.Properties", "PropertiesChanged");
-    QVariantList args = QVariantList() << `iface` << `map` << QStringList();
+    QVariantList args = QVariantList() << `iface` << `mapt` << QStringList();
     signal.setArguments(args);
 
     QDBusConnection::sessionBus().send(signal);
     """.}
 
-  proc signalPlayerUpdate(metadata: ptr QString2QVariantMap, map: QVariantMap) =
-    var vmap = map
+  proc signalPlayerUpdate(metadata: ptr QString2QVariantMap, mapt: QVariantMap) =
+    var vmap = mapt
     {.emit: """
     `vmap`["Metadata"] = *`metadata`;
     """.}
     signalUpdate(vmap, "org.mpris.MediaPlayer2.Player".toQString)
   
   proc onStateChanged(metadata: ptr QString2QVariantMap, state: PlayerState) =
-    var map: QVariantMap
+    var mapt: QVariantMap
     let stateString = toQString:
       case state
       of psPlaying: "Playing"
       of psPaused: "Paused"
       of psStopped: "Stopped"
     {.emit: """
-    map["PlaybackStatus"] = `stateString`;
+    `mapt`["PlaybackStatus"] = `stateString`;
 
     switch (`state`) {
     case QMediaPlayer::PlayingState:
-      map["CanPlay"] = true;
-      map["CanStop"] = true;
-      map["CanPause"] = true;
-      map["CanSeek"] = true;
-      map["CanGoNext"] = true;
-      map["CanGoPrevious"] = true;
+      `mapt`["CanPlay"] = true;
+      `mapt`["CanStop"] = true;
+      `mapt`["CanPause"] = true;
+      `mapt`["CanSeek"] = true;
+      `mapt`["CanGoNext"] = true;
+      `mapt`["CanGoPrevious"] = true;
       break;
     case QMediaPlayer::PausedState:
-      map["CanPlay"] = true;
-      map["CanStop"] = true;
-      map["CanPause"] = false;
-      map["CanSeek"] = true;
-      map["CanGoNext"] = true;
-      map["CanGoPrevious"] = true;
+      `mapt`["CanPlay"] = true;
+      `mapt`["CanStop"] = true;
+      `mapt`["CanPause"] = false;
+      `mapt`["CanSeek"] = true;
+      `mapt`["CanGoNext"] = true;
+      `mapt`["CanGoPrevious"] = true;
       break;
     default:
-      map["CanPlay"] = false;
-      map["CanStop"] = false;
-      map["CanPause"] = false;
-      map["CanSeek"] = false;
-      map["CanGoNext"] = false;
-      map["CanGoPrevious"] = false;
+      `mapt`["CanPlay"] = false;
+      `mapt`["CanStop"] = false;
+      `mapt`["CanPause"] = false;
+      `mapt`["CanSeek"] = false;
+      `mapt`["CanGoNext"] = false;
+      `mapt`["CanGoPrevious"] = false;
       break;
     }
     """.}
-    signalPlayerUpdate(metadata, map)
+    signalPlayerUpdate(metadata, mapt)
 
   
   type MprisRoot = object

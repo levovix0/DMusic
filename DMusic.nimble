@@ -11,7 +11,7 @@ requires "fusion"
 requires "cligen"
 requires "https://github.com/levovix0/impl"
 requires "filetype"
-requires "localize == 0.3.2"
+requires "localize"
 requires "pixie"
 requires "checksums"
 
